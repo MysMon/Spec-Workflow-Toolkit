@@ -2,6 +2,8 @@
 
 A Claude Code plugin providing disciplined software development practices across **any technology stack**.
 
+> **Based on Official Best Practices**: This plugin follows [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices) and [Official Plugin Guidelines](https://code.claude.com/docs/en/plugins).
+
 ## Core Philosophy
 
 ### Specification-Driven Development (SDD)
@@ -29,6 +31,13 @@ This toolkit is **stack-agnostic** by design:
 1. **ALWAYS delegate to subagents** for multi-step or exploratory work
 2. **Use `/clear` frequently** to reset when switching tasks
 3. **Never accumulate** detailed implementation context in main thread
+
+### Automatic Delegation
+
+Agents have **proactive triggers** in their descriptions. Claude Code will automatically suggest delegation when:
+- Task matches agent trigger phrases (e.g., "architecture", "test", "security review")
+- Task is complex and multi-step
+- Exploration or iteration is needed
 
 ### Mandatory Delegation Rules
 
@@ -64,6 +73,47 @@ Expected output:
 - Reading a specific file
 - Simple questions about the codebase
 - Quick config changes
+
+---
+
+## Long-Running Tasks & Autonomous Operation
+
+### Checkpoints and Recovery
+
+Claude Code supports **checkpoints** for long-running tasks:
+- Code state is saved before each change
+- Use `Esc` twice or `/rewind` to restore previous state
+- Safe exploration without fear of breaking things
+
+### Background Tasks
+
+For non-blocking operations:
+- Dev servers can run in background
+- Tests can execute while continuing work
+- Use `Ctrl+B` to send running tasks to background
+
+### Subagent Resumption
+
+Subagents maintain their context and can be resumed:
+- Each subagent has isolated context window
+- Resume with "Continue that [task]" to preserve history
+- Automatic compaction when context limit approaches
+
+### TodoWrite for Progress Tracking
+
+**CRITICAL**: Use TodoWrite tool extensively for:
+- Breaking down complex tasks
+- Tracking progress across context boundaries
+- Maintaining visibility during long operations
+- Documenting completed steps
+
+Example workflow:
+```
+1. Create todo list at task start
+2. Mark items in_progress when starting
+3. Mark completed immediately when done
+4. Add new items as they're discovered
+```
 
 ---
 
@@ -128,7 +178,10 @@ Expected output:
 ```
 commands/            # Workflow commands (/sdd, /code-review, etc.)
 agents/              # Specialized subagents (10 roles)
-skills/              # Task-oriented skills (10 skills)
+skills/              # Task-oriented skills with progressive disclosure
+  ├── core/          # Universal principles
+  ├── detection/     # Stack detection
+  └── workflows/     # Cross-stack workflows
 hooks/               # Automatic enforcement hooks
 docs/specs/          # Specifications (required before implementation)
 docs/specs/SPEC-TEMPLATE.md  # Specification template
@@ -140,7 +193,8 @@ docs/specs/SPEC-TEMPLATE.md  # Specification template
 
 | Hook | Trigger | Purpose |
 |------|---------|---------|
-| `sdd_context.sh` | SessionStart | Inject SDD philosophy reminder |
+| `sdd_context.sh` | SessionStart (once) | Inject SDD philosophy reminder |
+| `subagent_init.sh` | SubagentStart | Initialize subagent context |
 | `safety_check.py` | PreToolUse (Bash) | Block dangerous commands |
 | `prevent_secret_leak.py` | PreToolUse (Write/Edit) | Detect secrets |
 | `post_edit_quality.sh` | PostToolUse (Write/Edit) | Auto-lint/format |
@@ -172,7 +226,7 @@ Then start fresh with the next task.
 
 ### 4. Use TodoWrite for Progress
 
-Track progress with the todo list to maintain visibility across context boundaries.
+Track progress with the todo list to maintain visibility across context boundaries. **This is critical for autonomous operation.**
 
 ### 5. Trust the Workflow
 
@@ -180,3 +234,20 @@ The `/sdd` command implements proven patterns:
 - Phase gates prevent premature implementation
 - Parallel reviews catch issues early
 - Mandatory specs reduce rework
+
+### 6. Leverage Checkpoints
+
+Before risky changes:
+- Checkpoint is automatic before each edit
+- Use `/rewind` if something goes wrong
+- Experiment freely with safety net
+
+---
+
+## Official Resources
+
+- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
+- [Plugin Documentation](https://code.claude.com/docs/en/plugins)
+- [Agent Skills Guide](https://code.claude.com/docs/en/skills)
+- [Subagent Documentation](https://code.claude.com/docs/en/sub-agents)
+- [Official Plugin Marketplace](https://github.com/anthropics/claude-plugins-official)

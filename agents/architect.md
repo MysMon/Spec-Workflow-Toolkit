@@ -1,6 +1,14 @@
 ---
 name: architect
-description: System Architect for software design, database schema, API design, and architectural decisions. Use when designing new systems, evaluating technical approaches, creating database schemas, or making significant architectural choices.
+description: |
+  System Architect for software design, database schema, API design, and architectural decisions.
+  Use proactively when:
+  - Designing new systems or features ("design", "architect", "plan system")
+  - Evaluating technical approaches or trade-offs
+  - Creating database schemas or data models
+  - Making significant architectural choices
+  - Reviewing system design before implementation
+  Trigger phrases: architecture, system design, database schema, API design, technical decision, scalability, component design
 model: sonnet
 tools: Read, Glob, Grep, Write, Bash
 permissionMode: default

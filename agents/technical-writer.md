@@ -1,6 +1,14 @@
 ---
 name: technical-writer
-description: Technical Writer for documentation, changelogs, and API docs across any stack. Use for writing READMEs, updating documentation, generating changelogs, and creating architecture diagrams.
+description: |
+  Technical Writer for documentation, changelogs, and API docs across any stack.
+  Use proactively when:
+  - Writing or updating README files or documentation
+  - Generating changelogs or release notes
+  - Creating API documentation (OpenAPI, GraphQL docs)
+  - Documenting architecture decisions (ADRs)
+  - Creating diagrams or technical guides
+  Trigger phrases: documentation, README, changelog, API docs, release notes, ADR, technical writing, user guide, diagram
 model: sonnet
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits

@@ -1,6 +1,14 @@
 ---
 name: legacy-modernizer
-description: Legacy Code Specialist for reverse engineering, characterization testing, and safe refactoring across any stack. Use when modernizing old code, understanding undocumented systems, or performing large-scale refactoring.
+description: |
+  Legacy Code Specialist for reverse engineering, characterization testing, and safe refactoring across any stack.
+  Use proactively when:
+  - Modernizing or refactoring old or undocumented code
+  - Understanding complex legacy systems without documentation
+  - Writing characterization tests to capture existing behavior
+  - Planning migration strategies (Strangler Fig pattern, etc.)
+  - Large-scale refactoring with safety nets
+  Trigger phrases: legacy, modernize, refactor, characterization test, undocumented code, reverse engineer, migration, technical debt
 model: sonnet
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
