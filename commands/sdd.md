@@ -1,22 +1,25 @@
 ---
-description: "Launch the SDD (Specification-Driven Development) workflow - a guided multi-phase process from requirements to implementation"
+description: "Launch the SDD (Specification-Driven Development) workflow - a guided 7-phase process from discovery to implementation with parallel agent execution"
 argument-hint: "[optional: feature description]"
-allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite
 ---
 
 # /sdd - Specification-Driven Development Workflow
 
-Launch a guided multi-phase development workflow that ensures disciplined, spec-first development.
+Launch a guided 7-phase development workflow that ensures disciplined, spec-first development with context-preserving subagent delegation.
+
+Based on [Anthropic's official feature-dev plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/feature-dev).
 
 ## Phase Overview
 
-This command orchestrates 6 phases:
+This command orchestrates 7 phases:
 1. **Discovery** - Understand what needs to be built
-2. **Requirements** - Gather detailed specifications
-3. **Design** - Architecture decisions
-4. **Implementation** - Build the feature
-5. **Quality Review** - Ensure code meets standards
-6. **Summary** - Document what was accomplished
+2. **Codebase Exploration** - Understand existing code and patterns (parallel agents)
+3. **Clarifying Questions** - Fill gaps and resolve ambiguities
+4. **Architecture Design** - Design multiple approaches (parallel agents)
+5. **Implementation** - Build the feature
+6. **Quality Review** - Ensure code meets standards (parallel agents)
+7. **Summary** - Document what was accomplished
 
 ## Execution Instructions
 
@@ -24,11 +27,12 @@ This command orchestrates 6 phases:
 
 **ALWAYS delegate to subagents for complex work.** The main context must remain clean and focused on orchestration.
 
+- Use `code-explorer` agent for codebase analysis
 - Use `product-manager` agent for requirements gathering
 - Use `architect` agent for design decisions
 - Use `frontend-specialist` or `backend-specialist` for implementation
 - Use `qa-engineer` agent for testing
-- Use `security-auditor` agent for security review
+- Use `security-auditor` agent for security review (read-only)
 
 ### Phase 1: Discovery
 
@@ -46,68 +50,130 @@ If the request is vague or missing:
 
 **Output:** Summary of understanding and confirmation from user.
 
-### Phase 2: Requirements Gathering
+### Phase 2: Codebase Exploration
 
-**Goal:** Create a complete specification.
+**Goal:** Understand relevant existing code and patterns.
 
-**DELEGATE TO `product-manager` agent:**
-
-```
-Launch the product-manager agent to gather requirements for: [feature description]
-
-Context:
-- [Summary from Phase 1]
-- [Any constraints identified]
-
-Expected output:
-- Requirements summary with FR and NFR
-- User stories
-- Acceptance criteria
-- Out of scope items
-```
-
-**Wait for agent completion.** Review the requirements summary.
-
-Ask user: "Are these requirements complete? Should we proceed to design?"
-
-**Output:** Approved specification saved to `docs/specs/[feature-name].md`
-
-### Phase 3: Design
-
-**Goal:** Design the architecture and implementation approach.
-
-**DELEGATE TO `architect` agent:**
+**LAUNCH 2-3 `code-explorer` AGENTS IN PARALLEL:**
 
 ```
-Launch the architect agent to design the implementation for: [feature name]
+Launch these code-explorer agents in parallel:
 
-Context:
-- Specification: docs/specs/[feature-name].md
-- Project stack: [detected or specified]
+1. code-explorer (similar features)
+   Task: Explore existing implementations of similar features
+   Thoroughness: medium
+   Output: Entry points, execution flow, key files
 
-Expected output:
-- Architecture decisions (ADR format)
-- Component design
-- Data flow
-- Implementation approach options (minimum 2)
+2. code-explorer (architecture)
+   Task: Map the overall architecture and patterns used
+   Thoroughness: medium
+   Output: Layers, boundaries, conventions
+
+3. code-explorer (UI patterns) - if frontend work
+   Task: Trace UI component patterns and state management
+   Thoroughness: medium
+   Output: Component hierarchy, data flow
 ```
 
-**Present options to user:**
-- Option A: [Approach 1] - Pros/Cons
-- Option B: [Approach 2] - Pros/Cons
-- Recommendation: [Your recommendation]
+**Wait for all agents to complete.** Each returns:
+- Entry points with file:line references
+- Key components and responsibilities
+- Architecture insights
+- Files to read for deep understanding
 
-Ask user: "Which approach should we take?"
+**Read all identified key files** to build comprehensive understanding.
+
+**Present comprehensive summary of findings to user.**
+
+### Phase 3: Clarifying Questions
+
+**Goal:** Fill in gaps and resolve all ambiguities.
+
+Based on discovery and exploration, identify:
+- Edge cases
+- Error handling requirements
+- Integration points
+- Backward compatibility needs
+- Performance requirements
+
+**Ask clarifying questions using AskUserQuestion.**
+
+**CRITICAL: Wait for user answers before proceeding.**
+
+**Output:** Complete requirements with all ambiguities resolved.
+
+### Phase 4: Architecture Design
+
+**Goal:** Design multiple implementation approaches.
+
+**LAUNCH 2-3 `architect` AGENTS IN PARALLEL with different focuses:**
+
+```
+Launch these architect agents in parallel:
+
+1. architect (minimal approach)
+   Focus: Smallest change, maximum reuse of existing code
+   Context: [Exploration findings], [Requirements]
+   Output: Design with file:line modifications, trade-offs
+
+2. architect (clean architecture)
+   Focus: Maintainability, elegant abstractions, proper patterns
+   Context: [Exploration findings], [Requirements]
+   Output: Design with component structure, trade-offs
+
+3. architect (pragmatic balance)
+   Focus: Balance between speed and quality
+   Context: [Exploration findings], [Requirements]
+   Output: Design with implementation roadmap, trade-offs
+```
+
+**Review all approaches and form recommendation.**
+
+**Present comparison to user:**
+```markdown
+## Architecture Options
+
+### Option A: Minimal Changes
+- Approach: [Summary]
+- Pros: [List]
+- Cons: [List]
+- Estimated complexity: Low/Medium/High
+
+### Option B: Clean Architecture
+- Approach: [Summary]
+- Pros: [List]
+- Cons: [List]
+- Estimated complexity: Low/Medium/High
+
+### Option C: Pragmatic Balance
+- Approach: [Summary]
+- Pros: [List]
+- Cons: [List]
+- Estimated complexity: Low/Medium/High
+
+**Recommendation:** [Your recommendation with rationale]
+```
+
+**Ask user: "Which approach should we take?"**
 
 **Output:** Approved design saved to `docs/specs/[feature-name]-design.md`
 
-### Phase 4: Implementation
+### Phase 5: Implementation
 
 **Goal:** Build the feature according to spec and design.
 
 **IMPORTANT:** Wait for explicit user approval before starting implementation.
 
 Ask user: "Ready to start implementation? This will modify files in your codebase."
+
+**Initialize Progress Tracking:**
+```
+Create .claude/claude-progress.json with:
+- Project: [feature name]
+- Status: in_progress
+- Features to implement
+- Resumption context
+```
 
 **DELEGATE TO specialist agents:**
 
@@ -116,6 +182,7 @@ For frontend work:
 Launch the frontend-specialist agent to implement: [component/feature]
 Following specification: docs/specs/[feature-name].md
 Following design: docs/specs/[feature-name]-design.md
+Key files from exploration: [list]
 ```
 
 For backend work:
@@ -123,53 +190,117 @@ For backend work:
 Launch the backend-specialist agent to implement: [service/API]
 Following specification: docs/specs/[feature-name].md
 Following design: docs/specs/[feature-name]-design.md
+Key files from exploration: [list]
 ```
 
 **Track progress** using TodoWrite tool. Update status as each component completes.
 
-### Phase 5: Quality Review
+**Update progress file** after each significant milestone.
+
+### Phase 6: Quality Review
 
 **Goal:** Ensure code meets quality, security, and spec requirements.
 
-**Launch 3 parallel review agents:**
+**LAUNCH 3 PARALLEL REVIEW AGENTS:**
 
-1. **QA Engineer** - Test coverage and correctness
 ```
-Launch qa-engineer agent to review and test the implementation for: [feature]
-Focus on: Test coverage, edge cases, acceptance criteria verification
+Launch these review agents in parallel:
+
+1. qa-engineer agent
+   Focus: Test coverage, edge cases, acceptance criteria
+   Confidence threshold: 80
+   Output: Test gaps, missing coverage, suggestions
+
+2. security-auditor agent
+   Focus: OWASP Top 10, auth/authz, data validation
+   Confidence threshold: 80
+   Output: Vulnerabilities, remediation steps
+
+3. code-explorer agent
+   Focus: Verify implementation matches design
+   Thoroughness: quick
+   Output: Deviations from spec, missing pieces
 ```
 
-2. **Security Auditor** - Security review
-```
-Launch security-auditor agent to audit the implementation for: [feature]
-Focus on: OWASP Top 10, authentication/authorization, data validation
+**Consolidate findings with confidence weighting:**
+
+| Agent Count | Confidence Adjustment |
+|-------------|----------------------|
+| 1 agent reports | Use agent's score |
+| 2 agents agree | Boost score +10 |
+| 3+ agents agree | Treat as confirmed |
+
+**Present findings to user:**
+```markdown
+## Quality Review Results
+
+### Critical Issues (Confidence >= 90)
+1. **[Issue Title]** - [Category]
+   File: `file:line`
+   [Description]
+   **Fix:** [Remediation]
+
+### Important Issues (Confidence 80-89)
+...
+
+### Summary
+- Critical: [N]
+- Important: [N]
+- Filtered (below threshold): [N]
+
+**Verdict:** [APPROVED / NEEDS CHANGES]
 ```
 
-3. **Code Quality** - Apply code-quality skill
-```
-Run code-quality checks on modified files
-```
+**Ask user:** "Found [N] issues. What would you like to do?"
+1. Fix critical issues now
+2. Fix all issues now
+3. Proceed without changes
+4. Get more details on specific issues
 
-**Consolidate findings:**
-- Critical issues (must fix)
-- Important issues (should fix)
-- Suggestions (nice to have)
+**Address issues based on user decision.**
 
-Ask user: "Found [N] issues. Should we fix them now, fix later, or proceed as-is?"
-
-### Phase 6: Summary
+### Phase 7: Summary
 
 **Goal:** Document what was accomplished.
+
+**Update progress file to completed status.**
 
 Create summary including:
 - What was built
 - Key decisions made
 - Files modified/created
-- Test coverage
+- Test coverage achieved
 - Security review status
 - Suggested next steps
 
-**Output:** Summary displayed to user, todos marked complete.
+**Mark all todos complete.**
+
+**Output:** Summary displayed to user.
+
+```markdown
+## Implementation Complete
+
+### What Was Built
+- [Feature description]
+
+### Key Decisions
+- [Decision 1]: [Rationale]
+- [Decision 2]: [Rationale]
+
+### Files Modified
+| File | Changes |
+|------|---------|
+| `path/to/file.ts` | [Summary] |
+
+### Quality Status
+- Tests: [Passing/Failing]
+- Security: [Approved/Issues]
+- Coverage: [Percentage]
+
+### Next Steps
+1. [Suggested follow-up 1]
+2. [Suggested follow-up 2]
+```
 
 ## Usage Examples
 
@@ -186,14 +317,25 @@ Create summary including:
 
 ## Tips for Best Results
 
-1. **Be patient with requirements** - Phase 2 prevents future rework
-2. **Choose architecture deliberately** - Phase 3 options exist for a reason
-3. **Don't skip security review** - Phase 5 catches issues before production
-4. **Read agent outputs carefully** - They contain important decisions and context
+1. **Be patient with exploration** - Phase 2 prevents misunderstanding the codebase
+2. **Answer clarifying questions thoughtfully** - Phase 3 prevents future confusion
+3. **Choose architecture deliberately** - Phase 4 options exist for a reason
+4. **Don't skip security review** - Phase 6 catches issues before production
+5. **Read agent outputs carefully** - They contain important file:line references
 
 ## When NOT to Use
 
 - Single-line bug fixes (just fix it directly)
 - Trivial changes with clear scope
 - Urgent hotfixes requiring immediate deployment
-- Changes already fully specified
+- Use `/quick-impl` for small, well-defined tasks
+
+## Comparison with /quick-impl
+
+| Aspect | /sdd | /quick-impl |
+|--------|------|-------------|
+| Phases | 7 | 1 |
+| Exploration | Parallel agents | None |
+| Design options | Multiple | Single |
+| Review | Parallel agents | Basic |
+| Best for | Complex features | Small tasks |

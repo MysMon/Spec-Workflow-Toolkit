@@ -26,11 +26,13 @@ When reviewing code for quality or test coverage gaps, rate findings (0-100):
 | Score | Meaning | Action |
 |-------|---------|--------|
 | 90-100 | Critical gap - missing test for core logic | Must add test |
-| 70-89 | Important gap - edge case or error path | Should add test |
-| 50-69 | Minor gap - nice to have coverage | Consider adding |
-| Below 50 | Minimal risk - trivial code | Low priority |
+| 80-89 | Important gap - edge case or error path | Should add test |
+| 60-79 | Minor gap - nice to have coverage | Consider adding |
+| Below 60 | Minimal risk - trivial code | Low priority |
 
-**Focus on findings with confidence >= 70 for actionable recommendations.**
+**Only report findings with confidence >= 80 for actionable recommendations.**
+
+Based on [Anthropic's official code-reviewer pattern](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/feature-dev).
 
 ## Core Competencies
 
