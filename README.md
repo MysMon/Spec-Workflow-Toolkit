@@ -92,7 +92,7 @@ sdd-toolkit/
 ├── agents/                   # 11 specialized agents
 │   ├── code-explorer.md     # NEW: Deep codebase analysis (read-only)
 │   ├── product-manager.md
-│   ├── architect.md
+│   ├── system-architect.md
 │   ├── frontend-specialist.md
 │   ├── backend-specialist.md
 │   ├── qa-engineer.md
@@ -150,12 +150,12 @@ Launch 2-3 `code-explorer` agents to:
 Fill gaps, resolve ambiguities, confirm edge cases. **Waits for user answers.**
 
 ### Phase 4: Architecture Design (Parallel Agents)
-Launch 2-3 `architect` agents with different focuses:
-- Minimal changes approach
-- Clean architecture approach
-- Pragmatic balance approach
+Launch 2-3 `code-architect` agents with different focuses:
+- Reuse focus (maximum pattern reuse)
+- Extensibility focus (clean abstractions)
+- Performance focus (if relevant)
 
-Present options and **ask user which approach to take.**
+Each returns **definitive recommendations** based on codebase patterns with file:line references.
 
 ### Phase 5: Implementation
 After explicit user approval:
@@ -209,9 +209,10 @@ Based on Anthropic's long-running agent harness pattern:
 
 | Agent | Purpose |
 |-------|---------|
-| `code-explorer` | **NEW**: Deep codebase analysis with file:line references (read-only) |
+| `code-explorer` | Deep codebase analysis with file:line references (read-only) |
+| `code-architect` | **NEW**: Feature implementation blueprints with definitive recommendations |
 | `product-manager` | Requirements gathering, PRD creation, spec writing |
-| `architect` | System design, API design, database schema |
+| `system-architect` | System-level design, ADRs, API contracts, database schema |
 | `frontend-specialist` | UI implementation (adapts to React, Vue, Angular, etc.) |
 | `backend-specialist` | API implementation (adapts to Node, Python, Go, etc.) |
 | `qa-engineer` | Test strategy and automation (confidence >= 80) |

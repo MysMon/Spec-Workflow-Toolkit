@@ -66,7 +66,7 @@ For each issue, provide:
 
 **Agent 2: Technical Feasibility Review**
 ```
-Launch architect agent to review technical feasibility.
+Launch system-architect agent to review technical feasibility.
 
 Specification: [content]
 Project context: [detected stack]

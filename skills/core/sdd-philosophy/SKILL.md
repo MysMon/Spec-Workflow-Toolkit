@@ -73,7 +73,8 @@ docs/specs/
 | Agent | Role in SDD |
 |-------|-------------|
 | `product-manager` | Creates specs |
-| `architect` | Designs solutions |
+| `system-architect` | System-level design (ADRs, schemas) |
+| `code-architect` | Feature implementation blueprints |
 | `*-specialist` | Implements specs |
 | `qa-engineer` | Verifies specs |
 | `security-auditor` | Audits security NFRs |

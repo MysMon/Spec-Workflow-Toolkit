@@ -29,7 +29,8 @@ This command orchestrates 7 phases:
 
 - Use `code-explorer` agent for codebase analysis
 - Use `product-manager` agent for requirements gathering
-- Use `architect` agent for design decisions
+- Use `system-architect` agent for system-level design (ADRs, schemas, contracts)
+- Use `code-architect` agent for feature-level implementation blueprints
 - Use `frontend-specialist` or `backend-specialist` for implementation
 - Use `qa-engineer` agent for testing
 - Use `security-auditor` agent for security review (read-only)
@@ -104,57 +105,67 @@ Based on discovery and exploration, identify:
 
 ### Phase 4: Architecture Design
 
-**Goal:** Design multiple implementation approaches.
+**Goal:** Design the implementation approach based on codebase patterns.
 
-**LAUNCH 2-3 `architect` AGENTS IN PARALLEL with different focuses:**
+**LAUNCH 2-3 `code-architect` AGENTS IN PARALLEL with different focuses:**
 
 ```
-Launch these architect agents in parallel:
+Launch these code-architect agents in parallel:
 
-1. architect (minimal approach)
-   Focus: Smallest change, maximum reuse of existing code
+1. code-architect (reuse focus)
+   Focus: Maximum reuse of existing patterns and code
    Context: [Exploration findings], [Requirements]
-   Output: Design with file:line modifications, trade-offs
+   Output: Definitive design with file:line references
 
-2. architect (clean architecture)
-   Focus: Maintainability, elegant abstractions, proper patterns
+2. code-architect (extensibility focus)
+   Focus: Clean abstractions for future growth
    Context: [Exploration findings], [Requirements]
-   Output: Design with component structure, trade-offs
+   Output: Definitive design with file:line references
 
-3. architect (pragmatic balance)
-   Focus: Balance between speed and quality
+3. code-architect (performance focus) - if relevant
+   Focus: Optimal performance characteristics
    Context: [Exploration findings], [Requirements]
-   Output: Design with implementation roadmap, trade-offs
+   Output: Definitive design with file:line references
 ```
 
-**Review all approaches and form recommendation.**
+**Each agent returns a definitive recommendation** (not multiple options).
 
-**Present comparison to user:**
+**Synthesize into presentation for user:**
 ```markdown
-## Architecture Options
+## Architecture Analysis
 
-### Option A: Minimal Changes
-- Approach: [Summary]
-- Pros: [List]
-- Cons: [List]
-- Estimated complexity: Low/Medium/High
+### Pattern Analysis from Codebase
+Based on code-architect findings:
+- Service pattern: [Pattern] (see `file:line`)
+- Data access: [Pattern] (see `file:line`)
+- API structure: [Pattern] (see `file:line`)
 
-### Option B: Clean Architecture
-- Approach: [Summary]
-- Pros: [List]
-- Cons: [List]
-- Estimated complexity: Low/Medium/High
+### Recommended Approach
 
-### Option C: Pragmatic Balance
-- Approach: [Summary]
-- Pros: [List]
-- Cons: [List]
-- Estimated complexity: Low/Medium/High
+**Architecture**: [Summary of recommended approach]
 
-**Recommendation:** [Your recommendation with rationale]
+**Rationale**:
+- Aligns with existing pattern at `file:line`
+- Follows convention in `file:line`
+- [Other evidence-based reasons]
+
+**Implementation Map**:
+| Component | File | Action |
+|-----------|------|--------|
+| [Name] | `src/...` | Create |
+| [Name] | `src/...` | Modify |
+
+**Build Sequence**:
+- [ ] Step 1: [Task]
+- [ ] Step 2: [Task]
+- [ ] Step 3: [Task]
+
+**Trade-offs Considered**:
+- [Trade-off 1]: [Why this choice is best]
+- [Trade-off 2]: [Why this choice is best]
 ```
 
-**Ask user: "Which approach should we take?"**
+**Ask user: "Does this approach work for you? Any concerns?"**
 
 **Output:** Approved design saved to `docs/specs/[feature-name]-design.md`
 
@@ -201,52 +212,68 @@ Key files from exploration: [list]
 
 **Goal:** Ensure code meets quality, security, and spec requirements.
 
-**LAUNCH 3 PARALLEL REVIEW AGENTS:**
+**LAUNCH 3 PARALLEL REVIEW AGENTS (Sonnet):**
 
 ```
 Launch these review agents in parallel:
 
-1. qa-engineer agent
+1. code-reviewer agent (qa focus)
    Focus: Test coverage, edge cases, acceptance criteria
    Confidence threshold: 80
-   Output: Test gaps, missing coverage, suggestions
+   Check: Tests exist, edge cases handled, acceptance criteria met
+   Output: Test gaps, quality issues with file:line
 
-2. security-auditor agent
+2. code-reviewer agent (security focus)
    Focus: OWASP Top 10, auth/authz, data validation
    Confidence threshold: 80
-   Output: Vulnerabilities, remediation steps
+   Check: Input validation, auth checks, sensitive data handling
+   Output: Vulnerabilities with file:line and remediation
 
-3. code-explorer agent
-   Focus: Verify implementation matches design
+3. code-explorer agent (verification)
+   Focus: Verify implementation matches design spec
    Thoroughness: quick
-   Output: Deviations from spec, missing pieces
+   Compare: Implementation vs docs/specs/[feature]-design.md
+   Output: Deviations, missing pieces with file:line
+```
+
+**Score each issue with Haiku agents** (same pattern as /code-review):
+
+```
+For each issue, launch parallel Haiku agent:
+- Issue description
+- Context
+- Score 0-100 based on rubric
 ```
 
 **Consolidate findings with confidence weighting:**
 
-| Agent Count | Confidence Adjustment |
-|-------------|----------------------|
-| 1 agent reports | Use agent's score |
-| 2 agents agree | Boost score +10 |
-| 3+ agents agree | Treat as confirmed |
+| Scenario | Action |
+|----------|--------|
+| Score < 80 | Filter out |
+| 1 agent reports (80+) | Report as-is |
+| 2 agents agree | Boost confidence |
+| 3 agents agree | Treat as confirmed |
 
 **Present findings to user:**
 ```markdown
 ## Quality Review Results
 
 ### Critical Issues (Confidence >= 90)
-1. **[Issue Title]** - [Category]
+1. **[Issue Title]** - [Category] (Score: [N])
    File: `file:line`
    [Description]
    **Fix:** [Remediation]
 
 ### Important Issues (Confidence 80-89)
-...
+1. **[Issue Title]** - [Category] (Score: [N])
+   File: `file:line`
+   [Description]
+   **Fix:** [Remediation]
 
 ### Summary
 - Critical: [N]
 - Important: [N]
-- Filtered (below threshold): [N]
+- Filtered (below 80): [N]
 
 **Verdict:** [APPROVED / NEEDS CHANGES]
 ```

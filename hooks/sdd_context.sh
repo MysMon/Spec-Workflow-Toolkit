@@ -84,7 +84,7 @@ fi
 
 # --- Output Context ---
 cat << 'EOF'
-## SDD Toolkit v7.0 - Session Initialized
+## SDD Toolkit v8.0 - Session Initialized
 
 ### Core Principles (Spec-First Development)
 
@@ -103,7 +103,8 @@ cat << 'EOF'
 |-----------|-------------|-----|
 | Codebase Exploration | `code-explorer` | Deep analysis in isolation |
 | Requirements | `product-manager` | Exploration stays isolated |
-| Design | `architect` | Iterations don't pollute main |
+| System Design | `system-architect` | ADRs, schemas, contracts |
+| Feature Design | `code-architect` | Implementation blueprints |
 | Frontend | `frontend-specialist` | Implementation details contained |
 | Backend | `backend-specialist` | Implementation details contained |
 | Testing | `qa-engineer` | Test execution isolated |

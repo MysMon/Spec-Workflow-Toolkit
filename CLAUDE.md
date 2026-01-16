@@ -1,17 +1,19 @@
-# SDD Toolkit Plugin v7.0 - Developer Guide
+# SDD Toolkit Plugin v8.0 - Developer Guide
 
 > **Important**: This file is for **plugin developers** working on this repository.
 > When users install the plugin in their project, context is delivered via the `SessionStart` hook (`hooks/sdd_context.sh`), not this file.
 
-## What's New in v7.0
+## What's New in v8.0
 
-Based on thorough analysis of [Anthropic's official best practices](https://www.anthropic.com/engineering/claude-code-best-practices) and [official plugins](https://github.com/anthropics/claude-plugins-official):
+Based on thorough analysis of [Anthropic's official best practices](https://www.anthropic.com/engineering/claude-code-best-practices), [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents), and [official plugins](https://github.com/anthropics/claude-plugins-official):
 
-1. **7-Phase Workflow** - Aligned with official feature-dev plugin pattern
-2. **code-explorer Agent** - Deep codebase analysis with file:line references
-3. **JSON Progress Tracking** - `claude-progress.json` and `feature-list.json` patterns
-4. **Resumable Sessions** - SessionStart hook auto-detects and reports progress files
-5. **Confidence Threshold 80%** - Aligned with official code-reviewer pattern
+### Key Improvements
+
+1. **code-architect Agent (NEW)** - Definitive implementation blueprints based on existing codebase patterns (aligned with official feature-dev pattern)
+2. **5-Agent Parallel Code Review** - Now uses 5 parallel Sonnet agents + N parallel Haiku scorers (aligned with official code-review plugin)
+3. **Enhanced code-explorer** - Added WebFetch, WebSearch, TodoWrite tools; `permissionMode: plan` for true read-only operation
+4. **Detailed Confidence Rubric** - 0/25/50/75/100 scale with explicit criteria for each level
+5. **Agent Role Clarification** - Clear distinction between `system-architect` (system-level) and `code-architect` (feature-level)
 
 ## Plugin Architecture
 
@@ -41,10 +43,11 @@ sdd-toolkit/
 │   ├── code-review.md      # /code-review - Parallel review (confidence >= 80)
 │   ├── spec-review.md      # /spec-review - Spec validation
 │   └── quick-impl.md       # /quick-impl - Fast implementation
-├── agents/                  # Specialized subagents (11 roles)
-│   ├── code-explorer.md    # NEW: Deep codebase analysis (read-only)
+├── agents/                  # Specialized subagents (12 roles)
+│   ├── code-explorer.md    # Deep codebase analysis (read-only, permissionMode: plan)
+│   ├── code-architect.md   # NEW: Feature implementation blueprints (definitive recommendations)
 │   ├── product-manager.md  # Requirements (disallows Bash/Edit)
-│   ├── architect.md        # System design
+│   ├── system-architect.md # System-level design (ADRs, schemas, contracts)
 │   ├── frontend-specialist.md
 │   ├── backend-specialist.md
 │   ├── qa-engineer.md      # Testing (confidence >= 80)
@@ -101,20 +104,31 @@ Based on [feature-dev plugin](https://github.com/anthropics/claude-plugins-offic
 1. Discovery
 2. **Codebase Exploration** (parallel code-explorer agents)
 3. Clarifying Questions
-4. **Architecture Design** (parallel architect agents with different approaches)
+4. **Architecture Design** (parallel code-architect agents with definitive recommendations)
 5. Implementation
-6. **Quality Review** (parallel review agents)
+6. **Quality Review** (parallel review agents + Haiku scorers)
 7. Summary
 
 ### 3. code-explorer Agent
 
-Deep codebase analysis specialist:
-- Traces execution paths with file:line references
-- Maps dependencies and call chains
-- READ-ONLY to ensure thorough exploration without side effects
+Deep codebase analysis specialist (aligned with official pattern):
+- 4-phase analysis: Discovery → Flow Tracing → Architecture → Implementation Details
+- **MUST** provide file:line references for ALL findings
+- Tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
+- `permissionMode: plan` for true read-only operation
+- Returns key files list (5-10) for orchestrator to read
 - Invoked with thoroughness levels: quick, medium, very thorough
 
-### 4. JSON-Based Progress Tracking
+### 4. code-architect Agent (NEW)
+
+Feature implementation blueprint specialist (aligned with official pattern):
+- **Provides definitive recommendations** (not multiple options)
+- 3-phase design: Analysis → Design → Delivery
+- Based recommendations on existing codebase patterns with file:line evidence
+- Returns implementation map with specific file paths and build sequence
+- `permissionMode: plan` for design-only operation (no implementation)
+
+### 5. JSON-Based Progress Tracking
 
 Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents):
 
@@ -126,14 +140,23 @@ Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com
 
 Why JSON over Markdown: "Models are less likely to inappropriately modify JSON files compared to Markdown files."
 
-### 5. Confidence Scoring (80% Threshold)
+### 6. Confidence Scoring (80% Threshold with Detailed Rubric)
 
 Based on [official code-reviewer pattern](https://github.com/anthropics/claude-plugins-official):
-- Only report issues with confidence >= 80%
-- Reduces false positives
-- Prioritizes actionable findings
 
-### 6. Resumable Sessions
+| Score | Meaning | When to Use |
+|-------|---------|-------------|
+| **0** | Not confident at all | False positive, pre-existing issue |
+| **25** | Somewhat confident | Might be real but unverified |
+| **50** | Moderately confident | Real but minor/infrequent |
+| **75** | Highly confident | Verified, significant impact |
+| **100** | Absolutely certain | Definitely real, frequently occurring |
+
+- Only report issues with confidence >= 80%
+- Use Haiku agents to score each issue in parallel
+- For CLAUDE.md issues, verify guideline explicitly mentions the issue
+
+### 7. Resumable Sessions
 
 SessionStart hook automatically:
 - Detects `.claude/claude-progress.json` or `claude-progress.json`
@@ -141,19 +164,20 @@ SessionStart hook automatically:
 - Reports feature progress from `feature-list.json`
 - Provides clear resume instructions
 
-### 7. Parallel Agent Execution
+### 8. Parallel Agent Execution
 
 For independent work, launch multiple agents simultaneously:
-- Phase 2: 2-3 code-explorer agents
-- Phase 4: 2-3 architect agents with different focuses
-- Phase 6: 3 review agents (qa, security, verification)
+- Phase 2: 2-3 code-explorer agents (different focuses)
+- Phase 4: 2-3 code-architect agents (different priorities)
+- Phase 6: 3 review agents (qa, security, verification) + N Haiku scorers
+- /code-review: 5 parallel Sonnet agents + N parallel Haiku scorers
 
-### 8. Read-Only Audit Mode
+### 9. Read-Only Audit Mode
 
-`security-auditor` uses `permissionMode: plan` to:
-- Maintain audit integrity
-- Prevent accidental modifications
-- Enforce separation of concerns
+Agents using `permissionMode: plan`:
+- `code-explorer` - Ensures thorough exploration without side effects
+- `code-architect` - Design-only, no implementation
+- `security-auditor` - Maintains audit integrity
 
 ---
 
@@ -275,7 +299,7 @@ Edit `hooks/hooks.json`:
 
 When working on this plugin:
 - Use `code-explorer` for understanding existing code
-- Use `architect` for design decisions
+- Use `system-architect` for design decisions
 - Use `qa-engineer` for testing new agents/skills
 - Use `security-auditor` before releases
 
