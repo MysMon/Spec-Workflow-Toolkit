@@ -1,6 +1,13 @@
 ---
 name: migration
-description: Safe database schema migration patterns across any ORM/database stack. Use when making database schema changes, running migrations, or managing database versioning.
+description: |
+  Safe database schema migration patterns across any ORM/database stack. Use when:
+  - Making database schema changes (add/remove columns, tables)
+  - Running migrations with Prisma, Drizzle, Alembic, Django, Goose, or Flyway
+  - Managing database versioning and rollbacks
+  - Assessing migration risk or planning safe deployment
+  - Dealing with schema drift or migration conflicts
+  Trigger phrases: database migration, schema change, add column, prisma migrate, alembic, django migrate, rollback migration, schema drift
 allowed-tools: Bash, Read, AskUserQuestion, Write
 model: sonnet
 user-invocable: true

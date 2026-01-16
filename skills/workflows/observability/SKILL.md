@@ -1,6 +1,13 @@
 ---
 name: observability
-description: Observability patterns for logging, metrics, and distributed tracing. Use when implementing logging, setting up monitoring, or adding instrumentation to applications.
+description: |
+  Observability patterns for logging, metrics, and distributed tracing. Use when:
+  - Implementing structured logging (pino, structlog, slog)
+  - Setting up metrics and monitoring (Prometheus, Datadog)
+  - Adding distributed tracing (OpenTelemetry, Jaeger)
+  - Implementing health checks (liveness, readiness)
+  - Designing alerts or SLO-based monitoring
+  Trigger phrases: logging, metrics, tracing, monitoring, Prometheus, OpenTelemetry, health check, alerting, SLO, structured logs, observability
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 model: sonnet
 user-invocable: true

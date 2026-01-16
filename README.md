@@ -2,16 +2,18 @@
 
 **Specification-Driven Development Toolkit for Claude Code**
 
-A multi-stack agentic framework that brings disciplined software development practices to any technology stack through intelligent agents, composable skills, and automated quality enforcement.
+A multi-stack agentic framework that brings disciplined software development practices to any technology stack through intelligent agents, composable skills, workflow commands, and automated quality enforcement.
 
 ## Features
 
+- **Workflow Commands**: `/sdd`, `/spec-review`, `/code-review`, `/quick-impl` for structured development
 - **Multi-Stack Support**: Automatically adapts to JavaScript, Python, Go, Rust, Java, C#, PHP, Ruby, Kotlin, Swift, and more
 - **Specification-First Workflow**: Enforces specs before implementation
 - **10 Specialized Agents**: Role-based expertise for different aspects of development
-- **Task-Oriented Skills**: Workflow skills that load on demand (code-quality, testing, etc.)
+- **Task-Oriented Skills**: Workflow skills that load on demand with smart trigger phrases
+- **Context Protection**: Aggressive subagent delegation to preserve main context
 - **Security Hooks**: Automatic detection of dangerous commands and secret leaks
-- **Quality Automation**: Auto-linting and formatting with support for npm, yarn, pnpm, bun, and more
+- **Quality Automation**: Auto-linting and formatting with support for all major languages
 
 ## Installation
 
@@ -29,12 +31,46 @@ claude --plugin-dir /path/to/sdd-toolkit
 
 Copy the `.claude-plugin` directory and relevant components to your project.
 
+## Quick Start
+
+### For New Features
+
+```bash
+# Start the full SDD workflow
+/sdd Add user authentication with OAuth support
+
+# Or start interactively
+/sdd
+```
+
+### For Reviewing Work
+
+```bash
+# Review a specification before implementation
+/spec-review docs/specs/user-auth.md
+
+# Review code before committing
+/code-review staged
+```
+
+### For Small Tasks
+
+```bash
+# Quick implementation for well-defined tasks
+/quick-impl Fix typo in README.md
+```
+
 ## Plugin Structure
 
 ```
 sdd-toolkit/
 ├── .claude-plugin/
 │   └── plugin.json           # Plugin metadata
+├── commands/                 # Workflow commands
+│   ├── sdd.md               # Full 6-phase workflow
+│   ├── spec-review.md       # Parallel spec review
+│   ├── code-review.md       # Parallel code review
+│   └── quick-impl.md        # Fast implementation
 ├── agents/                   # 10 specialized agents
 │   ├── product-manager.md
 │   ├── architect.md
@@ -62,10 +98,12 @@ sdd-toolkit/
 │       └── observability/
 ├── hooks/                    # Enforcement hooks
 │   ├── hooks.json
-│   ├── safety_check.py
-│   ├── prevent_secret_leak.py
-│   ├── post_edit_quality.sh
-│   └── session_summary.sh
+│   ├── sdd_context.sh       # SessionStart: inject SDD context
+│   ├── safety_check.py      # PreToolUse: block dangerous commands
+│   ├── prevent_secret_leak.py # PreToolUse: detect secrets
+│   ├── post_edit_quality.sh # PostToolUse: auto-lint/format
+│   ├── subagent_summary.sh  # SubagentStop: log completions
+│   └── session_summary.sh   # Stop: git status summary
 ├── docs/
 │   └── specs/
 │       └── SPEC-TEMPLATE.md
@@ -81,7 +119,25 @@ The toolkit enforces a disciplined approach:
 
 1. **No Code Without Spec**: Every feature requires an approved specification in `docs/specs/`
 2. **Ambiguity Tolerance Zero**: When requirements are unclear, ask questions first
-3. **Context Economy**: Use specialized agents to maintain clean orchestrator context
+3. **Context Economy**: Delegate to specialized agents to protect main context
+
+### Context Protection
+
+**The main context is precious.** Complex tasks consume tokens rapidly. The toolkit implements:
+
+- **Mandatory delegation** for requirements, design, implementation, and review
+- **SessionStart hook** that reminds about SDD principles
+- **SubagentStop hook** that prompts for next actions
+- **Workflow commands** that orchestrate delegation automatically
+
+### Workflow Commands
+
+| Command | Purpose | Phases |
+|---------|---------|--------|
+| `/sdd` | Full development workflow | 6: Discovery → Requirements → Design → Implementation → Review → Summary |
+| `/spec-review` | Parallel specification review | 4 agents: Completeness, Feasibility, Security, Quality |
+| `/code-review` | Parallel code review | 4 agents: Compliance, Bugs, Security, Quality |
+| `/quick-impl` | Fast implementation | 1: Implement (with guardrails) |
 
 ### Hub-and-Spoke Architecture
 
@@ -125,11 +181,11 @@ Agents define **roles and responsibilities** without being tied to specific tech
 
 ### Skills
 
-Skills are **task-oriented** and provide workflow knowledge that agents load on demand:
+Skills are **task-oriented** with smart trigger phrases for automatic discovery:
 
 **Core Skills** (always applicable):
 - `sdd-philosophy`: Specification-driven methodology
-- `security-fundamentals`: Security best practices
+- `security-fundamentals`: Security best practices (OWASP, secrets)
 - `interview`: Structured requirements gathering
 - `stack-detector`: Auto-detect project technology
 
@@ -159,54 +215,77 @@ Gemfile            → Ruby
 Package.swift      → Swift
 ```
 
-Based on detection, appropriate workflow skills and language references are recommended.
-
 ## Hooks
 
 Automatic enforcement through lifecycle hooks:
 
 | Hook | Event | Purpose |
 |------|-------|---------|
+| `sdd_context.sh` | SessionStart | Injects SDD philosophy and available commands |
 | `safety_check.py` | PreToolUse (Bash) | Blocks `rm -rf /`, `sudo`, curl pipes |
 | `prevent_secret_leak.py` | PreToolUse (Write/Edit) | Detects API keys, tokens, passwords |
 | `post_edit_quality.sh` | PostToolUse (Write/Edit) | Auto-runs linters and formatters |
+| `subagent_summary.sh` | SubagentStop | Logs completion and prompts for next action |
 | `session_summary.sh` | Stop | Shows git status summary |
 
 ## Usage Examples
 
-### Starting a New Feature
+### Full Development Workflow
 
 ```
-User: Add user authentication
+User: /sdd Add user authentication with OAuth
 
-Claude: I'll use the interview skill to gather requirements first.
-        [Asks structured questions]
+Claude: Starting SDD workflow...
 
-Claude: Creating specification at docs/specs/feature-auth.md
-        [Creates detailed PRD]
+Phase 1: Discovery
+- Analyzing request
+- Identifying stakeholders
 
-Claude: Now delegating to architect for system design...
+Phase 2: Requirements (delegating to product-manager)
+- Launching product-manager agent...
+- [Agent gathers requirements]
+
+Phase 3: Design (delegating to architect)
+- Launching architect agent...
+- [Agent proposes architecture options]
+
+Phase 4: Implementation (delegating to specialists)
+- Launching backend-specialist agent...
+- Launching frontend-specialist agent...
+
+Phase 5: Review (parallel agents)
+- Launching qa-engineer, security-auditor, code-quality...
+
+Phase 6: Summary
+- Feature complete
+- All tests passing
+- Security review: Passed
 ```
 
-### Working on Existing Code
+### Parallel Code Review
 
 ```
-User: Fix the login bug
+User: /code-review staged
 
-Claude: Let me use stack-detector to understand the project...
-        Detected: JavaScript/TypeScript + React + Node.js
+Claude: Launching 4 parallel review agents...
 
-Claude: Delegating to backend-specialist...
-```
+Agent 1 (CLAUDE.md Compliance): Checking guidelines...
+Agent 2 (Bug Detection): Analyzing for bugs...
+Agent 3 (Security): Scanning for vulnerabilities...
+Agent 4 (Quality): Reviewing maintainability...
 
-### Code Quality
+Review complete. Found 2 issues (confidence >= 80):
 
-```
-User: Clean up my code
+1. Missing input validation on email field (Confidence: 92)
+   File: src/auth/register.ts:45
 
-Claude: Running code-quality skill...
-        Detected: ESLint + Prettier in project
-        Running: npx eslint --fix && npx prettier --write
+2. SQL injection risk in query (Confidence: 88)
+   File: src/db/users.ts:23
+
+What would you like to do?
+1. Fix issues now
+2. Proceed anyway
+3. Get more details
 ```
 
 ## Specification Template
@@ -240,7 +319,42 @@ US-001: As a [user], I want [goal], so that [benefit]
 [ ] Tech Lead
 ```
 
+## Best Practices
+
+### Do
+
+- Start complex work with `/sdd`
+- Delegate aggressively to subagents
+- Use `/clear` between major tasks
+- Write specs before code
+- Run `/code-review` before committing
+- Let stack-detector identify the project
+
+### Don't
+
+- Skip the spec phase
+- Accumulate context in main thread
+- Hardcode secrets
+- Ignore security-auditor findings
+- Force a specific stack's patterns on another
+
 ## Customization
+
+### Adding a New Command
+
+Create `commands/my-command.md`:
+
+```markdown
+---
+description: "What this command does"
+argument-hint: "[optional args]"
+allowed-tools: Read, Write, Task
+---
+
+# /my-command
+
+Instructions for the command...
+```
 
 ### Adding a New Agent
 
@@ -277,7 +391,11 @@ Create `skills/category/my-skill/SKILL.md`:
 ```markdown
 ---
 name: my-skill
-description: When to use this skill
+description: |
+  What this skill does. Use when:
+  - Condition 1
+  - Condition 2
+  Trigger phrases: keyword1, keyword2, keyword3
 allowed-tools: Bash, Read
 user-invocable: true
 ---
@@ -289,23 +407,6 @@ user-invocable: true
 1. Step 1
 2. Step 2
 ```
-
-## Best Practices
-
-### Do
-
-- Write specs before code
-- Use agents for their specialties
-- Let stack-detector identify the project
-- Run code-quality after changes
-- Document decisions with ADRs
-
-### Don't
-
-- Skip the spec phase
-- Hardcode secrets
-- Ignore security-auditor findings
-- Force a specific stack's patterns on another
 
 ## Contributing
 
@@ -323,6 +424,7 @@ MIT
 
 **Sources:**
 - [Claude Code Plugin Documentation](https://code.claude.com/docs/en/plugins)
+- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
 - [Agent Skills Specification](https://code.claude.com/docs/en/skills)
 - [Conventional Commits](https://www.conventionalcommits.org/)
 - [Keep a Changelog](https://keepachangelog.com/)

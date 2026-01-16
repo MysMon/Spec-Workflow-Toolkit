@@ -1,6 +1,13 @@
 ---
 name: code-quality
-description: Runs linting, formatting, and type checking across any language stack. Use after writing or editing code to ensure quality standards are met. Automatically adapts to the project's tooling.
+description: |
+  Runs linting, formatting, and type checking across any language stack. Use when:
+  - After writing or editing code to ensure quality standards
+  - Fixing lint errors or formatting issues
+  - Running ESLint, Prettier, Ruff, gofmt, rustfmt, or similar tools
+  - Type checking with TypeScript, mypy, or pyright
+  - Code is failing CI quality checks
+  Trigger phrases: lint, format code, run eslint, fix formatting, type check, code style, prettier, ruff, clippy
 allowed-tools: Bash, Read, Glob
 model: haiku
 user-invocable: true

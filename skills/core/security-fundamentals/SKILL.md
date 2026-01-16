@@ -1,6 +1,14 @@
 ---
 name: security-fundamentals
-description: Core security principles and practices applicable to any technology stack. Use when implementing authentication, handling sensitive data, validating input, or reviewing code for security issues.
+description: |
+  Core security principles and practices applicable to any technology stack. Use when:
+  - Implementing authentication, authorization, or access control
+  - Handling sensitive data (passwords, PII, secrets, tokens)
+  - Validating user input or API payloads
+  - Reviewing code for security vulnerabilities
+  - Working with encryption, hashing, or cryptography
+  - Addressing OWASP Top 10 vulnerabilities
+  Trigger phrases: security review, auth implementation, password handling, input validation, XSS, SQL injection, CSRF, secrets management, OWASP
 allowed-tools: Read, Grep, Glob, Bash
 model: sonnet
 user-invocable: true
