@@ -1,9 +1,11 @@
 {
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "sdd-toolkit",
-  "version": "5.0.0",
-  "description": "Specification-Driven Development Toolkit - A multi-stack agentic framework following official Claude Code best practices. Features proactive subagent delegation, progressive disclosure skills, context-aware hooks, and autonomous long-running task support.",
+  "version": "6.0.0",
+  "description": "Specification-Driven Development Toolkit - A multi-stack agentic framework enforcing spec-first development with proactive subagent delegation, context-preserving workflows, and autonomous long-running task support.",
   "author": {
     "name": "MysMon",
+    "email": "contact@github.com/MysMon",
     "url": "https://github.com/MysMon"
   },
   "homepage": "https://github.com/MysMon/cc-web-dev#readme",
@@ -12,6 +14,15 @@
     "url": "https://github.com/MysMon/cc-web-dev.git"
   },
   "license": "MIT",
+  "category": "development",
+  "tags": [
+    "specification-driven",
+    "multi-stack",
+    "agentic-workflow",
+    "code-review",
+    "architecture"
+  ],
+  "strict": false,
   "keywords": [
     "sdd",
     "specification-driven",
@@ -23,7 +34,10 @@
     "testing",
     "ci-cd",
     "workflow",
-    "code-review"
+    "code-review",
+    "subagent-delegation",
+    "context-management",
+    "long-running-tasks"
   ],
   "commands": "./commands",
   "agents": "./agents",
