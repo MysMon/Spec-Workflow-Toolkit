@@ -1,70 +1,93 @@
-# Project Constitution: Agentic Architecture for Specification-Driven Development
+# SDD Toolkit: Multi-Stack Specification-Driven Development
 
-## 1. Core Philosophy: Specification-Driven Development (SDD)
+A Claude Code plugin providing disciplined software development practices across **any technology stack**.
 
-This project enforces strict **Specification-Driven Development (SDD)**.
+## Core Philosophy
 
-### Fundamental Rules
+### Specification-Driven Development (SDD)
 
-- **NO CODE WITHOUT SPEC**: Never write implementation code without an approved specification in `docs/specs/`.
-- **Ambiguity Tolerance Zero**: If requirements are vague, DO NOT GUESS. Ask clarifying questions immediately using `AskUserQuestion`.
-- **Context Economy**: Delegate extensive file reading, analysis, and implementation to specialized subagents. Keep the main orchestrator context clean.
+1. **No Code Without Spec**: Never implement without an approved specification
+2. **Ambiguity Tolerance Zero**: If unclear, ask questions immediately
+3. **Context Economy**: Delegate to specialized agents, keep orchestrator clean
+
+### Multi-Stack Approach
+
+This toolkit is **stack-agnostic** by design:
+- **Agents** define WHAT to do (roles and responsibilities)
+- **Skills** define HOW to do it (stack-specific patterns)
+- **Stack Detector** auto-identifies project technology and loads appropriate skills
+
+## Quick Reference
 
 ### Development Phases
 
-1. **Ambiguity Phase**: Receive vague user requests
-2. **Clarification Phase**: Use `product-manager` agent to conduct thorough requirements gathering
-3. **Definition Phase**: Create PRD in `docs/specs/` with user stories, requirements, and acceptance criteria
-4. **Execution Phase**: Implement strictly according to spec - no unauthorized features
-5. **Verification Phase**: QA and security audit against spec
+| Phase | Action | Agent/Skill |
+|-------|--------|-------------|
+| 1. Ambiguity | Receive vague request | - |
+| 2. Clarification | Gather requirements | `product-manager` + `interview` |
+| 3. Definition | Create specification | `product-manager` |
+| 4. Design | Architecture decisions | `architect` |
+| 5. Implementation | Write code | `*-specialist` agents |
+| 6. Verification | Test and audit | `qa-engineer` + `security-auditor` |
 
-## 2. Hub-and-Spoke Protocol (Agent Delegation)
+### Agent Delegation Table
 
-You are the **Orchestrator (Hub)**. Your job is to **manage, not just do**. Delegate tasks to specialized agents based on task category:
-
-| Task Category | Delegate To |
-|---|---|
-| Requirements & Spec Definition | `product-manager` |
-| UX/UI Design & Wireframing | `ui-ux-designer` |
-| System Architecture & DB Design | `architect` |
-| Frontend Implementation | `frontend-specialist` |
-| Backend Implementation | `backend-specialist` |
-| Infrastructure & Deployment | `devops-sre` |
+| Task | Delegate To |
+|------|-------------|
+| Requirements & specs | `product-manager` |
+| System design | `architect` |
+| Frontend implementation | `frontend-specialist` |
+| Backend implementation | `backend-specialist` |
 | Testing & QA | `qa-engineer` |
-| Security Audit | `security-auditor` |
-| Legacy Refactoring & Analysis | `legacy-modernizer` |
-| Technical Documentation | `technical-writer` |
+| Security review | `security-auditor` |
+| Infrastructure | `devops-sre` |
+| UI/UX design | `ui-ux-designer` |
+| Documentation | `technical-writer` |
+| Legacy modernization | `legacy-modernizer` |
 
-### Delegation Rules
+### Skill Categories
 
-- Pass only necessary context (e.g., spec file path, error log) to subagents
-- Do NOT dump entire conversation history
-- Each subagent handles one focused task and returns results
-- Subagent context is ephemeral - only results persist
+| Category | Skills | Purpose |
+|----------|--------|---------|
+| Core | `sdd-philosophy`, `security-fundamentals`, `interview` | Universal principles |
+| Detection | `stack-detector` | Auto-detect project technology |
+| Languages | `javascript`, `python`, `go`, `rust`, `java` | Language-specific patterns |
+| Workflows | `code-quality`, `git-mastery`, `testing`, `migration` | Cross-stack workflows |
 
-## 3. Operational Security (OPSEC)
+## Operational Rules
 
-- NEVER output real API keys, passwords, or secrets in chat. Use placeholders like `<API_KEY>`
-- NEVER commit `.env` files. Ensure they are in `.gitignore`
-- ALWAYS validate changes against security hooks before completion
-- Run `security-auditor` agent before marking critical tasks complete
+### Security (OPSEC)
 
-## 4. Error Handling & Self-Correction
+- **NEVER** output real API keys, passwords, or secrets
+- **NEVER** commit `.env` files (must be in `.gitignore`)
+- **ALWAYS** run `security-auditor` before marking critical tasks complete
+- Hooks automatically detect and block secret leaks
 
-- Do not blindly retry commands. Analyze stderr first
-- If a tool fails twice, stop and formulate a hypothesis
-- For complex debugging, delegate to appropriate specialist agent
+### Error Handling
 
-## 5. Code Quality Standards
+- Do not blindly retry failed commands
+- Analyze stderr first, form hypothesis
+- For complex debugging, delegate to specialist agent
 
-- Write failing tests BEFORE implementation code (Red-Green-Refactor)
-- Follow semantic commit conventions: `feat:`, `fix:`, `docs:`, `refactor:`, etc.
-- All UI components must meet WCAG 2.1 AA accessibility standards
-- Use TypeScript with strict mode enabled
+### Code Quality
 
-## 6. File References
+- Write tests BEFORE implementation (Red-Green-Refactor)
+- Follow semantic commits: `feat:`, `fix:`, `docs:`, `refactor:`
+- Use `code-quality` skill after edits
+- All UI must meet WCAG 2.1 AA accessibility
 
-- Architecture decisions: @docs/architecture.md
-- Coding standards: @.claude/rules/code-style.md
-- Security guidelines: @.claude/rules/security.md
-- Testing standards: @.claude/rules/testing.md
+## File Locations
+
+```
+docs/specs/          # Specifications (required before implementation)
+docs/specs/SPEC-TEMPLATE.md  # Specification template
+```
+
+## Hooks (Automatic Enforcement)
+
+| Hook | Trigger | Purpose |
+|------|---------|---------|
+| `safety_check.py` | PreToolUse (Bash) | Block dangerous commands |
+| `prevent_secret_leak.py` | PreToolUse (Write/Edit) | Detect secrets |
+| `post_edit_quality.sh` | PostToolUse (Write/Edit) | Auto-lint/format |
+| `session_summary.sh` | Stop | Git status summary |
