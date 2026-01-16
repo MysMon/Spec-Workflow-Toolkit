@@ -29,7 +29,8 @@ This command orchestrates 7 phases:
 
 - Use `code-explorer` agent for codebase analysis
 - Use `product-manager` agent for requirements gathering
-- Use `architect` agent for design decisions
+- Use `architect` agent for system-level design (ADRs, schemas, contracts)
+- Use `code-architect` agent for feature-level implementation blueprints
 - Use `frontend-specialist` or `backend-specialist` for implementation
 - Use `qa-engineer` agent for testing
 - Use `security-auditor` agent for security review (read-only)
