@@ -1,17 +1,21 @@
-# SDD Toolkit
+# SDD Toolkit v6.0
 
 **Specification-Driven Development Toolkit for Claude Code**
 
 A multi-stack agentic framework that brings disciplined software development practices to any technology stack through intelligent agents, composable skills, workflow commands, and automated quality enforcement.
+
+> **Based on Official Best Practices**: This plugin follows [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices) and [Official Plugin Guidelines](https://code.claude.com/docs/en/plugins).
 
 ## Features
 
 - **Workflow Commands**: `/sdd`, `/spec-review`, `/code-review`, `/quick-impl` for structured development
 - **Multi-Stack Support**: Automatically adapts to JavaScript, Python, Go, Rust, Java, C#, PHP, Ruby, Kotlin, Swift, and more
 - **Specification-First Workflow**: Enforces specs before implementation
-- **10 Specialized Agents**: Role-based expertise for different aspects of development
+- **10 Specialized Agents**: Role-based expertise with confidence scoring for reviews
 - **Task-Oriented Skills**: Workflow skills that load on demand with smart trigger phrases
 - **Context Protection**: Aggressive subagent delegation to preserve main context
+- **Long-Running Task Support**: File-based state persistence and TodoWrite integration
+- **Parallel Agent Execution**: Run multiple independent reviews simultaneously
 - **Security Hooks**: Automatic detection of dangerous commands and secret leaks
 - **Quality Automation**: Auto-linting and formatting with support for all major languages
 
@@ -95,7 +99,9 @@ sdd-toolkit/
 │       ├── testing/
 │       ├── migration/
 │       ├── api-design/
-│       └── observability/
+│       ├── observability/
+│       ├── long-running-tasks/   # State persistence patterns
+│       └── parallel-execution/   # Multi-agent coordination
 ├── hooks/                    # Enforcement hooks
 │   ├── hooks.json
 │   ├── sdd_context.sh       # SessionStart: inject SDD context
@@ -196,6 +202,8 @@ Skills are **task-oriented** with smart trigger phrases for automatic discovery:
 - `migration`: Safe database schema changes
 - `api-design`: REST, GraphQL, gRPC patterns
 - `observability`: Logging, metrics, tracing
+- `long-running-tasks`: State persistence, session resumption, progress tracking
+- `parallel-execution`: Multi-agent coordination, result aggregation
 
 ### Stack Detection
 
