@@ -1,10 +1,3 @@
----
-name: rust
-description: Rust development patterns, tooling, and best practices. Use when working on Rust projects, systems programming, or high-performance applications.
-allowed-tools: Read, Glob, Grep, Bash, Write, Edit
-model: sonnet
-user-invocable: true
----
 
 # Rust Development
 

@@ -1,10 +1,3 @@
----
-name: swift
-description: Swift development patterns, tooling, and best practices. Use when working on Swift projects, iOS/macOS applications, or server-side Swift with Vapor.
-allowed-tools: Read, Glob, Grep, Bash, Write, Edit
-model: sonnet
-user-invocable: true
----
 
 # Swift Development
 

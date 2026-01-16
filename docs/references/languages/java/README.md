@@ -1,10 +1,3 @@
----
-name: java
-description: Java development patterns, tooling, and best practices. Use when working on Java projects, Spring Boot applications, or enterprise systems.
-allowed-tools: Read, Glob, Grep, Bash, Write, Edit
-model: sonnet
-user-invocable: true
----
 
 # Java Development
 

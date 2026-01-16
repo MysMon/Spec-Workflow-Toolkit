@@ -250,24 +250,36 @@ Stack Profile:
 
 ## Skill Recommendations
 
-Based on detected stack, recommend loading these skills:
+Based on detected stack, recommend loading these task-oriented skills:
 
-| Stack | Recommended Skills |
-|-------|-------------------|
-| JavaScript/TypeScript | `javascript`, `code-quality`, `testing` |
-| Python | `python`, `code-quality`, `testing` |
-| Go | `go`, `code-quality`, `testing` |
-| Rust | `rust`, `code-quality`, `testing` |
-| Java | `java`, `code-quality`, `testing` |
-| C# / .NET | `csharp`, `code-quality`, `testing` |
-| PHP | `php`, `code-quality`, `testing` |
-| Ruby | `ruby`, `code-quality`, `testing` |
-| Kotlin | `kotlin`, `code-quality`, `testing` |
-| Swift | `swift`, `code-quality`, `testing` |
+| Context | Recommended Skills |
+|---------|-------------------|
+| Any project | `code-quality`, `testing` |
 | With Prisma/SQL | `migration` |
-| With Docker | `devops` |
+| With Docker/K8s | (use `devops-sre` agent) |
 | API Development | `api-design` |
 | Production Systems | `observability` |
+| New features | `sdd-philosophy`, `interview` |
+| Security-sensitive | `security-fundamentals` |
+
+## Language Reference Documents
+
+For language-specific best practices, refer to the reference documentation (not skills):
+
+| Language | Reference Path |
+|----------|----------------|
+| JavaScript/TypeScript | `docs/references/languages/javascript/README.md` |
+| Python | `docs/references/languages/python/README.md` |
+| Go | `docs/references/languages/go/README.md` |
+| Rust | `docs/references/languages/rust/README.md` |
+| Java | `docs/references/languages/java/README.md` |
+| C# / .NET | `docs/references/languages/csharp/README.md` |
+| PHP | `docs/references/languages/php/README.md` |
+| Ruby | `docs/references/languages/ruby/README.md` |
+| Kotlin | `docs/references/languages/kotlin/README.md` |
+| Swift | `docs/references/languages/swift/README.md` |
+
+**Note**: Language references are documentation, not skills. Load them with `Read` tool when specific language guidance is needed.
 
 ## Usage
 
@@ -276,7 +288,7 @@ This skill is typically invoked automatically by other agents:
 1. Agent receives task
 2. Agent loads `stack-detector`
 3. Stack profile is generated
-4. Agent loads appropriate language skill
+4. Agent reads appropriate language reference document if needed
 5. Agent proceeds with stack-specific patterns
 
 ## Rules

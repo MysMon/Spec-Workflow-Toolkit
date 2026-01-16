@@ -14,8 +14,9 @@ A Claude Code plugin providing disciplined software development practices across
 
 This toolkit is **stack-agnostic** by design:
 - **Agents** define WHAT to do (roles and responsibilities)
-- **Skills** define HOW to do it (stack-specific patterns)
-- **Stack Detector** auto-identifies project technology and loads appropriate skills
+- **Skills** define HOW to do it (task-oriented patterns)
+- **Stack Detector** auto-identifies project technology
+- **References** provide language-specific best practices (loaded on demand)
 
 ## Quick Reference
 
@@ -51,8 +52,11 @@ This toolkit is **stack-agnostic** by design:
 |----------|--------|---------|
 | Core | `sdd-philosophy`, `security-fundamentals`, `interview` | Universal principles |
 | Detection | `stack-detector` | Auto-detect project technology |
-| Languages | `javascript`, `python`, `go`, `rust`, `java`, `csharp`, `php`, `ruby`, `kotlin`, `swift` | Language-specific patterns |
 | Workflows | `code-quality`, `git-mastery`, `testing`, `migration`, `api-design`, `observability` | Cross-stack workflows |
+
+### Language References (not skills)
+
+Language-specific patterns are in `docs/references/languages/` - loaded via `Read` tool when needed.
 
 ## Operational Rules
 

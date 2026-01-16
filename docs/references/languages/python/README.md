@@ -1,10 +1,3 @@
----
-name: python
-description: Python development patterns, tooling, and best practices. Use when working on Python projects, Django/Flask/FastAPI backends, or data science applications.
-allowed-tools: Read, Glob, Grep, Bash, Write, Edit
-model: sonnet
-user-invocable: true
----
 
 # Python Development
 

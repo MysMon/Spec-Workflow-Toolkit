@@ -1,10 +1,3 @@
----
-name: javascript
-description: JavaScript and TypeScript development patterns, tooling, and best practices. Use when working on JavaScript/TypeScript projects, Node.js backends, or frontend applications.
-allowed-tools: Read, Glob, Grep, Bash, Write, Edit
-model: sonnet
-user-invocable: true
----
 
 # JavaScript/TypeScript Development
 

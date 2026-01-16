@@ -1,10 +1,3 @@
----
-name: ruby
-description: Ruby development patterns, tooling, and best practices. Use when working on Ruby projects, Rails applications, or Ruby gems.
-allowed-tools: Read, Glob, Grep, Bash, Write, Edit
-model: sonnet
-user-invocable: true
----
 
 # Ruby Development
 

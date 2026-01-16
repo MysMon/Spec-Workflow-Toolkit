@@ -1,10 +1,3 @@
----
-name: kotlin
-description: Kotlin development patterns, tooling, and best practices. Use when working on Kotlin projects, Android applications, Ktor backends, or Spring Boot with Kotlin.
-allowed-tools: Read, Glob, Grep, Bash, Write, Edit
-model: sonnet
-user-invocable: true
----
 
 # Kotlin Development
 

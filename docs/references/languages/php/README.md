@@ -1,10 +1,3 @@
----
-name: php
-description: PHP development patterns, tooling, and best practices. Use when working on PHP projects, Laravel/Symfony backends, or WordPress development.
-allowed-tools: Read, Glob, Grep, Bash, Write, Edit
-model: sonnet
-user-invocable: true
----
 
 # PHP Development
 

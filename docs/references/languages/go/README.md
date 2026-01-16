@@ -1,10 +1,3 @@
----
-name: go
-description: Go development patterns, tooling, and best practices. Use when working on Go projects, microservices, or CLI applications.
-allowed-tools: Read, Glob, Grep, Bash, Write, Edit
-model: sonnet
-user-invocable: true
----
 
 # Go Development
 

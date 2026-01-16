@@ -1,10 +1,3 @@
----
-name: csharp
-description: C# and .NET development patterns, tooling, and best practices. Use when working on C#/.NET projects, ASP.NET Core backends, Blazor frontends, or .NET MAUI applications.
-allowed-tools: Read, Glob, Grep, Bash, Write, Edit
-model: sonnet
-user-invocable: true
----
 
 # C# / .NET Development
 

@@ -9,7 +9,8 @@ A multi-stack agentic framework that brings disciplined software development pra
 - **Multi-Stack Support**: Automatically adapts to JavaScript, Python, Go, Rust, Java, C#, PHP, Ruby, Kotlin, Swift, and more
 - **Specification-First Workflow**: Enforces specs before implementation
 - **10 Specialized Agents**: Role-based expertise for different aspects of development
-- **20+ Composable Skills**: Stack-specific and workflow skills that load on demand
+- **Task-Oriented Skills**: Workflow skills that load on demand (code-quality, testing, etc.)
+- **Language References**: Curated best practices documentation for 10+ languages
 - **Security Hooks**: Automatic detection of dangerous commands and secret leaks
 - **Quality Automation**: Auto-linting and formatting with support for npm, yarn, pnpm, bun, and more
 
@@ -46,24 +47,13 @@ sdd-toolkit/
 │   ├── ui-ux-designer.md
 │   ├── technical-writer.md
 │   └── legacy-modernizer.md
-├── skills/                   # Composable skills
+├── skills/                   # Task-oriented skills
 │   ├── core/                 # Universal principles
 │   │   ├── sdd-philosophy/
 │   │   ├── security-fundamentals/
 │   │   └── interview/
 │   ├── detection/            # Stack detection
 │   │   └── stack-detector/
-│   ├── languages/            # Language-specific
-│   │   ├── javascript/
-│   │   ├── python/
-│   │   ├── go/
-│   │   ├── rust/
-│   │   ├── java/
-│   │   ├── csharp/
-│   │   ├── php/
-│   │   ├── ruby/
-│   │   ├── kotlin/
-│   │   └── swift/
 │   └── workflows/            # Cross-stack workflows
 │       ├── code-quality/
 │       ├── git-mastery/
@@ -78,8 +68,15 @@ sdd-toolkit/
 │   ├── post_edit_quality.sh
 │   └── session_summary.sh
 ├── docs/
-│   └── specs/
-│       └── SPEC-TEMPLATE.md
+│   ├── specs/
+│   │   └── SPEC-TEMPLATE.md
+│   └── references/           # Language-specific docs
+│       └── languages/
+│           ├── javascript/
+│           ├── python/
+│           ├── go/
+│           ├── rust/
+│           └── ...
 ├── CLAUDE.md                 # Project instructions
 └── README.md
 ```
@@ -112,7 +109,7 @@ The toolkit enforces a disciplined approach:
         │                    │                    │
         ▼                    ▼                    ▼
 ┌───────────────┐  ┌───────────────┐  ┌───────────────┐
-│  interview    │  │stack-detector │  │  javascript   │
+│  interview    │  │stack-detector │  │ code-quality  │
 │    skill      │  │    skill      │  │    skill      │
 └───────────────┘  └───────────────┘  └───────────────┘
 ```
@@ -136,24 +133,13 @@ Agents define **roles and responsibilities** without being tied to specific tech
 
 ### Skills
 
-Skills provide **stack-specific knowledge** that agents load on demand:
+Skills are **task-oriented** and provide workflow knowledge that agents load on demand:
 
 **Core Skills** (always applicable):
 - `sdd-philosophy`: Specification-driven methodology
 - `security-fundamentals`: Security best practices
 - `interview`: Structured requirements gathering
-
-**Language Skills** (loaded based on project):
-- `javascript`: TypeScript, npm/yarn/pnpm/bun ecosystem, testing
-- `python`: Type hints, Pydantic, pytest
-- `go`: Idiomatic Go, error handling, testing
-- `rust`: Ownership, Result types, Cargo
-- `java`: Modern Java, Spring Boot, Maven/Gradle
-- `csharp`: C# / .NET, ASP.NET Core, Entity Framework
-- `php`: Modern PHP, Laravel, Symfony
-- `ruby`: Ruby, Rails, RSpec
-- `kotlin`: Kotlin, Ktor, Spring Boot
-- `swift`: Swift, SwiftUI, Vapor
+- `stack-detector`: Auto-detect project technology
 
 **Workflow Skills** (cross-stack):
 - `code-quality`: Linting, formatting, type checking
@@ -162,6 +148,14 @@ Skills provide **stack-specific knowledge** that agents load on demand:
 - `migration`: Safe database schema changes
 - `api-design`: REST, GraphQL, gRPC patterns
 - `observability`: Logging, metrics, tracing
+
+### Language References
+
+Language-specific best practices are provided as **reference documentation** (not skills) in `docs/references/languages/`:
+
+- JavaScript/TypeScript, Python, Go, Rust, Java, C#, PHP, Ruby, Kotlin, Swift
+
+These are loaded via the `Read` tool when specific language guidance is needed, following the [official Claude Code best practices](https://www.anthropic.com/engineering/claude-code-best-practices) of keeping skills task-oriented rather than language-oriented.
 
 ### Stack Detection
 
@@ -181,7 +175,7 @@ Gemfile            → Ruby
 Package.swift      → Swift
 ```
 
-Based on detection, appropriate language skills are recommended.
+Based on detection, appropriate workflow skills and language references are recommended.
 
 ## Hooks
 
@@ -218,7 +212,7 @@ User: Fix the login bug
 Claude: Let me use stack-detector to understand the project...
         Detected: JavaScript/TypeScript + React + Node.js
 
-Claude: Loading javascript skill for stack-specific patterns.
+Claude: Loading code-quality skill and reading JS reference docs.
         Delegating to backend-specialist...
 ```
 
