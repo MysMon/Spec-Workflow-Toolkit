@@ -79,6 +79,7 @@ sdd-toolkit/
 │   ├── subagent_init.sh    # SubagentStart
 │   ├── safety_check.py     # PreToolUse (Bash)
 │   ├── prevent_secret_leak.py  # PreToolUse (Write/Edit)
+│   ├── security_audit_bash_validator.py  # PreToolUse (security-auditor Bash)
 │   ├── post_edit_quality.sh    # PostToolUse
 │   ├── subagent_summary.sh # SubagentStop
 │   └── session_summary.sh  # Stop
@@ -112,6 +113,29 @@ This plugin is **inspired by** but **not a copy of** official Anthropic plugins.
 | **Agent specialization** | General-purpose explorers | **12 specialized agents** | Domain expertise improves quality (security auditor vs. generic reviewer) |
 | **Confidence threshold** | 80% (code-review only) | **80% unified** across all reviews | Consistency reduces confusion |
 | **Workflow phases** | 7 phases | 7 phases + **explicit progress tracking** | Better resumption support |
+
+### Tool Availability Alignment with Official Patterns
+
+Agents are configured with tools aligned to [official subagent documentation](https://code.claude.com/docs/en/sub-agents):
+
+| Agent | Tools (Aligned with Official) | Notes |
+|-------|------------------------------|-------|
+| `code-explorer` | Glob, Grep, LS, Read, WebFetch, WebSearch, TodoWrite | `LS` added for directory listing; matches official pattern |
+| `code-architect` | Glob, Grep, LS, Read, WebFetch, WebSearch, TodoWrite | WebFetch/WebSearch for documentation lookup during design |
+| `security-auditor` | Read, Glob, Grep, Bash (validated) | Bash restricted via PreToolUse hook to read-only audit commands |
+
+**Note:** We intentionally exclude `NotebookRead`, `KillShell`, and `BashOutput` as they are not commonly needed for this plugin's use cases. These can be added if Jupyter notebook analysis becomes a requirement.
+
+### Model Selection Strategy
+
+| Agent Type | Model | Rationale |
+|------------|-------|-----------|
+| **Analysis agents** (code-explorer, code-architect) | Sonnet | Deep analysis requires reasoning capability |
+| **Implementation agents** (frontend/backend-specialist) | Sonnet | Code generation benefits from capability |
+| **Scoring agents** (Haiku in /code-review) | Haiku | Fast, cheap, sufficient for confidence scoring |
+| **All other agents** | Sonnet | Balanced cost/capability for specialized tasks |
+
+This differs from the built-in `Explore` agent (which uses Haiku) because our code-explorer performs deeper 4-phase analysis requiring more reasoning.
 
 ### Why "Definitive Recommendations" Instead of "Multiple Options"
 

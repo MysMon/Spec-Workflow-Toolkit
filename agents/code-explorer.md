@@ -11,7 +11,7 @@ description: |
   - Analyzing architecture patterns and conventions
   Trigger phrases: explore, trace, how does, find all, map dependencies, execution flow, call chain, understand codebase, analyze architecture
 model: sonnet
-tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
+tools: Glob, Grep, LS, Read, WebFetch, WebSearch, TodoWrite
 disallowedTools: Write, Edit, Bash
 permissionMode: plan
 skills: stack-detector
