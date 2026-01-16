@@ -34,11 +34,13 @@ For each finding, rate your confidence (0-100):
 | Score | Meaning | Action |
 |-------|---------|--------|
 | 90-100 | Definite vulnerability with evidence | Must fix before deployment |
-| 70-89 | Highly likely issue | Should investigate and fix |
-| 50-69 | Potential issue, needs verification | Review with team |
-| Below 50 | Uncertain, might be false positive | Low priority, document only |
+| 80-89 | Highly likely issue | Should investigate and fix |
+| 60-79 | Potential issue, needs verification | Review with team |
+| Below 60 | Uncertain, might be false positive | Low priority, document only |
 
-**Only report findings with confidence >= 70 unless specifically asked for all.**
+**Only report findings with confidence >= 80 unless specifically asked for all.**
+
+Based on [Anthropic's official code-reviewer pattern](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/feature-dev).
 
 ## Core Competencies
 

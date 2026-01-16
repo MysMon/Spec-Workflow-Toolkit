@@ -1,0 +1,288 @@
+---
+name: progress-tracking
+description: |
+  JSON-based progress tracking for long-running and multi-session tasks.
+  Based on Anthropic's "Effective harnesses for long-running agents" pattern.
+  Use when:
+  - Starting complex tasks that may span multiple sessions
+  - Need to track feature implementation progress
+  - Want resumable workflows across context windows
+  - Managing large migrations or refactoring
+  - User says "track progress", "resume work", "continue from where we left off"
+  Trigger phrases: track progress, resume, continue, multi-session, persist state, progress file, feature list
+allowed-tools: Read, Write, Glob, Grep, TodoWrite
+model: sonnet
+user-invocable: true
+---
+
+# Progress Tracking System
+
+JSON-based progress tracking for autonomous, long-running tasks that may span multiple sessions or context windows.
+
+Based on [Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents).
+
+## Core Principle
+
+**Context windows are limited.** Complex tasks cannot be completed in a single window. This system provides:
+
+1. **claude-progress.json** - Structured progress log
+2. **feature-list.json** - Feature/task tracking with status
+3. **Resumption context** - Clear state for new sessions
+
+## Why JSON over Markdown?
+
+From Anthropic's research: "Models are less likely to inappropriately modify JSON files compared to Markdown files."
+
+- JSON has strict schema - harder to accidentally corrupt
+- Fields can be independently updated
+- Machine-readable for automation
+- Clear separation of data and presentation
+
+## File Structure
+
+```
+.claude/
+├── claude-progress.json    # Progress log
+├── feature-list.json       # Task/feature tracking
+└── session-state.json      # Current session state (optional)
+```
+
+## claude-progress.json Schema
+
+```json
+{
+  "project": "project-name",
+  "started": "2025-01-16T10:00:00Z",
+  "lastUpdated": "2025-01-16T14:30:00Z",
+  "status": "in_progress",
+  "currentTask": "Implementing user authentication",
+  "sessions": [
+    {
+      "id": 1,
+      "started": "2025-01-16T10:00:00Z",
+      "ended": "2025-01-16T12:00:00Z",
+      "summary": "Set up project structure, created database schema",
+      "filesModified": ["schema.prisma", "src/models/user.ts"],
+      "nextSteps": ["Implement auth service", "Add JWT handling"]
+    }
+  ],
+  "log": [
+    {
+      "timestamp": "2025-01-16T10:15:00Z",
+      "action": "Created database schema",
+      "details": "Added User, Session, and Token models",
+      "files": ["prisma/schema.prisma"]
+    }
+  ],
+  "resumptionContext": {
+    "position": "Completed Phase 2 (Database), starting Phase 3 (Services)",
+    "nextAction": "Create AuthService in src/services/auth.ts",
+    "dependencies": ["Database migrations must be run first"],
+    "blockers": []
+  }
+}
+```
+
+## feature-list.json Schema
+
+```json
+{
+  "project": "project-name",
+  "totalFeatures": 10,
+  "completed": 3,
+  "features": [
+    {
+      "id": "F001",
+      "name": "User registration",
+      "description": "Users can create accounts with email/password",
+      "status": "completed",
+      "completedAt": "2025-01-16T11:30:00Z"
+    },
+    {
+      "id": "F002",
+      "name": "User login",
+      "description": "Users can log in and receive JWT token",
+      "status": "in_progress",
+      "startedAt": "2025-01-16T12:00:00Z"
+    },
+    {
+      "id": "F003",
+      "name": "Password reset",
+      "description": "Users can reset password via email",
+      "status": "pending"
+    }
+  ]
+}
+```
+
+## Workflow
+
+### Starting a New Task
+
+1. **Initialize Progress Files**
+   ```
+   Create .claude/claude-progress.json with:
+   - Project name
+   - Start timestamp
+   - Initial status
+   - First session entry
+   ```
+
+2. **Create Feature List** (if multiple features)
+   ```
+   Create .claude/feature-list.json with:
+   - All features to implement
+   - All marked as "pending" initially
+   ```
+
+3. **Use TodoWrite in Parallel**
+   ```
+   TodoWrite for real-time visibility
+   JSON files for persistence across sessions
+   ```
+
+### During Work
+
+1. **Update Progress Log** after significant actions
+   ```json
+   {
+     "timestamp": "...",
+     "action": "Implemented AuthService",
+     "details": "Added login, logout, and token refresh methods",
+     "files": ["src/services/auth.ts"]
+   }
+   ```
+
+2. **Update Feature Status** when completing features
+   ```json
+   {
+     "status": "completed",
+     "completedAt": "..."
+   }
+   ```
+
+3. **Keep Resumption Context Current**
+   ```json
+   {
+     "position": "Where we are now",
+     "nextAction": "What to do next",
+     "dependencies": ["What's needed"],
+     "blockers": ["What's in the way"]
+   }
+   ```
+
+### Ending a Session
+
+1. **Update Session Summary**
+   ```json
+   {
+     "ended": "...",
+     "summary": "What was accomplished",
+     "filesModified": [...],
+     "nextSteps": [...]
+   }
+   ```
+
+2. **Ensure Resumption Context is Complete**
+   - Position must be clear
+   - Next action must be specific
+   - Any blockers documented
+
+### Resuming Work
+
+1. **Read Progress Files**
+   ```
+   Read .claude/claude-progress.json
+   Read .claude/feature-list.json (if exists)
+   ```
+
+2. **Understand Current State**
+   - Check resumptionContext.position
+   - Review last session summary
+   - Note any blockers
+
+3. **Continue from Documented Point**
+   - Start new session entry
+   - Follow nextAction from resumption context
+
+## Integration with TodoWrite
+
+Use BOTH systems together:
+
+| System | Purpose | Scope |
+|--------|---------|-------|
+| TodoWrite | Real-time visibility | Current session |
+| JSON files | Persistence | Across sessions |
+
+```
+Flow:
+1. Read feature-list.json to populate TodoWrite
+2. Mark TodoWrite items as you work
+3. Update JSON files at milestones
+4. Sync TodoWrite from JSON on new session
+```
+
+## Session Start Protocol
+
+When starting or resuming:
+
+```
+1. Check if .claude/claude-progress.json exists
+2. If exists:
+   - Read resumptionContext
+   - Read last session summary
+   - Report: "Resuming from: [position]"
+   - Report: "Next action: [nextAction]"
+3. If not exists:
+   - Initialize new progress tracking
+   - Create feature list if multiple features
+```
+
+## Best Practices
+
+### DO
+
+- Update progress after EVERY significant action
+- Keep resumption context specific and actionable
+- Use feature-list.json for tasks with multiple deliverables
+- Commit progress files to git for persistence
+- Include file paths in log entries
+
+### DON'T
+
+- Batch updates (risk losing progress on failure)
+- Use vague resumption context ("continue working")
+- Forget to update feature status on completion
+- Leave blockers undocumented
+
+## Example: Database Migration
+
+```json
+{
+  "project": "sequelize-to-prisma-migration",
+  "status": "in_progress",
+  "currentTask": "Migrating Order model",
+  "features": [
+    {"id": "M001", "name": "User model", "status": "completed"},
+    {"id": "M002", "name": "Product model", "status": "completed"},
+    {"id": "M003", "name": "Order model", "status": "in_progress"},
+    {"id": "M004", "name": "OrderItem model", "status": "pending"},
+    {"id": "M005", "name": "Repository layer", "status": "pending"}
+  ],
+  "resumptionContext": {
+    "position": "Order model migration - relations defined, testing CRUD",
+    "nextAction": "Write integration tests for Order repository",
+    "dependencies": ["User and Product models must pass tests"],
+    "blockers": []
+  }
+}
+```
+
+## Rules
+
+- ALWAYS create progress files for tasks > 3 steps
+- ALWAYS update resumption context before ending session
+- ALWAYS use JSON format (not Markdown) for state
+- NEVER leave nextAction empty or vague
+- ALWAYS include file paths in log entries
+- ALWAYS sync TodoWrite with feature-list on resume
