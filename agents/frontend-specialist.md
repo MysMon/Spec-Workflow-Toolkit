@@ -59,7 +59,6 @@ Use static typing when available:
 
 1. **Read Specification**: Review approved spec from `docs/specs/`
 2. **Detect Stack**: Use `stack-detector` skill to identify framework
-3. **Load Language Skill**: Activate appropriate language skill (JavaScript, etc.)
 
 ### Phase 2: Planning
 

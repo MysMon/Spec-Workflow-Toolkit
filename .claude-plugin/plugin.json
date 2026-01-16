@@ -1,6 +1,6 @@
 {
   "name": "sdd-toolkit",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "Specification-Driven Development Toolkit - A multi-stack agentic framework for disciplined software development with role-based agents, composable skills, and security hooks that adapt to any technology stack.",
   "author": {
     "name": "MysMon",
@@ -24,5 +24,6 @@
     "ci-cd"
   ],
   "agents": "./agents",
+  "skills": "./skills",
   "hooks": "./hooks/hooks.json"
 }

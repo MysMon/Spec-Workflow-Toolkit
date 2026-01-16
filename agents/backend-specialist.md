@@ -75,7 +75,6 @@ Benefits:
 
 1. **Read Specification**: Review approved spec and architecture
 2. **Detect Stack**: Use `stack-detector` skill to identify runtime/framework
-3. **Load Language Skill**: Activate appropriate language skill
 
 ### Phase 2: Implementation
 

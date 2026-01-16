@@ -250,24 +250,17 @@ Stack Profile:
 
 ## Skill Recommendations
 
-Based on detected stack, recommend loading these skills:
+Based on detected stack, recommend loading these task-oriented skills:
 
-| Stack | Recommended Skills |
-|-------|-------------------|
-| JavaScript/TypeScript | `javascript`, `code-quality`, `testing` |
-| Python | `python`, `code-quality`, `testing` |
-| Go | `go`, `code-quality`, `testing` |
-| Rust | `rust`, `code-quality`, `testing` |
-| Java | `java`, `code-quality`, `testing` |
-| C# / .NET | `csharp`, `code-quality`, `testing` |
-| PHP | `php`, `code-quality`, `testing` |
-| Ruby | `ruby`, `code-quality`, `testing` |
-| Kotlin | `kotlin`, `code-quality`, `testing` |
-| Swift | `swift`, `code-quality`, `testing` |
+| Context | Recommended Skills |
+|---------|-------------------|
+| Any project | `code-quality`, `testing` |
 | With Prisma/SQL | `migration` |
-| With Docker | `devops` |
+| With Docker/K8s | (use `devops-sre` agent) |
 | API Development | `api-design` |
 | Production Systems | `observability` |
+| New features | `sdd-philosophy`, `interview` |
+| Security-sensitive | `security-fundamentals` |
 
 ## Usage
 
@@ -276,8 +269,7 @@ This skill is typically invoked automatically by other agents:
 1. Agent receives task
 2. Agent loads `stack-detector`
 3. Stack profile is generated
-4. Agent loads appropriate language skill
-5. Agent proceeds with stack-specific patterns
+4. Agent proceeds with stack-specific patterns (Claude already knows language best practices)
 
 ## Rules
 
