@@ -9,7 +9,7 @@ description: |
   - Database interactions, queries, or ORM operations
   - Server-side architecture or performance optimization
   Trigger phrases: backend, API, endpoint, server, database, query, Node.js, Python, Go, Rust, Java, REST, GraphQL, service
-model: sonnet
+model: inherit
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
 skills: code-quality, migration, stack-detector, security-fundamentals

@@ -1,16 +1,23 @@
-# SDD Toolkit Plugin v8.0 - Developer Guide
+# SDD Toolkit Plugin v8.1 - Developer Guide
 
 > **Important**: This file is for **plugin developers** working on this repository.
 > When users install the plugin in their project, context is delivered via the `SessionStart` hook (`hooks/sdd_context.sh`), not this file.
 
-## What's New in v8.0
+## What's New in v8.1
 
-Based on thorough analysis of [Anthropic's official best practices](https://www.anthropic.com/engineering/claude-code-best-practices), [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents), and [official plugins](https://github.com/anthropics/claude-plugins-official):
+Based on continued alignment with [Anthropic's official best practices](https://www.anthropic.com/engineering/claude-code-best-practices), [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents), and [official plugins](https://github.com/anthropics/claude-plugins-official):
 
-### Key Improvements
+### Key Improvements in v8.1
 
-1. **code-architect Agent (NEW)** - Definitive implementation blueprints based on existing codebase patterns (aligned with official feature-dev pattern)
-2. **5-Agent Parallel Code Review** - Now uses 5 parallel Sonnet agents + N parallel Haiku scorers (aligned with official code-review plugin)
+1. **Opus for System Architecture** - `system-architect` now uses Opus model for complex reasoning and high-impact decisions (ADRs, schemas, contracts)
+2. **Inherit Model for Implementation** - `frontend-specialist` and `backend-specialist` now use `inherit` to match parent model, giving users control over cost/quality tradeoff
+3. **Enhanced SessionStart Hook** - Explicit Initializer vs Coding role guidance based on Anthropic's two-agent harness pattern
+4. **Refined Model Selection Strategy** - Clear rationale for Opus/Sonnet/Haiku/inherit choices aligned with official documentation
+
+### Previous Improvements (v8.0)
+
+1. **code-architect Agent** - Definitive implementation blueprints based on existing codebase patterns (aligned with official feature-dev pattern)
+2. **5-Agent Parallel Code Review** - Uses 5 parallel Sonnet agents + N parallel Haiku scorers (aligned with official code-review plugin)
 3. **Enhanced code-explorer** - Added WebFetch, WebSearch, TodoWrite tools; `permissionMode: plan` for true read-only operation
 4. **Detailed Confidence Rubric** - 0/25/50/75/100 scale with explicit criteria for each level
 5. **Agent Role Clarification** - Clear distinction between `system-architect` (system-level) and `code-architect` (feature-level)
@@ -37,7 +44,7 @@ The user's own `CLAUDE.md` file (in their project) defines their project-specifi
 ```
 sdd-toolkit/
 ├── .claude-plugin/
-│   └── plugin.json          # Plugin metadata (v7.0.0)
+│   └── plugin.json          # Plugin metadata (v8.1.0)
 ├── commands/                # Slash commands
 │   ├── sdd.md              # /sdd - 7-phase workflow with parallel agents
 │   ├── code-review.md      # /code-review - Parallel review (confidence >= 80)
@@ -45,11 +52,11 @@ sdd-toolkit/
 │   └── quick-impl.md       # /quick-impl - Fast implementation
 ├── agents/                  # Specialized subagents (12 roles)
 │   ├── code-explorer.md    # Deep codebase analysis (read-only, permissionMode: plan)
-│   ├── code-architect.md   # NEW: Feature implementation blueprints (definitive recommendations)
+│   ├── code-architect.md   # Feature implementation blueprints (definitive recommendations)
 │   ├── product-manager.md  # Requirements (disallows Bash/Edit)
-│   ├── system-architect.md # System-level design (ADRs, schemas, contracts)
-│   ├── frontend-specialist.md
-│   ├── backend-specialist.md
+│   ├── system-architect.md # System-level design (ADRs, model: opus)
+│   ├── frontend-specialist.md  # UI implementation (model: inherit)
+│   ├── backend-specialist.md   # API implementation (model: inherit)
 │   ├── qa-engineer.md      # Testing (confidence >= 80)
 │   ├── security-auditor.md # Audit (permissionMode: plan, confidence >= 80)
 │   ├── devops-sre.md
@@ -128,14 +135,29 @@ Agents are configured with tools aligned to [official subagent documentation](ht
 
 ### Model Selection Strategy
 
+Based on [official subagent documentation](https://code.claude.com/docs/en/sub-agents):
+
+| Model | Recommended Use Case |
+|-------|----------------------|
+| **Opus** | Complex reasoning, multi-step operations, high-impact decisions |
+| **Sonnet** | Default for most tasks, balanced cost/capability |
+| **Haiku** | Fast read-only exploration, simple scoring tasks |
+| **inherit** | Match parent conversation's model (for implementation agents) |
+
+**This Plugin's Model Assignments:**
+
 | Agent Type | Model | Rationale |
 |------------|-------|-----------|
-| **Analysis agents** (code-explorer, code-architect) | Sonnet | Deep analysis requires reasoning capability |
-| **Implementation agents** (frontend/backend-specialist) | Sonnet | Code generation benefits from capability |
+| **system-architect** | **Opus** | ADRs and system-level design require deep reasoning and multi-step analysis |
+| **Analysis agents** (code-explorer, code-architect) | Sonnet | Deep analysis requires reasoning but not as complex as system design |
+| **Implementation agents** (frontend/backend-specialist) | **inherit** | Follows parent model; gives users control over cost/quality tradeoff |
 | **Scoring agents** (Haiku in /code-review) | Haiku | Fast, cheap, sufficient for confidence scoring |
 | **All other agents** | Sonnet | Balanced cost/capability for specialized tasks |
 
-This differs from the built-in `Explore` agent (which uses Haiku) because our code-explorer performs deeper 4-phase analysis requiring more reasoning.
+**Key Differences from Built-in Explore Agent:**
+- Built-in `Explore` uses Haiku for fast, lightweight exploration
+- Our `code-explorer` uses Sonnet for deeper 4-phase analysis requiring more reasoning
+- Our `system-architect` uses **Opus** because architectural decisions have lasting, cross-cutting impact
 
 ### Why "Definitive Recommendations" Instead of "Multiple Options"
 
