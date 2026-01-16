@@ -1,6 +1,14 @@
 ---
 name: testing
-description: Test strategy, unit testing, integration testing, and E2E testing patterns across any stack. Use when writing tests, developing test strategies, or improving test coverage.
+description: |
+  Test strategy, unit testing, integration testing, and E2E testing patterns across any stack. Use when:
+  - Writing unit, integration, or E2E tests
+  - Developing test strategies or improving coverage
+  - Using Jest, Vitest, pytest, Go testing, or Rust testing
+  - Setting up Playwright or Cypress for E2E
+  - Debugging failing tests or flaky tests
+  - Asked about mocking, fixtures, or test data
+  Trigger phrases: write tests, unit test, integration test, E2E test, test coverage, pytest, jest, vitest, playwright, cypress, mock, fixture
 allowed-tools: Read, Glob, Grep, Bash, Write, Edit
 model: sonnet
 user-invocable: true

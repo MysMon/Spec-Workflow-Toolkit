@@ -1,6 +1,13 @@
 ---
 name: sdd-philosophy
-description: Specification-Driven Development methodology and workflow. Use when starting new features, enforcing spec-first development, or ensuring disciplined software engineering practices.
+description: |
+  Specification-Driven Development methodology and workflow. Use when:
+  - Starting new features or projects ("new feature", "implement", "build")
+  - User request is vague or unclear ("add something", "make it better")
+  - Enforcing spec-first development ("write spec", "create specification")
+  - Someone says "just build it" or wants to skip planning
+  - Discussing requirements, acceptance criteria, or scope
+  Trigger phrases: specification, PRD, requirements document, scope definition, feature planning
 allowed-tools: Read, Write, Glob, AskUserQuestion
 model: sonnet
 user-invocable: true

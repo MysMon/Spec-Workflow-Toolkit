@@ -1,6 +1,13 @@
 ---
 name: stack-detector
-description: Automatically detects project technology stack from configuration files and source code. Use to identify the programming language, frameworks, and tools used in a project before applying stack-specific patterns.
+description: |
+  Automatically detects project technology stack from configuration files and source code. Use when:
+  - Starting work on a new or unfamiliar codebase
+  - Need to identify programming language, frameworks, or tools
+  - Determining which testing, linting, or build commands to use
+  - Adapting patterns to the project's specific technology
+  - Asked "what stack is this" or "what framework"
+  Trigger phrases: detect stack, what framework, identify technology, project setup, package.json, go.mod, Cargo.toml, requirements.txt
 allowed-tools: Read, Glob, Grep, Bash
 model: haiku
 user-invocable: true

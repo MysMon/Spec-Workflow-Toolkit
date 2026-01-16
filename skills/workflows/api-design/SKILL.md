@@ -1,6 +1,13 @@
 ---
 name: api-design
-description: API design patterns and best practices for REST, GraphQL, and gRPC. Use when designing new APIs, reviewing API contracts, or implementing API versioning strategies.
+description: |
+  API design patterns and best practices for REST, GraphQL, and gRPC. Use when:
+  - Designing new REST, GraphQL, or gRPC APIs
+  - Reviewing or creating OpenAPI/Swagger specifications
+  - Implementing API versioning or deprecation strategies
+  - Designing pagination, filtering, or error responses
+  - Working with HTTP status codes or API authentication
+  Trigger phrases: API design, REST endpoint, GraphQL schema, OpenAPI, swagger, gRPC, API versioning, HTTP status code, pagination, error response
 allowed-tools: Read, Glob, Grep, Write, Edit
 model: sonnet
 user-invocable: true

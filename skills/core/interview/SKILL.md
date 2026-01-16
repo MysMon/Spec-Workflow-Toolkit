@@ -1,6 +1,13 @@
 ---
 name: interview
-description: Structured requirements interview framework for clarifying vague requests. Use when user requirements are unclear, when starting a new feature, or when you need to gather complete specifications.
+description: |
+  Structured requirements interview framework for clarifying vague requests. Use when:
+  - User requirements are unclear or incomplete
+  - Starting a new feature and need to gather requirements
+  - Need to understand user needs, constraints, or priorities
+  - Translating business requests into technical specifications
+  - User says "I want" or "can you add" without details
+  Trigger phrases: gather requirements, clarify request, what do you need, interview user, requirements gathering, unclear request
 allowed-tools: AskUserQuestion, Read, Write
 model: sonnet
 user-invocable: true

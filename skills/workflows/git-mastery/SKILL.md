@@ -1,6 +1,13 @@
 ---
 name: git-mastery
-description: Semantic commit messages following Conventional Commits, changelog management, and git workflows. Use for committing changes with proper format and maintaining release history.
+description: |
+  Semantic commit messages following Conventional Commits, changelog management, and git workflows. Use when:
+  - Committing changes and need proper commit message format
+  - Managing changelog or release notes
+  - Working with git branches, merges, or rebases
+  - Creating pull requests or reviewing git history
+  - Need semantic versioning guidance
+  Trigger phrases: commit message, conventional commits, changelog, git workflow, semantic version, feat:, fix:, pull request
 allowed-tools: Bash, Read, Write, Edit, AskUserQuestion
 model: haiku
 user-invocable: true
