@@ -1,32 +1,47 @@
 ---
-description: "Review code changes using multiple specialized agents in parallel with confidence-based filtering"
-argument-hint: "[file path, directory, or 'staged' for git staged changes]"
-allowed-tools: Read, Glob, Grep, Bash, Task, AskUserQuestion
+description: "Review code changes using 5 parallel specialized agents with confidence-based scoring and filtering"
+argument-hint: "[file path, directory, PR #, or 'staged' for git staged changes]"
+allowed-tools: Read, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite
 ---
 
 # /code-review - Parallel Code Review
 
-Launch multiple specialized agents in parallel to comprehensively review code changes before committing or merging.
+Launch 5 specialized Sonnet agents in parallel to comprehensively review code changes, then score each issue with Haiku agents for confidence-based filtering.
+
+Based on the official [code-review plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/code-review) pattern.
 
 ## Overview
 
-This command uses 4 parallel agents to review code from different perspectives:
-1. **CLAUDE.md Compliance** - Checks adherence to project guidelines
-2. **Bug Detection** - Finds potential bugs and logic errors
-3. **Security Analysis** - Identifies security vulnerabilities
-4. **Code Quality** - Reviews maintainability and best practices
+This command implements an 8-step workflow:
 
-## Confidence Scoring System
+1. **Eligibility Check** (Haiku) - Verify PR is reviewable
+2. **CLAUDE.md Discovery** (Haiku) - Find all guideline files
+3. **Change Summary** (Haiku) - Summarize PR changes
+4. **Parallel Review** (5 Sonnet agents) - Analyze from different perspectives
+5. **Confidence Scoring** (N Haiku agents) - Score each issue found
+6. **Filtering** - Remove issues below 80% confidence
+7. **Re-check Eligibility** (Haiku) - Verify before posting
+8. **Report** - Post findings with GitHub links
 
-```
-0   - Not confident, likely false positive
-25  - Somewhat confident, might be real
-50  - Moderately confident, real but minor
-75  - Highly confident, real and important
-100 - Absolutely certain, definitely real
-```
+## Confidence Scoring Rubric
 
-**Default Threshold:** 80 (only reports issues >= 80 confidence)
+Each issue must be scored on this scale:
+
+| Score | Meaning | When to Use |
+|-------|---------|-------------|
+| **0** | Not confident at all | False positive, pre-existing issue, or unstated preference |
+| **25** | Somewhat confident | Might be real but unverified |
+| **50** | Moderately confident | Real issue but minor/infrequent occurrence |
+| **75** | Highly confident | Verified real, happens in practice, significant impact |
+| **100** | Absolutely certain | Definitely real, frequently occurring, directly verifiable |
+
+**Default Threshold:** 80 (only reports issues with score >= 80)
+
+### CLAUDE.md Issue Verification
+
+For issues flagged due to CLAUDE.md:
+- Double-check that CLAUDE.md **explicitly** calls out that issue
+- Score low if the guideline is vague or doesn't directly apply
 
 ## Execution Instructions
 
@@ -74,30 +89,29 @@ git blame [files]
 git log --oneline -10 -- [files]
 ```
 
-### Step 3: Launch Parallel Review Agents
+### Step 3: Launch 5 Parallel Review Agents (Sonnet)
 
-**CRITICAL: Launch all 4 agents in a single Task tool call.**
+**CRITICAL: Launch all 5 agents in a single Task tool call using parallel execution.**
 
-**Agent 1: CLAUDE.md Compliance**
+**Agent 1: CLAUDE.md Compliance Audit**
 ```
 Review code for CLAUDE.md guideline compliance.
 
-Guidelines:
-[CLAUDE.md content]
+CLAUDE.md files:
+[List of CLAUDE.md paths and content]
 
 Changes to review:
 [diff content]
 
-For each violation:
-- Guideline violated
+For each violation found, return:
+- Guideline violated (quote the specific rule)
 - Code location (file:line)
-- Confidence (0-100)
-- How to fix
+- Brief description
 ```
 
-**Agent 2: Bug Detection**
+**Agent 2: Shallow Bug Scan**
 ```
-Review code for potential bugs.
+Review code for obvious bugs in the changed code ONLY.
 
 Changes to review:
 [diff content]
@@ -105,83 +119,127 @@ Changes to review:
 Focus ONLY on bugs introduced in this change, not pre-existing issues.
 
 Look for:
-- Logic errors
-- Off-by-one errors
-- Null/undefined handling
-- Race conditions
-- Resource leaks
+- Logic errors, off-by-one errors
+- Null/undefined handling issues
+- Race conditions, resource leaks
 - Incorrect error handling
 
 For each bug:
 - Bug description
 - Code location (file:line)
-- Confidence (0-100)
-- Suggested fix
 ```
 
-**Agent 3: Security Analysis**
+**Agent 3: Git History Context Analysis**
 ```
-Review code for security vulnerabilities.
+Analyze git blame and history for contextual issues.
 
-Changes to review:
-[diff content]
+Changed files:
+[list of files]
 
-Check for OWASP Top 10:
-- Injection (SQL, command, XSS)
-- Broken authentication
-- Sensitive data exposure
-- XXE
-- Broken access control
-- Security misconfiguration
-- Insecure deserialization
-- Known vulnerable components
-- Insufficient logging
-
-For each vulnerability:
-- Vulnerability type
-- Code location (file:line)
-- Confidence (0-100)
-- Remediation
-```
-
-**Agent 4: Code Quality**
-```
-Review code for quality and maintainability.
-
-Changes to review:
-[diff content]
-
-Check for:
-- DRY violations
-- Complex functions (high cyclomatic complexity)
-- Missing error handling
-- Poor naming
-- Missing or incorrect types
-- Dead code
-- Performance issues
+Run git blame on changed lines.
+Check recent commit history for these files.
 
 For each issue:
 - Issue description
 - Code location (file:line)
-- Confidence (0-100)
-- Improvement suggestion
+- Historical context (why this might be problematic)
 ```
 
-### Step 4: Score and Filter Issues
+**Agent 4: Related PR Comments Review**
+```
+Check for comments or discussions from related PRs.
 
-For each issue found:
-1. **Verify it's in the changed code** - Not pre-existing
-2. **Check confidence score** - Filter below threshold
-3. **Remove duplicates** - Same issue found by multiple agents
-4. **Filter out linter issues** - Tools will catch these
+Changed files:
+[list of files]
+
+Look for any existing review comments or discussions
+that might apply to this code.
+
+For each relevant finding:
+- Finding description
+- Code location (file:line)
+- Reference to previous discussion
+```
+
+**Agent 5: Code Comments Alignment**
+```
+Verify code behavior matches inline comments.
+
+Changes to review:
+[diff content]
+
+Check that:
+- Comments accurately describe the code
+- TODOs are addressed or still relevant
+- No misleading comments
+
+For each misalignment:
+- Issue description
+- Code location (file:line)
+```
+
+### Step 4: Score Each Issue with Haiku Agents
+
+**For each issue found in Step 3, launch a parallel Haiku agent** to score confidence.
+
+```
+Launch N parallel Haiku agents (one per issue):
+
+For each issue:
+- PR context: [PR summary]
+- Issue description: [from step 3]
+- CLAUDE.md files: [list of guideline files]
+
+Score this issue 0-100 based on the rubric.
+For CLAUDE.md issues, verify the guideline explicitly mentions this.
+```
+
+### Step 5: Filter Issues
+
+**Remove issues with score < 80.**
 
 **Auto-filtered (do not report):**
 - Pre-existing issues not in this change
-- Issues linters will catch
+- Issues linters/type checkers will catch
 - Pedantic nitpicks
-- Code with ignore comments
+- Code with lint-ignore comments
+- General code quality issues not in CLAUDE.md
+- Issues where user didn't modify those lines
+- Intentional functionality changes
 
-### Step 5: Present Review
+### Step 6: Re-check Eligibility
+
+Before presenting, verify:
+- PR is still open (not closed or merged)
+- No new commits since analysis started
+- Issues are still relevant
+
+### Step 7: Present Review
+
+**For PR reviews (posting to GitHub):**
+
+```markdown
+## Code review
+
+Found [N] issues:
+
+1. [Brief description] (CLAUDE.md says "[quote guideline]")
+
+https://github.com/owner/repo/blob/[full-SHA]/path/file.ext#L[start]-L[end]
+
+2. [Brief description] (bug due to [explanation])
+
+https://github.com/owner/repo/blob/[full-SHA]/path/file.ext#L[start]-L[end]
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+```
+
+**Link Format Requirements:**
+- Use full SHA (not shortened)
+- Use `#L` notation for line references
+- Include at least 1 line of context around the issue
+
+**For local reviews:**
 
 ```markdown
 ## Code Review
@@ -190,20 +248,13 @@ Reviewed [N] files with [M] lines changed.
 
 ### Critical Issues (Confidence >= 90)
 
-1. **[Issue Title]** - [Category]
+1. **[Issue Title]** - [Category] (Score: [N])
 
-   File: `src/auth.ts` lines 67-72
+   File: `src/auth.ts:67-72`
 
    [Description of the issue]
 
-   ```typescript
-   // Problematic code
-   ```
-
-   **Fix:**
-   ```typescript
-   // Suggested fix
-   ```
+   **Fix:** [Suggested fix]
 
 ### Important Issues (Confidence 80-89)
 
@@ -218,7 +269,7 @@ Reviewed [N] files with [M] lines changed.
 **Verdict:** [APPROVED / NEEDS CHANGES]
 ```
 
-### Step 6: User Action
+### Step 8: User Action
 
 Ask user:
 ```

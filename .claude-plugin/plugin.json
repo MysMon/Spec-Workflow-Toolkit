@@ -1,8 +1,8 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "sdd-toolkit",
-  "version": "7.0.0",
-  "description": "Specification-Driven Development Toolkit - A multi-stack agentic framework with 7-phase workflow, parallel agent execution, JSON-based progress tracking, and resumable sessions. Based on official Anthropic best practices.",
+  "version": "8.0.0",
+  "description": "Specification-Driven Development Toolkit - A multi-stack agentic framework with 7-phase workflow, 5-agent parallel code review, code-architect for definitive implementation blueprints, and confidence-based scoring with Haiku agents. Based on official Anthropic best practices.",
   "author": {
     "name": "MysMon",
     "email": "contact@github.com/MysMon",
