@@ -1,317 +1,287 @@
-# Agentic Architecture Plugin for Claude Code
+# SDD Toolkit
 
-Claude Codeを活用した**仕様駆動開発（Specification-Driven Development: SDD）**と**自律型エージェントアーキテクチャ**を実現するための包括的なプラグイン実装です。
+**Specification-Driven Development Toolkit for Claude Code**
 
-## 概要
+A multi-stack agentic framework that brings disciplined software development practices to any technology stack through intelligent agents, composable skills, and automated quality enforcement.
 
-このプラグインは、Claude Codeの公式機能（Subagents、Skills、Hooks、MCP）を活用し、以下を実現します：
+## Features
 
-- **Hub-and-Spoke モデル**: メインセッション（Hub）が専門エージェント（Spokes）にタスクを委譲
-- **仕様駆動開発**: コード実装前に必ず仕様書を作成・承認するワークフロー
-- **多層防御セキュリティ**: フック、パーミッション、エージェント分離による安全性確保
-- **コンテキスト・エコノミー**: 効率的なコンテキスト管理で長時間セッションでも高精度を維持
+- **Multi-Stack Support**: Automatically adapts to JavaScript, Python, Go, Rust, Java, and more
+- **Specification-First Workflow**: Enforces specs before implementation
+- **10 Specialized Agents**: Role-based expertise for different aspects of development
+- **15+ Composable Skills**: Stack-specific and workflow skills that load on demand
+- **Security Hooks**: Automatic detection of dangerous commands and secret leaks
+- **Quality Automation**: Auto-linting and formatting after edits
 
-## クイックスタート
+## Installation
 
-### 1. リポジトリのクローン
-
-```bash
-git clone https://github.com/your-org/your-repo.git
-cd your-repo
-```
-
-### 2. 環境変数の設定（オプション）
-
-MCP サーバーを使用する場合：
+### As a Claude Code Plugin
 
 ```bash
-# .env ファイルを作成（コミットしないこと）
-cp .env.example .env
+# Install from plugin directory
+/plugin install sdd-toolkit@your-marketplace
 
-# 必要な環境変数を設定
-GITHUB_TOKEN=your-github-token
-DATABASE_URL=postgresql://user:password@localhost:5432/db
+# Or load directly for development
+claude --plugin-dir /path/to/sdd-toolkit
 ```
 
-### 3. Claude Code でプロジェクトを開く
+### For Project Integration
 
-```bash
-claude
-```
+Copy the `.claude-plugin` directory and relevant components to your project.
 
-プロジェクトの`CLAUDE.md`が自動的に読み込まれ、SDD原則とエージェント委譲プロトコルが有効になります。
-
-## アーキテクチャ
+## Plugin Structure
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Hub (Orchestrator)                       │
-│  ・ユーザーとのインターフェース                              │
-│  ・タスクの分解と委譲                                        │
-│  ・最小限のコンテキスト保持                                  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-          ┌───────────────────┼───────────────────┐
-          │                   │                   │
-          ▼                   ▼                   ▼
-┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│ product-manager │ │    architect    │ │ frontend-spec.  │
-│ 要件定義・PRD   │ │ システム設計    │ │ React/Next.js   │
-└─────────────────┘ └─────────────────┘ └─────────────────┘
-          │                   │                   │
-          ▼                   ▼                   ▼
-┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│ backend-spec.   │ │   devops-sre    │ │   qa-engineer   │
-│ Node.js/API     │ │ インフラ・CI/CD │ │ テスト・QA      │
-└─────────────────┘ └─────────────────┘ └─────────────────┘
-```
-
-## ディレクトリ構成
-
-```
-.
-├── CLAUDE.md                          # プロジェクト憲法
-├── README.md                          # このファイル
-├── .mcp.json                          # MCP サーバー設定
-├── .gitignore
-│
+sdd-toolkit/
+├── .claude-plugin/
+│   └── plugin.json           # Plugin metadata
+├── agents/                   # 10 specialized agents
+│   ├── product-manager.md
+│   ├── architect.md
+│   ├── frontend-specialist.md
+│   ├── backend-specialist.md
+│   ├── qa-engineer.md
+│   ├── security-auditor.md
+│   ├── devops-sre.md
+│   ├── ui-ux-designer.md
+│   ├── technical-writer.md
+│   └── legacy-modernizer.md
+├── skills/                   # Composable skills
+│   ├── core/                 # Universal principles
+│   │   ├── sdd-philosophy/
+│   │   ├── security-fundamentals/
+│   │   └── interview/
+│   ├── detection/            # Stack detection
+│   │   └── stack-detector/
+│   ├── languages/            # Language-specific
+│   │   ├── javascript/
+│   │   ├── python/
+│   │   ├── go/
+│   │   ├── rust/
+│   │   └── java/
+│   └── workflows/            # Cross-stack workflows
+│       ├── code-quality/
+│       ├── git-mastery/
+│       ├── testing/
+│       └── migration/
+├── hooks/                    # Enforcement hooks
+│   ├── hooks.json
+│   ├── safety_check.py
+│   ├── prevent_secret_leak.py
+│   ├── post_edit_quality.sh
+│   └── session_summary.sh
 ├── docs/
-│   └── specs/                         # 仕様書ディレクトリ
-│       └── SPEC-TEMPLATE.md           # 仕様書テンプレート
-│
-└── .claude/
-    ├── settings.json                  # Hooks & Permissions
-    │
-    ├── hooks/                         # セキュリティフック
-    │   ├── safety_check.py            # 危険コマンドブロック
-    │   ├── prevent_secret_leak.py     # シークレット検出
-    │   ├── post_edit_lint.sh          # 自動Lint実行
-    │   └── session_summary.sh         # セッション終了サマリー
-    │
-    ├── agents/                        # 専門エージェント定義
-    │   ├── product-manager.md
-    │   ├── architect.md
-    │   ├── frontend-specialist.md
-    │   ├── backend-specialist.md
-    │   ├── devops-sre.md
-    │   ├── qa-engineer.md
-    │   ├── security-auditor.md
-    │   ├── ui-ux-designer.md
-    │   ├── technical-writer.md
-    │   └── legacy-modernizer.md
-    │
-    ├── skills/                        # 再利用可能なスキル
-    │   ├── code-quality/
-    │   ├── safe-migration/
-    │   ├── git-mastery/
-    │   ├── visual-testing/
-    │   ├── arch-compliance/
-    │   └── interview/
-    │
-    └── rules/                         # モジュール化されたルール
-        ├── code-style.md
-        ├── security.md
-        └── testing.md
+│   └── specs/
+│       └── SPEC-TEMPLATE.md
+├── CLAUDE.md                 # Project instructions
+└── README.md
 ```
 
-## 専門エージェント
+## Core Concepts
 
-| エージェント | 役割 | 主な責務 |
-|------------|------|---------|
-| `product-manager` | 要件定義 | ヒアリング、PRD作成、仕様の明確化 |
-| `architect` | 設計 | システム設計、DB設計、ADR作成 |
-| `frontend-specialist` | フロント実装 | React/Next.js/TypeScript/Tailwind |
-| `backend-specialist` | バックエンド実装 | Node.js/API/Prisma |
-| `devops-sre` | インフラ | Terraform/Kubernetes/CI-CD |
-| `qa-engineer` | 品質保証 | Vitest/Playwright/ビジュアルテスト |
-| `security-auditor` | セキュリティ | 脆弱性診断、コードレビュー（読取専用） |
-| `ui-ux-designer` | デザイン | デザインシステム、A11y監査 |
-| `technical-writer` | ドキュメント | README、Changelog、API docs |
-| `legacy-modernizer` | レガシー改修 | リバースエンジニアリング、安全なリファクタリング |
+### Specification-Driven Development (SDD)
 
-### エージェントの呼び出し例
+The toolkit enforces a disciplined approach:
 
-Claude Code は自動的に適切なエージェントを選択しますが、明示的に指定することも可能です：
+1. **No Code Without Spec**: Every feature requires an approved specification in `docs/specs/`
+2. **Ambiguity Tolerance Zero**: When requirements are unclear, ask questions first
+3. **Context Economy**: Use specialized agents to maintain clean orchestrator context
+
+### Hub-and-Spoke Architecture
 
 ```
-# 新機能の要件定義から始める
-「ユーザーダッシュボード機能を追加したい」
-→ product-manager エージェントが起動し、要件をヒアリング
-
-# アーキテクチャ設計を依頼
-「認証システムのアーキテクチャを設計して」
-→ architect エージェントが起動
-
-# セキュリティレビューを実行
-「このPRのセキュリティレビューをして」
-→ security-auditor エージェントが起動（読取専用）
+                    ┌─────────────────┐
+                    │   Orchestrator  │
+                    │      (Hub)      │
+                    └────────┬────────┘
+                             │
+        ┌────────────────────┼────────────────────┐
+        │                    │                    │
+        ▼                    ▼                    ▼
+┌───────────────┐  ┌───────────────┐  ┌───────────────┐
+│ product-      │  │   architect   │  │  frontend-    │
+│ manager       │  │               │  │  specialist   │
+└───────────────┘  └───────────────┘  └───────────────┘
+        │                    │                    │
+        ▼                    ▼                    ▼
+┌───────────────┐  ┌───────────────┐  ┌───────────────┐
+│  interview    │  │stack-detector │  │  javascript   │
+│    skill      │  │    skill      │  │    skill      │
+└───────────────┘  └───────────────┘  └───────────────┘
 ```
 
-## Skills（スキル）
+### Agents
 
-スキルは `/skill-name` で呼び出し可能な再利用可能な手順書です。
+Agents define **roles and responsibilities** without being tied to specific technologies:
 
-| スキル | 説明 | 呼び出し |
-|-------|------|---------|
-| `code-quality` | Lint/Format/Type check | `/code-quality` |
-| `safe-migration` | Prisma安全マイグレーション | `/safe-migration` |
-| `git-mastery` | セマンティックコミット生成 | `/git-mastery` |
-| `visual-testing` | Playwrightビジュアルテスト | `/visual-testing` |
-| `arch-compliance` | アーキテクチャ境界検証 | `/arch-compliance` |
-| `interview` | 構造化要件インタビュー | `/interview` |
+| Agent | Purpose |
+|-------|---------|
+| `product-manager` | Requirements gathering, PRD creation, spec writing |
+| `architect` | System design, API design, database schema |
+| `frontend-specialist` | UI implementation (adapts to React, Vue, Angular, etc.) |
+| `backend-specialist` | API implementation (adapts to Node, Python, Go, etc.) |
+| `qa-engineer` | Test strategy and automation |
+| `security-auditor` | Security review and vulnerability assessment |
+| `devops-sre` | Infrastructure, CI/CD, deployment |
+| `ui-ux-designer` | Design systems, accessibility |
+| `technical-writer` | Documentation, changelogs, API docs |
+| `legacy-modernizer` | Safe refactoring, characterization testing |
 
-### スキルの使用例
+### Skills
 
-```
-# コード品質チェック
-/code-quality
+Skills provide **stack-specific knowledge** that agents load on demand:
 
-# データベースマイグレーション（安全手順付き）
-/safe-migration add_user_roles
+**Core Skills** (always applicable):
+- `sdd-philosophy`: Specification-driven methodology
+- `security-fundamentals`: Security best practices
+- `interview`: Structured requirements gathering
 
-# セマンティックコミットメッセージ生成
-/git-mastery
-```
+**Language Skills** (loaded based on project):
+- `javascript`: TypeScript, npm ecosystem, testing
+- `python`: Type hints, Pydantic, pytest
+- `go`: Idiomatic Go, error handling, testing
+- `rust`: Ownership, Result types, Cargo
+- `java`: Modern Java, Spring Boot, Maven/Gradle
 
-## Hooks（フック）
+**Workflow Skills** (cross-stack):
+- `code-quality`: Linting, formatting, type checking
+- `git-mastery`: Conventional commits, changelog
+- `testing`: Test pyramid, strategies, frameworks
+- `migration`: Safe database schema changes
 
-フックはツール実行前後に自動実行されるスクリプトです。
+### Stack Detection
 
-### PreToolUse フック
-
-| フック | トリガー | 機能 |
-|--------|---------|------|
-| `safety_check.py` | Bash実行前 | 危険コマンド（rm -rf /、sudo等）をブロック |
-| `prevent_secret_leak.py` | Write/Edit前 | APIキー、パスワード等の検出・ブロック |
-
-### PostToolUse フック
-
-| フック | トリガー | 機能 |
-|--------|---------|------|
-| `post_edit_lint.sh` | Write/Edit後 | 自動Lint/Format実行 |
-
-### Stop フック
-
-| フック | トリガー | 機能 |
-|--------|---------|------|
-| `session_summary.sh` | レスポンス完了時 | Gitステータスのサマリー表示 |
-
-### セキュリティフックが検出するパターン
-
-**危険コマンド（ブロック）:**
-- `rm -rf /` - システム破壊
-- `sudo` - 権限昇格
-- `chmod 777` - 危険なパーミッション
-- `curl | sh` - リモートスクリプト実行
-- `DROP DATABASE` - データベース削除
-
-**シークレットパターン（ブロック）:**
-- AWS Access Key (`AKIA...`)
-- GitHub Token (`ghp_...`)
-- Stripe Key (`sk_live_...`)
-- Private Keys (`-----BEGIN PRIVATE KEY-----`)
-- Generic API Keys
-
-## MCP サーバー設定
-
-`.mcp.json` で以下のMCPサーバーが設定されています：
-
-```json
-{
-  "mcpServers": {
-    "filesystem": { ... },  // ファイルシステムアクセス
-    "github": { ... },      // GitHub API
-    "postgres": { ... },    // PostgreSQL
-    "memory": { ... },      // セッション内メモリ
-    "fetch": { ... }        // HTTP リクエスト
-  }
-}
-```
-
-### MCP サーバーの有効化
-
-環境変数を設定してClaude Codeを起動：
+The `stack-detector` skill automatically identifies your project:
 
 ```bash
-export GITHUB_TOKEN="your-token"
-export DATABASE_URL="postgresql://..."
-claude
+# Detected from config files:
+package.json     → JavaScript/TypeScript
+pyproject.toml   → Python
+go.mod           → Go
+Cargo.toml       → Rust
+pom.xml          → Java (Maven)
 ```
 
-## 仕様駆動開発（SDD）ワークフロー
+Based on detection, appropriate language skills are recommended.
 
-### Phase 1: 要件定義
+## Hooks
 
-```
-ユーザー: 「ユーザー認証機能を追加したい」
+Automatic enforcement through lifecycle hooks:
 
-→ product-manager エージェントが起動
-→ トレードオフ質問:「OAuth2 vs カスタムJWT？」
-→ docs/specs/feat-authentication.md を作成
-```
+| Hook | Event | Purpose |
+|------|-------|---------|
+| `safety_check.py` | PreToolUse (Bash) | Blocks `rm -rf /`, `sudo`, curl pipes |
+| `prevent_secret_leak.py` | PreToolUse (Write/Edit) | Detects API keys, tokens, passwords |
+| `post_edit_quality.sh` | PostToolUse (Write/Edit) | Auto-runs linters and formatters |
+| `session_summary.sh` | Stop | Shows git status summary |
 
-### Phase 2: 設計
+## Usage Examples
 
-```
-→ architect エージェントが仕様書を読み込み
-→ システム設計、DBスキーマ、API設計を作成
-→ docs/architecture/ に成果物を配置
-```
-
-### Phase 3: 実装
+### Starting a New Feature
 
 ```
-→ frontend-specialist / backend-specialist が実装
-→ code-quality スキルで品質チェック
-→ 仕様書にない機能は実装禁止
+User: Add user authentication
+
+Claude: I'll use the interview skill to gather requirements first.
+        [Asks structured questions]
+
+Claude: Creating specification at docs/specs/feature-auth.md
+        [Creates detailed PRD]
+
+Claude: Now delegating to architect for system design...
 ```
 
-### Phase 4: 検証
+### Working on Existing Code
 
 ```
-→ qa-engineer がテストを作成・実行
-→ security-auditor がセキュリティレビュー
-→ visual-testing スキルでUI検証
+User: Fix the login bug
+
+Claude: Let me use stack-detector to understand the project...
+        Detected: JavaScript/TypeScript + React + Node.js
+
+Claude: Loading javascript skill for stack-specific patterns.
+        Delegating to backend-specialist...
 ```
 
-## カスタマイズ
+### Code Quality
 
-### 新しいエージェントの追加
+```
+User: Clean up my code
 
-`.claude/agents/my-agent.md`:
+Claude: Running code-quality skill...
+        Detected: ESLint + Prettier in project
+        Running: npx eslint --fix && npx prettier --write
+```
+
+## Specification Template
+
+All features require a spec. Use the template at `docs/specs/SPEC-TEMPLATE.md`:
+
+```markdown
+# Feature: [Name]
+
+## Overview
+[Business value summary]
+
+## User Stories
+US-001: As a [user], I want [goal], so that [benefit]
+
+## Functional Requirements
+| ID | Requirement | Priority | Acceptance Criteria |
+|----|-------------|----------|---------------------|
+| FR-001 | [What] | P0 | [Testable condition] |
+
+## Non-Functional Requirements
+| ID | Category | Requirement |
+|----|----------|-------------|
+| NFR-001 | Performance | [Target] |
+
+## Out of Scope
+- [Explicitly excluded items]
+
+## Approval
+[ ] Product Owner
+[ ] Tech Lead
+```
+
+## Customization
+
+### Adding a New Agent
+
+Create `agents/my-agent.md`:
 
 ```markdown
 ---
 name: my-agent
-description: 説明文。どんな時に使うかを記載。
+description: When to use this agent
 model: sonnet
 tools: Read, Glob, Grep, Write, Edit, Bash
-permissionMode: default
+skills: relevant-skill
 ---
 
 # Role: My Agent
 
-あなたの役割は...
+Your responsibilities...
 
 ## Workflow
 
-1. ステップ1
-2. ステップ2
+1. Step 1
+2. Step 2
 
 ## Rules
 
-- ルール1
-- ルール2
+- Rule 1
+- Rule 2
 ```
 
-### 新しいスキルの追加
+### Adding a New Skill
 
-`.claude/skills/my-skill/SKILL.md`:
+Create `skills/category/my-skill/SKILL.md`:
 
 ```markdown
 ---
 name: my-skill
-description: 説明文
+description: When to use this skill
 allowed-tools: Bash, Read
 user-invocable: true
 ---
@@ -320,94 +290,43 @@ user-invocable: true
 
 ## Workflow
 
-1. 手順1
-2. 手順2
+1. Step 1
+2. Step 2
 ```
 
-### 新しいフックの追加
+## Best Practices
 
-`.claude/settings.json`:
+### Do
 
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "ToolName",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/my-hook.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
+- Write specs before code
+- Use agents for their specialties
+- Let stack-detector identify the project
+- Run code-quality after changes
+- Document decisions with ADRs
 
-## ベストプラクティス
+### Don't
 
-### 1. コンテキスト管理
+- Skip the spec phase
+- Hardcode secrets
+- Ignore security-auditor findings
+- Force a specific stack's patterns on another
 
-- 大きなファイルの読み込みはサブエージェントに委譲
-- 長いセッションでは定期的にコミットして「記憶をオフロード」
-- 試行錯誤はサブエージェント内で完結させる
+## Contributing
 
-### 2. 仕様ファースト
+1. Fork the repository
+2. Create a feature branch
+3. Write a spec for your change
+4. Implement following the spec
+5. Submit a PR
 
-- 曖昧な要件は必ず明確化してから実装
-- `docs/specs/SPEC-TEMPLATE.md` を使用
-- 仕様書の変更は承認プロセスを経る
+## License
 
-### 3. セキュリティ
-
-- シークレットは必ず環境変数で管理
-- `security-auditor` エージェントでリリース前レビュー
-- フックによる自動検出を信頼しつつ、手動確認も実施
-
-### 4. テスト駆動
-
-- 実装前にテストを書く（Red-Green-Refactor）
-- `qa-engineer` エージェントでE2Eテストを自動生成
-- `visual-testing` スキルでUI回帰を検出
-
-## トラブルシューティング
-
-### フックが実行されない
-
-```bash
-# フックスクリプトに実行権限があるか確認
-chmod +x .claude/hooks/*.sh .claude/hooks/*.py
-```
-
-### MCP サーバーに接続できない
-
-```bash
-# 環境変数が設定されているか確認
-echo $GITHUB_TOKEN
-echo $DATABASE_URL
-
-# MCP サーバーを手動でテスト
-npx @modelcontextprotocol/server-github
-```
-
-### エージェントが自動選択されない
-
-CLAUDE.md の「Hub-and-Spoke Protocol」セクションを確認し、タスクカテゴリとエージェントのマッピングが正しいか確認してください。
-
-## 参考資料
-
-- [Claude Code 公式ドキュメント](https://docs.anthropic.com/en/docs/claude-code)
-- [Claude Code Hooks](https://docs.anthropic.com/en/docs/claude-code/hooks)
-- [Claude Code Subagents](https://docs.anthropic.com/en/docs/claude-code/sub-agents)
-- [Claude Code Skills](https://docs.anthropic.com/en/docs/claude-code/skills)
-- [Model Context Protocol](https://modelcontextprotocol.io/)
-
-## ライセンス
-
-MIT License - 詳細は [LICENSE](./LICENSE) を参照してください。
+MIT
 
 ---
 
-**Built with Claude Code** - Transforming software development with agentic architecture.
+**Sources:**
+- [Claude Code Plugin Documentation](https://code.claude.com/docs/en/plugins)
+- [Agent Skills Specification](https://code.claude.com/docs/en/skills)
+- [Conventional Commits](https://www.conventionalcommits.org/)
+- [Keep a Changelog](https://keepachangelog.com/)
