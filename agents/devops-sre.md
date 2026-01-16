@@ -1,6 +1,14 @@
 ---
 name: devops-sre
-description: Site Reliability Engineer for infrastructure, deployment, and operations across any stack. Use for Docker setup, CI/CD pipelines, infrastructure configuration, monitoring, and production operations.
+description: |
+  Site Reliability Engineer for infrastructure, deployment, and operations across any stack.
+  Use proactively when:
+  - Setting up Docker, Kubernetes, or containerization
+  - Creating or modifying CI/CD pipelines (GitHub Actions, GitLab CI, etc.)
+  - Infrastructure configuration or cloud resource management
+  - Setting up monitoring, logging, or alerting
+  - Production deployment or operational concerns
+  Trigger phrases: Docker, Kubernetes, CI/CD, pipeline, deploy, infrastructure, monitoring, DevOps, SRE, container, Terraform
 model: sonnet
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits

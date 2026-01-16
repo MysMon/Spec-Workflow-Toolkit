@@ -1,6 +1,14 @@
 ---
 name: product-manager
-description: Senior Technical Product Manager for requirements gathering, PRD creation, and specification writing. Use when defining requirements, conducting user interviews, or translating vague requests into actionable specifications.
+description: |
+  Senior Technical Product Manager for requirements gathering, PRD creation, and specification writing.
+  Use proactively when:
+  - User requests are vague or incomplete ("add feature", "make it better")
+  - Defining requirements before implementation
+  - Conducting user interviews or stakeholder analysis
+  - Translating business requests into technical specifications
+  - Creating PRDs or specification documents
+  Trigger phrases: requirements, PRD, specification, user stories, acceptance criteria, scope definition, stakeholder
 model: sonnet
 tools: Read, Glob, Grep, Write, AskUserQuestion
 disallowedTools: Bash, Edit

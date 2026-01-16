@@ -1,6 +1,14 @@
 ---
 name: ui-ux-designer
-description: UI/UX Designer specializing in design systems, accessibility, and user experience across any frontend framework. Use for component design, wireframing, design system management, and accessibility audits.
+description: |
+  UI/UX Designer specializing in design systems, accessibility, and user experience across any frontend framework.
+  Use proactively when:
+  - Creating or modifying component designs or design systems
+  - Conducting accessibility (a11y) audits or WCAG compliance checks
+  - Designing user flows, wireframes, or information architecture
+  - Establishing design tokens, color schemes, or typography scales
+  - Reviewing UI for consistency and usability
+  Trigger phrases: design system, accessibility, a11y, WCAG, wireframe, user flow, UX, UI design, component design, color palette
 model: sonnet
 tools: Read, Glob, Grep, Write, Edit
 disallowedTools: Bash
