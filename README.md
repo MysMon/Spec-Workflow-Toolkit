@@ -6,12 +6,12 @@ A multi-stack agentic framework that brings disciplined software development pra
 
 ## Features
 
-- **Multi-Stack Support**: Automatically adapts to JavaScript, Python, Go, Rust, Java, and more
+- **Multi-Stack Support**: Automatically adapts to JavaScript, Python, Go, Rust, Java, C#, PHP, Ruby, Kotlin, Swift, and more
 - **Specification-First Workflow**: Enforces specs before implementation
 - **10 Specialized Agents**: Role-based expertise for different aspects of development
-- **15+ Composable Skills**: Stack-specific and workflow skills that load on demand
+- **20+ Composable Skills**: Stack-specific and workflow skills that load on demand
 - **Security Hooks**: Automatic detection of dangerous commands and secret leaks
-- **Quality Automation**: Auto-linting and formatting after edits
+- **Quality Automation**: Auto-linting and formatting with support for npm, yarn, pnpm, bun, and more
 
 ## Installation
 
@@ -58,12 +58,19 @@ sdd-toolkit/
 │   │   ├── python/
 │   │   ├── go/
 │   │   ├── rust/
-│   │   └── java/
+│   │   ├── java/
+│   │   ├── csharp/
+│   │   ├── php/
+│   │   ├── ruby/
+│   │   ├── kotlin/
+│   │   └── swift/
 │   └── workflows/            # Cross-stack workflows
 │       ├── code-quality/
 │       ├── git-mastery/
 │       ├── testing/
-│       └── migration/
+│       ├── migration/
+│       ├── api-design/
+│       └── observability/
 ├── hooks/                    # Enforcement hooks
 │   ├── hooks.json
 │   ├── safety_check.py
@@ -137,17 +144,24 @@ Skills provide **stack-specific knowledge** that agents load on demand:
 - `interview`: Structured requirements gathering
 
 **Language Skills** (loaded based on project):
-- `javascript`: TypeScript, npm ecosystem, testing
+- `javascript`: TypeScript, npm/yarn/pnpm/bun ecosystem, testing
 - `python`: Type hints, Pydantic, pytest
 - `go`: Idiomatic Go, error handling, testing
 - `rust`: Ownership, Result types, Cargo
 - `java`: Modern Java, Spring Boot, Maven/Gradle
+- `csharp`: C# / .NET, ASP.NET Core, Entity Framework
+- `php`: Modern PHP, Laravel, Symfony
+- `ruby`: Ruby, Rails, RSpec
+- `kotlin`: Kotlin, Ktor, Spring Boot
+- `swift`: Swift, SwiftUI, Vapor
 
 **Workflow Skills** (cross-stack):
 - `code-quality`: Linting, formatting, type checking
 - `git-mastery`: Conventional commits, changelog
 - `testing`: Test pyramid, strategies, frameworks
 - `migration`: Safe database schema changes
+- `api-design`: REST, GraphQL, gRPC patterns
+- `observability`: Logging, metrics, tracing
 
 ### Stack Detection
 
@@ -155,11 +169,16 @@ The `stack-detector` skill automatically identifies your project:
 
 ```bash
 # Detected from config files:
-package.json     → JavaScript/TypeScript
-pyproject.toml   → Python
-go.mod           → Go
-Cargo.toml       → Rust
-pom.xml          → Java (Maven)
+package.json       → JavaScript/TypeScript (npm/yarn/pnpm/bun)
+pyproject.toml     → Python (pip/poetry/uv)
+go.mod             → Go
+Cargo.toml         → Rust
+pom.xml            → Java (Maven)
+build.gradle.kts   → Kotlin (Gradle)
+*.csproj           → C# / .NET
+composer.json      → PHP
+Gemfile            → Ruby
+Package.swift      → Swift
 ```
 
 Based on detection, appropriate language skills are recommended.

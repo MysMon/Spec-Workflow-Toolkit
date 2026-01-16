@@ -1,11 +1,16 @@
 {
   "name": "sdd-toolkit",
-  "description": "Specification-Driven Development Toolkit - A multi-stack agentic framework for disciplined software development. Provides role-based agents, composable skills, and security hooks that adapt to any technology stack.",
-  "version": "2.0.0",
+  "version": "2.1.0",
+  "description": "Specification-Driven Development Toolkit - A multi-stack agentic framework for disciplined software development with role-based agents, composable skills, and security hooks that adapt to any technology stack.",
   "author": {
-    "name": "MysMon"
+    "name": "MysMon",
+    "url": "https://github.com/MysMon"
   },
-  "repository": "https://github.com/MysMon/cc-web-dev",
+  "homepage": "https://github.com/MysMon/cc-web-dev#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MysMon/cc-web-dev.git"
+  },
   "license": "MIT",
   "keywords": [
     "sdd",
@@ -14,6 +19,10 @@
     "agentic",
     "architecture",
     "security",
-    "code-quality"
-  ]
+    "code-quality",
+    "testing",
+    "ci-cd"
+  ],
+  "agents": "./agents",
+  "hooks": "./hooks/hooks.json"
 }
