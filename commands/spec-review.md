@@ -24,7 +24,13 @@ Each issue is scored 0-100:
 - **50-74**: Moderate issue, should address
 - **75-100**: Critical issue, must address
 
-Only issues with confidence >= 70 are reported by default.
+**Default Threshold:** 80 (unified with `/code-review` for consistency)
+
+**Why 80% threshold?**
+- Aligned with [official code-review plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/code-review) pattern
+- Reduces false positives and noise
+- Ensures only actionable issues are reported
+- Users can adjust with `--threshold` flag if needed
 
 ## Execution Instructions
 
@@ -134,9 +140,24 @@ For each issue, provide:
 After all agents complete:
 
 1. **Collect all issues** from 4 agents
-2. **Filter by confidence** (>= 70 by default)
-3. **Remove duplicates** where multiple agents found same issue
+2. **Filter by confidence** (>= 80 by default)
+3. **De-duplicate findings** using these rules:
+   - **Same location + same type** → Keep highest confidence, merge descriptions
+   - **Same location + different types** → Keep both (e.g., security AND completeness)
+   - **Similar description + different locations** → Keep both as separate issues
+   - **Multiple agents flag same issue** → Boost confidence by 10 (max 100)
 4. **Sort by severity** (highest confidence first)
+
+**De-duplication Example:**
+```
+Agent 1: "Missing auth" (Security, line 15, confidence 85)
+Agent 4: "No auth test" (Quality, line 15, confidence 75)
+→ Keep both: different perspectives on same location
+
+Agent 2: "Scalability issue" (Feasibility, line 20, confidence 90)
+Agent 3: "Performance concern" (Feasibility, line 20, confidence 85)
+→ Merge: "Scalability/performance issue" (confidence 95)
+```
 
 ### Step 4: Present Review Report
 
@@ -145,9 +166,9 @@ After all agents complete:
 
 ### Summary
 - Total issues found: [N]
-- Critical (75-100): [N]
-- Important (50-74): [N]
-- Minor (25-49): [N]
+- Critical (90-100): [N]
+- Important (80-89): [N]
+- Filtered (below 80): [N]
 
 ### Critical Issues (Must Address)
 

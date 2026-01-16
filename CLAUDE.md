@@ -89,6 +89,49 @@ sdd-toolkit/
 
 ---
 
+## Design Philosophy: Why This Plugin Exists
+
+### Plugin Purpose
+
+This plugin exists to solve a specific problem: **enabling Claude to complete complex, long-running development tasks without losing context or focus**.
+
+Key goals:
+1. **Preserve main context** - Delegate exploration and analysis to subagents
+2. **Ensure completeness** - Never implement without understanding the full picture
+3. **Support resumption** - Allow sessions to be interrupted and continued
+4. **Maintain quality** - Confidence-based filtering reduces noise
+
+### Intentional Differences from Official Patterns
+
+This plugin is **inspired by** but **not a copy of** official Anthropic plugins. Key intentional differences:
+
+| Aspect | Official `feature-dev` | This Plugin (SDD) | Rationale |
+|--------|----------------------|-------------------|-----------|
+| **Architecture options** | Presents 3 approaches | Presents **single definitive recommendation** | Reduces decision fatigue; code-architect already considered alternatives internally |
+| **Progress format** | `claude-progress.txt` (text) | `claude-progress.json` (JSON) | JSON is machine-readable and less prone to accidental corruption |
+| **Agent specialization** | General-purpose explorers | **12 specialized agents** | Domain expertise improves quality (security auditor vs. generic reviewer) |
+| **Confidence threshold** | 80% (code-review only) | **80% unified** across all reviews | Consistency reduces confusion |
+| **Workflow phases** | 7 phases | 7 phases + **explicit progress tracking** | Better resumption support |
+
+### Why "Definitive Recommendations" Instead of "Multiple Options"
+
+The official `feature-dev` plugin launches 3 code-architect agents exploring:
+- Minimal changes approach
+- Clean architecture approach
+- Pragmatic balance approach
+
+This plugin's `code-architect` agent instead provides **a single, definitive recommendation**.
+
+**Rationale:**
+1. The code-architect agent has **already analyzed trade-offs internally**
+2. Users typically want guidance, not more decisions to make
+3. The agent cites evidence from codebase patterns with `file:line` references
+4. Users can always ask for alternatives if needed
+
+This is a deliberate design choice, not a limitation.
+
+---
+
 ## Key Design Decisions
 
 ### 1. Context Protection via Subagents
@@ -128,17 +171,31 @@ Feature implementation blueprint specialist (aligned with official pattern):
 - Returns implementation map with specific file paths and build sequence
 - `permissionMode: plan` for design-only operation (no implementation)
 
-### 5. JSON-Based Progress Tracking
+### 5. Long-Running Task Support (Initializer + Coding Pattern)
 
 Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents):
 
+**The Problem:** Complex tasks cannot be completed in a single context window. Each new session starts with no memory of previous work.
+
+**The Solution:** Two-role pattern:
+
+| Role | When | What |
+|------|------|------|
+| **Initializer** | First session | Create progress files, break down features, initialize state |
+| **Coding** | Each session | Read progress, implement ONE feature, test, update progress |
+
+**Key Files:**
 ```
 .claude/
 ├── claude-progress.json    # Progress log with resumption context
 └── feature-list.json       # Feature/task status tracking
 ```
 
-Why JSON over Markdown: "Models are less likely to inappropriately modify JSON files compared to Markdown files."
+**Critical Insight:** "One Feature at a Time" - Avoid trying to do too much at once. Focus on completing and testing ONE feature before moving to the next.
+
+**Why JSON over Markdown:** "Models are less likely to inappropriately modify JSON files compared to Markdown files."
+
+**SessionStart Hook:** Automatically detects progress files and extracts resumption context.
 
 ### 6. Confidence Scoring (80% Threshold with Detailed Rubric)
 
