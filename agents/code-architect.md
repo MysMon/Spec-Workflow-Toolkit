@@ -9,7 +9,7 @@ description: |
   - Creating implementation roadmaps with specific file paths
   Trigger phrases: design feature, architecture plan, implementation blueprint, how should I implement, design approach
 model: sonnet
-tools: Glob, Grep, LS, Read, WebFetch, WebSearch, TodoWrite
+tools: Glob, Grep, LS, Read, NotebookRead, WebFetch, WebSearch, TodoWrite
 disallowedTools: Write, Edit, Bash
 permissionMode: plan
 skills: stack-detector

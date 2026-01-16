@@ -23,13 +23,27 @@ This command orchestrates 7 phases:
 
 ## Execution Instructions
 
-### CRITICAL: Context Protection
+### CRITICAL: Context Protection (The Most Important Rule)
 
-**ALWAYS delegate to subagents for complex work.** The main context must remain clean and focused on orchestration.
+**DO NOT explore code yourself. ALWAYS delegate to subagents.**
+
+The main orchestrator MUST:
+- Remain focused on orchestration and coordination
+- Never accumulate exploration results in main context
+- Delegate ALL codebase exploration to `code-explorer` agents
+- Delegate ALL implementation to specialist agents
+- Only read specific files identified by subagents
+
+Why this matters:
+- Context windows are limited
+- Long autonomous sessions require clean context
+- Subagents run in isolated windows, protecting main context
+- Only summaries return, not full exploration data
 
 | Agent | Model | Use For |
 |-------|-------|---------|
-| `code-explorer` | Sonnet | Codebase analysis (4-phase deep exploration) |
+| `code-explorer` | Sonnet | Deep codebase analysis (4-phase exploration) |
+| Built-in `Explore` | Haiku | Quick lookups and simple searches |
 | `product-manager` | Sonnet | Requirements gathering |
 | `system-architect` | **Opus** | System-level design (ADRs, schemas, contracts) - deep reasoning |
 | `code-architect` | Sonnet | Feature-level implementation blueprints |
@@ -38,7 +52,11 @@ This command orchestrates 7 phases:
 | `qa-engineer` | Sonnet | Testing and quality review |
 | `security-auditor` | Sonnet | Security review (read-only) |
 
-**Model Selection Tip**: For complex features requiring careful system design, the `system-architect` (Opus) provides the deepest reasoning capability. Implementation agents inherit your session's model.
+**Model Selection Strategy**:
+- **Opus**: Complex reasoning, architectural decisions (system-architect)
+- **Sonnet**: Balanced capability for analysis and implementation
+- **Haiku**: Fast, lightweight exploration (built-in Explore)
+- **inherit**: Match parent conversation model (implementation agents)
 
 ### Phase 1: Discovery
 

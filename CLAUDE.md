@@ -1,13 +1,21 @@
-# SDD Toolkit Plugin v8.1 - Developer Guide
+# SDD Toolkit Plugin v8.2 - Developer Guide
 
 > **Important**: This file is for **plugin developers** working on this repository.
 > When users install the plugin in their project, context is delivered via the `SessionStart` hook (`hooks/sdd_context.sh`), not this file.
 
-## What's New in v8.1
+## What's New in v8.2
 
 Based on continued alignment with [Anthropic's official best practices](https://www.anthropic.com/engineering/claude-code-best-practices), [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents), and [official plugins](https://github.com/anthropics/claude-plugins-official):
 
-### Key Improvements in v8.1
+### Key Improvements in v8.2
+
+1. **Enhanced Role Detection in SessionStart** - Hook now explicitly displays "INITIALIZER" or "CODING" role with specific instructions based on progress file presence
+2. **Strengthened Context Protection** - Added "DO NOT explore code yourself" directive with clear rationale for long autonomous sessions
+3. **Tool Alignment with Official Pattern** - `code-explorer` and `code-architect` now include `NotebookRead` for Jupyter notebook support
+4. **Thoroughness-Based Model Guidance** - `code-explorer` description notes when to use built-in Explore (Haiku) vs this agent (Sonnet)
+5. **Model Selection Strategy Documentation** - Clearer guidance on Opus/Sonnet/Haiku/inherit usage with specific rationales
+
+### Previous Improvements (v8.1)
 
 1. **Opus for System Architecture** - `system-architect` now uses Opus model for complex reasoning and high-impact decisions (ADRs, schemas, contracts)
 2. **Inherit Model for Implementation** - `frontend-specialist` and `backend-specialist` now use `inherit` to match parent model, giving users control over cost/quality tradeoff
@@ -44,7 +52,7 @@ The user's own `CLAUDE.md` file (in their project) defines their project-specifi
 ```
 sdd-toolkit/
 ├── .claude-plugin/
-│   └── plugin.json          # Plugin metadata (v8.1.0)
+│   └── plugin.json          # Plugin metadata (v8.2.0)
 ├── commands/                # Slash commands
 │   ├── sdd.md              # /sdd - 7-phase workflow with parallel agents
 │   ├── code-review.md      # /code-review - Parallel review (confidence >= 80)
@@ -127,11 +135,11 @@ Agents are configured with tools aligned to [official subagent documentation](ht
 
 | Agent | Tools (Aligned with Official) | Notes |
 |-------|------------------------------|-------|
-| `code-explorer` | Glob, Grep, LS, Read, WebFetch, WebSearch, TodoWrite | `LS` added for directory listing; matches official pattern |
-| `code-architect` | Glob, Grep, LS, Read, WebFetch, WebSearch, TodoWrite | WebFetch/WebSearch for documentation lookup during design |
+| `code-explorer` | Glob, Grep, LS, Read, NotebookRead, WebFetch, WebSearch, TodoWrite | `NotebookRead` added for Jupyter notebook analysis |
+| `code-architect` | Glob, Grep, LS, Read, NotebookRead, WebFetch, WebSearch, TodoWrite | `NotebookRead` for analyzing data science workflows |
 | `security-auditor` | Read, Glob, Grep, Bash (validated) | Bash restricted via PreToolUse hook to read-only audit commands |
 
-**Note:** We intentionally exclude `NotebookRead`, `KillShell`, and `BashOutput` as they are not commonly needed for this plugin's use cases. These can be added if Jupyter notebook analysis becomes a requirement.
+**Note:** `KillShell` and `BashOutput` are excluded as they are not commonly needed for this plugin's analysis-focused agents.
 
 ### Model Selection Strategy
 
@@ -203,10 +211,10 @@ Based on [feature-dev plugin](https://github.com/anthropics/claude-plugins-offic
 Deep codebase analysis specialist (aligned with official pattern):
 - 4-phase analysis: Discovery → Flow Tracing → Architecture → Implementation Details
 - **MUST** provide file:line references for ALL findings
-- Tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
+- Tools: Glob, Grep, LS, Read, NotebookRead, WebFetch, WebSearch, TodoWrite
 - `permissionMode: plan` for true read-only operation
 - Returns key files list (5-10) for orchestrator to read
-- Invoked with thoroughness levels: quick, medium, very thorough
+- Invoked with thoroughness levels: quick (consider built-in Explore), medium, very thorough
 
 ### 4. code-architect Agent (NEW)
 

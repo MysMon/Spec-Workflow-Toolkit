@@ -1,24 +1,39 @@
-# SDD Toolkit v7.0
+# SDD Toolkit v8.2
 
 **Specification-Driven Development Toolkit for Claude Code**
 
-A multi-stack agentic framework with 7-phase workflow, parallel agent execution, JSON-based progress tracking, and resumable sessions. Based on official Anthropic best practices.
+A multi-stack agentic framework designed for **long-running autonomous work sessions**. Features 7-phase workflow, aggressive subagent delegation, JSON-based progress tracking, and resumable sessions. Based on official Anthropic best practices.
 
 > **Based on Official Best Practices**:
 > - [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
 > - [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
 > - [Official Plugin Marketplace](https://github.com/anthropics/claude-plugins-official)
+> - [Subagent Documentation](https://code.claude.com/docs/en/sub-agents)
 
-## What's New in v7.0
+## What's New in v8.2
 
 | Feature | Description |
 |---------|-------------|
-| **7-Phase Workflow** | Aligned with official feature-dev plugin (Discovery, Exploration, Questions, Design, Implementation, Review, Summary) |
-| **code-explorer Agent** | Deep codebase analysis with file:line references, read-only mode |
-| **JSON Progress Tracking** | `claude-progress.json` and `feature-list.json` for resumable sessions |
-| **Auto Resume Detection** | SessionStart hook auto-detects progress files and reports resumption context |
-| **Confidence Threshold 80%** | Aligned with official code-reviewer pattern to reduce false positives |
-| **Parallel Agent Execution** | Launch 2-3 agents simultaneously in exploration, design, and review phases |
+| **Enhanced Initializer/Coding Role Detection** | SessionStart hook now explicitly displays current role (Initializer vs Coding) based on progress file presence |
+| **Strengthened Context Protection** | "DO NOT explore code yourself" - clearer delegation rules for long autonomous sessions |
+| **Model Selection Strategy** | Opus for system-architect (complex reasoning), Haiku for quick lookups, Sonnet for balanced tasks |
+| **Tool Alignment with Official Pattern** | code-explorer/code-architect now include NotebookRead for Jupyter support |
+| **Thoroughness-Based Model Guidance** | code-explorer notes when to use built-in Explore (Haiku) vs this agent (Sonnet) |
+
+## Previous Versions
+
+### v8.1
+- Opus for system-architect (ADRs, schemas, contracts require deep reasoning)
+- `inherit` model for implementation agents (user controls cost/quality tradeoff)
+
+### v8.0
+- code-architect agent with definitive recommendations
+- 5-agent parallel code review + Haiku scorers
+
+### v7.0
+- 7-phase workflow aligned with official feature-dev plugin
+- JSON progress tracking and auto-resume detection
+- Confidence threshold 80%
 
 ## Features
 
@@ -83,7 +98,7 @@ Copy the `.claude-plugin` directory and relevant components to your project.
 ```
 sdd-toolkit/
 ├── .claude-plugin/
-│   └── plugin.json           # Plugin metadata (v7.0.0)
+│   └── plugin.json           # Plugin metadata (v8.2.0)
 ├── commands/                 # Workflow commands
 │   ├── sdd.md               # Full 7-phase workflow with parallel agents
 │   ├── spec-review.md       # Parallel spec review
