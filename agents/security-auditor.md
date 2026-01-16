@@ -19,8 +19,8 @@ hooks:
     - matcher: "Bash"
       hooks:
         - type: command
-          command: "echo 'Security audit mode: Bash restricted to read-only audit commands only'"
-          once: true
+          command: "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/security_audit_bash_validator.py"
+          timeout: 5000
 ---
 
 # Role: Security Auditor

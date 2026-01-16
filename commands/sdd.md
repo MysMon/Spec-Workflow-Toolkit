@@ -107,30 +107,34 @@ Based on discovery and exploration, identify:
 
 **Goal:** Design the implementation approach based on codebase patterns.
 
-**LAUNCH 2-3 `code-architect` AGENTS IN PARALLEL with different focuses:**
+**Design Philosophy (Intentional Difference from Official Pattern):**
+
+The official `feature-dev` plugin presents 3 distinct approaches for user selection. This plugin instead uses multiple code-architect agents to **analyze from different angles, then synthesize into a single definitive recommendation**. This reduces decision fatigue while ensuring comprehensive analysis.
+
+**LAUNCH 2-3 `code-architect` AGENTS IN PARALLEL with different analysis focuses:**
 
 ```
 Launch these code-architect agents in parallel:
 
-1. code-architect (reuse focus)
-   Focus: Maximum reuse of existing patterns and code
+1. code-architect (reuse analysis)
+   Analyze: How existing patterns and code can be reused
    Context: [Exploration findings], [Requirements]
-   Output: Definitive design with file:line references
+   Output: Reuse opportunities with file:line evidence
 
-2. code-architect (extensibility focus)
-   Focus: Clean abstractions for future growth
+2. code-architect (extensibility analysis)
+   Analyze: Clean abstraction opportunities for future growth
    Context: [Exploration findings], [Requirements]
-   Output: Definitive design with file:line references
+   Output: Abstraction recommendations with file:line evidence
 
-3. code-architect (performance focus) - if relevant
-   Focus: Optimal performance characteristics
+3. code-architect (performance analysis) - if relevant
+   Analyze: Performance implications and optimizations
    Context: [Exploration findings], [Requirements]
-   Output: Definitive design with file:line references
+   Output: Performance considerations with file:line evidence
 ```
 
-**Each agent returns a definitive recommendation** (not multiple options).
+**Each agent contributes analysis from their focus area.**
 
-**Synthesize into presentation for user:**
+**Synthesize all agent outputs into ONE definitive recommendation:**
 ```markdown
 ## Architecture Analysis
 
