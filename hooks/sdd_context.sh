@@ -103,7 +103,7 @@ cat << 'EOF'
 |-----------|-------------|-----|
 | Codebase Exploration | `code-explorer` | Deep analysis in isolation |
 | Requirements | `product-manager` | Exploration stays isolated |
-| System Design | `architect` | ADRs, schemas, contracts |
+| System Design | `system-architect` | ADRs, schemas, contracts |
 | Feature Design | `code-architect` | Implementation blueprints |
 | Frontend | `frontend-specialist` | Implementation details contained |
 | Backend | `backend-specialist` | Implementation details contained |

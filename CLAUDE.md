@@ -13,7 +13,7 @@ Based on thorough analysis of [Anthropic's official best practices](https://www.
 2. **5-Agent Parallel Code Review** - Now uses 5 parallel Sonnet agents + N parallel Haiku scorers (aligned with official code-review plugin)
 3. **Enhanced code-explorer** - Added WebFetch, WebSearch, TodoWrite tools; `permissionMode: plan` for true read-only operation
 4. **Detailed Confidence Rubric** - 0/25/50/75/100 scale with explicit criteria for each level
-5. **Agent Role Clarification** - Clear distinction between `architect` (system-level) and `code-architect` (feature-level)
+5. **Agent Role Clarification** - Clear distinction between `system-architect` (system-level) and `code-architect` (feature-level)
 
 ## Plugin Architecture
 
@@ -47,7 +47,7 @@ sdd-toolkit/
 │   ├── code-explorer.md    # Deep codebase analysis (read-only, permissionMode: plan)
 │   ├── code-architect.md   # NEW: Feature implementation blueprints (definitive recommendations)
 │   ├── product-manager.md  # Requirements (disallows Bash/Edit)
-│   ├── architect.md        # System-level design (ADRs, schemas, contracts)
+│   ├── system-architect.md # System-level design (ADRs, schemas, contracts)
 │   ├── frontend-specialist.md
 │   ├── backend-specialist.md
 │   ├── qa-engineer.md      # Testing (confidence >= 80)
@@ -299,7 +299,7 @@ Edit `hooks/hooks.json`:
 
 When working on this plugin:
 - Use `code-explorer` for understanding existing code
-- Use `architect` for design decisions
+- Use `system-architect` for design decisions
 - Use `qa-engineer` for testing new agents/skills
 - Use `security-auditor` before releases
 

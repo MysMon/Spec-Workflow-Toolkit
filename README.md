@@ -92,7 +92,7 @@ sdd-toolkit/
 ├── agents/                   # 11 specialized agents
 │   ├── code-explorer.md     # NEW: Deep codebase analysis (read-only)
 │   ├── product-manager.md
-│   ├── architect.md
+│   ├── system-architect.md
 │   ├── frontend-specialist.md
 │   ├── backend-specialist.md
 │   ├── qa-engineer.md
@@ -212,7 +212,7 @@ Based on Anthropic's long-running agent harness pattern:
 | `code-explorer` | Deep codebase analysis with file:line references (read-only) |
 | `code-architect` | **NEW**: Feature implementation blueprints with definitive recommendations |
 | `product-manager` | Requirements gathering, PRD creation, spec writing |
-| `architect` | System-level design, ADRs, API contracts, database schema |
+| `system-architect` | System-level design, ADRs, API contracts, database schema |
 | `frontend-specialist` | UI implementation (adapts to React, Vue, Angular, etc.) |
 | `backend-specialist` | API implementation (adapts to Node, Python, Go, etc.) |
 | `qa-engineer` | Test strategy and automation (confidence >= 80) |
