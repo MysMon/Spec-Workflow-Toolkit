@@ -16,7 +16,6 @@ This toolkit is **stack-agnostic** by design:
 - **Agents** define WHAT to do (roles and responsibilities)
 - **Skills** define HOW to do it (task-oriented patterns)
 - **Stack Detector** auto-identifies project technology
-- **References** provide language-specific best practices (loaded on demand)
 
 ## Quick Reference
 
@@ -53,10 +52,6 @@ This toolkit is **stack-agnostic** by design:
 | Core | `sdd-philosophy`, `security-fundamentals`, `interview` | Universal principles |
 | Detection | `stack-detector` | Auto-detect project technology |
 | Workflows | `code-quality`, `git-mastery`, `testing`, `migration`, `api-design`, `observability` | Cross-stack workflows |
-
-### Language References (not skills)
-
-Language-specific patterns are in `docs/references/languages/` - loaded via `Read` tool when needed.
 
 ## Operational Rules
 

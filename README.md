@@ -10,7 +10,6 @@ A multi-stack agentic framework that brings disciplined software development pra
 - **Specification-First Workflow**: Enforces specs before implementation
 - **10 Specialized Agents**: Role-based expertise for different aspects of development
 - **Task-Oriented Skills**: Workflow skills that load on demand (code-quality, testing, etc.)
-- **Language References**: Curated best practices documentation for 10+ languages
 - **Security Hooks**: Automatic detection of dangerous commands and secret leaks
 - **Quality Automation**: Auto-linting and formatting with support for npm, yarn, pnpm, bun, and more
 
@@ -68,15 +67,8 @@ sdd-toolkit/
 │   ├── post_edit_quality.sh
 │   └── session_summary.sh
 ├── docs/
-│   ├── specs/
-│   │   └── SPEC-TEMPLATE.md
-│   └── references/           # Language-specific docs
-│       └── languages/
-│           ├── javascript/
-│           ├── python/
-│           ├── go/
-│           ├── rust/
-│           └── ...
+│   └── specs/
+│       └── SPEC-TEMPLATE.md
 ├── CLAUDE.md                 # Project instructions
 └── README.md
 ```
@@ -149,14 +141,6 @@ Skills are **task-oriented** and provide workflow knowledge that agents load on 
 - `api-design`: REST, GraphQL, gRPC patterns
 - `observability`: Logging, metrics, tracing
 
-### Language References
-
-Language-specific best practices are provided as **reference documentation** (not skills) in `docs/references/languages/`:
-
-- JavaScript/TypeScript, Python, Go, Rust, Java, C#, PHP, Ruby, Kotlin, Swift
-
-These are loaded via the `Read` tool when specific language guidance is needed, following the [official Claude Code best practices](https://www.anthropic.com/engineering/claude-code-best-practices) of keeping skills task-oriented rather than language-oriented.
-
 ### Stack Detection
 
 The `stack-detector` skill automatically identifies your project:
@@ -212,8 +196,7 @@ User: Fix the login bug
 Claude: Let me use stack-detector to understand the project...
         Detected: JavaScript/TypeScript + React + Node.js
 
-Claude: Loading code-quality skill and reading JS reference docs.
-        Delegating to backend-specialist...
+Claude: Delegating to backend-specialist...
 ```
 
 ### Code Quality

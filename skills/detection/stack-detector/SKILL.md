@@ -262,25 +262,6 @@ Based on detected stack, recommend loading these task-oriented skills:
 | New features | `sdd-philosophy`, `interview` |
 | Security-sensitive | `security-fundamentals` |
 
-## Language Reference Documents
-
-For language-specific best practices, refer to the reference documentation (not skills):
-
-| Language | Reference Path |
-|----------|----------------|
-| JavaScript/TypeScript | `docs/references/languages/javascript/README.md` |
-| Python | `docs/references/languages/python/README.md` |
-| Go | `docs/references/languages/go/README.md` |
-| Rust | `docs/references/languages/rust/README.md` |
-| Java | `docs/references/languages/java/README.md` |
-| C# / .NET | `docs/references/languages/csharp/README.md` |
-| PHP | `docs/references/languages/php/README.md` |
-| Ruby | `docs/references/languages/ruby/README.md` |
-| Kotlin | `docs/references/languages/kotlin/README.md` |
-| Swift | `docs/references/languages/swift/README.md` |
-
-**Note**: Language references are documentation, not skills. Load them with `Read` tool when specific language guidance is needed.
-
 ## Usage
 
 This skill is typically invoked automatically by other agents:
@@ -288,8 +269,7 @@ This skill is typically invoked automatically by other agents:
 1. Agent receives task
 2. Agent loads `stack-detector`
 3. Stack profile is generated
-4. Agent reads appropriate language reference document if needed
-5. Agent proceeds with stack-specific patterns
+4. Agent proceeds with stack-specific patterns (Claude already knows language best practices)
 
 ## Rules
 
