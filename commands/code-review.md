@@ -194,9 +194,15 @@ Score this issue 0-100 based on the rubric.
 For CLAUDE.md issues, verify the guideline explicitly mentions this.
 ```
 
-### Step 5: Filter Issues
+### Step 5: Filter and De-duplicate Issues
 
 **Remove issues with score < 80.**
+
+**De-duplication Strategy:**
+- **Same file:line + same category** → Keep highest confidence, merge descriptions
+- **Same file:line + different categories** → Keep both (e.g., bug AND CLAUDE.md violation)
+- **Multiple agents flag same issue** → Boost confidence by 10 (max 100)
+- **Overlapping line ranges** → If >50% overlap and same category, merge
 
 **Auto-filtered (do not report):**
 - Pre-existing issues not in this change

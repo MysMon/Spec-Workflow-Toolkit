@@ -19,7 +19,7 @@ hooks:
     - matcher: "Bash"
       hooks:
         - type: command
-          command: "echo 'Security audit mode: read-only operations only'"
+          command: "echo 'Security audit mode: Bash restricted to read-only audit commands only'"
           once: true
 ---
 
@@ -178,3 +178,17 @@ Database URLs: (postgres|mysql|mongodb)://[^:]+:[^@]+@
 - ALWAYS prioritize findings by risk
 - ALWAYS check dependencies for known CVEs
 - NEVER assume code is secure without verification
+
+### Bash Usage Restrictions
+
+Bash is permitted **only** for these read-only audit commands:
+- **Dependency audits**: `npm audit`, `yarn audit`, `pip-audit`, `safety check`, `govulncheck`, `cargo audit`, `bundle audit`
+- **Git history**: `git log`, `git blame`, `git show` (for reviewing commit history)
+- **File inspection**: `file`, `cat` (when Read tool is insufficient)
+- **Package inspection**: `npm list`, `pip list`, `go list`
+
+**NEVER use Bash for:**
+- File modification (`rm`, `mv`, `cp`, editing)
+- Package installation (`npm install`, `pip install`)
+- Network requests (`curl`, `wget`)
+- System commands (`sudo`, `chmod`, etc.)

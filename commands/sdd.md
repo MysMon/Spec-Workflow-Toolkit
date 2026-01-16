@@ -217,13 +217,13 @@ Key files from exploration: [list]
 ```
 Launch these review agents in parallel:
 
-1. code-reviewer agent (qa focus)
+1. qa-engineer agent
    Focus: Test coverage, edge cases, acceptance criteria
    Confidence threshold: 80
    Check: Tests exist, edge cases handled, acceptance criteria met
    Output: Test gaps, quality issues with file:line
 
-2. code-reviewer agent (security focus)
+2. security-auditor agent
    Focus: OWASP Top 10, auth/authz, data validation
    Confidence threshold: 80
    Check: Input validation, auth checks, sensitive data handling

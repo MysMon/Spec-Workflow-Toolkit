@@ -18,6 +18,36 @@ user-invocable: true
 
 Techniques for managing complex, multi-step tasks that may exceed a single session or context window.
 
+## Official Pattern: Initializer + Coding Agent
+
+Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents), Anthropic's recommended pattern uses **two distinct roles**:
+
+### 1. Initializer Role (First Session Only)
+
+On first run:
+- **Create** `.claude/claude-progress.json` and `.claude/feature-list.json`
+- **Analyze** the full task scope and break into features
+- **Initialize** git repository state
+- **Document** resumption context for future sessions
+
+### 2. Coding Role (Each Session)
+
+On each session:
+1. **Read** progress files and git log
+2. **Identify** next incomplete feature
+3. **Implement** one feature at a time (not all at once!)
+4. **Test** the feature manually or automatically
+5. **Update** progress files with results
+6. **Commit** working code with descriptive message
+
+### Key Insight: "One Feature at a Time"
+
+From Anthropic's research: The agent tends to try to do too much at once—essentially attempting to one-shot the app.
+
+**Solution**: Focus on ONE feature per session, test it thoroughly, then update progress.
+
+---
+
 ## Core Principles
 
 Based on [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
