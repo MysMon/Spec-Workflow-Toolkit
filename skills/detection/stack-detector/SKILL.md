@@ -24,28 +24,42 @@ ls -la requirements.txt     # Python
 ls -la go.mod               # Go
 ls -la Cargo.toml           # Rust
 ls -la pom.xml              # Java (Maven)
-ls -la build.gradle         # Java (Gradle)
-ls -la *.csproj             # .NET
+ls -la build.gradle         # Java/Gradle
+ls -la build.gradle.kts     # Kotlin (Gradle)
+ls -la *.csproj             # C# / .NET
+ls -la *.sln                # .NET Solution
 ls -la Gemfile              # Ruby
 ls -la composer.json        # PHP
 ls -la pubspec.yaml         # Dart/Flutter
+ls -la Package.swift        # Swift
 ```
 
 ### Step 2: Identify Primary Language
 
 | Config File | Primary Language | Package Manager |
 |-------------|------------------|-----------------|
-| `package.json` | JavaScript/TypeScript | npm/yarn/pnpm |
+| `package.json` | JavaScript/TypeScript | npm/yarn/pnpm/bun |
 | `pyproject.toml` | Python | pip/poetry/uv |
 | `requirements.txt` | Python | pip |
 | `go.mod` | Go | go modules |
 | `Cargo.toml` | Rust | cargo |
 | `pom.xml` | Java | Maven |
 | `build.gradle` | Java/Kotlin | Gradle |
-| `*.csproj` | C# | dotnet |
+| `build.gradle.kts` | Kotlin | Gradle |
+| `*.csproj` / `*.sln` | C# | dotnet |
 | `Gemfile` | Ruby | bundler |
 | `composer.json` | PHP | composer |
 | `pubspec.yaml` | Dart | pub |
+| `Package.swift` | Swift | SwiftPM |
+
+### Step 2a: Detect Package Manager (JavaScript)
+
+| Lock File | Package Manager |
+|-----------|-----------------|
+| `package-lock.json` | npm |
+| `yarn.lock` | yarn |
+| `pnpm-lock.yaml` | pnpm |
+| `bun.lockb` | bun |
 
 ### Step 3: Detect Frameworks
 
@@ -92,6 +106,67 @@ grep -E '(gin|echo|fiber|chi)' go.mod 2>/dev/null
 # Check Cargo.toml
 grep -E '(actix|axum|rocket|warp)' Cargo.toml 2>/dev/null
 ```
+
+#### PHP Frameworks
+```bash
+# Check composer.json
+grep -E '(laravel|symfony|slim|laminas)' composer.json 2>/dev/null
+```
+
+| Dependency | Framework | Category |
+|------------|-----------|----------|
+| `laravel/framework` | Laravel | Full-stack |
+| `symfony/framework-bundle` | Symfony | Full-stack |
+| `slim/slim` | Slim | Backend |
+| `wordpress` | WordPress | CMS |
+
+#### Ruby Frameworks
+```bash
+# Check Gemfile
+grep -E '(rails|sinatra|hanami)' Gemfile 2>/dev/null
+```
+
+| Dependency | Framework | Category |
+|------------|-----------|----------|
+| `rails` | Ruby on Rails | Full-stack |
+| `sinatra` | Sinatra | Backend |
+| `hanami` | Hanami | Full-stack |
+
+#### C# / .NET Frameworks
+```bash
+# Check *.csproj for PackageReference
+grep -E '(Microsoft.AspNetCore|Blazor)' *.csproj 2>/dev/null
+```
+
+| Dependency | Framework | Category |
+|------------|-----------|----------|
+| `Microsoft.AspNetCore` | ASP.NET Core | Backend |
+| `Microsoft.AspNetCore.Components` | Blazor | Frontend |
+| `Microsoft.Maui` | .NET MAUI | Mobile |
+
+#### Kotlin Frameworks
+```bash
+# Check build.gradle.kts
+grep -E '(ktor|spring)' build.gradle.kts 2>/dev/null
+```
+
+| Dependency | Framework | Category |
+|------------|-----------|----------|
+| `io.ktor` | Ktor | Backend |
+| `org.springframework.boot` | Spring Boot | Backend |
+| Android SDK | Android | Mobile |
+
+#### Swift Frameworks
+```bash
+# Check Package.swift or project for frameworks
+grep -E '(vapor|perfect|kitura)' Package.swift 2>/dev/null
+```
+
+| Dependency | Framework | Category |
+|------------|-----------|----------|
+| `vapor` | Vapor | Backend |
+| SwiftUI | SwiftUI | Frontend |
+| UIKit | UIKit | Frontend |
 
 ### Step 4: Detect Database/ORM
 
@@ -183,8 +258,16 @@ Based on detected stack, recommend loading these skills:
 | Python | `python`, `code-quality`, `testing` |
 | Go | `go`, `code-quality`, `testing` |
 | Rust | `rust`, `code-quality`, `testing` |
+| Java | `java`, `code-quality`, `testing` |
+| C# / .NET | `csharp`, `code-quality`, `testing` |
+| PHP | `php`, `code-quality`, `testing` |
+| Ruby | `ruby`, `code-quality`, `testing` |
+| Kotlin | `kotlin`, `code-quality`, `testing` |
+| Swift | `swift`, `code-quality`, `testing` |
 | With Prisma/SQL | `migration` |
 | With Docker | `devops` |
+| API Development | `api-design` |
+| Production Systems | `observability` |
 
 ## Usage
 

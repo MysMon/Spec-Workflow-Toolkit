@@ -51,8 +51,8 @@ This toolkit is **stack-agnostic** by design:
 |----------|--------|---------|
 | Core | `sdd-philosophy`, `security-fundamentals`, `interview` | Universal principles |
 | Detection | `stack-detector` | Auto-detect project technology |
-| Languages | `javascript`, `python`, `go`, `rust`, `java` | Language-specific patterns |
-| Workflows | `code-quality`, `git-mastery`, `testing`, `migration` | Cross-stack workflows |
+| Languages | `javascript`, `python`, `go`, `rust`, `java`, `csharp`, `php`, `ruby`, `kotlin`, `swift` | Language-specific patterns |
+| Workflows | `code-quality`, `git-mastery`, `testing`, `migration`, `api-design`, `observability` | Cross-stack workflows |
 
 ## Operational Rules
 
