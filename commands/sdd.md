@@ -27,13 +27,18 @@ This command orchestrates 7 phases:
 
 **ALWAYS delegate to subagents for complex work.** The main context must remain clean and focused on orchestration.
 
-- Use `code-explorer` agent for codebase analysis
-- Use `product-manager` agent for requirements gathering
-- Use `system-architect` agent for system-level design (ADRs, schemas, contracts)
-- Use `code-architect` agent for feature-level implementation blueprints
-- Use `frontend-specialist` or `backend-specialist` for implementation
-- Use `qa-engineer` agent for testing
-- Use `security-auditor` agent for security review (read-only)
+| Agent | Model | Use For |
+|-------|-------|---------|
+| `code-explorer` | Sonnet | Codebase analysis (4-phase deep exploration) |
+| `product-manager` | Sonnet | Requirements gathering |
+| `system-architect` | **Opus** | System-level design (ADRs, schemas, contracts) - deep reasoning |
+| `code-architect` | Sonnet | Feature-level implementation blueprints |
+| `frontend-specialist` | **inherit** | UI implementation (uses your session's model) |
+| `backend-specialist` | **inherit** | API implementation (uses your session's model) |
+| `qa-engineer` | Sonnet | Testing and quality review |
+| `security-auditor` | Sonnet | Security review (read-only) |
+
+**Model Selection Tip**: For complex features requiring careful system design, the `system-architect` (Opus) provides the deepest reasoning capability. Implementation agents inherit your session's model.
 
 ### Phase 1: Discovery
 
@@ -181,6 +186,18 @@ Based on code-architect findings:
 
 Ask user: "Ready to start implementation? This will modify files in your codebase."
 
+**CRITICAL: One Feature at a Time**
+
+Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents):
+> "The agent tends to try to do too much at once—essentially attempting to one-shot the app."
+
+**Solution**: Focus on ONE feature/component per iteration:
+1. Implement one component
+2. Test it thoroughly
+3. Update progress file
+4. Commit working code
+5. Move to next component
+
 **Initialize Progress Tracking:**
 ```
 Create .claude/claude-progress.json with:
@@ -191,6 +208,8 @@ Create .claude/claude-progress.json with:
 ```
 
 **DELEGATE TO specialist agents:**
+
+Note: `frontend-specialist` and `backend-specialist` use `model: inherit`, so they will use whatever model the user's session is running (Opus for highest quality, Sonnet for balance).
 
 For frontend work:
 ```

@@ -84,7 +84,7 @@ fi
 
 # --- Output Context ---
 cat << 'EOF'
-## SDD Toolkit v8.0 - Session Initialized
+## SDD Toolkit v8.1 - Session Initialized
 
 ### Core Principles (Spec-First Development)
 
@@ -99,24 +99,38 @@ cat << 'EOF'
 - Only results/summaries return to main context
 - Main orchestrator stays clean and focused
 
-| Task Type | Delegate To | Why |
-|-----------|-------------|-----|
-| Codebase Exploration | `code-explorer` | Deep analysis in isolation |
-| Requirements | `product-manager` | Exploration stays isolated |
-| System Design | `system-architect` | ADRs, schemas, contracts |
-| Feature Design | `code-architect` | Implementation blueprints |
-| Frontend | `frontend-specialist` | Implementation details contained |
-| Backend | `backend-specialist` | Implementation details contained |
-| Testing | `qa-engineer` | Test execution isolated |
-| Security | `security-auditor` | Audit trails separate (read-only) |
+| Task Type | Delegate To | Model | Why |
+|-----------|-------------|-------|-----|
+| Codebase Exploration | `code-explorer` | Sonnet | Deep 4-phase analysis |
+| Requirements | `product-manager` | Sonnet | Exploration isolated |
+| System Design | `system-architect` | **Opus** | Complex reasoning for ADRs |
+| Feature Design | `code-architect` | Sonnet | Implementation blueprints |
+| Frontend | `frontend-specialist` | inherit | Uses your session model |
+| Backend | `backend-specialist` | inherit | Uses your session model |
+| Testing | `qa-engineer` | Sonnet | Test execution isolated |
+| Security | `security-auditor` | Sonnet | Audit (read-only) |
 
-### Long-Running Task Support
+### Long-Running Task Support (Initializer + Coding Pattern)
 
-For complex multi-step tasks:
-1. **Use progress-tracking skill** - JSON-based state persistence
-2. **Use TodoWrite extensively** - Track progress, break down tasks
-3. **Write state to `.claude/`** - `claude-progress.json`, `feature-list.json`
-4. **Mark todos immediately** - Complete items as soon as done (don't batch)
+Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents):
+
+**Two-Role Pattern:**
+| Role | When | Responsibility |
+|------|------|----------------|
+| **Initializer** | First session, no progress file | Create progress files, break down features, set up state |
+| **Coding** | Progress file exists | Read progress, implement ONE feature, test, update progress |
+
+**CRITICAL**: Focus on ONE feature at a time. Avoid trying to do too much at once.
+
+**State Files:**
+- `.claude/claude-progress.json` - Progress log with resumption context
+- `.claude/feature-list.json` - Feature/task status tracking
+
+**TodoWrite Integration:**
+1. Read feature-list.json to populate TodoWrite
+2. Mark todos as you work (only ONE in_progress at a time)
+3. Update JSON files at milestones
+4. Mark complete IMMEDIATELY (don't batch)
 
 ### Available Commands
 

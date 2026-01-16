@@ -9,7 +9,7 @@ description: |
   - Frontend architecture decisions or state management
   - Accessibility (a11y) implementation or review
   Trigger phrases: frontend, UI, component, React, Vue, Angular, Svelte, CSS, styling, responsive, accessibility, client-side
-model: sonnet
+model: inherit
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
 skills: code-quality, stack-detector
