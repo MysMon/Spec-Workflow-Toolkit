@@ -180,7 +180,7 @@ Use for known, stable test scenarios:
 
 ## Verification Approaches
 
-From [Building agents with the Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk):
+From Anthropic's "Building agents with the Claude Agent SDK" engineering blog:
 
 Three verification strategies for different quality dimensions:
 

@@ -21,7 +21,7 @@ user-invocable: false
 
 A structured reasoning technique that gives agents dedicated space to pause and think during complex tasks. Different from extended thinking, this operates *after* response generation begins.
 
-From [The "think" tool](https://www.anthropic.com/engineering/claude-think-tool):
+From Anthropic's "The think tool" engineering blog:
 
 > "With the 'think' tool, we're giving Claude the ability to include an additional thinking step—complete with its own designated space—as part of getting to its final answer."
 

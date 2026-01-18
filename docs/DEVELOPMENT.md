@@ -10,8 +10,10 @@ This plugin is based on Anthropic's official documentation and engineering blog 
 - [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices) - Context management, subagent usage
 - [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) - Initializer+Coding pattern
 - [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) - 6 Composable Patterns
-- [Building Agents with Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk) - Agent orchestration patterns
+- [Building Agents with Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk) - Agent orchestration patterns, verification approaches
 - [Multi-Agent Research System](https://www.anthropic.com/engineering/multi-agent-research-system) - Orchestrator-worker patterns
+- [The "think" tool](https://www.anthropic.com/engineering/claude-think-tool) - Structured reasoning during tool chains
+- [Demystifying evals for AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) - Evaluation metrics (pass@k, graders)
 
 ### Plugin & Subagent Documentation
 - [Create Custom Subagents](https://code.claude.com/docs/en/sub-agents) - Agent definition format, YAML frontmatter
@@ -260,7 +262,7 @@ skills: skill1, skill2
 
 ### Key Skills Overview
 
-This plugin includes **19 skills** across 3 categories. Key skills for long-running autonomous work:
+This plugin includes **20 skills** across 3 categories. Key skills for long-running autonomous work:
 
 | Skill | Purpose | Key Features |
 |-------|---------|--------------|
@@ -274,7 +276,7 @@ This plugin includes **19 skills** across 3 categories. Key skills for long-runn
 | `long-running-tasks` | Multi-session work | Initializer+Coding pattern, PreCompact integration |
 | `stack-detector` | Technology detection | Auto-detect languages, frameworks, tools |
 
-See `CLAUDE.md` for complete skill list (19 skills in core/, detection/, workflows/).
+See `CLAUDE.md` for complete skill list (20 skills in core/, detection/, workflows/).
 
 **Skill Reference Guidelines:**
 

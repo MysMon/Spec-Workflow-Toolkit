@@ -322,7 +322,7 @@ In Phase 4 (Architecture Design) and Phase 6 (Quality Review):
 
 ## Evaluation Metrics
 
-From [Demystifying evals for AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents):
+From Anthropic's "Demystifying evals for AI agents" engineering blog:
 
 ### Key Metrics for Non-Deterministic Evaluation
 
