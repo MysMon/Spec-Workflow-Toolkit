@@ -101,6 +101,57 @@ docs/                        # Specs and detailed docs
 | `migration` | Code migration strategies |
 | `observability` | Monitoring and logging |
 
+## Skill Usage by Agent
+
+All 19 skills are now assigned to appropriate agents:
+
+| Skill | Used By |
+|-------|---------|
+| `subagent-contract` | All 12 agents |
+| `stack-detector` | 10 agents (all except code-explorer, product-manager) |
+| `security-fundamentals` | system-architect, backend-specialist, devops-sre, security-auditor |
+| `composable-patterns` | system-architect, code-architect |
+| `sdd-philosophy` | system-architect, product-manager |
+| `testing` | qa-engineer, legacy-modernizer |
+| `tdd-workflow` | qa-engineer |
+| `code-quality` | frontend-specialist, backend-specialist, legacy-modernizer |
+| `api-design` | system-architect, backend-specialist |
+| `migration` | backend-specialist, legacy-modernizer |
+| `error-recovery` | qa-engineer, devops-sre, legacy-modernizer |
+| `evaluator-optimizer` | qa-engineer, code-architect |
+| `long-running-tasks` | system-architect, code-architect |
+| `parallel-execution` | system-architect, code-architect |
+| `progress-tracking` | qa-engineer, devops-sre, legacy-modernizer |
+| `observability` | devops-sre |
+| `git-mastery` | technical-writer |
+| `interview` | product-manager |
+| `context-engineering` | Referenced by orchestrator (sdd.md, sdd_context.sh) |
+
+**Note:** `context-engineering` is a documentation skill for orchestrators, not assigned to subagents.
+
+## Plugin Validation with cclint
+
+Use [cclint](https://github.com/carlrannaberg/cclint) to validate plugin structure:
+
+```bash
+# Install globally
+npm install -g @carlrannaberg/cclint
+
+# Or run directly
+npx @carlrannaberg/cclint
+
+# Validate specific components
+cclint agents    # Agent definitions
+cclint commands  # Command definitions
+cclint settings  # hooks.json validation
+```
+
+cclint validates:
+- Agent/subagent YAML frontmatter
+- Command configurations
+- Hook event structures
+- Documentation compliance
+
 ## Development Guidelines
 
 ### Editing Agent Definitions
