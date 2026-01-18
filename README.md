@@ -2,103 +2,18 @@
 
 **Claude Code 向け仕様駆動開発ツールキット**
 
-Anthropic の 6 つの Composable パターンをすべて実装した、長時間自律作業のためのエージェントフレームワーク。7フェーズ SDD ワークフロー、TDD 統合、Evaluator-Optimizer フィードバックループ、チェックポイントベースのエラー回復、標準化されたサブエージェント契約を備えています。
+Anthropic の 6 つの Composable パターンをすべて実装した、長時間自律作業のためのエージェントフレームワーク。
 
 ---
 
 ## このプラグインの目的
 
-このプラグインは**4つの核心目標**を達成するために設計されています:
-
-### 1. 長時間の自律作業セッション
-
-コンテキストウィンドウの制限を克服し、複雑なタスクを複数セッションにわたって継続的に完了させます。
-
-- **Initializer + Coding パターン**: 初回セッションで環境構築、以降は増分実装
-- **JSON 進捗ファイル**: `claude-progress.json` と `feature-list.json` で状態を永続化
-- **SessionStart フック**: 自動的に進捗ファイルを検出し、再開コンテキストを提供
-
-### 2. 徹底したスペック駆動開発
-
-コードを書く前に必ず仕様を確定させ、曖昧さをゼロにします。
-
-- **7フェーズワークフロー**: Discovery → Exploration → Clarification → Design → Implementation → Review → Summary
-- **No Code Without Spec**: 承認された仕様なしに実装を開始しない
-- **`/spec-review` コマンド**: 実装前に仕様の妥当性を検証
-
-### 3. サブエージェントへの積極的移譲
-
-メインコンテキストを保護し、探索・分析作業はサブエージェントに移譲します。
-
-- **コンテキスト保護**: サブエージェントは独立したコンテキストウィンドウで実行
-- **結果のみ返却**: 完全な探索データではなく、サマリーと `file:line` 参照のみがメインに戻る
-- **並列実行**: 独立したタスクは複数エージェントを同時実行
-
-### 4. ユーザーへの十分な質問
-
-曖昧さを許容せず、不明点は必ずユーザーに確認します。
-
-- **Phase 3: Clarifying Questions**: エッジケース、エラー処理、統合ポイントを明確化
-- **AskUserQuestion ツール**: 実装中も必要に応じて質問
-- **信頼度 80% 閾値**: 確信度の低い判断は報告しない
-
----
-
-## Anthropic の 6 Composable パターン
-
-このプラグインは [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) で定義された全 6 パターンを実装しています：
-
-| パターン | このプラグインでの実装 |
-|----------|------------------------|
-| **Prompt Chaining** | 7フェーズ SDD ワークフロー、TDD Red-Green-Refactor サイクル |
-| **Routing** | モデル選択（Opus/Sonnet/Haiku）、ドメイン別エージェント選択 |
-| **Parallelization** | 複数 code-explorer の同時実行、並列レビューワー |
-| **Orchestrator-Workers** | メインエージェントが 12 の専門サブエージェントを調整 |
-| **Evaluator-Optimizer** | 品質レビューでの反復ループ（信頼度 >= 80 まで改善） |
-| **Augmented LLM** | ツール + 進捗ファイル（メモリ）+ 検索 |
-
-詳細は `skills/core/composable-patterns/SKILL.md` を参照。
-
----
-
-## 公式ベストプラクティスとの関係
-
-> このプラグインは公式プラグインを模倣するのではなく、その**考え方を活用**して独自の目的を達成します。
-
-| 公式の考え方 | このプラグインでの活用 |
-|--------------|------------------------|
-| サブエージェントによるコンテキスト管理 | 12の専門エージェントで徹底移譲 |
-| 信頼度ベースのフィルタリング (80%) | 全レビューに統一適用 |
-| Initializer + Coding パターン | SessionStart で自動ロール検出 |
-| One Feature at a Time | 進捗ファイルで 1 機能ずつ追跡 |
-
-### 意図的な差異
-
-| 公式 `feature-dev` | このプラグイン | 理由 |
-|--------------------|----------------|------|
-| 3つのアプローチを提示 | **単一の決定的推奨** | 決定疲れを軽減、code-architect が内部で代替案を検討済み |
-| `claude-progress.txt` (テキスト) | `claude-progress.json` (JSON) | 機械可読で誤変更されにくい |
-| 汎用エクスプローラー | **12の専門エージェント** | ドメイン専門性で品質向上 |
-
----
-
-## 参照資料
-
-### 公式ガイドライン
-- [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) - 6 Composable パターン
-- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) - コンテキスト管理
-- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
-- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
-- [Multi-Agent Research System](https://www.anthropic.com/engineering/multi-agent-research-system) - Orchestrator-Workers
-- [Equipping Agents for the Real World with Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
-
-### Claude Code 仕様
-- [Subagent Documentation](https://code.claude.com/docs/en/sub-agents)
-- [Agent Skills](https://code.claude.com/docs/en/skills) - Progressive Disclosure
-- [Hooks Reference](https://code.claude.com/docs/en/hooks) - フック仕様
-
-### 実装例
-- [Anthropic Cookbook - Agent Patterns](https://github.com/anthropics/anthropic-cookbook/tree/main/patterns/agents)
+| 目標 | 実現方法 |
+|------|----------|
+| **長時間の自律作業** | Initializer + Coding パターン、JSON 進捗ファイル、SessionStart フック |
+| **徹底したスペック駆動** | 7フェーズワークフロー、No Code Without Spec、`/spec-review` |
+| **サブエージェントへの移譲** | 12専門エージェント、コンテキスト保護、結果サマリーのみ返却 |
+| **ユーザーへの十分な質問** | Phase 3: Clarifying Questions、AskUserQuestion ツール、信頼度 80% 閾値 |
 
 ---
 
@@ -130,11 +45,39 @@ claude --plugin-dir /path/to/sdd-toolkit
 /quick-impl README のタイポを修正
 ```
 
+### 使用パターン
+
+| シナリオ | コマンド | 説明 |
+|----------|----------|------|
+| 新機能開発 | `/sdd` | 7フェーズで徹底的に設計・実装 |
+| バグ修正 | `/sdd` または `/quick-impl` | 複雑さに応じて選択 |
+| リファクタリング | `/sdd` | 探索→設計→実装で安全に変更 |
+| コードレビュー | `/code-review staged` | コミット前に並列レビュー |
+| 仕様確認 | `/spec-review` | 実装前に仕様の妥当性を検証 |
+
 ---
 
 ## 7フェーズ SDD ワークフロー
 
 `/sdd` コマンドは包括的な開発ワークフローを実行します:
+
+```mermaid
+flowchart LR
+    D[1. Discovery<br/>問題定義] --> E[2. Exploration<br/>コード探索]
+    E --> C[3. Clarification<br/>質問]
+    C --> A[4. Architecture<br/>設計]
+    A --> I[5. Implementation<br/>実装]
+    I --> R[6. Review<br/>品質確認]
+    R --> S[7. Summary<br/>完了記録]
+
+    style D fill:#e1f5fe
+    style E fill:#e1f5fe
+    style C fill:#fff3e0
+    style A fill:#e8f5e9
+    style I fill:#e8f5e9
+    style R fill:#fce4ec
+    style S fill:#f3e5f5
+```
 
 | フェーズ | 目的 | 実行内容 |
 |----------|------|----------|
@@ -148,7 +91,131 @@ claude --plugin-dir /path/to/sdd-toolkit
 
 ---
 
+## 主要コンセプト
+
+### Anthropic の 6 Composable パターン
+
+このプラグインは [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) で定義された全 6 パターンを実装しています：
+
+| パターン | このプラグインでの実装 |
+|----------|------------------------|
+| **Prompt Chaining** | 7フェーズ SDD ワークフロー、TDD Red-Green-Refactor サイクル |
+| **Routing** | モデル選択（Opus/Sonnet/Haiku）、ドメイン別エージェント選択 |
+| **Parallelization** | 複数 code-explorer の同時実行、並列レビューワー |
+| **Orchestrator-Workers** | メインエージェントが 12 の専門サブエージェントを調整 |
+| **Evaluator-Optimizer** | 品質レビューでの反復ループ（信頼度 >= 80 まで改善） |
+| **Augmented LLM** | ツール + 進捗ファイル（メモリ）+ 検索 |
+
+詳細は `skills/core/composable-patterns/SKILL.md` を参照。
+
+### 長時間作業サポート
+
+[Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) に基づく設計:
+
+```mermaid
+flowchart TD
+    subgraph Session1[初回セッション]
+        I[INITIALIZER] --> PF[進捗ファイル作成]
+        PF --> FD[機能分解]
+    end
+
+    subgraph SessionN[継続セッション]
+        SS[SessionStart Hook] --> RP[進捗読み込み]
+        RP --> C[CODING: 1機能実装]
+        C --> T[テスト]
+        T --> UP[進捗更新]
+    end
+
+    Session1 --> SessionN
+    SessionN --> SessionN
+
+    style I fill:#e8f5e9
+    style C fill:#e1f5fe
+```
+
+| ロール | タイミング | 実行内容 |
+|--------|------------|----------|
+| **INITIALIZER** | 初回セッション | 進捗ファイル作成、機能分解、状態初期化 |
+| **CODING** | 各セッション | 進捗読み込み、1 機能実装、テスト、進捗更新 |
+
+#### 進捗ファイル
+
+```
+.claude/
+├── claude-progress.json    # 進捗ログと再開コンテキスト
+└── feature-list.json       # 機能/タスクのステータス追跡
+```
+
+<details>
+<summary>claude-progress.json の例</summary>
+
+```json
+{
+  "project": "feature-name",
+  "status": "in_progress",
+  "currentTask": "認証サービスの実装",
+  "resumptionContext": {
+    "position": "Phase 5 - Implementation",
+    "nextAction": "src/services/auth.ts に AuthService を作成",
+    "blockers": []
+  }
+}
+```
+</details>
+
+<details>
+<summary>feature-list.json の例</summary>
+
+```json
+{
+  "features": [
+    {"id": "F001", "name": "ユーザー登録", "status": "completed"},
+    {"id": "F002", "name": "ユーザーログイン", "status": "in_progress"},
+    {"id": "F003", "name": "パスワードリセット", "status": "pending"}
+  ]
+}
+```
+</details>
+
+> **なぜ JSON か？** 「モデルは Markdown ファイルと比較して JSON ファイルを不適切に変更する可能性が低い」- Anthropic
+
+---
+
 ## エージェント一覧
+
+```mermaid
+flowchart TB
+    Main[メインエージェント<br/>Orchestrator]
+
+    subgraph Analysis[分析]
+        CE[code-explorer<br/>Sonnet]
+        CA[code-architect<br/>Sonnet]
+        SA[system-architect<br/>Opus]
+    end
+
+    subgraph Implementation[実装]
+        FE[frontend-specialist<br/>inherit]
+        BE[backend-specialist<br/>inherit]
+        PM[product-manager<br/>Opus]
+    end
+
+    subgraph Review[レビュー]
+        QA[qa-engineer<br/>Sonnet]
+        SEC[security-auditor<br/>Sonnet]
+    end
+
+    subgraph Other[その他]
+        DO[devops-sre]
+        UI[ui-ux-designer]
+        TW[technical-writer]
+        LM[legacy-modernizer]
+    end
+
+    Main --> Analysis
+    Main --> Implementation
+    Main --> Review
+    Main --> Other
+```
 
 ### コア分析エージェント
 
@@ -193,64 +260,14 @@ claude --plugin-dir /path/to/sdd-toolkit
 
 ---
 
-## 長時間作業サポート
-
-[Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) に基づく設計:
-
-### Initializer + Coding パターン
-
-| ロール | タイミング | 実行内容 |
-|--------|------------|----------|
-| **INITIALIZER** | 初回セッション | 進捗ファイル作成、機能分解、状態初期化 |
-| **CODING** | 各セッション | 進捗読み込み、1 機能実装、テスト、進捗更新 |
-
-### 進捗ファイル
-
-```
-.claude/
-├── claude-progress.json    # 進捗ログと再開コンテキスト
-└── feature-list.json       # 機能/タスクのステータス追跡
-```
-
-#### claude-progress.json
-
-```json
-{
-  "project": "feature-name",
-  "status": "in_progress",
-  "currentTask": "認証サービスの実装",
-  "resumptionContext": {
-    "position": "Phase 5 - Implementation",
-    "nextAction": "src/services/auth.ts に AuthService を作成",
-    "blockers": []
-  }
-}
-```
-
-#### feature-list.json
-
-```json
-{
-  "features": [
-    {"id": "F001", "name": "ユーザー登録", "status": "completed"},
-    {"id": "F002", "name": "ユーザーログイン", "status": "in_progress"},
-    {"id": "F003", "name": "パスワードリセット", "status": "pending"}
-  ]
-}
-```
-
-> **なぜ JSON か？** 「モデルは Markdown ファイルと比較して JSON ファイルを不適切に変更する可能性が低い」- Anthropic
-
----
-
 ## コマンド
 
-| コマンド | 用途 |
-|----------|------|
-| `/sdd` | 新機能、複雑な変更（7フェーズワークフロー） |
-| `/spec-review` | 実装前の仕様検証 |
-| `/code-review` | コミット前のコードレビュー（並列エージェント） |
-| `/quick-impl` | 明確な小規模タスク |
+| コマンド | 用途 | 使用場面 |
+|----------|------|----------|
+| `/sdd` | 7フェーズワークフロー | 新機能、複雑な変更 |
+| `/spec-review` | 仕様検証 | 実装前の仕様確認 |
+| `/code-review` | コードレビュー | コミット前（並列エージェント） |
+| `/quick-impl` | 高速実装 | 明確な小規模タスク |
 
 ---
 
@@ -323,6 +340,27 @@ claude --plugin-dir /path/to/sdd-toolkit
 
 ---
 
+## 公式ベストプラクティスとの関係
+
+> このプラグインは公式プラグインを模倣するのではなく、その**考え方を活用**して独自の目的を達成します。
+
+| 公式の考え方 | このプラグインでの活用 |
+|--------------|------------------------|
+| サブエージェントによるコンテキスト管理 | 12の専門エージェントで徹底移譲 |
+| 信頼度ベースのフィルタリング (80%) | 全レビューに統一適用 |
+| Initializer + Coding パターン | SessionStart で自動ロール検出 |
+| One Feature at a Time | 進捗ファイルで 1 機能ずつ追跡 |
+
+### 意図的な差異
+
+| 公式 `feature-dev` | このプラグイン | 理由 |
+|--------------------|----------------|------|
+| 3つのアプローチを提示 | **単一の決定的推奨** | 決定疲れを軽減、code-architect が内部で代替案を検討済み |
+| `claude-progress.txt` (テキスト) | `claude-progress.json` (JSON) | 機械可読で誤変更されにくい |
+| 汎用エクスプローラー | **12の専門エージェント** | ドメイン専門性で品質向上 |
+
+---
+
 ## プラグイン構造
 
 ```
@@ -382,6 +420,29 @@ sdd-toolkit/
 `skills/category/my-skill/SKILL.md` を YAML フロントマターで作成。
 
 詳細なテンプレートは `CLAUDE.md` を参照。
+
+---
+
+## 参照資料
+
+### 公式ガイドライン
+
+- [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) - 6 Composable パターン
+- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) - コンテキスト管理
+- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
+- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+- [Multi-Agent Research System](https://www.anthropic.com/engineering/multi-agent-research-system) - Orchestrator-Workers
+- [Equipping Agents for the Real World with Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
+
+### Claude Code 仕様
+
+- [Subagent Documentation](https://code.claude.com/docs/en/sub-agents)
+- [Agent Skills](https://code.claude.com/docs/en/skills) - Progressive Disclosure
+- [Hooks Reference](https://code.claude.com/docs/en/hooks) - フック仕様
+
+### 実装例
+
+- [Anthropic Cookbook - Agent Patterns](https://github.com/anthropics/anthropic-cookbook/tree/main/patterns/agents)
 
 ---
 
