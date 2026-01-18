@@ -129,28 +129,30 @@ All 19 skills are now assigned to appropriate agents:
 
 **Note:** `context-engineering` is a documentation skill for orchestrators, not assigned to subagents.
 
-## Plugin Validation with cclint
+## Plugin Validation (Official)
 
-Use [cclint](https://github.com/carlrannaberg/cclint) to validate plugin structure:
+Use Claude Code's built-in validation command:
 
 ```bash
-# Install globally
-npm install -g @carlrannaberg/cclint
-
-# Or run directly
-npx @carlrannaberg/cclint
-
-# Validate specific components
-cclint agents    # Agent definitions
-cclint commands  # Command definitions
-cclint settings  # hooks.json validation
+/plugin validate
 ```
 
-cclint validates:
-- Agent/subagent YAML frontmatter
-- Command configurations
+This validates:
+- Plugin structure and configuration
+- Agent/command definitions
 - Hook event structures
-- Documentation compliance
+
+### Python Hooks are Official Pattern
+
+The Python scripts in `hooks/` follow the [official Anthropic pattern](https://github.com/anthropics/claude-code/blob/main/examples/hooks/bash_command_validator_example.py):
+
+| Script | Purpose |
+|--------|---------|
+| `safety_check.py` | Block dangerous Bash commands |
+| `prevent_secret_leak.py` | Detect secrets in Write/Edit |
+| `security_audit_bash_validator.py` | Whitelist for security-auditor |
+
+All use JSON decision control (`permissionDecision: deny`) with exit 0, which is the recommended approach for fine-grained control.
 
 ## Development Guidelines
 
