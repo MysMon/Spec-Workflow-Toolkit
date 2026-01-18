@@ -261,6 +261,18 @@ Skills are **fully injected** into subagent context (not loaded on demand). Mini
 
 Example: `frontend-specialist` only needs `subagent-contract` (not `code-quality`, `tdd-workflow`, etc. - those are used by qa-engineer when appropriate).
 
+**Skill Content Guidelines:**
+
+Skills should follow official Anthropic patterns. Avoid adding reference sections or URL links:
+
+| Do | Don't |
+|----|-------|
+| `From Claude Code Best Practices:` | `From [Claude Code Best Practices](https://...):` |
+| Plain text source attribution | `## Sources` or `## References` sections |
+| Keep URLs in DEVELOPMENT.md/README.md | Scatter URLs across skill files |
+
+**Rationale**: Skills are fully injected into context. URLs consume tokens without adding actionable value. Centralize references in documentation files where developers can find them.
+
 ### New Skill
 
 Create `skills/[category]/[name]/SKILL.md`:
