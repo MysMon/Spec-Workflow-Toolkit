@@ -42,7 +42,7 @@ For each finding, rate your confidence (0-100):
 
 **Only report findings with confidence >= 80 unless specifically asked for all.**
 
-Based on [Anthropic's official code-reviewer pattern](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/feature-dev).
+Based on Anthropic's official code-reviewer pattern.
 
 ## Core Competencies
 

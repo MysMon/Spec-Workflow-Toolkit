@@ -84,7 +84,7 @@ Brief description (1-2 sentences)
 
 ### 4. Changelog Format
 
-Follow [Keep a Changelog](https://keepachangelog.com/):
+Follow the Keep a Changelog format:
 
 ```markdown
 # Changelog

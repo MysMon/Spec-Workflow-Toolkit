@@ -182,6 +182,29 @@ Each phase should have clear instructions and expected outputs.
 - Other non-zero exit codes (1, 3, etc.) = non-blocking error (tool may still execute!)
 - See `docs/DEVELOPMENT.md` for full hook specification
 
+## Content Guidelines
+
+**IMPORTANT: Skills and agents are fully injected into context. Keep content lean.**
+
+### URL Rule
+
+| Do | Don't |
+|----|-------|
+| `From Claude Code Best Practices:` | `From [Claude Code Best Practices](https://...):` |
+| Plain text source attribution | `## Sources` or `## References` sections |
+| Keep URLs in README.md/DEVELOPMENT.md | Scatter URLs across skill/agent files |
+
+**Rationale**: URLs consume tokens without adding actionable value for the agent. Centralize references in documentation files.
+
+### Content Best Practices
+
+- Follow Progressive Disclosure pattern - essential info first
+- Split large skills into separate files referenced from SKILL.md
+- Use code/scripts for deterministic operations (run, don't read into context)
+- Minimize skill references in agents to preserve context
+
+See `docs/DEVELOPMENT.md` for full Skill Content Guidelines and field references.
+
 ## Testing Changes
 
 1. Run `claude` in this directory

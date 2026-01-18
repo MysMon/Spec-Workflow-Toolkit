@@ -10,8 +10,6 @@ description: |
   - Designing subagent architectures
   - Understanding why context management matters
   - Preventing "context rot" in extended sessions
-
-  Reference: https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
 allowed-tools: Read, Task
 model: sonnet
 user-invocable: true

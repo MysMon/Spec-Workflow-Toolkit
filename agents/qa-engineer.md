@@ -34,7 +34,7 @@ When reviewing code for quality or test coverage gaps, rate findings (0-100):
 
 **Only report findings with confidence >= 80 for actionable recommendations.**
 
-Based on [Anthropic's official code-reviewer pattern](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/feature-dev).
+Based on Anthropic's official code-reviewer pattern.
 
 ## Core Competencies
 
