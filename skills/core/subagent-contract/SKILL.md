@@ -22,7 +22,7 @@ A standardized protocol for subagent inputs, outputs, and error handling to ensu
 
 ## Why Standardization Matters
 
-From [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
+From Claude Code Best Practices:
 
 > "Subagents use their own isolated context windows, and only send relevant information back to the orchestrator."
 

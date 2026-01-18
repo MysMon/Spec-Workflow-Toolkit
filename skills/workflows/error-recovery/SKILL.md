@@ -19,16 +19,9 @@ user-invocable: true
 
 # Error Recovery Patterns
 
-## Official References
-
-- [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents)
-- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
-
 Strategies for building resilient agent workflows that handle errors gracefully, checkpoint progress, and enable recovery from failures.
 
-## Official Guidance
-
-From [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents):
+From Building Effective Agents:
 
 > "Agents should gain ground truth from the environment at each step (such as tool call results or code execution) to assess its progress."
 

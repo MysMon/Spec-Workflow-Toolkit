@@ -18,17 +18,11 @@ user-invocable: true
 
 # Long-Running Task Patterns
 
-## Official References
-
-- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
-- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
-- [Building Agents with Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk)
-
 Techniques for managing complex, multi-step tasks that may exceed a single session or context window.
 
-## Official Pattern: Initializer + Coding Agent
+## Initializer + Coding Agent Pattern
 
-Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents), Anthropic's recommended pattern uses **two distinct roles**:
+Anthropic's recommended pattern uses **two distinct roles**:
 
 ### 1. Initializer Role (First Session Only)
 
@@ -58,70 +52,92 @@ From Anthropic's research: The agent tends to try to do too much at once—essen
 
 ## Core Principles
 
-Based on [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
+From Claude Code Best Practices:
 
 1. **Use TodoWrite extensively** - Break down work, track progress visibly
-2. **File-based state persistence** - Write plans and progress to `docs/plans/`
+2. **JSON-based state persistence** - Use `.claude/claude-progress.json` and `.claude/feature-list.json`
 3. **Checkpoint frequently** - Claude Code auto-saves before changes
 4. **Mark complete immediately** - Don't batch completions
 
+> **Why JSON over Markdown?** "Models are less likely to improperly modify JSON files compared to Markdown files." - Anthropic
+
 ## State Management Pattern
 
-### 1. Initialize Task Plan
+### 1. Initialize Progress Files
 
-At task start, create a plan file:
+At task start, create the progress structure:
 
-```markdown
-# docs/plans/[task-name].md
+**`.claude/claude-progress.json`** - Resumption context:
 
-## Task: [Description]
+```json
+{
+  "project": "task-name",
+  "status": "in_progress",
+  "startedAt": "2025-01-15T10:00:00Z",
+  "currentTask": "Setting up project structure",
+  "resumptionContext": {
+    "position": "Phase 1 - Initialization",
+    "nextAction": "Create feature list",
+    "keyFiles": [],
+    "decisions": [],
+    "blockers": []
+  },
+  "log": [
+    {
+      "timestamp": "2025-01-15T10:00:00Z",
+      "action": "Started task",
+      "status": "success"
+    }
+  ]
+}
+```
 
-**Started**: [timestamp]
-**Status**: In Progress
+**`.claude/feature-list.json`** - Task breakdown:
 
-## Steps
-
-- [ ] Step 1: [Description]
-- [ ] Step 2: [Description]
-- [ ] Step 3: [Description]
-
-## Progress Log
-
-### [timestamp]
-- Started task
-- [Initial observations]
-
-## Context for Resumption
-
-If this task is resumed, note:
-- Current position: [where we are]
-- Next action: [what to do next]
-- Dependencies: [what's needed]
+```json
+{
+  "features": [
+    {"id": "F001", "name": "Step 1: Description", "status": "pending"},
+    {"id": "F002", "name": "Step 2: Description", "status": "pending"},
+    {"id": "F003", "name": "Step 3: Description", "status": "pending"}
+  ]
+}
 ```
 
 ### 2. Update Progress Continuously
 
-After each significant action:
+After each significant action, update both files:
 
-```markdown
-## Progress Log
+```json
+// Add to log array in claude-progress.json
+{
+  "timestamp": "2025-01-15T11:30:00Z",
+  "action": "Completed Step 1",
+  "status": "success",
+  "filesModified": ["src/config.ts", "src/index.ts"]
+}
+```
 
-### [timestamp]
-- Completed: [what was done]
-- Files modified: [list]
-- Next: [upcoming work]
+```json
+// Update feature status in feature-list.json
+{"id": "F001", "name": "Step 1: Description", "status": "completed"}
 ```
 
 ### 3. Mark Completion
 
-```markdown
-**Status**: Completed
-**Finished**: [timestamp]
-
-## Summary
-- [What was accomplished]
-- [Files created/modified]
-- [Any follow-up needed]
+```json
+// Final state in claude-progress.json
+{
+  "project": "task-name",
+  "status": "completed",
+  "startedAt": "2025-01-15T10:00:00Z",
+  "completedAt": "2025-01-15T14:00:00Z",
+  "summary": {
+    "accomplished": ["Created X", "Modified Y"],
+    "filesChanged": ["src/config.ts", "src/index.ts"],
+    "followUp": ["Deploy to staging", "Run integration tests"]
+  }
+}
 ```
 
 ## TodoWrite Integration
@@ -234,58 +250,86 @@ When work spans multiple sessions:
 
 ### End of Session
 
-1. Write comprehensive state to plan file
-2. Commit WIP changes with descriptive message
-3. Document exact resumption point
+1. Update `.claude/claude-progress.json` with current position
+2. Update `.claude/feature-list.json` with feature status
+3. Commit WIP changes with descriptive message
+4. Ensure resumptionContext has clear next action
 
 ### Start of Next Session
 
-1. Read plan file: `docs/plans/[task-name].md`
-2. Review progress and current position
-3. Load relevant context
-4. Continue from documented point
+1. Read `.claude/claude-progress.json` for resumption context
+2. Check `.claude/feature-list.json` for current feature status
+3. Identify first `pending` or `in_progress` feature
+4. Continue from documented position
 
 ## Example: Database Migration
 
-```markdown
-# docs/plans/migrate-to-prisma.md
+**`.claude/claude-progress.json`**:
 
-## Task: Migrate from Sequelize to Prisma
-
-**Started**: 2025-01-15
-**Status**: In Progress
-
-## Steps
-
-- [x] Audit existing Sequelize models (12 models found)
-- [x] Create Prisma schema
-- [x] Generate Prisma client
-- [ ] Migrate User model
-- [ ] Migrate Product model
-- [ ] Migrate Order model (complex relations)
-- [ ] Update repository layer
-- [ ] Run integration tests
-- [ ] Remove Sequelize dependencies
-
-## Progress Log
-
-### 2025-01-15 10:00
-- Analyzed existing models
-- Created initial schema.prisma
-- Generated client successfully
-
-### 2025-01-15 11:30
-- Migrated User and Product models
-- Tests passing for both
-- Next: Order model (has complex relations)
-
-## Context for Resumption
-
-If resumed:
-- Read: prisma/schema.prisma for current state
-- Read: src/repositories/order.repository.ts for next migration
-- Run: npx prisma generate after any schema changes
+```json
+{
+  "project": "migrate-to-prisma",
+  "status": "in_progress",
+  "startedAt": "2025-01-15T10:00:00Z",
+  "currentTask": "Migrate Order model",
+  "resumptionContext": {
+    "position": "Phase 2 - Model Migration",
+    "nextAction": "Migrate Order model (complex relations)",
+    "keyFiles": [
+      "prisma/schema.prisma:45",
+      "src/repositories/order.repository.ts:12"
+    ],
+    "decisions": [
+      "Using Prisma's implicit m-n relations",
+      "Keeping soft deletes pattern"
+    ],
+    "blockers": []
+  },
+  "log": [
+    {
+      "timestamp": "2025-01-15T10:00:00Z",
+      "action": "Analyzed existing Sequelize models (12 found)",
+      "status": "success"
+    },
+    {
+      "timestamp": "2025-01-15T10:30:00Z",
+      "action": "Created initial schema.prisma",
+      "status": "success"
+    },
+    {
+      "timestamp": "2025-01-15T11:00:00Z",
+      "action": "Generated Prisma client",
+      "status": "success"
+    },
+    {
+      "timestamp": "2025-01-15T11:30:00Z",
+      "action": "Migrated User and Product models",
+      "status": "success",
+      "filesModified": ["prisma/schema.prisma", "src/repositories/user.ts"]
+    }
+  ]
+}
 ```
+
+**`.claude/feature-list.json`**:
+
+```json
+{
+  "features": [
+    {"id": "F001", "name": "Audit existing Sequelize models", "status": "completed"},
+    {"id": "F002", "name": "Create Prisma schema", "status": "completed"},
+    {"id": "F003", "name": "Generate Prisma client", "status": "completed"},
+    {"id": "F004", "name": "Migrate User model", "status": "completed"},
+    {"id": "F005", "name": "Migrate Product model", "status": "completed"},
+    {"id": "F006", "name": "Migrate Order model (complex relations)", "status": "in_progress"},
+    {"id": "F007", "name": "Update repository layer", "status": "pending"},
+    {"id": "F008", "name": "Run integration tests", "status": "pending"},
+    {"id": "F009", "name": "Remove Sequelize dependencies", "status": "pending"}
+  ]
+}
+```
+
+**Resumption note**: After compaction or new session, read these files first to understand current state.
 
 ## Anti-Patterns to Avoid
 
@@ -299,9 +343,11 @@ If resumed:
 
 ## Rules
 
-- ALWAYS create plan file for tasks > 3 steps
-- ALWAYS update progress after each significant action
+- ALWAYS create `.claude/claude-progress.json` and `.claude/feature-list.json` for tasks > 3 steps
+- ALWAYS update progress files after each significant action
 - ALWAYS mark todos complete immediately
 - NEVER have more than one todo in_progress
-- ALWAYS document resumption context
+- ALWAYS document resumption context in JSON (position, nextAction, keyFiles)
 - ALWAYS test after batched changes
+- ALWAYS read progress files first after compaction or new session
+- NEVER use plain text files for state - use JSON for reliability

@@ -9,7 +9,7 @@ This plugin is based on Anthropic's official documentation and engineering blog 
 ### Core References
 - [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices) - Context management, subagent usage
 - [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) - Initializer+Coding pattern
-- [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) - 6 Composable Patterns
+- [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) - 6 Composable Patterns
 - [Building Agents with Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk) - Agent orchestration patterns
 - [Multi-Agent Research System](https://www.anthropic.com/engineering/multi-agent-research-system) - Orchestrator-worker patterns
 
@@ -26,7 +26,7 @@ This plugin is based on Anthropic's official documentation and engineering blog 
 
 ## Anthropic's 6 Composable Patterns
 
-This plugin implements all 6 patterns from [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents):
+This plugin implements all 6 patterns from [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents):
 
 | Pattern | Implementation in This Plugin |
 |---------|------------------------------|
@@ -76,7 +76,8 @@ sdd-toolkit/
 │   │   ├── interview/          # Requirements gathering
 │   │   ├── security-fundamentals/ # Security principles
 │   │   ├── subagent-contract/  # Standardized result formats
-│   │   └── composable-patterns/ # Anthropic's 6 patterns
+│   │   ├── composable-patterns/ # Anthropic's 6 patterns
+│   │   └── context-engineering/ # Context management principles
 │   ├── detection/           # Stack detection
 │   │   └── stack-detector/     # Technology detection
 │   └── workflows/           # Cross-stack patterns
@@ -218,10 +219,16 @@ Create `agents/[name].md`:
 name: agent-name
 description: |
   Brief description.
+
+  Use proactively when:
+  - Condition 1
+  - Condition 2
+
   Trigger phrases: keyword1, keyword2
 model: sonnet  # sonnet, opus, haiku, inherit
 tools: Read, Glob, Grep, Write, Edit, Bash
-permissionMode: default  # default, acceptEdits, plan, dontAsk
+disallowedTools: Write, Edit  # Optional: explicitly prohibit tools
+permissionMode: acceptEdits
 skills: skill1, skill2
 ---
 
@@ -230,13 +237,35 @@ skills: skill1, skill2
 [Instructions...]
 ```
 
+**Agent Field Reference:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Unique identifier (kebab-case) |
+| `description` | Yes | Multi-line: summary, "Use proactively when:", "Trigger phrases:" |
+| `model` | No | `sonnet` (default), `opus` (complex reasoning), `haiku` (fast/cheap), `inherit` (match parent) |
+| `tools` | No | Available tools for the agent |
+| `disallowedTools` | No | Explicitly prohibited tools (for read-only agents like `code-explorer`) |
+| `permissionMode` | No | See below |
+| `skills` | No | Comma-separated skill names (minimize - see guidelines) |
+
+**permissionMode Options:**
+
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| `default` | Standard confirmation prompts | General agents |
+| `acceptEdits` | Auto-approve file edits | Implementation agents (`frontend-specialist`, `backend-specialist`) |
+| `plan` | Read-only, no modifications | Analysis agents (`code-explorer`, `security-auditor`) |
+| `dontAsk` | Full automation, no prompts | Batch operations (use carefully) |
+
 ### Key Skills Overview
 
-This plugin includes **18 skills** across 3 categories. Key skills for long-running autonomous work:
+This plugin includes **19 skills** across 3 categories. Key skills for long-running autonomous work:
 
 | Skill | Purpose | Key Features |
 |-------|---------|--------------|
 | `composable-patterns` | Documents Anthropic's 6 patterns | Pattern selection guide, composition examples |
+| `context-engineering` | Context management principles | Context rot prevention, subagent isolation, progressive disclosure |
 | `tdd-workflow` | Test-driven development | Red-Green-Refactor cycle, qa-engineer integration |
 | `evaluator-optimizer` | Iterative improvement | Generator-Evaluator loop, quality thresholds |
 | `error-recovery` | Resilient workflows | Checkpoints, graceful degradation, recovery paths |
@@ -245,7 +274,31 @@ This plugin includes **18 skills** across 3 categories. Key skills for long-runn
 | `long-running-tasks` | Multi-session work | Initializer+Coding pattern, PreCompact integration |
 | `stack-detector` | Technology detection | Auto-detect languages, frameworks, tools |
 
-See `CLAUDE.md` for complete skill list (18 skills in core/, detection/, workflows/).
+See `CLAUDE.md` for complete skill list (19 skills in core/, detection/, workflows/).
+
+**Skill Reference Guidelines:**
+
+Skills are **fully injected** into subagent context (not loaded on demand). Minimize skill references to preserve context:
+
+| Principle | Rationale |
+|-----------|-----------|
+| **Essential only** | Each skill consumes context budget |
+| **Avoid redundancy** | Don't include skills whose content is already in agent instructions |
+| **Prefer inline** | Simple guidance can be in agent body, not a separate skill |
+
+Example: `frontend-specialist` only needs `subagent-contract` (not `code-quality`, `tdd-workflow`, etc. - those are used by qa-engineer when appropriate).
+
+**Skill Content Guidelines:**
+
+Skills should follow official Anthropic patterns. Avoid adding reference sections or URL links:
+
+| Do | Don't |
+|----|-------|
+| `From Claude Code Best Practices:` | `From [Claude Code Best Practices](https://...):` |
+| Plain text source attribution | `## Sources` or `## References` sections |
+| Keep URLs in DEVELOPMENT.md/README.md | Scatter URLs across skill files |
+
+**Rationale**: Skills are fully injected into context. URLs consume tokens without adding actionable value. Centralize references in documentation files where developers can find them.
 
 ### New Skill
 
@@ -256,6 +309,11 @@ Create `skills/[category]/[name]/SKILL.md`:
 name: skill-name
 description: |
   What it does.
+
+  Use when:
+  - Condition 1
+  - Condition 2
+
   Trigger phrases: keyword1, keyword2
 allowed-tools: Read, Glob, Grep
 model: sonnet
@@ -266,6 +324,16 @@ user-invocable: true
 
 [Instructions...]
 ```
+
+**Skill Field Reference:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Unique identifier (kebab-case) |
+| `description` | Yes | Multi-line: summary, "Use when:", "Trigger phrases:" |
+| `allowed-tools` | No | Tools available when skill is active |
+| `model` | No | Model to use (`sonnet`, `opus`, `haiku`) |
+| `user-invocable` | No | `true`: user can run `/skill-name` directly; `false`: internal use only |
 
 **Progressive Disclosure Guidelines** (from [Agent Skills](https://code.claude.com/docs/en/skills)):
 
@@ -292,15 +360,39 @@ Create `commands/[name].md`:
 
 ```yaml
 ---
-description: "Command description"
-argument-hint: "[optional hint]"
+description: "Command description shown in /help"
+argument-hint: "[arg]"  # Optional: hint for required argument
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task
 ---
 
 # /[command-name]
 
-[Instructions...]
+## Purpose
+[What this command does]
+
+## Workflow
+[Step-by-step phases if applicable]
+
+## Output
+[Expected deliverables]
 ```
+
+**Command Field Reference:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `description` | Yes | Shown in `/help` output |
+| `argument-hint` | No | Placeholder for required argument (e.g., `[file]`, `[PR number]`) |
+| `allowed-tools` | No | Tools available during command execution |
+
+**Command Body Structure:**
+
+| Section | Purpose |
+|---------|---------|
+| `## Purpose` | Clear statement of what the command accomplishes |
+| `## Workflow` | Numbered phases for multi-step commands (like `/sdd`) |
+| `## Output` | Expected deliverables or artifacts |
+| `## Rules` | Command-specific constraints |
 
 ---
 

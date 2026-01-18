@@ -10,7 +10,7 @@ description: |
   - Selecting appropriate orchestration strategy
   - Building custom automation
 
-  Reference: https://www.anthropic.com/research/building-effective-agents
+  Reference: https://www.anthropic.com/engineering/building-effective-agents
 allowed-tools: Read, Task
 model: sonnet
 user-invocable: true
@@ -20,9 +20,7 @@ user-invocable: true
 
 The foundational patterns for building effective AI agents, as defined by Anthropic's research. These patterns form the basis of all workflows in this toolkit.
 
-## Official Source
-
-From [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents):
+From Building Effective Agents:
 
 > "Consistently, the most successful implementations weren't using complex frameworks or specialized libraries. Instead, they were building with simple, composable patterns."
 
