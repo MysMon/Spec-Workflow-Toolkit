@@ -387,6 +387,43 @@ sys.exit(2)
 }
 ```
 
+**Tool Input Modification (Advanced):**
+
+PreToolUse hooks can modify tool inputs before execution using `updatedInput`:
+
+```python
+#!/usr/bin/env python3
+import json
+import sys
+
+data = json.loads(sys.stdin.read())
+tool_input = data.get("tool_input", {})
+command = tool_input.get("command", "")
+
+# Example: Add safety prefix to commands
+if needs_modification(command):
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "allow",
+            "updatedInput": {
+                "command": f"safe_wrapper {command}"  # Modified input
+            }
+        }
+    }
+    print(json.dumps(output))
+    sys.exit(0)
+
+# Allow original command
+sys.exit(0)
+```
+
+Use cases:
+- Adding safety wrappers to commands
+- Normalizing file paths
+- Injecting environment variables
+- Transforming API parameters
+
 ---
 
 ## Operational Rules

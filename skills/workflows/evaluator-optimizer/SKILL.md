@@ -15,12 +15,11 @@ description: |
 allowed-tools: Read, Write, Edit, Glob, Grep, Task, TodoWrite, AskUserQuestion
 model: sonnet
 user-invocable: true
-
-# Official Reference
-# - https://www.anthropic.com/research/building-effective-agents
 ---
 
 # Evaluator-Optimizer Pattern
+
+> **Official Reference**: [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents)
 
 An iterative improvement pattern where one agent generates output while another evaluates and provides feedback, continuing until quality criteria are met.
 
