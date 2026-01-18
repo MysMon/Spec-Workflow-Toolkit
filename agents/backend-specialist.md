@@ -14,7 +14,7 @@ description: |
 model: inherit
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
-skills: code-quality, migration, stack-detector, security-fundamentals
+skills: code-quality, migration, stack-detector, security-fundamentals, tdd-workflow, subagent-contract
 ---
 
 # Role: Backend Development Specialist

@@ -1,8 +1,8 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "sdd-toolkit",
-  "version": "8.3.0",
-  "description": "Specification-Driven Development Toolkit - Designed for long-running autonomous work sessions. Features aggressive subagent delegation to preserve main context, 7-phase workflow, Opus-powered system architecture, Initializer+Coding pattern for resumable tasks, and confidence-based review scoring. Based on official Anthropic best practices.",
+  "version": "9.0.0",
+  "description": "Specification-Driven Development Toolkit - Implements all 6 Anthropic composable patterns for long-running autonomous work. Features: aggressive subagent delegation, 7-phase SDD workflow, TDD integration, Evaluator-Optimizer feedback loops, checkpoint-based error recovery, standardized subagent contracts, Opus-powered architecture decisions, Initializer+Coding pattern for resumable tasks, and confidence-based review scoring.",
   "author": {
     "name": "MysMon",
     "email": "contact@github.com/MysMon",
@@ -37,7 +37,13 @@
     "code-review",
     "subagent-delegation",
     "context-management",
-    "long-running-tasks"
+    "long-running-tasks",
+    "tdd",
+    "test-driven-development",
+    "composable-patterns",
+    "evaluator-optimizer",
+    "error-recovery",
+    "orchestrator-workers"
   ],
   "commands": "./commands",
   "agents": "./agents",

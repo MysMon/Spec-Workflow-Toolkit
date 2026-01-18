@@ -91,7 +91,7 @@ fi
 
 # --- Output Context ---
 cat << 'EOF'
-## SDD Toolkit v8.3.0 - Session Initialized
+## SDD Toolkit v9.0.0 - Session Initialized
 
 **Official References:**
 - [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
@@ -217,11 +217,31 @@ Launch these agents in parallel:
 3. security-auditor - Security review (read-only)
 ```
 
+### Composable Patterns Applied
+
+This toolkit implements Anthropic's 6 composable patterns:
+- **Prompt Chaining**: 7-phase SDD workflow
+- **Routing**: Model/agent selection by task type
+- **Parallelization**: Multiple explorers/reviewers simultaneously
+- **Orchestrator-Workers**: You coordinate, subagents execute
+- **Evaluator-Optimizer**: Quality review with feedback loops
+- **Augmented LLM**: Tools + memory + retrieval
+
+### Key Skills Available
+
+| Skill | Use For |
+|-------|---------|
+| \`tdd-workflow\` | Test-first development (Red-Green-Refactor) |
+| \`evaluator-optimizer\` | Iterative quality improvement |
+| \`error-recovery\` | Checkpoint and recovery patterns |
+| \`subagent-contract\` | Standardized result formats |
+| \`progress-tracking\` | JSON-based state persistence |
+
 ### Quick Reference
 
-- **Specs location**: `docs/specs/[feature-name].md`
-- **Progress files**: `.claude/claude-progress.json`, `.claude/feature-list.json`
-- **Use `/clear`** frequently between major tasks
+- **Specs location**: \`docs/specs/[feature-name].md\`
+- **Progress files**: \`.claude/claude-progress.json\`, \`.claude/feature-list.json\`
+- **Use \`/clear\`** frequently between major tasks
 - **Ask questions** rather than assume requirements
 - **Confidence threshold**: 80% (only report issues >= 80 confidence)
 

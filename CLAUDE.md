@@ -1,15 +1,20 @@
-# SDD Toolkit Plugin v8.3.0 - Developer Guide
+# SDD Toolkit Plugin v9.0.0 - Developer Guide
 
 This file is for **developers working on this plugin repository**.
 Users who install this plugin receive context via the `SessionStart` hook, not this file.
 
 ## What This Plugin Does
 
-A Claude Code plugin providing:
-- **7-phase SDD workflow** (`/sdd` command)
-- **12 specialized subagents** for task delegation
-- **Progress tracking** for long-running sessions
-- **Parallel review** with confidence-based filtering
+A Claude Code plugin implementing all 6 Anthropic composable patterns for long-running autonomous work:
+
+- **7-phase SDD workflow** (`/sdd` command) - Prompt Chaining pattern
+- **12 specialized subagents** for task delegation - Orchestrator-Workers pattern
+- **TDD integration** with Red-Green-Refactor cycle
+- **Evaluator-Optimizer loops** for iterative quality improvement
+- **Checkpoint-based error recovery** for resilient workflows
+- **Standardized subagent contracts** for consistent results
+- **Progress tracking** for long-running sessions - Augmented LLM pattern
+- **Parallel review** with confidence-based filtering - Parallelization pattern
 
 ## Project Structure
 
@@ -30,6 +35,11 @@ docs/                        # Specs and detailed docs
 | `commands/sdd.md` | Main 7-phase workflow definition |
 | `agents/code-explorer.md` | Deep codebase analysis agent |
 | `agents/code-architect.md` | Implementation blueprint agent |
+| `skills/core/composable-patterns/SKILL.md` | Anthropic's 6 patterns documentation |
+| `skills/workflows/tdd-workflow/SKILL.md` | Test-driven development workflow |
+| `skills/workflows/evaluator-optimizer/SKILL.md` | Iterative improvement pattern |
+| `skills/workflows/error-recovery/SKILL.md` | Checkpoint and recovery patterns |
+| `skills/core/subagent-contract/SKILL.md` | Standardized result formats |
 
 ## Development Guidelines
 

@@ -12,7 +12,7 @@ description: |
 model: sonnet
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
-skills: stack-detector, security-fundamentals
+skills: stack-detector, security-fundamentals, subagent-contract
 ---
 
 # Role: Site Reliability Engineer
