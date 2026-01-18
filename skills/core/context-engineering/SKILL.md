@@ -286,19 +286,4 @@ After compaction:
 | Direct orchestrator exploration | Context consumption | Delegate to subagents |
 | Ignoring compaction | Session fails | Use PreCompact hook |
 
-## Rules
-
-- ALWAYS delegate exploration to subagents (NEVER explore directly)
-- ALWAYS limit subagent summaries to ~500 tokens
-- ALWAYS use `file:line` references instead of pasting code
-- ALWAYS update progress files at milestones
-- ALWAYS read progress files after compaction
-- NEVER load full codebase into context
-- NEVER ignore context rot warnings
-- NEVER skip the one-feature-at-a-time pattern
-
-## Sources
-
-- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
-- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
-- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+Delegate exploration to subagents (never explore directly), limit subagent summaries to ~500 tokens, use `file:line` references instead of pasting code, update progress files at milestones, and always read progress files after compaction.
