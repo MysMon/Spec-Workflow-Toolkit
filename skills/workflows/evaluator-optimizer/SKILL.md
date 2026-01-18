@@ -320,6 +320,68 @@ In Phase 4 (Architecture Design) and Phase 6 (Quality Review):
 | Algorithm | 4 | 90 |
 | Security-critical | 5 | 95 |
 
+## Evaluation Metrics
+
+From Anthropic's "Demystifying evals for AI agents" engineering blog:
+
+### Key Metrics for Non-Deterministic Evaluation
+
+| Metric | Formula | Use Case |
+|--------|---------|----------|
+| **pass@k** | P(at least 1 success in k trials) | "Can it succeed?" |
+| **pass^k** | P(all k trials succeed) | "Is it consistent?" |
+
+### Interpreting Metrics
+
+```
+pass@k = 1 - (1 - p)^k  where p = per-trial success rate
+
+Example with p = 0.7:
+- pass@1 = 0.70  (70% chance of success on single try)
+- pass@3 = 0.97  (97% chance at least one succeeds)
+- pass^3 = 0.34  (34% chance all three succeed)
+```
+
+**Use pass@k** for evaluating capability (can the agent do this task?)
+**Use pass^k** for evaluating reliability (will the agent consistently do this?)
+
+### Three Types of Graders
+
+| Grader Type | Pros | Cons | Best For |
+|-------------|------|------|----------|
+| **Code-based** | Fast, cheap, objective | Brittle to valid variations | Format validation, syntax checks |
+| **Model-based** | Flexible, scalable | Non-deterministic, needs calibration | Nuanced quality assessment |
+| **Human** | Gold-standard quality | Expensive, slow | Final validation, edge cases |
+
+### Grader Selection Strategy
+
+```
+1. Start with code-based graders for objective criteria
+   - JSON schema validation
+   - Required field presence
+   - Format compliance
+
+2. Add model-based graders for subjective criteria
+   - Code quality assessment
+   - Documentation clarity
+   - Design appropriateness
+
+3. Reserve human graders for:
+   - Calibrating model-based graders
+   - Edge case evaluation
+   - Final sign-off on critical outputs
+```
+
+### Evaluation Best Practices
+
+| Practice | Description |
+|----------|-------------|
+| Start early | Begin with 20-50 tasks from real failures, not 100+ perfect tasks |
+| Grade outcomes | Evaluate results, not specific solution paths |
+| Avoid class imbalance | Balance positive and negative cases |
+| Read transcripts | Regularly verify graders measure what matters |
+| Monitor saturation | Add harder tasks when current ones are consistently passed |
+
 ## Anti-Patterns
 
 | Anti-Pattern | Why Bad | Instead |

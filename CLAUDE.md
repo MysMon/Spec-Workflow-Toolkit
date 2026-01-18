@@ -36,9 +36,10 @@ docs/                        # Specs and detailed docs
 | `agents/code-explorer.md` | Deep codebase analysis agent |
 | `agents/code-architect.md` | Implementation blueprint agent |
 | `skills/core/composable-patterns/SKILL.md` | Anthropic's 6 patterns documentation |
-| `skills/core/context-engineering/SKILL.md` | **NEW** Context management for long sessions |
+| `skills/core/context-engineering/SKILL.md` | Context management for long sessions |
+| `skills/core/think-tool/SKILL.md` | Structured reasoning pattern for complex decisions |
 | `skills/workflows/tdd-workflow/SKILL.md` | Test-driven development workflow |
-| `skills/workflows/evaluator-optimizer/SKILL.md` | Iterative improvement pattern |
+| `skills/workflows/evaluator-optimizer/SKILL.md` | Iterative improvement pattern with evaluation metrics |
 | `skills/workflows/error-recovery/SKILL.md` | Checkpoint and recovery patterns |
 | `skills/core/subagent-contract/SKILL.md` | Standardized result formats |
 
@@ -68,14 +69,15 @@ docs/                        # Specs and detailed docs
 | `/spec-review` | Specification validation before implementation |
 | `/quick-impl` | Fast implementation for small, clear tasks |
 
-## Skills (19 Total)
+## Skills (20 Total)
 
 ### Core Skills
 | Skill | Purpose |
 |-------|---------|
 | `composable-patterns` | Anthropic's 6 patterns documentation |
-| `context-engineering` | **NEW** Context management for long-running sessions |
+| `context-engineering` | Context management for long-running sessions |
 | `subagent-contract` | Standardized result formats |
+| `think-tool` | Structured reasoning during tool chains (policy verification, sequential decisions) |
 | `sdd-philosophy` | Spec-first development principles |
 | `security-fundamentals` | Security best practices |
 | `interview` | Structured requirements gathering |
@@ -103,7 +105,7 @@ docs/                        # Specs and detailed docs
 
 ## Skill Usage by Agent
 
-All 19 skills are now assigned to appropriate agents:
+All 20 skills are now assigned to appropriate agents:
 
 | Skill | Used By |
 |-------|---------|
@@ -125,9 +127,10 @@ All 19 skills are now assigned to appropriate agents:
 | `observability` | devops-sre |
 | `git-mastery` | technical-writer |
 | `interview` | product-manager |
+| `think-tool` | Documentation skill for complex reasoning scenarios |
 | `context-engineering` | Referenced by orchestrator (sdd.md, sdd_context.sh) |
 
-**Note:** `context-engineering` is a documentation skill for orchestrators, not assigned to subagents.
+**Note:** `think-tool` and `context-engineering` are documentation skills for orchestrators and agents to reference as needed, not explicitly assigned in YAML frontmatter.
 
 ## Plugin Validation (Official)
 
@@ -178,6 +181,29 @@ Each phase should have clear instructions and expected outputs.
 - Exit 2 = blocking error (tool blocked, error shown to Claude)
 - Other non-zero exit codes (1, 3, etc.) = non-blocking error (tool may still execute!)
 - See `docs/DEVELOPMENT.md` for full hook specification
+
+## Content Guidelines
+
+**IMPORTANT: Skills and agents are fully injected into context. Keep content lean.**
+
+### URL Rule
+
+| Do | Don't |
+|----|-------|
+| `From Claude Code Best Practices:` | `From [Claude Code Best Practices](https://...):` |
+| Plain text source attribution | `## Sources` or `## References` sections |
+| Keep URLs in README.md/DEVELOPMENT.md | Scatter URLs across skill/agent files |
+
+**Rationale**: URLs consume tokens without adding actionable value for the agent. Centralize references in documentation files.
+
+### Content Best Practices
+
+- Follow Progressive Disclosure pattern - essential info first
+- Split large skills into separate files referenced from SKILL.md
+- Use code/scripts for deterministic operations (run, don't read into context)
+- Minimize skill references in agents to preserve context
+
+See `docs/DEVELOPMENT.md` for full Skill Content Guidelines and field references.
 
 ## Testing Changes
 

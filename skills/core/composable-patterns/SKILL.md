@@ -9,8 +9,6 @@ description: |
   - Understanding why certain patterns are used
   - Selecting appropriate orchestration strategy
   - Building custom automation
-
-  Reference: https://www.anthropic.com/engineering/building-effective-agents
 allowed-tools: Read, Task
 model: sonnet
 user-invocable: true

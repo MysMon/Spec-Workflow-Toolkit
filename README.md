@@ -280,6 +280,7 @@ flowchart TB
 | `composable-patterns` | **Anthropic の 6 パターン**（Prompt Chaining、Routing、Parallelization、Orchestrator-Workers、Evaluator-Optimizer、Augmented LLM） |
 | `context-engineering` | **コンテキスト管理**（Context Rot 防止、Progressive Disclosure、サブエージェント分離） |
 | `subagent-contract` | **標準化された結果フォーマット**（全エージェントが参照） |
+| `think-tool` | **構造化推論**（ツールチェーン中の意思決定、ポリシー検証） |
 | `sdd-philosophy` | 仕様駆動開発の原則 |
 | `security-fundamentals` | セキュリティベストプラクティス（OWASP、秘密情報） |
 | `interview` | 構造化された要件収集 |
@@ -386,6 +387,7 @@ sdd-toolkit/
 │   │   ├── composable-patterns/  # Anthropic の 6 パターン
 │   │   ├── context-engineering/  # コンテキスト管理（Context Rot 防止）
 │   │   ├── subagent-contract/    # 標準化された結果フォーマット
+│   │   ├── think-tool/           # 構造化推論パターン
 │   │   ├── sdd-philosophy/
 │   │   └── ...
 │   ├── detection/             # スタック検出
@@ -428,11 +430,14 @@ sdd-toolkit/
 ### 公式ガイドライン
 
 - [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) - 6 Composable パターン
+- [Building Agents with the Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk) - エージェント構築、検証アプローチ
 - [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) - コンテキスト管理
 - [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
 - [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
 - [Multi-Agent Research System](https://www.anthropic.com/engineering/multi-agent-research-system) - Orchestrator-Workers
 - [Equipping Agents for the Real World with Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
+- [The "think" tool](https://www.anthropic.com/engineering/claude-think-tool) - 構造化推論パターン
+- [Demystifying evals for AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) - 評価メトリクス（pass@k）
 
 ### Claude Code 仕様
 
