@@ -59,6 +59,18 @@
         ]
       }
     ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre_compact_save.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
     "SubagentStop": [
       {
         "matcher": "",

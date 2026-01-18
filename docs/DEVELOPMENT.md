@@ -306,8 +306,39 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task
 | `SubagentStart` | Initialize subagent |
 | `PreToolUse` | Validate/block tool calls |
 | `PostToolUse` | Quality checks |
+| `PreCompact` | Save state before context compaction |
 | `SubagentStop` | Log completion |
 | `Stop` | Session summary |
+
+### PreCompact Hook (Long-Running Session Support)
+
+The `PreCompact` hook fires before context compaction (manual or auto). Use it to preserve critical state:
+
+```bash
+#!/bin/bash
+# pre_compact_save.sh - Save progress before compaction
+
+INPUT=$(cat)
+TRIGGER=$(echo "$INPUT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('trigger','unknown'))")
+
+# Update progress file with compaction timestamp
+if [ -f ".claude/claude-progress.json" ]; then
+    # Add compaction event to history (see hooks/pre_compact_save.sh for full implementation)
+fi
+
+# Output context that will be included in compaction summary
+echo "## Pre-Compaction State Saved"
+echo "Progress file updated. Remember to read it after compaction."
+exit 0
+```
+
+**Input Schema:**
+```json
+{
+  "trigger": "manual|auto",
+  "custom_instructions": "user's /compact message (if manual)"
+}
+```
 
 ### PreToolUse Hook Implementation (CRITICAL)
 
