@@ -197,6 +197,13 @@ Each phase should have clear instructions and expected outputs.
 
 See `docs/DEVELOPMENT.md` for full Skill Content Guidelines and field references.
 
+### Documentation Sync Rule
+
+When adding, removing, or renaming skills/agents/commands:
+- Update `CLAUDE.md` (counts, tables, key files)
+- Update `README.md` (tables, directory tree)
+- Update `docs/DEVELOPMENT.md` (skill overview, counts)
+
 ## Testing Changes
 
 1. Run `claude` in this directory
