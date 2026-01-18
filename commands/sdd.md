@@ -23,7 +23,44 @@ This command orchestrates 7 phases:
 
 ## Execution Instructions
 
-### CRITICAL: Context Protection (The Most Important Rule)
+---
+
+## ⚠️ ORCHESTRATOR-ONLY RULES (NON-NEGOTIABLE)
+
+**YOU ARE THE ORCHESTRATOR. YOU DO NOT DO THE WORK YOURSELF.**
+
+### ABSOLUTE PROHIBITIONS for the Main Agent
+
+1. **NEVER use Grep/Glob yourself** - Delegate to `code-explorer` or built-in `Explore`
+2. **NEVER read more than 3 files directly** - Delegate bulk reading to subagents
+3. **NEVER implement code yourself** - Delegate to `frontend-specialist` or `backend-specialist`
+4. **NEVER write tests yourself** - Delegate to `qa-engineer`
+5. **NEVER do security analysis yourself** - Delegate to `security-auditor`
+
+### Your ONLY Responsibilities
+
+1. **Orchestrate** - Launch and coordinate subagents
+2. **Synthesize** - Combine subagent outputs into coherent summaries
+3. **Communicate** - Present findings and ask user questions
+4. **Track Progress** - Update TodoWrite and progress files
+5. **Read Specific Files** - Only files identified by subagents (max 3 at a time)
+
+### Why This Matters
+
+From [Anthropic Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
+> "Subagents use their own isolated context windows, and only send relevant information back to the orchestrator"
+
+**Context consumption comparison**:
+- Direct exploration: 10,000+ tokens consumed in main context
+- Subagent exploration: ~500 token summary returned
+
+**Long session enablement**:
+- Clean main context = ability to work for hours
+- Polluted main context = session ends prematurely
+
+---
+
+### Context Protection (The Most Important Rule)
 
 **DO NOT explore code yourself. ALWAYS delegate to subagents.**
 
@@ -32,7 +69,7 @@ The main orchestrator MUST:
 - Never accumulate exploration results in main context
 - Delegate ALL codebase exploration to `code-explorer` agents
 - Delegate ALL implementation to specialist agents
-- Only read specific files identified by subagents
+- Only read specific files identified by subagents (max 3 at a time)
 
 Why this matters:
 - Context windows are limited
@@ -44,7 +81,7 @@ Why this matters:
 |-------|-------|---------|
 | `code-explorer` | Sonnet | Deep codebase analysis (4-phase exploration) |
 | Built-in `Explore` | Haiku | Quick lookups and simple searches |
-| `product-manager` | Sonnet | Requirements gathering |
+| `product-manager` | **Opus** | Requirements gathering (deep reasoning for ambiguous requests) |
 | `system-architect` | **Opus** | System-level design (ADRs, schemas, contracts) - deep reasoning |
 | `code-architect` | Sonnet | Feature-level implementation blueprints |
 | `frontend-specialist` | **inherit** | UI implementation (uses your session's model) |
@@ -53,7 +90,7 @@ Why this matters:
 | `security-auditor` | Sonnet | Security review (read-only) |
 
 **Model Selection Strategy**:
-- **Opus**: Complex reasoning, architectural decisions (system-architect)
+- **Opus**: Complex reasoning, architectural decisions, requirements elicitation (system-architect, product-manager)
 - **Sonnet**: Balanced capability for analysis and implementation
 - **Haiku**: Fast, lightweight exploration (built-in Explore)
 - **inherit**: Match parent conversation model (implementation agents)
@@ -204,28 +241,76 @@ Based on code-architect findings:
 
 Ask user: "Ready to start implementation? This will modify files in your codebase."
 
-**CRITICAL: One Feature at a Time**
+---
+
+#### Long-Running Autonomous Work Pattern
 
 Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents):
+
 > "The agent tends to try to do too much at once—essentially attempting to one-shot the app."
 
+**The Initializer + Coding Pattern:**
+
+| Role | When | What to Do |
+|------|------|------------|
+| **INITIALIZER** | No progress file exists | Create progress files, break down work, set up state |
+| **CODING** | Progress file exists | Read state, implement ONE feature, update state, commit |
+
+**Progress File Structure:**
+
+Create `.claude/claude-progress.json`:
+```json
+{
+  "project": "[feature-name]",
+  "status": "in_progress",
+  "currentTask": "Implementing [component]",
+  "startedAt": "[ISO timestamp]",
+  "resumptionContext": {
+    "position": "Phase 5 - Implementation",
+    "nextAction": "Create [specific file]",
+    "completedSteps": ["step1", "step2"],
+    "blockers": []
+  }
+}
+```
+
+Create `.claude/feature-list.json`:
+```json
+{
+  "features": [
+    {"id": "F001", "name": "[Component 1]", "status": "completed", "files": ["src/..."]},
+    {"id": "F002", "name": "[Component 2]", "status": "in_progress", "files": []},
+    {"id": "F003", "name": "[Component 3]", "status": "pending", "files": []}
+  ]
+}
+```
+
+**Why JSON?** From Anthropic: "Models are less likely to inappropriately modify structured data."
+
+---
+
+#### CRITICAL: One Feature at a Time
+
 **Solution**: Focus on ONE feature/component per iteration:
-1. Implement one component
-2. Test it thoroughly
-3. Update progress file
-4. Commit working code
-5. Move to next component
+1. Identify next incomplete feature from `feature-list.json`
+2. Delegate implementation to specialist agent
+3. Wait for completion
+4. Run tests (delegate to `qa-engineer`)
+5. Update progress files (`claude-progress.json`, `feature-list.json`)
+6. Commit working code with descriptive message
+7. Move to next feature
 
-**Initialize Progress Tracking:**
-```
-Create .claude/claude-progress.json with:
-- Project: [feature name]
-- Status: in_progress
-- Features to implement
-- Resumption context
-```
+**NEVER proceed to next feature until current one is:**
+- Implemented
+- Tested
+- Committed
+- Progress files updated
 
-**DELEGATE TO specialist agents:**
+---
+
+#### Delegation to Specialist Agents
+
+**REMEMBER: You are the orchestrator. You do NOT implement code yourself.**
 
 Note: `frontend-specialist` and `backend-specialist` use `model: inherit`, so they will use whatever model the user's session is running (Opus for highest quality, Sonnet for balance).
 
@@ -235,6 +320,7 @@ Launch the frontend-specialist agent to implement: [component/feature]
 Following specification: docs/specs/[feature-name].md
 Following design: docs/specs/[feature-name]-design.md
 Key files from exploration: [list]
+Expected output: Working component with tests
 ```
 
 For backend work:
@@ -243,7 +329,31 @@ Launch the backend-specialist agent to implement: [service/API]
 Following specification: docs/specs/[feature-name].md
 Following design: docs/specs/[feature-name]-design.md
 Key files from exploration: [list]
+Expected output: Working service with tests
 ```
+
+**After each specialist agent completes:**
+1. Verify the agent's output summary
+2. Update `feature-list.json` (mark feature as completed)
+3. Update `claude-progress.json` (update currentTask, nextAction)
+4. Run TodoWrite to update visible progress
+5. Ask user if they want to review before committing
+
+---
+
+#### Progress Tracking Integration
+
+**TodoWrite + JSON Files work together:**
+
+```
+TodoWrite: Real-time UI for user visibility
+JSON Files: Persistent state for session resumption
+```
+
+Update BOTH after each milestone:
+1. Mark TodoWrite item as completed
+2. Update JSON files
+3. Git commit with descriptive message
 
 **Track progress** using TodoWrite tool. Update status as each component completes.
 

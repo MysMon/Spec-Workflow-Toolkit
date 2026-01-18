@@ -8,11 +8,15 @@ description: |
   - Designing user flows, wireframes, or information architecture
   - Establishing design tokens, color schemes, or typography scales
   - Reviewing UI for consistency and usability
+  NOTE: This agent is DESIGN-ONLY. For UI implementation, use frontend-specialist.
   Trigger phrases: design system, accessibility, a11y, WCAG, wireframe, user flow, UX, UI design, component design, color palette
+
+  Model: Sonnet - Balanced capability for design analysis and specification
+  Mode: plan (read-only) - Design specifications only, frontend-specialist handles implementation
 model: sonnet
-tools: Read, Glob, Grep, Write, Edit
-disallowedTools: Bash
-permissionMode: default
+tools: Read, Glob, Grep, Write
+disallowedTools: Bash, Edit
+permissionMode: plan
 skills: stack-detector
 ---
 

@@ -1,4 +1,4 @@
-# SDD Toolkit v8.2.0
+# SDD Toolkit v8.3.0
 
 **Claude Code 向け仕様駆動開発ツールキット**
 
@@ -136,7 +136,7 @@ claude --plugin-dir /path/to/sdd-toolkit
 |--------------|--------|------|
 | `frontend-specialist` | **inherit** | UI 実装（ユーザーのセッションモデルを使用） |
 | `backend-specialist` | **inherit** | API 実装（ユーザーのセッションモデルを使用） |
-| `product-manager` | Sonnet | 要件収集、PRD 作成 |
+| `product-manager` | **Opus** | 要件収集、PRD 作成（曖昧な要件から本質を抽出） |
 
 ### レビューエージェント
 
@@ -158,7 +158,7 @@ claude --plugin-dir /path/to/sdd-toolkit
 
 | モデル | 使用場面 | 理由 |
 |--------|----------|------|
-| **Opus** | system-architect | ADR やシステム設計は深い推論と複数ステップの分析が必要 |
+| **Opus** | system-architect, product-manager | ADR やシステム設計、曖昧な要件の本質抽出は深い推論が必要 |
 | **Sonnet** | 分析・レビュー系 | バランスの取れたコスト/能力 |
 | **Haiku** | 組み込み Explore、スコアリング | 高速で軽量な探索 |
 | **inherit** | 実装系 | ユーザーがコスト/品質のトレードオフを制御 |

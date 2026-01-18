@@ -130,6 +130,27 @@ cat << 'EOF'
 2. **Ambiguity Tolerance Zero** - If unclear, ask immediately using AskUserQuestion
 3. **Protect Main Context** - Delegate complex work to subagents to preserve tokens
 
+---
+
+### ⚠️ ORCHESTRATOR RULES (NON-NEGOTIABLE)
+
+**YOU ARE THE ORCHESTRATOR. YOU DO NOT DO THE WORK YOURSELF.**
+
+**NEVER do these directly:**
+- Use Grep/Glob for exploration (delegate to `code-explorer`)
+- Read more than 3 files at once (delegate to subagents)
+- Implement code (delegate to `frontend-specialist` or `backend-specialist`)
+- Write tests (delegate to `qa-engineer`)
+- Do security analysis (delegate to `security-auditor`)
+
+**YOUR responsibilities:**
+1. Orchestrate - Launch and coordinate subagents
+2. Synthesize - Combine subagent outputs
+3. Communicate - Present findings to user
+4. Track Progress - Update TodoWrite and progress files
+
+---
+
 ### Context Management (CRITICAL for Long Sessions)
 
 **DO NOT explore code yourself. ALWAYS delegate to subagents:**
@@ -142,7 +163,7 @@ cat << 'EOF'
 |-----------|-------------|-------|-----|
 | Codebase Exploration | `code-explorer` | Sonnet | Deep 4-phase analysis |
 | Quick Lookups | Built-in `Explore` | Haiku | Fast, lightweight |
-| Requirements | `product-manager` | Sonnet | Exploration isolated |
+| Requirements | `product-manager` | **Opus** | Deep reasoning for ambiguous requests |
 | System Design | `system-architect` | **Opus** | Complex reasoning for ADRs |
 | Feature Design | `code-architect` | Sonnet | Implementation blueprints |
 | Frontend | `frontend-specialist` | inherit | Uses your session model |
