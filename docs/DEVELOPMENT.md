@@ -232,7 +232,7 @@ skills: skill1, skill2
 
 ### Key Skills Overview
 
-This plugin includes **20 skills** across 3 categories. Key skills for long-running autonomous work:
+This plugin includes **18 skills** across 3 categories. Key skills for long-running autonomous work:
 
 | Skill | Purpose | Key Features |
 |-------|---------|--------------|
@@ -245,7 +245,7 @@ This plugin includes **20 skills** across 3 categories. Key skills for long-runn
 | `long-running-tasks` | Multi-session work | Initializer+Coding pattern, PreCompact integration |
 | `stack-detector` | Technology detection | Auto-detect languages, frameworks, tools |
 
-See `CLAUDE.md` for complete skill list (20 skills in core/, detection/, workflows/).
+See `CLAUDE.md` for complete skill list (18 skills in core/, detection/, workflows/).
 
 ### New Skill
 

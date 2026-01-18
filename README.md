@@ -279,6 +279,9 @@ claude --plugin-dir /path/to/sdd-toolkit
 | `code-quality` | リンティング、フォーマット、型チェック |
 | `git-mastery` | Conventional Commits、変更履歴 |
 | `testing` | テストピラミッド、戦略、フレームワーク |
+| `api-design` | API 仕様パターン |
+| `migration` | コードマイグレーション戦略 |
+| `observability` | モニタリングとロギング |
 
 ---
 

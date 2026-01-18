@@ -12,7 +12,8 @@ description: |
   Trigger phrases: design system, accessibility, a11y, WCAG, wireframe, user flow, UX, UI design, component design, color palette
 
   Model: Sonnet - Balanced capability for design analysis and specification
-  Mode: plan (read-only) - Design specifications only, frontend-specialist handles implementation
+  Mode: plan - Design specifications only (Write allowed for spec documents, no code changes)
+  Note: frontend-specialist handles actual UI implementation
 model: sonnet
 tools: Read, Glob, Grep, Write
 disallowedTools: Bash, Edit

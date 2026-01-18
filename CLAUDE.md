@@ -55,7 +55,7 @@ docs/                        # Specs and detailed docs
 | `security-auditor` | Sonnet | Security audit | plan (read-only) |
 | `devops-sre` | Sonnet | CI/CD, infrastructure | acceptEdits |
 | `technical-writer` | Sonnet | Documentation | acceptEdits |
-| `ui-ux-designer` | Sonnet | Design specifications | plan (read-only) |
+| `ui-ux-designer` | Sonnet | Design specifications | plan (Write for specs only) |
 | `legacy-modernizer` | Sonnet | Code modernization | acceptEdits |
 
 ## Available Commands
@@ -67,7 +67,7 @@ docs/                        # Specs and detailed docs
 | `/spec-review` | Specification validation before implementation |
 | `/quick-impl` | Fast implementation for small, clear tasks |
 
-## Skills (20 Total)
+## Skills (18 Total)
 
 ### Core Skills
 | Skill | Purpose |
