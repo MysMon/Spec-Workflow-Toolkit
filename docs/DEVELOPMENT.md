@@ -399,7 +399,6 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task
 | Event | Purpose |
 |-------|---------|
 | `SessionStart` | Inject context + detect progress files |
-| `SubagentStart` | Initialize subagent |
 | `PreToolUse` | Validate/block tool calls (security) |
 | `PreCompact` | Save state before context compaction |
 | `SubagentStop` | Log completion |
