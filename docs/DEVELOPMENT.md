@@ -96,6 +96,25 @@ Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com
 
 **Key Insight**: "One Feature at a Time" - Avoid trying to do too much at once.
 
+### Context Management via Subagents
+
+From [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
+
+> "Subagents use their own isolated context windows, and only send relevant information back to the orchestrator, rather than their full context."
+
+**Why this matters:**
+
+| Approach | Context Cost | Result |
+|----------|-------------|--------|
+| Direct exploration by orchestrator | 10,000+ tokens | Context exhaustion |
+| Subagent exploration | ~500 token summary | Clean main context |
+
+**Benefits:**
+- Main orchestrator stays focused on coordination
+- Long autonomous work sessions become possible (hours, not minutes)
+- Multiple subagents can run in parallel for different analysis focuses
+- Only essential findings return to main context
+
 ### Progress Files
 
 ```

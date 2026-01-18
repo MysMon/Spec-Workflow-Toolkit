@@ -13,16 +13,6 @@ description: |
   NOTE: For feature-level implementation blueprints based on existing patterns, use `code-architect` instead.
 
   Trigger phrases: system architecture, database schema, API contract, ADR, technical decision, scalability, microservices
-
-  Context Management (from Anthropic Best Practices):
-  - Runs in ISOLATED context window - design exploration doesn't pollute orchestrator
-  - Returns ADRs, schemas, and contracts instead of raw design discussions
-  - Can coordinate with security-auditor for security review of designs
-
-  Model: Opus
-  - System-level design and ADRs require deep multi-step reasoning
-  - Complex trade-off analysis benefits from Opus's reasoning capabilities
-  - API contract design requires careful consideration of edge cases
 model: opus
 tools: Read, Glob, Grep, Write, Bash
 permissionMode: acceptEdits

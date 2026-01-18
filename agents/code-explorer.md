@@ -12,16 +12,6 @@ description: |
   - Analyzing architecture patterns and conventions
 
   Trigger phrases: explore, trace, how does, find all, map dependencies, execution flow, call chain, understand codebase, analyze architecture
-
-  Context Management Benefits (from Anthropic Best Practices):
-  - This agent runs in an ISOLATED context window
-  - Only returns ~500 token summaries instead of 10,000+ token raw exploration data
-  - Enables long autonomous work sessions by keeping orchestrator context clean
-  - Multiple code-explorer agents can run IN PARALLEL for different analysis focuses
-
-  Model selection by thoroughness:
-  - quick: Use built-in Explore agent (Haiku) for simple lookups
-  - medium/very thorough: This agent (Sonnet) for deep 4-phase analysis
 model: sonnet
 tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
 disallowedTools: Write, Edit, Bash

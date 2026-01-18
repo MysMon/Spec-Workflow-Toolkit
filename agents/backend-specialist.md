@@ -11,15 +11,6 @@ description: |
   - Server-side architecture or performance optimization
 
   Trigger phrases: backend, API, endpoint, server, database, query, Node.js, Python, Go, Rust, Java, REST, GraphQL, service
-
-  Context Management (from Anthropic Best Practices):
-  - Runs in ISOLATED context window - implementation details don't pollute orchestrator
-  - Orchestrator delegates entire feature implementation, you return summary on completion
-  - This pattern enables long-running autonomous work sessions
-
-  Model: inherit
-  - Uses whatever model the user's session is running (Opus for highest quality, Sonnet for balance)
-  - User controls cost/quality tradeoff via their session model choice
 model: inherit
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
