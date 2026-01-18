@@ -94,7 +94,7 @@ docs/                        # Specs and detailed docs
 | `progress-tracking` | JSON-based state persistence |
 | `long-running-tasks` | Multi-session work patterns |
 | `parallel-execution` | Concurrent agent coordination |
-| `code-quality` | Linting and formatting |
+| `code-quality` | Detect and run project-configured quality tools |
 | `testing` | Test pyramid and strategies |
 | `git-mastery` | Conventional Commits |
 | `api-design` | API specification patterns |

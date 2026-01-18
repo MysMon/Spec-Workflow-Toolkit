@@ -1,13 +1,12 @@
 ---
 name: code-quality
 description: |
-  Runs linting, formatting, and type checking across any language stack. Use when:
+  Detects and runs project-configured linting, formatting, and type checking. Use when:
   - After writing or editing code to ensure quality standards
   - Fixing lint errors or formatting issues
-  - Running ESLint, Prettier, Ruff, gofmt, rustfmt, or similar tools
-  - Type checking with TypeScript, mypy, or pyright
+  - Running the project's configured quality tools
   - Code is failing CI quality checks
-  Trigger phrases: lint, format code, run eslint, fix formatting, type check, code style, prettier, ruff, clippy
+  Trigger phrases: lint, format code, run linter, fix formatting, type check, code style
 allowed-tools: Bash, Read, Glob
 model: haiku
 user-invocable: true
@@ -15,182 +14,101 @@ user-invocable: true
 
 # Code Quality
 
-Stack-adaptive linting, formatting, and type checking.
+Detect and use the project's configured quality tools. Never assume tools - always check what the project uses.
+
+## Philosophy
+
+**Projects own their quality configuration.** This skill:
+1. Detects what tools the project has configured
+2. Runs those tools using the project's settings
+3. Never installs or assumes tools that aren't present
 
 ## Workflow
 
-### Step 1: Detect Tooling
+### Step 1: Detect Project Configuration
 
-First, identify the project's quality tools:
-
-```bash
-# Check for config files
-ls -la .eslintrc* eslint.config.* 2>/dev/null     # ESLint
-ls -la .prettierrc* prettier.config.* 2>/dev/null # Prettier
-ls -la ruff.toml pyproject.toml 2>/dev/null       # Ruff
-ls -la .golangci.yml 2>/dev/null                  # golangci-lint
-ls -la rustfmt.toml .rustfmt.toml 2>/dev/null     # rustfmt
-```
-
-### Step 2: Run Quality Checks
-
-Execute appropriate tools based on detection:
-
-#### JavaScript/TypeScript
+Check for quality tool configs in the project:
 
 ```bash
-# Linting
-npm run lint 2>/dev/null || npx eslint . --ext .ts,.tsx,.js,.jsx
+# List all potential config files
+ls -la .eslintrc* eslint.config.* .prettierrc* prettier.config.* biome.json* 2>/dev/null
+ls -la ruff.toml pyproject.toml .golangci.yml rustfmt.toml .rubocop.yml 2>/dev/null
 
-# Auto-fix
-npm run lint:fix 2>/dev/null || npx eslint . --fix
-
-# Formatting
-npm run format 2>/dev/null || npx prettier --write "**/*.{ts,tsx,js,jsx,json,md}"
-
-# Type checking
-npx tsc --noEmit
+# Check package.json scripts (JavaScript/TypeScript)
+grep -A 20 '"scripts"' package.json 2>/dev/null | grep -E '(lint|format|check)'
 ```
 
-#### Python
+### Step 2: Use Project's Commands
+
+**Always prefer project-defined npm scripts or Makefile targets:**
 
 ```bash
-# Ruff (linting + formatting)
-ruff check . --fix
-ruff format .
+# JavaScript/TypeScript - check package.json scripts first
+npm run lint          # If "lint" script exists
+npm run format        # If "format" script exists
+npm run typecheck     # If "typecheck" script exists
 
-# Or Black + isort
-black .
-isort .
+# Python - check pyproject.toml or Makefile
+make lint             # If Makefile has lint target
+make format           # If Makefile has format target
 
-# Type checking
-mypy . || pyright .
+# Or run detected tools directly
+ruff check . --fix    # If ruff.toml exists
+black .               # If black is in pyproject.toml
 ```
 
-#### Go
+### Step 3: Run Detected Tools
+
+Only run tools that have configuration present:
+
+| Config Present | Command |
+|----------------|---------|
+| `eslint.config.*` or `.eslintrc*` | `npm run lint` or `npx eslint .` |
+| `.prettierrc*` or `prettier.config.*` | `npm run format` or `npx prettier --write .` |
+| `biome.json*` | `npx biome check --write .` |
+| `ruff.toml` or `[tool.ruff]` in pyproject.toml | `ruff check . --fix && ruff format .` |
+| `.golangci.yml` | `golangci-lint run` |
+| `rustfmt.toml` or `.rustfmt.toml` | `cargo fmt` |
+| `.rubocop.yml` | `bundle exec rubocop -a` |
+
+### Step 4: Verify Build
+
+After quality fixes, verify the project still builds:
 
 ```bash
-# Linting
-golangci-lint run
-
-# Formatting
-go fmt ./...
-goimports -w .
-
-# Vet
-go vet ./...
+# Use project's build command
+npm run build         # JavaScript
+cargo build           # Rust
+go build ./...        # Go
 ```
 
-#### Rust
+## What NOT To Do
 
-```bash
-# Linting
-cargo clippy -- -D warnings
+- **Never install tools** that aren't already configured
+- **Never run tools** without checking for their config first
+- **Never override** project's tool configuration
+- **Never assume** which formatter or linter to use
 
-# Formatting
-cargo fmt
+## Integration with Git Hooks
 
-# Check
-cargo check
-```
+Projects typically enforce quality via:
+- Pre-commit hooks (husky, pre-commit, lefthook)
+- CI pipelines (GitHub Actions, GitLab CI)
+- Editor integration (VS Code, IDE plugins)
 
-#### Java
-
-```bash
-# Maven
-mvn spotless:apply
-mvn checkstyle:check
-
-# Gradle
-./gradlew spotlessApply
-./gradlew checkstyleMain
-```
-
-### Step 3: Verify Build
-
-Ensure the project still builds:
-
-| Language | Build Command |
-|----------|---------------|
-| JavaScript | `npm run build` |
-| Python | `python -m py_compile $(find . -name "*.py")` |
-| Go | `go build ./...` |
-| Rust | `cargo build` |
-| Java | `mvn compile` or `./gradlew build` |
-
-### Step 4: Handle Errors
-
-If errors persist after auto-fix:
-
-1. Read the specific error message
-2. Locate the file and line number
-3. Analyze the issue
-4. Apply manual fix
-5. Re-run quality checks
-
-**Maximum retry attempts: 3**
-
-If still failing after 3 attempts, report:
-- File path
-- Line number
-- Error message
-- Suggested fix
-
-## Tool Configuration Reference
-
-### ESLint (JavaScript)
-
-```json
-// eslint.config.js or .eslintrc.json
-{
-  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
-  "rules": {
-    "no-unused-vars": "error",
-    "@typescript-eslint/no-explicit-any": "error"
-  }
-}
-```
-
-### Ruff (Python)
-
-```toml
-# ruff.toml or pyproject.toml [tool.ruff]
-line-length = 88
-select = ["E", "F", "I", "N", "W", "UP"]
-```
-
-### golangci-lint (Go)
-
-```yaml
-# .golangci.yml
-linters:
-  enable:
-    - gofmt
-    - govet
-    - errcheck
-    - staticcheck
-```
-
-### Clippy (Rust)
-
-```toml
-# Cargo.toml
-[lints.clippy]
-pedantic = "warn"
-unwrap_used = "deny"
-```
+**This skill complements those mechanisms** by running the same tools on demand.
 
 ## Success Criteria
 
-- All lint rules pass
-- No type errors
+- All configured lint rules pass
+- No type errors (if type checking is configured)
 - Build completes successfully
-- No formatting changes needed
+- Git hooks pass (if present)
 
 ## Rules
 
 - ALWAYS detect tooling before running commands
-- ALWAYS try auto-fix before manual intervention
-- NEVER skip type checking
+- ALWAYS use project's configured scripts/commands
+- NEVER install or assume tools
 - ALWAYS verify build after fixes
 - NEVER ignore errors, report them clearly
