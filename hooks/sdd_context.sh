@@ -82,26 +82,66 @@ except Exception as e:
     fi
 fi
 
+# --- Determine Role (Initializer vs Coding) ---
+if [ -n "$PROGRESS_FILE" ]; then
+    CURRENT_ROLE="CODING"
+else
+    CURRENT_ROLE="INITIALIZER"
+fi
+
 # --- Output Context ---
 cat << 'EOF'
 ## SDD Toolkit v8.1 - Session Initialized
 
+EOF
+
+# --- Role-Specific Banner ---
+if [ "$CURRENT_ROLE" = "CODING" ]; then
+    cat << 'EOF'
+### Current Role: CODING (Resuming Work)
+
+Progress file detected. You are in **Coding Role**:
+1. **Read** the progress file to understand current state
+2. **Identify** the next incomplete feature/task
+3. **Implement** ONE feature at a time (not all at once!)
+4. **Test** thoroughly before moving on
+5. **Update** progress file after each milestone
+6. **Commit** working code with descriptive messages
+
+EOF
+else
+    cat << 'EOF'
+### Current Role: INITIALIZER (First Session)
+
+No progress file detected. You are in **Initializer Role**:
+1. **Analyze** the full task scope and break into features
+2. **Create** `.claude/claude-progress.json` with project info
+3. **Create** `.claude/feature-list.json` with all features (status: pending)
+4. **Document** resumption context for future sessions
+5. **Start** implementing the first feature
+
+EOF
+fi
+
+cat << 'EOF'
 ### Core Principles (Spec-First Development)
 
 1. **No Code Without Spec** - Never implement without approved specification
 2. **Ambiguity Tolerance Zero** - If unclear, ask immediately using AskUserQuestion
 3. **Protect Main Context** - Delegate complex work to subagents to preserve tokens
 
-### Context Management (Critical for Long Sessions)
+### Context Management (CRITICAL for Long Sessions)
 
-**ALWAYS delegate to subagents** for multi-step or exploratory work:
+**DO NOT explore code yourself. ALWAYS delegate to subagents:**
 - Subagents run in isolated context windows
 - Only results/summaries return to main context
 - Main orchestrator stays clean and focused
+- This enables long autonomous work sessions
 
 | Task Type | Delegate To | Model | Why |
 |-----------|-------------|-------|-----|
 | Codebase Exploration | `code-explorer` | Sonnet | Deep 4-phase analysis |
+| Quick Lookups | Built-in `Explore` | Haiku | Fast, lightweight |
 | Requirements | `product-manager` | Sonnet | Exploration isolated |
 | System Design | `system-architect` | **Opus** | Complex reasoning for ADRs |
 | Feature Design | `code-architect` | Sonnet | Implementation blueprints |
@@ -110,17 +150,13 @@ cat << 'EOF'
 | Testing | `qa-engineer` | Sonnet | Test execution isolated |
 | Security | `security-auditor` | Sonnet | Audit (read-only) |
 
-### Long-Running Task Support (Initializer + Coding Pattern)
+### Long-Running Task Support (One Feature at a Time)
 
 Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents):
 
-**Two-Role Pattern:**
-| Role | When | Responsibility |
-|------|------|----------------|
-| **Initializer** | First session, no progress file | Create progress files, break down features, set up state |
-| **Coding** | Progress file exists | Read progress, implement ONE feature, test, update progress |
+> "The agent tends to try to do too much at once—essentially attempting to one-shot the app."
 
-**CRITICAL**: Focus on ONE feature at a time. Avoid trying to do too much at once.
+**Solution**: Focus on ONE feature, complete it fully, then move to the next.
 
 **State Files:**
 - `.claude/claude-progress.json` - Progress log with resumption context

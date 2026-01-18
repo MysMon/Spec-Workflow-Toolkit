@@ -10,8 +10,12 @@ description: |
   - Before implementing changes to understand impact
   - Analyzing architecture patterns and conventions
   Trigger phrases: explore, trace, how does, find all, map dependencies, execution flow, call chain, understand codebase, analyze architecture
+
+  Model selection by thoroughness (orchestrator should specify):
+  - quick: Consider using built-in Explore agent (Haiku) for simple lookups
+  - medium/very thorough: This agent (Sonnet) for deep 4-phase analysis
 model: sonnet
-tools: Glob, Grep, LS, Read, WebFetch, WebSearch, TodoWrite
+tools: Glob, Grep, LS, Read, NotebookRead, WebFetch, WebSearch, TodoWrite
 disallowedTools: Write, Edit, Bash
 permissionMode: plan
 skills: stack-detector

@@ -1,8 +1,8 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "sdd-toolkit",
-  "version": "8.1.0",
-  "description": "Specification-Driven Development Toolkit - A multi-stack agentic framework with 7-phase workflow, 5-agent parallel code review, Opus-powered system architecture, and confidence-based scoring. Features Initializer+Coding pattern for long-running tasks and model-aware agent delegation. Based on official Anthropic best practices.",
+  "version": "8.2.0",
+  "description": "Specification-Driven Development Toolkit - Designed for long-running autonomous work sessions. Features aggressive subagent delegation to preserve main context, 7-phase workflow, Opus-powered system architecture, Initializer+Coding pattern for resumable tasks, and confidence-based review scoring. Based on official Anthropic best practices.",
   "author": {
     "name": "MysMon",
     "email": "contact@github.com/MysMon",
