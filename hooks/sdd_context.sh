@@ -91,7 +91,7 @@ fi
 
 # --- Output Context ---
 cat << 'EOF'
-## SDD Toolkit v8.3.0 - Session Initialized
+## SDD Toolkit v9.0.0 - Session Initialized
 
 **Official References:**
 - [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)

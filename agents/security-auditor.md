@@ -15,7 +15,7 @@ model: sonnet
 tools: Read, Glob, Grep, Bash
 disallowedTools: Write, Edit
 permissionMode: plan
-skills: security-fundamentals, stack-detector
+skills: security-fundamentals, stack-detector, subagent-contract
 hooks:
   PreToolUse:
     - matcher: "Bash"

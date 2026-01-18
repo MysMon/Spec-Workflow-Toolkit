@@ -55,7 +55,7 @@ See `skills/core/composable-patterns/SKILL.md` for detailed pattern documentatio
 ```
 sdd-toolkit/
 ├── .claude-plugin/
-│   └── plugin.json          # Plugin metadata (v8.2.0)
+│   └── plugin.json          # Plugin metadata (v9.0.0)
 ├── commands/                 # Slash commands
 │   ├── sdd.md               # 7-phase workflow
 │   ├── code-review.md       # Parallel review (confidence >= 80)

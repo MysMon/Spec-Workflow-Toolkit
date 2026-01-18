@@ -12,7 +12,7 @@ description: |
 model: sonnet
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
-skills: stack-detector, testing, code-quality
+skills: stack-detector, testing, code-quality, subagent-contract
 ---
 
 # Role: Legacy Modernizer
