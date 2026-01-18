@@ -19,7 +19,7 @@ user-invocable: true
 
 JSON-based progress tracking for autonomous, long-running tasks that may span multiple sessions or context windows.
 
-Based on [Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents).
+Based on Anthropic's Effective Harnesses for Long-Running Agents pattern.
 
 ## Core Principle
 

@@ -19,17 +19,9 @@ user-invocable: true
 
 # Test-Driven Development Workflow
 
-## Official References
-
-- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
-- [Custom TDD Workflow for Claude Code](https://alexop.dev/posts/custom-tdd-workflow-claude-code-vue/)
-- [Test-Driven Development with Claude](https://stevekinney.com/courses/ai-development/test-driven-development-with-claude)
-
 A disciplined TDD approach for Claude Code that ensures quality through the Red-Green-Refactor cycle.
 
-## Official Guidance
-
-From [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
+From Claude Code Best Practices:
 
 > "Test-driven development (TDD) becomes even more powerful with agentic coding: Ask Claude to write tests based on expected input/output pairs."
 

@@ -18,17 +18,11 @@ user-invocable: true
 
 # Long-Running Task Patterns
 
-## Official References
-
-- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
-- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
-- [Building Agents with Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk)
-
 Techniques for managing complex, multi-step tasks that may exceed a single session or context window.
 
-## Official Pattern: Initializer + Coding Agent
+## Initializer + Coding Agent Pattern
 
-Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents), Anthropic's recommended pattern uses **two distinct roles**:
+Anthropic's recommended pattern uses **two distinct roles**:
 
 ### 1. Initializer Role (First Session Only)
 
@@ -58,7 +52,7 @@ From Anthropic's research: The agent tends to try to do too much at once—essen
 
 ## Core Principles
 
-Based on [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
+From Claude Code Best Practices:
 
 1. **Use TodoWrite extensively** - Break down work, track progress visibly
 2. **JSON-based state persistence** - Use `.claude/claude-progress.json` and `.claude/feature-list.json`

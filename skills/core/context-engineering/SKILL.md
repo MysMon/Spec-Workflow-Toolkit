@@ -19,7 +19,7 @@ user-invocable: true
 
 # Context Engineering for AI Agents
 
-Based on [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents).
+Based on Anthropic's Effective Context Engineering for AI Agents.
 
 > "Context engineering involves strategically curating tokens available to LLMs to optimize performance within finite attention budgets."
 
@@ -80,7 +80,7 @@ Strike a balance between extremes:
 ```markdown
 ## Context Management (CRITICAL)
 
-From [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
+From Claude Code Best Practices:
 
 > "Subagents use their own isolated context windows..."
 

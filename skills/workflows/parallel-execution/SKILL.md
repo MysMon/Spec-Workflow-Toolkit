@@ -21,7 +21,7 @@ Techniques for running multiple subagents concurrently to maximize efficiency an
 
 ## Core Principles
 
-Based on [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
+From Claude Code Best Practices:
 
 1. **Subagents preserve context** - Exploration happens in isolation
 2. **Only results return** - Main context stays clean
