@@ -99,14 +99,13 @@ docs/                        # Specs and detailed docs
 
 ## Skill Usage by Agent
 
-All 20 skills are now assigned to appropriate agents:
+All 17 skills are assigned to appropriate agents:
 
 | Skill | Used By |
 |-------|---------|
 | `subagent-contract` | All 12 agents |
 | `stack-detector` | 10 agents (all except code-explorer, product-manager) |
 | `security-fundamentals` | system-architect, backend-specialist, devops-sre, security-auditor |
-| `composable-patterns` | system-architect, code-architect |
 | `sdd-philosophy` | system-architect, product-manager |
 | `testing` | qa-engineer, legacy-modernizer |
 | `tdd-workflow` | qa-engineer |

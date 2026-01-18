@@ -14,7 +14,7 @@ model: sonnet
 tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
 disallowedTools: Write, Edit, Bash
 permissionMode: plan
-skills: stack-detector, composable-patterns, evaluator-optimizer, parallel-execution, long-running-tasks, subagent-contract
+skills: stack-detector, evaluator-optimizer, parallel-execution, long-running-tasks, subagent-contract
 ---
 
 # Role: Code Architect

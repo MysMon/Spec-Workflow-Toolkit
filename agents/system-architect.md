@@ -16,7 +16,7 @@ description: |
 model: opus
 tools: Read, Glob, Grep, Write, Bash
 permissionMode: acceptEdits
-skills: sdd-philosophy, security-fundamentals, stack-detector, composable-patterns, api-design, parallel-execution, long-running-tasks, subagent-contract
+skills: sdd-philosophy, security-fundamentals, stack-detector, api-design, parallel-execution, long-running-tasks, subagent-contract
 ---
 
 # Role: System Architect

@@ -31,7 +31,7 @@ This workflow implements all 6 of Anthropic's composable patterns:
 | **Evaluator-Optimizer** | Quality review with confidence scoring and iteration |
 | **Augmented LLM** | Tools, progress files, retrieval for all agents |
 
-See `skills/core/composable-patterns/SKILL.md` for detailed pattern documentation.
+See [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) for detailed pattern documentation.
 
 ## Phase Overview
 

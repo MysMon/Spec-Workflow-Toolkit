@@ -307,7 +307,6 @@ flowchart TB
 | フック | イベント | 用途 |
 |--------|---------|------|
 | `sdd_context.sh` | SessionStart | SDD コンテキスト注入、**進捗ファイル検出**、再開サポート |
-| `subagent_init.sh` | SubagentStart | サブエージェント初期化、ロール別コンテキスト |
 | `safety_check.py` | PreToolUse (Bash) | 危険なコマンドをブロック |
 | `prevent_secret_leak.py` | PreToolUse (Write/Edit) | 秘密情報の検出 |
 | `pre_compact_save.sh` | PreCompact | **コンパクション前の状態保存**（長時間セッション対応） |
