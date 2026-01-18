@@ -280,7 +280,7 @@ flowchart TB
 | `composable-patterns` | **Anthropic の 6 パターン**（Prompt Chaining、Routing、Parallelization、Orchestrator-Workers、Evaluator-Optimizer、Augmented LLM） |
 | `context-engineering` | **コンテキスト管理**（Context Rot 防止、Progressive Disclosure、サブエージェント分離） |
 | `subagent-contract` | **標準化された結果フォーマット**（全エージェントが参照） |
-| `think-tool` | **構造化推論**（ツールチェーン中の意思決定、ポリシー検証） |
+| `think-tool` | **構造化推論**（4エージェントに Structured Reasoning として統合済み） |
 | `sdd-philosophy` | 仕様駆動開発の原則 |
 | `security-fundamentals` | セキュリティベストプラクティス（OWASP、秘密情報） |
 | `interview` | 構造化された要件収集 |
