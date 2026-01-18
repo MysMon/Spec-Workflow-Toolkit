@@ -278,7 +278,7 @@ claude --plugin-dir /path/to/sdd-toolkit
 | `progress-tracking` | JSON ベースの状態永続化 |
 | `parallel-execution` | マルチエージェント調整 |
 | `long-running-tasks` | 状態永続化、セッション再開 |
-| `code-quality` | リンティング、フォーマット、型チェック |
+| `code-quality` | プロジェクト設定された品質ツールを検出・実行 |
 | `git-mastery` | Conventional Commits、変更履歴 |
 | `testing` | テストピラミッド、戦略、フレームワーク |
 | `api-design` | API 仕様パターン |
@@ -295,7 +295,6 @@ claude --plugin-dir /path/to/sdd-toolkit
 | `subagent_init.sh` | SubagentStart | サブエージェント初期化、ロール別コンテキスト |
 | `safety_check.py` | PreToolUse (Bash) | 危険なコマンドをブロック |
 | `prevent_secret_leak.py` | PreToolUse (Write/Edit) | 秘密情報の検出 |
-| `post_edit_quality.sh` | PostToolUse (Write/Edit) | リンター/フォーマッター自動実行 |
 | `pre_compact_save.sh` | PreCompact | **コンパクション前の状態保存**（長時間セッション対応） |
 | `subagent_summary.sh` | SubagentStop | 完了ログ記録 |
 | `session_summary.sh` | Stop | git status サマリー |

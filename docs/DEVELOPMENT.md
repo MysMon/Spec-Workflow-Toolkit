@@ -402,8 +402,7 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task
 |-------|---------|
 | `SessionStart` | Inject context + detect progress files |
 | `SubagentStart` | Initialize subagent |
-| `PreToolUse` | Validate/block tool calls |
-| `PostToolUse` | Quality checks |
+| `PreToolUse` | Validate/block tool calls (security) |
 | `PreCompact` | Save state before context compaction |
 | `SubagentStop` | Log completion |
 | `Stop` | Session summary |
