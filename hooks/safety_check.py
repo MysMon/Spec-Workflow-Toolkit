@@ -3,20 +3,26 @@
 Safety Check Hook - PreToolUse for Bash commands
 Blocks dangerous shell commands that could harm the system.
 Stack-agnostic: works with any project type.
+
+Based on Claude Code hooks specification:
+https://code.claude.com/docs/en/hooks
+
+Uses JSON decision control (exit 0 + hookSpecificOutput) for proper blocking.
 """
 
 import sys
-import os
 import re
 import json
 
-# Read command from stdin (Claude Code passes tool input)
+# Read tool input from stdin (Claude Code passes JSON)
 input_data = sys.stdin.read().strip()
 
 try:
     data = json.loads(input_data)
-    command = data.get("command", "")
+    tool_input = data.get("tool_input", {})
+    command = tool_input.get("command", "")
 except json.JSONDecodeError:
+    # Fallback for direct command input
     command = input_data
 
 # Dangerous command patterns (stack-agnostic)
@@ -80,13 +86,17 @@ def is_dangerous(cmd: str) -> tuple[bool, str]:
 dangerous, matched_pattern = is_dangerous(command)
 
 if dangerous:
-    print(json.dumps({
-        "decision": "block",
-        "reason": f"Blocked dangerous command matching pattern: {matched_pattern}"
-    }))
-    sys.exit(1)
+    # Use JSON decision control to properly block the command
+    # Based on: https://code.claude.com/docs/en/hooks
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": f"Blocked dangerous command matching pattern: {matched_pattern}"
+        }
+    }
+    print(json.dumps(output))
+    sys.exit(0)  # Exit 0 with JSON decision control
 else:
-    print(json.dumps({
-        "decision": "allow"
-    }))
+    # Allow the command to proceed
     sys.exit(0)

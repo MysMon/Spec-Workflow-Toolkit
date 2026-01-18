@@ -3,6 +3,11 @@
 Secret Leak Prevention Hook - PreToolUse for Write/Edit
 Detects secrets and sensitive data before they're written to files.
 Stack-agnostic: works with any project type.
+
+Based on Claude Code hooks specification:
+https://code.claude.com/docs/en/hooks
+
+Uses JSON decision control (exit 0 + hookSpecificOutput) for proper blocking.
 """
 
 import sys
@@ -10,13 +15,15 @@ import os
 import re
 import json
 
-# Read content from stdin
+# Read tool input from stdin (Claude Code passes JSON)
 input_data = sys.stdin.read().strip()
 
 try:
     data = json.loads(input_data)
-    content = data.get("content", "") or data.get("new_string", "")
-    file_path = data.get("file_path", "")
+    tool_input = data.get("tool_input", {})
+    # Handle both Write (content) and Edit (new_string) tools
+    content = tool_input.get("content", "") or tool_input.get("new_string", "")
+    file_path = tool_input.get("file_path", "")
 except json.JSONDecodeError:
     content = input_data
     file_path = ""
@@ -107,23 +114,24 @@ def find_secrets(text: str) -> list[tuple[str, str]]:
 
 # Main check
 if should_skip_file(file_path):
-    print(json.dumps({
-        "decision": "allow",
-        "reason": "Template/example file - secrets allowed"
-    }))
+    # Allow template/example files without checking
     sys.exit(0)
 
 secrets_found = find_secrets(content)
 
 if secrets_found:
     descriptions = [s[1] for s in secrets_found]
-    print(json.dumps({
-        "decision": "block",
-        "reason": f"Potential secrets detected: {', '.join(descriptions)}"
-    }))
-    sys.exit(1)
+    # Use JSON decision control to properly block the operation
+    # Based on: https://code.claude.com/docs/en/hooks
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": f"Potential secrets detected: {', '.join(descriptions)}. Use environment variables or a secrets manager instead."
+        }
+    }
+    print(json.dumps(output))
+    sys.exit(0)  # Exit 0 with JSON decision control
 else:
-    print(json.dumps({
-        "decision": "allow"
-    }))
+    # Allow the operation to proceed
     sys.exit(0)
