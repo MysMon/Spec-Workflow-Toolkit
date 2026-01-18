@@ -166,6 +166,18 @@ When approaching context limits:
 2. Document "Resumption Context" section
 3. User can `/clear` and continue with state file
 
+### PreCompact Hook Integration
+
+This plugin includes a `PreCompact` hook that automatically:
+- Saves compaction timestamp to progress file
+- Maintains compaction history (last 10 events)
+- Outputs context reminder for post-compaction recovery
+
+**After compaction**, always:
+1. Read `.claude/claude-progress.json` to restore context
+2. Check `feature-list.json` for current task status
+3. Continue from the documented position
+
 ## Large Migration Pattern
 
 For migrations affecting many files:

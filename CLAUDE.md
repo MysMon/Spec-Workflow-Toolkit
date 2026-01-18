@@ -41,6 +41,64 @@ docs/                        # Specs and detailed docs
 | `skills/workflows/error-recovery/SKILL.md` | Checkpoint and recovery patterns |
 | `skills/core/subagent-contract/SKILL.md` | Standardized result formats |
 
+## Available Agents (12 Specialized Roles)
+
+| Agent | Model | Role | permissionMode |
+|-------|-------|------|----------------|
+| `code-explorer` | Sonnet | Deep codebase analysis | plan (read-only) |
+| `code-architect` | Sonnet | Implementation blueprints | plan (read-only) |
+| `system-architect` | **Opus** | System design, ADRs | acceptEdits |
+| `product-manager` | **Opus** | Requirements gathering | acceptEdits |
+| `frontend-specialist` | inherit | UI implementation | acceptEdits |
+| `backend-specialist` | inherit | API implementation | acceptEdits |
+| `qa-engineer` | Sonnet | Testing, quality review | acceptEdits |
+| `security-auditor` | Sonnet | Security audit | plan (read-only) |
+| `devops-sre` | Sonnet | CI/CD, infrastructure | acceptEdits |
+| `technical-writer` | Sonnet | Documentation | acceptEdits |
+| `ui-ux-designer` | Sonnet | Design specifications | plan (read-only) |
+| `legacy-modernizer` | Sonnet | Code modernization | acceptEdits |
+
+## Available Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/sdd` | 7-phase Specification-Driven Development workflow |
+| `/code-review` | Parallel code review with confidence scoring |
+| `/spec-review` | Specification validation before implementation |
+| `/quick-impl` | Fast implementation for small, clear tasks |
+
+## Skills (20 Total)
+
+### Core Skills
+| Skill | Purpose |
+|-------|---------|
+| `composable-patterns` | Anthropic's 6 patterns documentation |
+| `subagent-contract` | Standardized result formats |
+| `sdd-philosophy` | Spec-first development principles |
+| `security-fundamentals` | Security best practices |
+| `interview` | Structured requirements gathering |
+
+### Detection Skills
+| Skill | Purpose |
+|-------|---------|
+| `stack-detector` | Technology stack auto-detection |
+
+### Workflow Skills
+| Skill | Purpose |
+|-------|---------|
+| `tdd-workflow` | Test-driven development |
+| `evaluator-optimizer` | Iterative improvement |
+| `error-recovery` | Checkpoint and recovery |
+| `progress-tracking` | JSON-based state persistence |
+| `long-running-tasks` | Multi-session work patterns |
+| `parallel-execution` | Concurrent agent coordination |
+| `code-quality` | Linting and formatting |
+| `testing` | Test pyramid and strategies |
+| `git-mastery` | Conventional Commits |
+| `api-design` | API specification patterns |
+| `migration` | Code migration strategies |
+| `observability` | Monitoring and logging |
+
 ## Development Guidelines
 
 ### Editing Agent Definitions
@@ -61,8 +119,9 @@ Each phase should have clear instructions and expected outputs.
 `hooks/sdd_context.sh` is the main user-facing context.
 
 **CRITICAL for PreToolUse hooks:**
-- Use JSON decision control (`permissionDecision: "deny"`) with exit 0, NOT exit 1
-- Exit 1 = non-blocking error (tool still executes!)
+- Use JSON decision control (`permissionDecision: "deny"`) with exit 0 (recommended)
+- Exit 2 = blocking error (tool blocked, error shown to Claude)
+- Other non-zero exit codes (1, 3, etc.) = non-blocking error (tool may still execute!)
 - See `docs/DEVELOPMENT.md` for full hook specification
 
 ## Testing Changes

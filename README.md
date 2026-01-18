@@ -287,9 +287,11 @@ claude --plugin-dir /path/to/sdd-toolkit
 | フック | イベント | 用途 |
 |--------|---------|------|
 | `sdd_context.sh` | SessionStart | SDD コンテキスト注入、**進捗ファイル検出**、再開サポート |
+| `subagent_init.sh` | SubagentStart | サブエージェント初期化、ロール別コンテキスト |
 | `safety_check.py` | PreToolUse (Bash) | 危険なコマンドをブロック |
 | `prevent_secret_leak.py` | PreToolUse (Write/Edit) | 秘密情報の検出 |
 | `post_edit_quality.sh` | PostToolUse (Write/Edit) | リンター/フォーマッター自動実行 |
+| `pre_compact_save.sh` | PreCompact | **コンパクション前の状態保存**（長時間セッション対応） |
 | `subagent_summary.sh` | SubagentStop | 完了ログ記録 |
 | `session_summary.sh` | Stop | git status サマリー |
 

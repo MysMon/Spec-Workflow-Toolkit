@@ -232,6 +232,8 @@ skills: skill1, skill2
 
 ### Key Skills Overview
 
+This plugin includes **20 skills** across 3 categories. Key skills for long-running autonomous work:
+
 | Skill | Purpose | Key Features |
 |-------|---------|--------------|
 | `composable-patterns` | Documents Anthropic's 6 patterns | Pattern selection guide, composition examples |
@@ -240,6 +242,10 @@ skills: skill1, skill2
 | `error-recovery` | Resilient workflows | Checkpoints, graceful degradation, recovery paths |
 | `subagent-contract` | Standardized outputs | Result format spec, confidence scoring |
 | `progress-tracking` | State persistence | JSON schemas, resumption context |
+| `long-running-tasks` | Multi-session work | Initializer+Coding pattern, PreCompact integration |
+| `stack-detector` | Technology detection | Auto-detect languages, frameworks, tools |
+
+See `CLAUDE.md` for complete skill list (20 skills in core/, detection/, workflows/).
 
 ### New Skill
 
@@ -306,8 +312,39 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task
 | `SubagentStart` | Initialize subagent |
 | `PreToolUse` | Validate/block tool calls |
 | `PostToolUse` | Quality checks |
+| `PreCompact` | Save state before context compaction |
 | `SubagentStop` | Log completion |
 | `Stop` | Session summary |
+
+### PreCompact Hook (Long-Running Session Support)
+
+The `PreCompact` hook fires before context compaction (manual or auto). Use it to preserve critical state:
+
+```bash
+#!/bin/bash
+# pre_compact_save.sh - Save progress before compaction
+
+INPUT=$(cat)
+TRIGGER=$(echo "$INPUT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('trigger','unknown'))")
+
+# Update progress file with compaction timestamp
+if [ -f ".claude/claude-progress.json" ]; then
+    # Add compaction event to history (see hooks/pre_compact_save.sh for full implementation)
+fi
+
+# Output context that will be included in compaction summary
+echo "## Pre-Compaction State Saved"
+echo "Progress file updated. Remember to read it after compaction."
+exit 0
+```
+
+**Input Schema:**
+```json
+{
+  "trigger": "manual|auto",
+  "custom_instructions": "user's /compact message (if manual)"
+}
+```
 
 ### PreToolUse Hook Implementation (CRITICAL)
 
@@ -386,6 +423,43 @@ sys.exit(2)
   }
 }
 ```
+
+**Tool Input Modification (Advanced):**
+
+PreToolUse hooks can modify tool inputs before execution using `updatedInput`:
+
+```python
+#!/usr/bin/env python3
+import json
+import sys
+
+data = json.loads(sys.stdin.read())
+tool_input = data.get("tool_input", {})
+command = tool_input.get("command", "")
+
+# Example: Add safety prefix to commands
+if needs_modification(command):
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "allow",
+            "updatedInput": {
+                "command": f"safe_wrapper {command}"  # Modified input
+            }
+        }
+    }
+    print(json.dumps(output))
+    sys.exit(0)
+
+# Allow original command
+sys.exit(0)
+```
+
+Use cases:
+- Adding safety wrappers to commands
+- Normalizing file paths
+- Injecting environment variables
+- Transforming API parameters
 
 ---
 
