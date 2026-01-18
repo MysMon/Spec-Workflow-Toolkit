@@ -94,12 +94,65 @@ docs/                        # Specs and detailed docs
 | `progress-tracking` | JSON-based state persistence |
 | `long-running-tasks` | Multi-session work patterns |
 | `parallel-execution` | Concurrent agent coordination |
-| `code-quality` | Linting and formatting |
+| `code-quality` | Detect and run project-configured quality tools |
 | `testing` | Test pyramid and strategies |
 | `git-mastery` | Conventional Commits |
 | `api-design` | API specification patterns |
 | `migration` | Code migration strategies |
 | `observability` | Monitoring and logging |
+
+## Skill Usage by Agent
+
+All 19 skills are now assigned to appropriate agents:
+
+| Skill | Used By |
+|-------|---------|
+| `subagent-contract` | All 12 agents |
+| `stack-detector` | 10 agents (all except code-explorer, product-manager) |
+| `security-fundamentals` | system-architect, backend-specialist, devops-sre, security-auditor |
+| `composable-patterns` | system-architect, code-architect |
+| `sdd-philosophy` | system-architect, product-manager |
+| `testing` | qa-engineer, legacy-modernizer |
+| `tdd-workflow` | qa-engineer |
+| `code-quality` | frontend-specialist, backend-specialist, legacy-modernizer |
+| `api-design` | system-architect, backend-specialist |
+| `migration` | backend-specialist, legacy-modernizer |
+| `error-recovery` | qa-engineer, devops-sre, legacy-modernizer |
+| `evaluator-optimizer` | qa-engineer, code-architect |
+| `long-running-tasks` | system-architect, code-architect |
+| `parallel-execution` | system-architect, code-architect |
+| `progress-tracking` | qa-engineer, devops-sre, legacy-modernizer |
+| `observability` | devops-sre |
+| `git-mastery` | technical-writer |
+| `interview` | product-manager |
+| `context-engineering` | Referenced by orchestrator (sdd.md, sdd_context.sh) |
+
+**Note:** `context-engineering` is a documentation skill for orchestrators, not assigned to subagents.
+
+## Plugin Validation (Official)
+
+Use Claude Code's built-in validation command:
+
+```bash
+/plugin validate
+```
+
+This validates:
+- Plugin structure and configuration
+- Agent/command definitions
+- Hook event structures
+
+### Python Hooks are Official Pattern
+
+The Python scripts in `hooks/` follow the [official Anthropic pattern](https://github.com/anthropics/claude-code/blob/main/examples/hooks/bash_command_validator_example.py):
+
+| Script | Purpose |
+|--------|---------|
+| `safety_check.py` | Block dangerous Bash commands |
+| `prevent_secret_leak.py` | Detect secrets in Write/Edit |
+| `security_audit_bash_validator.py` | Whitelist for security-auditor |
+
+All use JSON decision control (`permissionDecision: deny`) with exit 0, which is the recommended approach for fine-grained control.
 
 ## Development Guidelines
 

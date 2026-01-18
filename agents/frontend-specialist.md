@@ -14,7 +14,7 @@ description: |
 model: inherit
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
-skills: subagent-contract
+skills: stack-detector, code-quality, subagent-contract
 ---
 
 # Role: Frontend Development Specialist
