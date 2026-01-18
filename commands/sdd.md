@@ -8,7 +8,14 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoW
 
 Launch a guided 7-phase development workflow that ensures disciplined, spec-first development with context-preserving subagent delegation.
 
-Based on [Anthropic's official feature-dev plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/feature-dev).
+## Official References
+
+Based on:
+- [Official feature-dev plugin](https://github.com/anthropics/claude-code/tree/main/plugins/feature-dev)
+- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
+- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+- [Building Agents with Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk)
+- [Subagent Documentation](https://code.claude.com/docs/en/sub-agents)
 
 ## Phase Overview
 
@@ -64,6 +71,10 @@ From [Anthropic Best Practices](https://www.anthropic.com/engineering/claude-cod
 
 **DO NOT explore code yourself. ALWAYS delegate to subagents.**
 
+From [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
+
+> "Subagents use their own isolated context windows, and only send relevant information back to the orchestrator, rather than their full context. This makes them ideal for tasks that require sifting through large amounts of information where most of it won't be useful."
+
 The main orchestrator MUST:
 - Remain focused on orchestration and coordination
 - Never accumulate exploration results in main context
@@ -71,11 +82,17 @@ The main orchestrator MUST:
 - Delegate ALL implementation to specialist agents
 - Only read specific files identified by subagents (max 3 at a time)
 
-Why this matters:
-- Context windows are limited
-- Long autonomous sessions require clean context
-- Subagents run in isolated windows, protecting main context
-- Only summaries return, not full exploration data
+**Why This Matters (Quantified):**
+```
+Direct exploration by orchestrator: 10,000+ tokens consumed in main context
+Subagent exploration:               ~500 token summary returned
+Savings:                            95%+ context preservation
+```
+
+**Long Session Enablement:**
+- Clean main context = ability to work for hours autonomously
+- Polluted main context = session ends prematurely
+- This is the key to completing complex, multi-day projects
 
 | Agent | Model | Use For |
 |-------|-------|---------|

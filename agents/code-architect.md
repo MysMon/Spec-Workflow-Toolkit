@@ -2,15 +2,27 @@
 name: code-architect
 description: |
   Feature architecture designer that provides definitive implementation blueprints based on existing codebase patterns.
+
   Use proactively when:
   - Designing new features that need to integrate with existing code
   - Planning implementation strategy for complex changes
   - Making architectural decisions that affect multiple components
   - Creating implementation roadmaps with specific file paths
+
   Trigger phrases: design feature, architecture plan, implementation blueprint, how should I implement, design approach
 
-  Model: Sonnet - Balanced capability for architecture design
-  Mode: plan (read-only) - Design blueprints only, specialists handle implementation
+  Context Management Benefits (from Anthropic Best Practices):
+  - Runs in ISOLATED context window - design exploration doesn't pollute orchestrator
+  - Multiple code-architect agents can run IN PARALLEL analyzing different aspects:
+    - Agent 1: Reuse analysis (existing patterns to leverage)
+    - Agent 2: Extensibility analysis (clean abstractions)
+    - Agent 3: Performance analysis (if relevant)
+  - Returns focused recommendations instead of raw analysis data
+
+  Design Philosophy (Intentional Difference from Official Pattern):
+  - Official feature-dev presents 3 distinct approaches for user selection
+  - This plugin uses parallel agents to analyze, then SYNTHESIZES into ONE definitive recommendation
+  - Rationale: Reduces decision fatigue while ensuring comprehensive analysis
 model: sonnet
 tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
 disallowedTools: Write, Edit, Bash

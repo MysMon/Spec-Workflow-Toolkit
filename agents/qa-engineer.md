@@ -2,13 +2,25 @@
 name: qa-engineer
 description: |
   QA Automation Engineer for testing and quality assurance across any stack.
+
   Use proactively when:
   - After implementing new features or fixing bugs
   - Writing unit tests, integration tests, or E2E tests
   - Developing test strategies or improving coverage
   - Tests are failing and need investigation
   - Before merging code to ensure quality
+
   Trigger phrases: test, testing, unit test, integration test, E2E, coverage, QA, quality assurance, failing tests, test strategy
+
+  Context Management (from Anthropic Best Practices):
+  - Runs in ISOLATED context window - test execution output doesn't pollute orchestrator
+  - Can run IN PARALLEL with other review agents (security-auditor, code-explorer)
+  - Returns focused findings with confidence scores instead of raw test output
+
+  Confidence-Based Filtering (Unified with /code-review):
+  - Only report findings with confidence >= 80
+  - This reduces noise and focuses on actionable issues
+  - Based on official code-reviewer pattern from feature-dev plugin
 model: sonnet
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits

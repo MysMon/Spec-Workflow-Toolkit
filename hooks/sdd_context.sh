@@ -91,7 +91,12 @@ fi
 
 # --- Output Context ---
 cat << 'EOF'
-## SDD Toolkit v8.2.0 - Session Initialized
+## SDD Toolkit v8.3.0 - Session Initialized
+
+**Official References:**
+- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
+- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+- [Subagent Documentation](https://code.claude.com/docs/en/sub-agents)
 
 EOF
 
@@ -153,11 +158,15 @@ cat << 'EOF'
 
 ### Context Management (CRITICAL for Long Sessions)
 
+From [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
+
+> "Subagents use their own isolated context windows, and only send relevant information back to the orchestrator."
+
 **DO NOT explore code yourself. ALWAYS delegate to subagents:**
 - Subagents run in isolated context windows
-- Only results/summaries return to main context
+- Only results/summaries return to main context (~500 tokens vs 10,000+)
 - Main orchestrator stays clean and focused
-- This enables long autonomous work sessions
+- This enables long autonomous work sessions (hours, not minutes)
 
 | Task Type | Delegate To | Model | Why |
 |-----------|-------------|-------|-----|

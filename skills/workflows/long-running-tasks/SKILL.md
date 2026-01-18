@@ -2,13 +2,20 @@
 name: long-running-tasks
 description: |
   Patterns for autonomous, long-running tasks with state persistence and progress tracking.
+
   Use when:
   - Task has multiple steps that need tracking
   - Work may span context window limits
   - Need to persist state between sessions
   - Complex migrations, refactoring, or multi-file changes
   - User says "complete everything" or "run autonomously"
+
   Trigger phrases: long task, autonomous, persist state, track progress, migration, refactoring, multi-step
+
+  Official References:
+  - https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
+  - https://www.anthropic.com/engineering/claude-code-best-practices
+  - https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk
 allowed-tools: Read, Write, Glob, Grep, Bash, TodoWrite
 model: sonnet
 user-invocable: true

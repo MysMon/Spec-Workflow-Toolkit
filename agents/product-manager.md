@@ -2,15 +2,25 @@
 name: product-manager
 description: |
   Senior Technical Product Manager for requirements gathering, PRD creation, and specification writing.
+
   Use proactively when:
   - User requests are vague or incomplete ("add feature", "make it better")
   - Defining requirements before implementation
   - Conducting user interviews or stakeholder analysis
   - Translating business requests into technical specifications
   - Creating PRDs or specification documents
+
   Trigger phrases: requirements, PRD, specification, user stories, acceptance criteria, scope definition, stakeholder
 
-  Model: Opus - Requirements elicitation requires deep reasoning to extract essential meaning from ambiguous requests
+  Context Management (from Anthropic Best Practices):
+  - Runs in ISOLATED context window - requirement discussions don't pollute orchestrator
+  - Has access to AskUserQuestion for direct user interaction
+  - Returns focused PRD/spec documents instead of raw conversation history
+
+  Model: Opus
+  - Requirements elicitation requires deep reasoning to extract essential meaning from ambiguous requests
+  - Complex stakeholder analysis and prioritization benefit from Opus's reasoning capabilities
+  - "Ambiguity Tolerance Zero" principle requires thorough questioning
 model: opus
 tools: Read, Glob, Grep, Write, AskUserQuestion
 disallowedTools: Bash, Edit

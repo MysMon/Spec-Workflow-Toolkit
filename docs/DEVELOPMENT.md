@@ -4,11 +4,21 @@ Detailed development guidelines for plugin contributors.
 
 ## Official References
 
-This plugin is based on:
-- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
-- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
-- [Official Plugin Marketplace](https://github.com/anthropics/claude-plugins-official)
-- [Subagent Documentation](https://code.claude.com/docs/en/sub-agents)
+This plugin is based on Anthropic's official documentation and engineering blog posts:
+
+### Core References
+- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices) - Context management, subagent usage
+- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) - Initializer+Coding pattern
+- [Building Agents with Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk) - Agent orchestration patterns
+
+### Plugin & Subagent Documentation
+- [Create Custom Subagents](https://code.claude.com/docs/en/sub-agents) - Agent definition format, YAML frontmatter
+- [Plugins Reference](https://code.claude.com/docs/en/plugins-reference) - plugin.json schema, directory structure
+- [Hooks Reference](https://code.claude.com/docs/en/hooks) - Event handlers, hook configuration
+
+### Official Examples
+- [Official Plugin Repository](https://github.com/anthropics/claude-code/tree/main/plugins) - feature-dev, code-review examples
+- [Official Skills Repository](https://github.com/anthropics/skills) - Skill definition patterns
 
 ## Intentional Differences from Official Patterns
 

@@ -2,17 +2,27 @@
 name: system-architect
 description: |
   System Architect for high-level software design, database schema, API contracts, and architectural decisions.
+
   Use proactively when:
   - Designing new systems or major components ("design system", "architect solution")
   - Creating database schemas or data models
   - Defining API contracts (OpenAPI, GraphQL SDL, Protobuf)
   - Making significant architectural choices (monolith vs microservices, etc.)
   - Writing Architecture Decision Records (ADRs)
+
   NOTE: For feature-level implementation blueprints based on existing patterns, use `code-architect` instead.
+
   Trigger phrases: system architecture, database schema, API contract, ADR, technical decision, scalability, microservices
 
-  Model: Opus - System-level design and ADRs require deep multi-step reasoning
-  Mode: acceptEdits - ADR creation requires write access with auto-approval for efficiency
+  Context Management (from Anthropic Best Practices):
+  - Runs in ISOLATED context window - design exploration doesn't pollute orchestrator
+  - Returns ADRs, schemas, and contracts instead of raw design discussions
+  - Can coordinate with security-auditor for security review of designs
+
+  Model: Opus
+  - System-level design and ADRs require deep multi-step reasoning
+  - Complex trade-off analysis benefits from Opus's reasoning capabilities
+  - API contract design requires careful consideration of edge cases
 model: opus
 tools: Read, Glob, Grep, Write, Bash
 permissionMode: acceptEdits
