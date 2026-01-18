@@ -106,7 +106,7 @@ flowchart LR
 | **Evaluator-Optimizer** | 品質レビューでの反復ループ（信頼度 >= 80 まで改善） |
 | **Augmented LLM** | ツール + 進捗ファイル（メモリ）+ 検索 |
 
-詳細は `skills/core/composable-patterns/SKILL.md` を参照。
+詳細は [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) を参照。
 
 ### 長時間作業サポート
 
@@ -277,8 +277,6 @@ flowchart TB
 
 | スキル | 用途 |
 |--------|------|
-| `composable-patterns` | **Anthropic の 6 パターン**（Prompt Chaining、Routing、Parallelization、Orchestrator-Workers、Evaluator-Optimizer、Augmented LLM） |
-| `context-engineering` | **コンテキスト管理**（Context Rot 防止、Progressive Disclosure、サブエージェント分離） |
 | `subagent-contract` | **標準化された結果フォーマット**（全エージェントが参照） |
 | `sdd-philosophy` | 仕様駆動開発の原則 |
 | `security-fundamentals` | セキュリティベストプラクティス（OWASP、秘密情報） |
@@ -383,8 +381,6 @@ sdd-toolkit/
 │   └── ...
 ├── skills/                    # タスク指向スキル
 │   ├── core/                  # 普遍的原則
-│   │   ├── composable-patterns/  # Anthropic の 6 パターン
-│   │   ├── context-engineering/  # コンテキスト管理（Context Rot 防止）
 │   │   ├── subagent-contract/    # 標準化された結果フォーマット
 │   │   ├── sdd-philosophy/
 │   │   └── ...

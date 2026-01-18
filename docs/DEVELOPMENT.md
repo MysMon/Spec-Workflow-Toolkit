@@ -39,7 +39,7 @@ This plugin implements all 6 patterns from [Building Effective Agents](https://w
 | **Evaluator-Optimizer** | Quality review with iteration loop |
 | **Augmented LLM** | Tools, progress files (memory), retrieval |
 
-See `skills/core/composable-patterns/SKILL.md` for detailed pattern documentation.
+See [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) for detailed pattern documentation.
 
 ## Intentional Differences from Official Patterns
 
@@ -77,9 +77,7 @@ sdd-toolkit/
 │   │   ├── sdd-philosophy/     # Spec-first development
 │   │   ├── interview/          # Requirements gathering
 │   │   ├── security-fundamentals/ # Security principles
-│   │   ├── subagent-contract/  # Standardized result formats
-│   │   ├── composable-patterns/ # Anthropic's 6 patterns
-│   │   └── context-engineering/ # Context management principles
+│   │   └── subagent-contract/  # Standardized result formats
 │   ├── detection/           # Stack detection
 │   │   └── stack-detector/     # Technology detection
 │   └── workflows/           # Cross-stack patterns
@@ -262,12 +260,10 @@ skills: skill1, skill2
 
 ### Key Skills Overview
 
-This plugin includes **20 skills** across 3 categories. Key skills for long-running autonomous work:
+This plugin includes **17 skills** across 3 categories. Key skills for long-running autonomous work:
 
 | Skill | Purpose | Key Features |
 |-------|---------|--------------|
-| `composable-patterns` | Documents Anthropic's 6 patterns | Pattern selection guide, composition examples |
-| `context-engineering` | Context management principles | Context rot prevention, subagent isolation, progressive disclosure |
 | `tdd-workflow` | Test-driven development | Red-Green-Refactor cycle, qa-engineer integration |
 | `evaluator-optimizer` | Iterative improvement | Generator-Evaluator loop, quality thresholds |
 | `error-recovery` | Resilient workflows | Checkpoints, graceful degradation, recovery paths |
@@ -276,7 +272,7 @@ This plugin includes **20 skills** across 3 categories. Key skills for long-runn
 | `long-running-tasks` | Multi-session work | Initializer+Coding pattern, PreCompact integration |
 | `stack-detector` | Technology detection | Auto-detect languages, frameworks, tools |
 
-See `CLAUDE.md` for complete skill list (20 skills in core/, detection/, workflows/).
+See `CLAUDE.md` for complete skill list (17 skills in core/, detection/, workflows/).
 
 **Skill Reference Guidelines:**
 

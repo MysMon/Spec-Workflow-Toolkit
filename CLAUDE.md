@@ -35,8 +35,6 @@ docs/                        # Specs and detailed docs
 | `commands/sdd.md` | Main 7-phase workflow definition |
 | `agents/code-explorer.md` | Deep codebase analysis agent |
 | `agents/code-architect.md` | Implementation blueprint agent |
-| `skills/core/composable-patterns/SKILL.md` | Anthropic's 6 patterns documentation |
-| `skills/core/context-engineering/SKILL.md` | Context management for long sessions |
 | `skills/workflows/tdd-workflow/SKILL.md` | Test-driven development workflow |
 | `skills/workflows/evaluator-optimizer/SKILL.md` | Iterative improvement pattern with evaluation metrics |
 | `skills/workflows/error-recovery/SKILL.md` | Checkpoint and recovery patterns |
@@ -68,13 +66,11 @@ docs/                        # Specs and detailed docs
 | `/spec-review` | Specification validation before implementation |
 | `/quick-impl` | Fast implementation for small, clear tasks |
 
-## Skills (19 Total)
+## Skills (17 Total)
 
 ### Core Skills
 | Skill | Purpose |
 |-------|---------|
-| `composable-patterns` | Anthropic's 6 patterns documentation |
-| `context-engineering` | Context management for long-running sessions |
 | `subagent-contract` | Standardized result formats |
 | `sdd-philosophy` | Spec-first development principles |
 | `security-fundamentals` | Security best practices |
@@ -125,10 +121,8 @@ All 20 skills are now assigned to appropriate agents:
 | `observability` | devops-sre |
 | `git-mastery` | technical-writer |
 | `interview` | product-manager |
-| `context-engineering` | User-invocable documentation skill |
-| `composable-patterns` | User-invocable documentation skill |
 
-**Note:** `context-engineering` and `composable-patterns` are user-invocable documentation skills (not referenced in agent YAML). The Structured Reasoning pattern (from Anthropic's "think tool" blog) is directly integrated into `security-auditor`, `qa-engineer`, `code-architect`, and `backend-specialist` agents.
+**Note:** The Structured Reasoning pattern (from Anthropic's "think tool" blog) is directly integrated into `security-auditor`, `qa-engineer`, `code-architect`, and `backend-specialist` agents. For Anthropic's 6 composable patterns and context engineering principles, see the reference links in README.md.
 
 ## Plugin Validation (Official)
 
