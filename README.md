@@ -46,7 +46,7 @@ Anthropic の 6 つの Composable パターンをすべて実装した、長時�
 
 ## Anthropic の 6 Composable パターン
 
-このプラグインは [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) で定義された全 6 パターンを実装しています：
+このプラグインは [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) で定義された全 6 パターンを実装しています：
 
 | パターン | このプラグインでの実装 |
 |----------|------------------------|
@@ -85,7 +85,8 @@ Anthropic の 6 つの Composable パターンをすべて実装した、長時�
 ## 参照資料
 
 ### 公式ガイドライン
-- [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) - 6 Composable パターン
+- [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) - 6 Composable パターン
+- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) - コンテキスト管理
 - [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
 - [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
 - [Multi-Agent Research System](https://www.anthropic.com/engineering/multi-agent-research-system) - Orchestrator-Workers
@@ -260,6 +261,7 @@ claude --plugin-dir /path/to/sdd-toolkit
 | スキル | 用途 |
 |--------|------|
 | `composable-patterns` | **Anthropic の 6 パターン**（Prompt Chaining、Routing、Parallelization、Orchestrator-Workers、Evaluator-Optimizer、Augmented LLM） |
+| `context-engineering` | **コンテキスト管理**（Context Rot 防止、Progressive Disclosure、サブエージェント分離） |
 | `subagent-contract` | **標準化された結果フォーマット**（全エージェントが参照） |
 | `sdd-philosophy` | 仕様駆動開発の原則 |
 | `security-fundamentals` | セキュリティベストプラクティス（OWASP、秘密情報） |
@@ -345,6 +347,7 @@ sdd-toolkit/
 ├── skills/                    # タスク指向スキル
 │   ├── core/                  # 普遍的原則
 │   │   ├── composable-patterns/  # Anthropic の 6 パターン
+│   │   ├── context-engineering/  # コンテキスト管理（Context Rot 防止）
 │   │   ├── subagent-contract/    # 標準化された結果フォーマット
 │   │   ├── sdd-philosophy/
 │   │   └── ...

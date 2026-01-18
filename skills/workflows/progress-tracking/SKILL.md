@@ -238,6 +238,105 @@ When starting or resuming:
    - Create feature list if multiple features
 ```
 
+## PreCompact Hook Integration
+
+This plugin includes a `PreCompact` hook that automatically saves state before context compaction.
+
+### What Happens During Compaction
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    COMPACTION PROCESS                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. Context approaches limit (~50-70% full)                      │
+│        ↓                                                        │
+│  2. PreCompact hook triggers (pre_compact_save.sh)              │
+│        - Saves timestamp to claude-progress.json                 │
+│        - Outputs reminder about post-compaction recovery        │
+│        ↓                                                        │
+│  3. System compacts context (summarizes conversation)           │
+│        - Full context is condensed                              │
+│        - Details may be lost                                    │
+│        ↓                                                        │
+│  4. Agent continues with reduced context                         │
+│        - CRITICAL: Must read progress files to restore state    │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Post-Compaction Recovery Protocol
+
+**After compaction, ALWAYS:**
+
+1. **Read progress file** to restore context:
+   ```
+   Read .claude/claude-progress.json
+   ```
+
+2. **Check for compaction history**:
+   ```json
+   {
+     "compactionHistory": [
+       {
+         "timestamp": "2025-01-16T14:30:00Z",
+         "contextBeforeCompaction": "Phase 5 - Implementation"
+       }
+     ]
+   }
+   ```
+
+3. **Resume from documented position**:
+   - Check `resumptionContext.position`
+   - Follow `resumptionContext.nextAction`
+   - Be aware of any `blockers`
+
+4. **Re-read key files if needed**:
+   - Check `resumptionContext.keyFiles` for important references
+   - Use `file:line` format to quickly locate relevant code
+
+### Compaction-Safe State Format
+
+Ensure your progress files contain enough context to recover:
+
+```json
+{
+  "resumptionContext": {
+    "position": "Phase 5 - Implementation: AuthService login method",
+    "nextAction": "Add token refresh logic to src/services/auth.ts:67",
+    "keyFiles": [
+      "src/services/auth.ts:45",
+      "src/config/jwt.ts:12"
+    ],
+    "recentDecisions": [
+      "Using JWT with 24h expiry",
+      "Refresh tokens stored in Redis"
+    ],
+    "blockers": []
+  },
+  "compactionHistory": [
+    {
+      "timestamp": "2025-01-16T14:30:00Z",
+      "positionAtCompaction": "Starting token refresh implementation"
+    }
+  ]
+}
+```
+
+### Why This Matters
+
+Without proper recovery after compaction:
+- Agent loses track of what was done
+- May repeat work or skip steps
+- Decisions made before compaction are forgotten
+- Quality degrades significantly
+
+With proper recovery:
+- Agent resumes exactly where it left off
+- All decisions are preserved in JSON
+- Key file references enable quick context loading
+- Work continues smoothly across compaction boundaries
+
 ## Best Practices
 
 ### DO

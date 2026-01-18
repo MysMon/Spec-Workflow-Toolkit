@@ -36,6 +36,7 @@ docs/                        # Specs and detailed docs
 | `agents/code-explorer.md` | Deep codebase analysis agent |
 | `agents/code-architect.md` | Implementation blueprint agent |
 | `skills/core/composable-patterns/SKILL.md` | Anthropic's 6 patterns documentation |
+| `skills/core/context-engineering/SKILL.md` | **NEW** Context management for long sessions |
 | `skills/workflows/tdd-workflow/SKILL.md` | Test-driven development workflow |
 | `skills/workflows/evaluator-optimizer/SKILL.md` | Iterative improvement pattern |
 | `skills/workflows/error-recovery/SKILL.md` | Checkpoint and recovery patterns |
@@ -67,12 +68,13 @@ docs/                        # Specs and detailed docs
 | `/spec-review` | Specification validation before implementation |
 | `/quick-impl` | Fast implementation for small, clear tasks |
 
-## Skills (18 Total)
+## Skills (19 Total)
 
 ### Core Skills
 | Skill | Purpose |
 |-------|---------|
 | `composable-patterns` | Anthropic's 6 patterns documentation |
+| `context-engineering` | **NEW** Context management for long-running sessions |
 | `subagent-contract` | Standardized result formats |
 | `sdd-philosophy` | Spec-first development principles |
 | `security-fundamentals` | Security best practices |
