@@ -2,7 +2,7 @@
 
 **Claude Code 向け仕様駆動開発ツールキット**
 
-長時間の自律作業セッションを実現するマルチスタック対応エージェントフレームワーク。7フェーズワークフロー、積極的なサブエージェント移譲、JSON ベースの進捗追跡、再開可能セッションを備え、公式 Anthropic ベストプラクティスに基づいています。
+Anthropic の 6 つの Composable パターンをすべて実装した、長時間自律作業のためのエージェントフレームワーク。7フェーズ SDD ワークフロー、TDD 統合、Evaluator-Optimizer フィードバックループ、チェックポイントベースのエラー回復、標準化されたサブエージェント契約を備えています。
 
 ---
 
@@ -44,6 +44,23 @@
 
 ---
 
+## Anthropic の 6 Composable パターン
+
+このプラグインは [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) で定義された全 6 パターンを実装しています：
+
+| パターン | このプラグインでの実装 |
+|----------|------------------------|
+| **Prompt Chaining** | 7フェーズ SDD ワークフロー、TDD Red-Green-Refactor サイクル |
+| **Routing** | モデル選択（Opus/Sonnet/Haiku）、ドメイン別エージェント選択 |
+| **Parallelization** | 複数 code-explorer の同時実行、並列レビューワー |
+| **Orchestrator-Workers** | メインエージェントが 12 の専門サブエージェントを調整 |
+| **Evaluator-Optimizer** | 品質レビューでの反復ループ（信頼度 >= 80 まで改善） |
+| **Augmented LLM** | ツール + 進捗ファイル（メモリ）+ 検索 |
+
+詳細は `skills/core/composable-patterns/SKILL.md` を参照。
+
+---
+
 ## 公式ベストプラクティスとの関係
 
 > このプラグインは公式プラグインを模倣するのではなく、その**考え方を活用**して独自の目的を達成します。
@@ -67,9 +84,10 @@
 
 ## 参照資料
 
+- [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) - 6 Composable パターン
 - [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
 - [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
-- [Official Plugin Marketplace](https://github.com/anthropics/claude-plugins-official)
+- [Multi-Agent Research System](https://www.anthropic.com/engineering/multi-agent-research-system) - Orchestrator-Workers
 - [Subagent Documentation](https://code.claude.com/docs/en/sub-agents)
 
 ---
@@ -232,6 +250,8 @@ claude --plugin-dir /path/to/sdd-toolkit
 
 | スキル | 用途 |
 |--------|------|
+| `composable-patterns` | **Anthropic の 6 パターン**（Prompt Chaining、Routing、Parallelization、Orchestrator-Workers、Evaluator-Optimizer、Augmented LLM） |
+| `subagent-contract` | **標準化された結果フォーマット**（全エージェントが参照） |
 | `sdd-philosophy` | 仕様駆動開発の原則 |
 | `security-fundamentals` | セキュリティベストプラクティス（OWASP、秘密情報） |
 | `interview` | 構造化された要件収集 |
@@ -241,12 +261,15 @@ claude --plugin-dir /path/to/sdd-toolkit
 
 | スキル | 用途 |
 |--------|------|
+| `tdd-workflow` | **テスト駆動開発**（Red-Green-Refactor サイクル） |
+| `evaluator-optimizer` | **反復的品質改善**（Generator-Evaluator ループ） |
+| `error-recovery` | **チェックポイントと回復**（graceful degradation） |
+| `progress-tracking` | JSON ベースの状態永続化 |
+| `parallel-execution` | マルチエージェント調整 |
+| `long-running-tasks` | 状態永続化、セッション再開 |
 | `code-quality` | リンティング、フォーマット、型チェック |
 | `git-mastery` | Conventional Commits、変更履歴 |
 | `testing` | テストピラミッド、戦略、フレームワーク |
-| `long-running-tasks` | 状態永続化、セッション再開 |
-| `parallel-execution` | マルチエージェント調整 |
-| `progress-tracking` | JSON ベースの状態永続化 |
 
 ---
 
@@ -290,7 +313,7 @@ claude --plugin-dir /path/to/sdd-toolkit
 ```
 sdd-toolkit/
 ├── .claude-plugin/
-│   └── plugin.json           # プラグインメタデータ (v8.2.0)
+│   └── plugin.json           # プラグインメタデータ (v9.0.0)
 ├── commands/                  # ワークフローコマンド
 │   ├── sdd.md                # 7フェーズワークフロー
 │   ├── spec-review.md        # 仕様レビュー
@@ -307,8 +330,16 @@ sdd-toolkit/
 │   └── ...
 ├── skills/                    # タスク指向スキル
 │   ├── core/                  # 普遍的原則
+│   │   ├── composable-patterns/  # Anthropic の 6 パターン
+│   │   ├── subagent-contract/    # 標準化された結果フォーマット
+│   │   ├── sdd-philosophy/
+│   │   └── ...
 │   ├── detection/             # スタック検出
 │   └── workflows/             # クロススタックワークフロー
+│       ├── tdd-workflow/         # テスト駆動開発
+│       ├── evaluator-optimizer/  # 反復的品質改善
+│       ├── error-recovery/       # チェックポイントと回復
+│       └── ...
 ├── hooks/                     # 実行フック
 │   ├── hooks.json
 │   ├── sdd_context.sh        # SessionStart
