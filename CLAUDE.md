@@ -35,9 +35,6 @@ docs/                        # Specs and detailed docs
 | `commands/sdd.md` | Main 7-phase workflow definition |
 | `agents/code-explorer.md` | Deep codebase analysis agent |
 | `agents/code-architect.md` | Implementation blueprint agent |
-| `skills/core/composable-patterns/SKILL.md` | Anthropic's 6 patterns documentation |
-| `skills/core/context-engineering/SKILL.md` | Context management for long sessions |
-| `skills/core/think-tool/SKILL.md` | Structured reasoning pattern for complex decisions |
 | `skills/workflows/tdd-workflow/SKILL.md` | Test-driven development workflow |
 | `skills/workflows/evaluator-optimizer/SKILL.md` | Iterative improvement pattern with evaluation metrics |
 | `skills/workflows/error-recovery/SKILL.md` | Checkpoint and recovery patterns |
@@ -69,15 +66,12 @@ docs/                        # Specs and detailed docs
 | `/spec-review` | Specification validation before implementation |
 | `/quick-impl` | Fast implementation for small, clear tasks |
 
-## Skills (20 Total)
+## Skills (17 Total)
 
 ### Core Skills
 | Skill | Purpose |
 |-------|---------|
-| `composable-patterns` | Anthropic's 6 patterns documentation |
-| `context-engineering` | Context management for long-running sessions |
 | `subagent-contract` | Standardized result formats |
-| `think-tool` | Structured reasoning during tool chains (policy verification, sequential decisions) |
 | `sdd-philosophy` | Spec-first development principles |
 | `security-fundamentals` | Security best practices |
 | `interview` | Structured requirements gathering |
@@ -127,10 +121,8 @@ All 20 skills are now assigned to appropriate agents:
 | `observability` | devops-sre |
 | `git-mastery` | technical-writer |
 | `interview` | product-manager |
-| `think-tool` | Documentation skill for complex reasoning scenarios |
-| `context-engineering` | Referenced by orchestrator (sdd.md, sdd_context.sh) |
 
-**Note:** `think-tool` and `context-engineering` are documentation skills for orchestrators and agents to reference as needed, not explicitly assigned in YAML frontmatter.
+**Note:** The Structured Reasoning pattern (from Anthropic's "think tool" blog) is directly integrated into `security-auditor`, `qa-engineer`, `code-architect`, and `backend-specialist` agents. For Anthropic's 6 composable patterns and context engineering principles, see the reference links in README.md.
 
 ## Plugin Validation (Official)
 
@@ -204,6 +196,13 @@ Each phase should have clear instructions and expected outputs.
 - Minimize skill references in agents to preserve context
 
 See `docs/DEVELOPMENT.md` for full Skill Content Guidelines and field references.
+
+### Documentation Sync Rule
+
+When adding, removing, or renaming skills/agents/commands:
+- Update `CLAUDE.md` (counts, tables, key files)
+- Update `README.md` (tables, directory tree)
+- Update `docs/DEVELOPMENT.md` (skill overview, counts)
 
 ## Testing Changes
 

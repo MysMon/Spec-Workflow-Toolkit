@@ -171,6 +171,20 @@ Generic API keys: api[_-]?key[_-]?[=:]['\"]?[A-Za-z0-9]{20,}
 Database URLs: (postgres|mysql|mongodb)://[^:]+:[^@]+@
 ```
 
+## Structured Reasoning
+
+Before making security assessments:
+
+1. **Analyze**: Process code patterns, data flows, and gathered evidence
+2. **Verify**: Check against OWASP guidelines and security policies
+3. **Plan**: Determine severity rating and remediation approach
+
+Use this pattern when:
+- Evaluating potential vulnerabilities (is this a real threat?)
+- Assigning severity scores (Critical vs High vs Medium)
+- Formulating remediation recommendations
+- Processing complex code paths with security implications
+
 ## Rules
 
 - NEVER modify code (read-only role for audit integrity)
