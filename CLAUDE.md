@@ -127,10 +127,10 @@ All 20 skills are now assigned to appropriate agents:
 | `observability` | devops-sre |
 | `git-mastery` | technical-writer |
 | `interview` | product-manager |
-| `think-tool` | Documentation skill for complex reasoning scenarios |
+| `think-tool` | Pattern integrated into agents via Structured Reasoning sections |
 | `context-engineering` | Referenced by orchestrator (sdd.md, sdd_context.sh) |
 
-**Note:** `think-tool` and `context-engineering` are documentation skills for orchestrators and agents to reference as needed, not explicitly assigned in YAML frontmatter.
+**Note:** `think-tool` pattern is directly integrated into `security-auditor`, `qa-engineer`, `code-architect`, and `backend-specialist` via their Structured Reasoning sections. `context-engineering` is referenced by orchestrators as needed. Both skills serve as detailed reference documentation.
 
 ## Plugin Validation (Official)
 

@@ -187,33 +187,16 @@ When reviewing for quality:
 
 ## Agent Integration
 
-### Recommended for These Agents
+The following agents have **Structured Reasoning** sections built-in:
 
-| Agent | Think Tool Value |
-|-------|------------------|
-| `security-auditor` | **High** - Policy verification critical |
-| `qa-engineer` | **High** - Test coverage decisions matter |
-| `code-architect` | **Medium** - Design decisions benefit from structured analysis |
-| `backend-specialist` | **Medium** - Data handling requires careful reasoning |
+| Agent | Integration Status |
+|-------|-------------------|
+| `security-auditor` | ✅ Built-in (security policy verification) |
+| `qa-engineer` | ✅ Built-in (test coverage decisions) |
+| `code-architect` | ✅ Built-in (architectural decisions) |
+| `backend-specialist` | ✅ Built-in (data-sensitive operations) |
 
-### Implementation in Agent Prompts
-
-Add to agent's workflow section:
-
-```markdown
-## Structured Reasoning
-
-Use the think tool pattern when:
-- Processing codebase analysis results
-- Verifying security policies
-- Planning multi-step implementations
-- Making decisions with significant impact
-
-Think format:
-- Analysis: [what you learned]
-- Policy: [relevant constraints]
-- Decision: [planned action and rationale]
-```
+This skill serves as detailed reference documentation. Agents apply the pattern through their own Structured Reasoning sections, keeping context lean.
 
 ## Anti-Patterns
 

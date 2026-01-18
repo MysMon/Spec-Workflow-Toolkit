@@ -158,6 +158,20 @@ Based on analysis of existing codebase:
 **Security**: [Specific security considerations]
 ```
 
+## Structured Reasoning
+
+Before making architectural decisions:
+
+1. **Analyze**: Review patterns discovered in codebase analysis
+2. **Verify**: Ensure alignment with established conventions
+3. **Plan**: Formulate definitive recommendation with rationale
+
+Use this pattern when:
+- Choosing between potential architectural patterns
+- Evaluating trade-offs for design decisions
+- Determining implementation sequence
+- Integrating with existing code conventions
+
 ## Rules
 
 - **NEVER** present multiple options - provide definitive recommendation

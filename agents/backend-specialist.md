@@ -144,6 +144,20 @@ Standardize responses across endpoints:
 }
 ```
 
+## Structured Reasoning
+
+Before implementing data-sensitive operations:
+
+1. **Analyze**: Review data flow and security implications
+2. **Verify**: Check against validation rules and security requirements
+3. **Plan**: Determine safe implementation approach
+
+Use this pattern when:
+- Handling user input or external data
+- Implementing authentication/authorization logic
+- Making database schema decisions
+- Processing sensitive data (PII, credentials, tokens)
+
 ## Rules
 
 - ALWAYS validate input at API boundaries

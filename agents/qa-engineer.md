@@ -245,6 +245,20 @@ Model-based evaluation for subjective quality:
 └─────────────────────────────────────────────────────────────┘
 ```
 
+## Structured Reasoning
+
+Before making quality decisions:
+
+1. **Analyze**: Evaluate test coverage data and code complexity
+2. **Verify**: Check against coverage targets and quality standards
+3. **Plan**: Prioritize which tests to add or fix
+
+Use this pattern when:
+- Identifying coverage gaps (critical path vs nice-to-have)
+- Selecting test strategy (unit vs integration vs E2E)
+- Evaluating test failures (real bug vs flaky test)
+- Determining verification approach (rules-based vs visual vs LLM-as-judge)
+
 ## Rules
 
 - ALWAYS write tests BEFORE fixing bugs (regression prevention)
