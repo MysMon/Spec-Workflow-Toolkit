@@ -219,10 +219,16 @@ Create `agents/[name].md`:
 name: agent-name
 description: |
   Brief description.
+
+  Use proactively when:
+  - Condition 1
+  - Condition 2
+
   Trigger phrases: keyword1, keyword2
 model: sonnet  # sonnet, opus, haiku, inherit
 tools: Read, Glob, Grep, Write, Edit, Bash
-permissionMode: default  # default, acceptEdits, plan, dontAsk
+disallowedTools: Write, Edit  # Optional: explicitly prohibit tools
+permissionMode: acceptEdits
 skills: skill1, skill2
 ---
 
@@ -230,6 +236,27 @@ skills: skill1, skill2
 
 [Instructions...]
 ```
+
+**Agent Field Reference:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Unique identifier (kebab-case) |
+| `description` | Yes | Multi-line: summary, "Use proactively when:", "Trigger phrases:" |
+| `model` | No | `sonnet` (default), `opus` (complex reasoning), `haiku` (fast/cheap), `inherit` (match parent) |
+| `tools` | No | Available tools for the agent |
+| `disallowedTools` | No | Explicitly prohibited tools (for read-only agents like `code-explorer`) |
+| `permissionMode` | No | See below |
+| `skills` | No | Comma-separated skill names (minimize - see guidelines) |
+
+**permissionMode Options:**
+
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| `default` | Standard confirmation prompts | General agents |
+| `acceptEdits` | Auto-approve file edits | Implementation agents (`frontend-specialist`, `backend-specialist`) |
+| `plan` | Read-only, no modifications | Analysis agents (`code-explorer`, `security-auditor`) |
+| `dontAsk` | Full automation, no prompts | Batch operations (use carefully) |
 
 ### Key Skills Overview
 
@@ -282,6 +309,11 @@ Create `skills/[category]/[name]/SKILL.md`:
 name: skill-name
 description: |
   What it does.
+
+  Use when:
+  - Condition 1
+  - Condition 2
+
   Trigger phrases: keyword1, keyword2
 allowed-tools: Read, Glob, Grep
 model: sonnet
@@ -292,6 +324,16 @@ user-invocable: true
 
 [Instructions...]
 ```
+
+**Skill Field Reference:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Unique identifier (kebab-case) |
+| `description` | Yes | Multi-line: summary, "Use when:", "Trigger phrases:" |
+| `allowed-tools` | No | Tools available when skill is active |
+| `model` | No | Model to use (`sonnet`, `opus`, `haiku`) |
+| `user-invocable` | No | `true`: user can run `/skill-name` directly; `false`: internal use only |
 
 **Progressive Disclosure Guidelines** (from [Agent Skills](https://code.claude.com/docs/en/skills)):
 
@@ -318,15 +360,39 @@ Create `commands/[name].md`:
 
 ```yaml
 ---
-description: "Command description"
-argument-hint: "[optional hint]"
+description: "Command description shown in /help"
+argument-hint: "[arg]"  # Optional: hint for required argument
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task
 ---
 
 # /[command-name]
 
-[Instructions...]
+## Purpose
+[What this command does]
+
+## Workflow
+[Step-by-step phases if applicable]
+
+## Output
+[Expected deliverables]
 ```
+
+**Command Field Reference:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `description` | Yes | Shown in `/help` output |
+| `argument-hint` | No | Placeholder for required argument (e.g., `[file]`, `[PR number]`) |
+| `allowed-tools` | No | Tools available during command execution |
+
+**Command Body Structure:**
+
+| Section | Purpose |
+|---------|---------|
+| `## Purpose` | Clear statement of what the command accomplishes |
+| `## Workflow` | Numbered phases for multi-step commands (like `/sdd`) |
+| `## Output` | Expected deliverables or artifacts |
+| `## Rules` | Command-specific constraints |
 
 ---
 
