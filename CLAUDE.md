@@ -36,9 +36,10 @@ docs/                        # Specs and detailed docs
 | `agents/code-explorer.md` | Deep codebase analysis agent |
 | `agents/code-architect.md` | Implementation blueprint agent |
 | `skills/core/composable-patterns/SKILL.md` | Anthropic's 6 patterns documentation |
-| `skills/core/context-engineering/SKILL.md` | **NEW** Context management for long sessions |
+| `skills/core/context-engineering/SKILL.md` | Context management for long sessions |
+| `skills/core/think-tool/SKILL.md` | Structured reasoning pattern for complex decisions |
 | `skills/workflows/tdd-workflow/SKILL.md` | Test-driven development workflow |
-| `skills/workflows/evaluator-optimizer/SKILL.md` | Iterative improvement pattern |
+| `skills/workflows/evaluator-optimizer/SKILL.md` | Iterative improvement pattern with evaluation metrics |
 | `skills/workflows/error-recovery/SKILL.md` | Checkpoint and recovery patterns |
 | `skills/core/subagent-contract/SKILL.md` | Standardized result formats |
 
@@ -68,14 +69,15 @@ docs/                        # Specs and detailed docs
 | `/spec-review` | Specification validation before implementation |
 | `/quick-impl` | Fast implementation for small, clear tasks |
 
-## Skills (19 Total)
+## Skills (20 Total)
 
 ### Core Skills
 | Skill | Purpose |
 |-------|---------|
 | `composable-patterns` | Anthropic's 6 patterns documentation |
-| `context-engineering` | **NEW** Context management for long-running sessions |
+| `context-engineering` | Context management for long-running sessions |
 | `subagent-contract` | Standardized result formats |
+| `think-tool` | Structured reasoning during tool chains (policy verification, sequential decisions) |
 | `sdd-philosophy` | Spec-first development principles |
 | `security-fundamentals` | Security best practices |
 | `interview` | Structured requirements gathering |
@@ -103,7 +105,7 @@ docs/                        # Specs and detailed docs
 
 ## Skill Usage by Agent
 
-All 19 skills are now assigned to appropriate agents:
+All 20 skills are now assigned to appropriate agents:
 
 | Skill | Used By |
 |-------|---------|
@@ -125,9 +127,10 @@ All 19 skills are now assigned to appropriate agents:
 | `observability` | devops-sre |
 | `git-mastery` | technical-writer |
 | `interview` | product-manager |
+| `think-tool` | Documentation skill for complex reasoning scenarios |
 | `context-engineering` | Referenced by orchestrator (sdd.md, sdd_context.sh) |
 
-**Note:** `context-engineering` is a documentation skill for orchestrators, not assigned to subagents.
+**Note:** `think-tool` and `context-engineering` are documentation skills for orchestrators and agents to reference as needed, not explicitly assigned in YAML frontmatter.
 
 ## Plugin Validation (Official)
 

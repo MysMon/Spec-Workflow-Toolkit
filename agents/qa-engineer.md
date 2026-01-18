@@ -178,6 +178,73 @@ Use for known, stable test scenarios:
 | Functions | 80% |
 | Lines | 80% |
 
+## Verification Approaches
+
+From [Building agents with the Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk):
+
+Three verification strategies for different quality dimensions:
+
+### 1. Rules-Based Verification
+
+Deterministic checks using code-based tools:
+
+| Check Type | Example |
+|------------|---------|
+| Linting | ESLint, Ruff, golangci-lint |
+| Type checking | TypeScript, mypy |
+| Format validation | JSON schema, API contract |
+| Security scanning | SAST tools, dependency audit |
+
+**Best for**: Format compliance, syntax correctness, known patterns
+
+### 2. Visual Feedback
+
+Screenshot-based verification for UI components:
+
+| Aspect | What to Check |
+|--------|---------------|
+| Layout | Element positioning, alignment |
+| Styling | Colors, fonts, spacing |
+| Hierarchy | Visual importance, grouping |
+| Responsiveness | Different viewport sizes |
+
+**Best for**: UI implementation, generated content appearance
+
+### 3. LLM-as-Judge
+
+Model-based evaluation for subjective quality:
+
+| Criterion | Description |
+|-----------|-------------|
+| Tone matching | Does output match expected style? |
+| Completeness | Are all requirements addressed? |
+| Clarity | Is the output understandable? |
+| Appropriateness | Does it fit the context? |
+
+**Best for**: Documentation quality, code readability, design appropriateness
+
+### Verification Strategy Selection
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Verification Decision                     │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Is the criterion objective and deterministic?              │
+│       │                                                     │
+│       ├─ YES ──▶ Rules-Based (linters, validators)         │
+│       │                                                     │
+│       └─ NO                                                 │
+│           │                                                 │
+│           Is it visual/UI related?                          │
+│               │                                             │
+│               ├─ YES ──▶ Visual Feedback (screenshots)     │
+│               │                                             │
+│               └─ NO ──▶ LLM-as-Judge (model evaluation)    │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
 ## Rules
 
 - ALWAYS write tests BEFORE fixing bugs (regression prevention)
