@@ -9,7 +9,9 @@ This plugin is based on Anthropic's official documentation and engineering blog 
 ### Core References
 - [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices) - Context management, subagent usage
 - [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) - Initializer+Coding pattern
+- [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) - 6 Composable Patterns
 - [Building Agents with Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk) - Agent orchestration patterns
+- [Multi-Agent Research System](https://www.anthropic.com/engineering/multi-agent-research-system) - Orchestrator-worker patterns
 
 ### Plugin & Subagent Documentation
 - [Create Custom Subagents](https://code.claude.com/docs/en/sub-agents) - Agent definition format, YAML frontmatter
@@ -19,6 +21,23 @@ This plugin is based on Anthropic's official documentation and engineering blog 
 ### Official Examples
 - [Official Plugin Repository](https://github.com/anthropics/claude-code/tree/main/plugins) - feature-dev, code-review examples
 - [Official Skills Repository](https://github.com/anthropics/skills) - Skill definition patterns
+
+---
+
+## Anthropic's 6 Composable Patterns
+
+This plugin implements all 6 patterns from [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents):
+
+| Pattern | Implementation in This Plugin |
+|---------|------------------------------|
+| **Prompt Chaining** | 7-phase SDD workflow, TDD Red-Green-Refactor cycle |
+| **Routing** | Model selection (Opus/Sonnet/Haiku), agent selection by domain |
+| **Parallelization** | Multiple code-explorers, parallel reviewers |
+| **Orchestrator-Workers** | Main agent coordinates 12 specialized subagents |
+| **Evaluator-Optimizer** | Quality review with iteration loop |
+| **Augmented LLM** | Tools, progress files (memory), retrieval |
+
+See `skills/core/composable-patterns/SKILL.md` for detailed pattern documentation.
 
 ## Intentional Differences from Official Patterns
 
@@ -53,8 +72,20 @@ sdd-toolkit/
 │   └── ...
 ├── skills/
 │   ├── core/                # Universal principles
+│   │   ├── sdd-philosophy/     # Spec-first development
+│   │   ├── interview/          # Requirements gathering
+│   │   ├── security-fundamentals/ # Security principles
+│   │   ├── subagent-contract/  # Standardized result formats
+│   │   └── composable-patterns/ # Anthropic's 6 patterns
 │   ├── detection/           # Stack detection
+│   │   └── stack-detector/     # Technology detection
 │   └── workflows/           # Cross-stack patterns
+│       ├── tdd-workflow/       # Test-driven development
+│       ├── evaluator-optimizer/ # Iterative improvement
+│       ├── error-recovery/     # Checkpoint and recovery
+│       ├── progress-tracking/  # JSON-based state
+│       ├── parallel-execution/ # Concurrent agents
+│       └── long-running-tasks/ # Multi-session work
 ├── hooks/
 │   ├── hooks.json
 │   ├── sdd_context.sh       # SessionStart
@@ -195,6 +226,17 @@ skills: skill1, skill2
 
 [Instructions...]
 ```
+
+### Key Skills Overview
+
+| Skill | Purpose | Key Features |
+|-------|---------|--------------|
+| `composable-patterns` | Documents Anthropic's 6 patterns | Pattern selection guide, composition examples |
+| `tdd-workflow` | Test-driven development | Red-Green-Refactor cycle, qa-engineer integration |
+| `evaluator-optimizer` | Iterative improvement | Generator-Evaluator loop, quality thresholds |
+| `error-recovery` | Resilient workflows | Checkpoints, graceful degradation, recovery paths |
+| `subagent-contract` | Standardized outputs | Result format spec, confidence scoring |
+| `progress-tracking` | State persistence | JSON schemas, resumption context |
 
 ### New Skill
 

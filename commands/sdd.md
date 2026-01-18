@@ -14,8 +14,24 @@ Based on:
 - [Official feature-dev plugin](https://github.com/anthropics/claude-code/tree/main/plugins/feature-dev)
 - [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
 - [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+- [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) - 6 Composable Patterns
 - [Building Agents with Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk)
 - [Subagent Documentation](https://code.claude.com/docs/en/sub-agents)
+
+## Composable Patterns Applied
+
+This workflow implements all 6 of Anthropic's composable patterns:
+
+| Pattern | Application in /sdd |
+|---------|---------------------|
+| **Prompt Chaining** | 7 phases executed sequentially with gates |
+| **Routing** | Model selection (Opus/Sonnet/Haiku), agent selection by task type |
+| **Parallelization** | Multiple code-explorers, parallel reviewers in Phase 2, 4, 6 |
+| **Orchestrator-Workers** | You (orchestrator) delegate to all subagents |
+| **Evaluator-Optimizer** | Quality review with confidence scoring and iteration |
+| **Augmented LLM** | Tools, progress files, retrieval for all agents |
+
+See `skills/core/composable-patterns/SKILL.md` for detailed pattern documentation.
 
 ## Phase Overview
 
@@ -325,6 +341,36 @@ Create `.claude/feature-list.json`:
 
 ---
 
+#### TDD Integration (Optional but Recommended)
+
+For features with clear acceptance criteria, use Test-Driven Development:
+
+```
+TDD Cycle for Each Feature:
+
+1. RED: Delegate to qa-engineer
+   "Write failing tests for [feature] based on acceptance criteria"
+   Output: Test file created, tests run and FAIL
+
+2. GREEN: Delegate to frontend/backend-specialist
+   "Implement minimal code to pass tests at [test-file]"
+   Output: Implementation created, ALL tests PASS
+
+3. REFACTOR: Delegate to code-architect (review) then specialist
+   "Review implementation for quality, suggest improvements"
+   Output: Clean code, tests still PASS
+```
+
+See `skills/workflows/tdd-workflow/SKILL.md` for complete TDD patterns.
+
+**When to use TDD:**
+- Features with clear input/output expectations
+- Bug fixes (write test that reproduces bug first)
+- Critical path functionality
+- Refactoring existing code
+
+---
+
 #### Delegation to Specialist Agents
 
 **REMEMBER: You are the orchestrator. You do NOT implement code yourself.**
@@ -337,6 +383,7 @@ Launch the frontend-specialist agent to implement: [component/feature]
 Following specification: docs/specs/[feature-name].md
 Following design: docs/specs/[feature-name]-design.md
 Key files from exploration: [list]
+TDD mode: [yes/no] - If yes, reference test file
 Expected output: Working component with tests
 ```
 
@@ -346,6 +393,7 @@ Launch the backend-specialist agent to implement: [service/API]
 Following specification: docs/specs/[feature-name].md
 Following design: docs/specs/[feature-name]-design.md
 Key files from exploration: [list]
+TDD mode: [yes/no] - If yes, reference test file
 Expected output: Working service with tests
 ```
 
@@ -453,6 +501,42 @@ For each issue, launch parallel Haiku agent:
 4. Get more details on specific issues
 
 **Address issues based on user decision.**
+
+#### Evaluator-Optimizer Loop (For Critical Issues)
+
+If critical issues are found and user chooses to fix:
+
+```
+Iteration Loop (max 3):
+
+1. GENERATOR: Delegate fix to specialist agent
+   "Fix [issue] at [file:line]"
+   Output: Modified code
+
+2. EVALUATOR: Delegate re-check to original reviewer
+   "Verify fix for [issue] at [file:line]"
+   Output: Score 0-100
+
+3. If score >= 80: Accept and move to next issue
+   If score < 80: Provide feedback, loop back to GENERATOR
+   If max iterations reached: Escalate to user
+```
+
+See `skills/workflows/evaluator-optimizer/SKILL.md` for detailed pattern.
+
+#### Error Recovery During Review
+
+If review agents encounter errors:
+
+1. **Checkpoint current state** to progress file
+2. **Document the error** with full context
+3. **Attempt recovery** using error-recovery skill patterns
+4. **If unrecoverable**: Present options to user
+   - Retry with different approach
+   - Skip this check
+   - Abort and investigate
+
+See `skills/workflows/error-recovery/SKILL.md` for recovery patterns.
 
 ### Phase 7: Summary
 
