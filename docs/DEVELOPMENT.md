@@ -222,15 +222,13 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task
 
 ### Security
 - Never commit real API keys or secrets
-- Run `security-auditor` before major changes
+- Review changes for hardcoded credentials before committing
 
 ### Code Quality
 - Semantic commits: `feat:`, `fix:`, `docs:`, `refactor:`
-- Confidence threshold: 80% for all reviews
+- Test changes manually before pushing
 
-### Delegation
-When working on this plugin:
-- Use `code-explorer` for understanding existing code
-- Use `system-architect` for design decisions
-- Use `qa-engineer` for testing
-- Use `security-auditor` before releases
+### Before Release
+- Verify all agent definitions have valid YAML frontmatter
+- Test SessionStart hook output is correct
+- Ensure command instructions are clear and complete

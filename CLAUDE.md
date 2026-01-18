@@ -1,67 +1,68 @@
-# SDD Toolkit Plugin v8.2.0
+# SDD Toolkit Plugin v8.2.0 - Developer Guide
 
-A Claude Code plugin for specification-driven development with long-running autonomous sessions.
+This file is for **developers working on this plugin repository**.
+Users who install this plugin receive context via the `SessionStart` hook, not this file.
 
-## Core Goals
+## What This Plugin Does
 
-1. **Long autonomous sessions** - Complete complex tasks across context windows
-2. **Spec-driven development** - Zero ambiguity, spec before code
-3. **Aggressive subagent delegation** - Protect main context
-4. **Sufficient user questions** - Always clarify unknowns
+A Claude Code plugin providing:
+- **7-phase SDD workflow** (`/sdd` command)
+- **12 specialized subagents** for task delegation
+- **Progress tracking** for long-running sessions
+- **Parallel review** with confidence-based filtering
 
 ## Project Structure
 
 ```
-commands/     # /sdd, /code-review, /spec-review, /quick-impl
-agents/       # 12 specialized subagents (code-explorer, code-architect, etc.)
-skills/       # Core principles and workflow patterns
-hooks/        # SessionStart, PreToolUse, PostToolUse, Stop
-docs/         # Specs and development guide
+.claude-plugin/plugin.json   # Plugin metadata
+commands/                    # Slash command definitions
+agents/                      # Subagent definitions (12 roles)
+skills/                      # Skill definitions
+hooks/                       # Event handlers (SessionStart, etc.)
+docs/                        # Specs and detailed docs
 ```
 
-## Key Commands
+## Key Files to Understand
 
-- `/sdd` - 7-phase workflow for complex features
-- `/code-review` - Parallel review with confidence >= 80%
-- `/spec-review` - Validate specifications before implementation
-- `/quick-impl` - Fast implementation for small tasks
+| File | Purpose |
+|------|---------|
+| `hooks/sdd_context.sh` | Delivers context to plugin users (SessionStart) |
+| `commands/sdd.md` | Main 7-phase workflow definition |
+| `agents/code-explorer.md` | Deep codebase analysis agent |
+| `agents/code-architect.md` | Implementation blueprint agent |
 
-## Development Rules
+## Development Guidelines
 
-### Context Protection (Critical)
+### Editing Agent Definitions
 
-**DO NOT explore code yourself. ALWAYS delegate to subagents.**
+Agent files in `agents/` use YAML frontmatter:
+- `model`: sonnet, opus, haiku, or inherit
+- `tools`: Available tools for the agent
+- `permissionMode`: default, acceptEdits, plan, dontAsk
 
-The main orchestrator must:
-- Delegate ALL codebase exploration to `code-explorer` agents
-- Only read specific files identified by subagents
-- Keep context clean for long sessions
+### Editing Commands
 
-### Model Selection
+Command files in `commands/` define slash command behavior.
+Each phase should have clear instructions and expected outputs.
 
-| Agent | Model | Reason |
-|-------|-------|--------|
-| `system-architect` | **opus** | Deep reasoning for ADRs |
-| `code-explorer`, `code-architect` | sonnet | Analysis tasks |
-| `frontend/backend-specialist` | **inherit** | User controls cost/quality |
-| Scoring (Haiku in /code-review) | haiku | Fast, cheap |
+### Editing Hooks
 
-### Confidence Threshold
-
-Report only issues with confidence >= 80%. Use detailed rubric (0/25/50/75/100).
-
-### Progress Tracking
-
-For long tasks, use JSON progress files:
-- `.claude/claude-progress.json` - Resumption context
-- `.claude/feature-list.json` - Feature status tracking
+`hooks/hooks.json` maps events to scripts.
+`hooks/sdd_context.sh` is the main user-facing context.
 
 ## Testing Changes
 
-1. Run Claude Code in this directory
-2. Test: `/sdd`, `/code-review`, agents, skills
-3. Verify SessionStart hook output
+1. Run `claude` in this directory
+2. Verify the SessionStart hook output appears correctly
+3. Test modified commands/agents with sample prompts
+4. Check that file references and examples are accurate
+
+## Coding Standards
+
+- Use semantic commits: `feat:`, `fix:`, `docs:`, `refactor:`
+- Keep documentation in sync with code changes
+- Test hook scripts work on both bash and zsh
 
 ## More Info
 
-See `docs/DEVELOPMENT.md` for detailed development guidelines.
+See `docs/DEVELOPMENT.md` for detailed specifications.
