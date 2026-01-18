@@ -91,7 +91,7 @@ fi
 
 # --- Output Context ---
 cat << 'EOF'
-## SDD Toolkit v8.1 - Session Initialized
+## SDD Toolkit v8.2.0 - Session Initialized
 
 EOF
 
