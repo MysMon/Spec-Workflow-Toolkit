@@ -15,13 +15,14 @@ description: |
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
 model: sonnet
 user-invocable: true
-
-# Official References
-# - https://www.anthropic.com/research/building-effective-agents
-# - https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
 ---
 
 # Error Recovery Patterns
+
+## Official References
+
+- [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents)
+- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
 
 Strategies for building resilient agent workflows that handle errors gracefully, checkpoint progress, and enable recovery from failures.
 

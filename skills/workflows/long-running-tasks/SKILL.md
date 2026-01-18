@@ -11,17 +11,18 @@ description: |
   - User says "complete everything" or "run autonomously"
 
   Trigger phrases: long task, autonomous, persist state, track progress, migration, refactoring, multi-step
-
-  Official References:
-  - https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
-  - https://www.anthropic.com/engineering/claude-code-best-practices
-  - https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk
 allowed-tools: Read, Write, Glob, Grep, Bash, TodoWrite
 model: sonnet
 user-invocable: true
 ---
 
 # Long-Running Task Patterns
+
+## Official References
+
+- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
+- [Building Agents with Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk)
 
 Techniques for managing complex, multi-step tasks that may exceed a single session or context window.
 
