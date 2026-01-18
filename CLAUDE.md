@@ -60,6 +60,11 @@ Each phase should have clear instructions and expected outputs.
 `hooks/hooks.json` maps events to scripts.
 `hooks/sdd_context.sh` is the main user-facing context.
 
+**CRITICAL for PreToolUse hooks:**
+- Use JSON decision control (`permissionDecision: "deny"`) with exit 0, NOT exit 1
+- Exit 1 = non-blocking error (tool still executes!)
+- See `docs/DEVELOPMENT.md` for full hook specification
+
 ## Testing Changes
 
 1. Run `claude` in this directory

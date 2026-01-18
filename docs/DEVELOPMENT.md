@@ -258,6 +258,25 @@ user-invocable: true
 [Instructions...]
 ```
 
+**Progressive Disclosure Guidelines** (from [Agent Skills](https://code.claude.com/docs/en/skills)):
+
+| Limit | Recommendation |
+|-------|----------------|
+| **SKILL.md lines** | ≤ 500 lines |
+| **SKILL.md tokens** | ≤ 5,000 tokens |
+| **Supporting files** | Use `reference.md`, `examples.md` for detailed content |
+
+```
+my-skill/
+├── SKILL.md        # Main instructions (≤500 lines)
+├── reference.md    # Detailed docs (loaded on demand)
+├── examples.md     # Usage examples (loaded on demand)
+└── scripts/
+    └── helper.py   # Executed, not loaded into context
+```
+
+Claude loads supporting files only when needed, preserving context.
+
 ### New Command
 
 Create `commands/[name].md`:
@@ -286,6 +305,84 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task
 | `PostToolUse` | Quality checks |
 | `SubagentStop` | Log completion |
 | `Stop` | Session summary |
+
+### PreToolUse Hook Implementation (CRITICAL)
+
+Based on [Hooks Reference](https://code.claude.com/docs/en/hooks), PreToolUse hooks must follow this specification:
+
+**Exit Code Behavior:**
+
+| Exit Code | Behavior | Output Used |
+|-----------|----------|-------------|
+| **0** | Success | stdout parsed for JSON decision control |
+| **2** | Blocking error | stderr shown as error message |
+| **Other** | Non-blocking error | stderr shown to user |
+
+**JSON Decision Control (Recommended):**
+
+Use exit code 0 + JSON output with `hookSpecificOutput.permissionDecision`:
+
+```python
+#!/usr/bin/env python3
+import json
+import sys
+
+data = json.loads(sys.stdin.read())
+tool_input = data.get("tool_input", {})
+command = tool_input.get("command", "")
+
+if is_dangerous(command):
+    # BLOCK the operation
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": "Blocked: dangerous command"
+        }
+    }
+    print(json.dumps(output))
+    sys.exit(0)  # Exit 0 with JSON decision control
+else:
+    # ALLOW the operation
+    sys.exit(0)
+```
+
+**Decision Options:**
+
+| Decision | Behavior |
+|----------|----------|
+| `"allow"` | Bypasses permission system, tool executes immediately |
+| `"deny"` | Prevents tool execution, reason shown to Claude |
+| `"ask"` | Shows UI confirmation to user |
+
+**Common Mistake to Avoid:**
+
+```python
+# WRONG: Exit code 1 is a non-blocking error (tool will still execute!)
+sys.exit(1)
+
+# CORRECT: Use JSON decision control with exit 0
+print(json.dumps({"hookSpecificOutput": {"permissionDecision": "deny", ...}}))
+sys.exit(0)
+
+# ALTERNATIVE: Exit code 2 + stderr for simple blocking
+print("Blocked: reason here", file=sys.stderr)
+sys.exit(2)
+```
+
+**Input Schema:**
+
+```json
+{
+  "tool_name": "Bash|Write|Edit|Read|...",
+  "tool_input": {
+    "command": "...",     // for Bash
+    "file_path": "...",   // for Write/Edit/Read
+    "content": "...",     // for Write
+    "new_string": "..."   // for Edit
+  }
+}
+```
 
 ---
 

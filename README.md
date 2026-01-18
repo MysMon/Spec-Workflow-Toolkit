@@ -84,11 +84,20 @@ Anthropic の 6 つの Composable パターンをすべて実装した、長時�
 
 ## 参照資料
 
+### 公式ガイドライン
 - [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) - 6 Composable パターン
 - [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
 - [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
 - [Multi-Agent Research System](https://www.anthropic.com/engineering/multi-agent-research-system) - Orchestrator-Workers
+- [Equipping Agents for the Real World with Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
+
+### Claude Code 仕様
 - [Subagent Documentation](https://code.claude.com/docs/en/sub-agents)
+- [Agent Skills](https://code.claude.com/docs/en/skills) - Progressive Disclosure
+- [Hooks Reference](https://code.claude.com/docs/en/hooks) - フック仕様
+
+### 実装例
+- [Anthropic Cookbook - Agent Patterns](https://github.com/anthropics/anthropic-cookbook/tree/main/patterns/agents)
 
 ---
 
