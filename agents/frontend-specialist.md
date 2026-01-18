@@ -2,12 +2,14 @@
 name: frontend-specialist
 description: |
   Frontend Development Specialist for UI implementation across any frontend stack.
+
   Use proactively when:
   - Implementing UI components, pages, or client-side features
   - Working with React, Vue, Angular, Svelte, or other frontend frameworks
   - Building responsive layouts or handling user interactions
   - Frontend architecture decisions or state management
   - Accessibility (a11y) implementation or review
+
   Trigger phrases: frontend, UI, component, React, Vue, Angular, Svelte, CSS, styling, responsive, accessibility, client-side
 model: inherit
 tools: Read, Glob, Grep, Write, Edit, Bash

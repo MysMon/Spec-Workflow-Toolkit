@@ -2,15 +2,14 @@
 name: code-architect
 description: |
   Feature architecture designer that provides definitive implementation blueprints based on existing codebase patterns.
+
   Use proactively when:
   - Designing new features that need to integrate with existing code
   - Planning implementation strategy for complex changes
   - Making architectural decisions that affect multiple components
   - Creating implementation roadmaps with specific file paths
-  Trigger phrases: design feature, architecture plan, implementation blueprint, how should I implement, design approach
 
-  Model: Sonnet - Balanced capability for architecture design
-  Mode: plan (read-only) - Design blueprints only, specialists handle implementation
+  Trigger phrases: design feature, architecture plan, implementation blueprint, how should I implement, design approach
 model: sonnet
 tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
 disallowedTools: Write, Edit, Bash

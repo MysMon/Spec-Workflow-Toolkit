@@ -2,12 +2,14 @@
 name: qa-engineer
 description: |
   QA Automation Engineer for testing and quality assurance across any stack.
+
   Use proactively when:
   - After implementing new features or fixing bugs
   - Writing unit tests, integration tests, or E2E tests
   - Developing test strategies or improving coverage
   - Tests are failing and need investigation
   - Before merging code to ensure quality
+
   Trigger phrases: test, testing, unit test, integration test, E2E, coverage, QA, quality assurance, failing tests, test strategy
 model: sonnet
 tools: Read, Glob, Grep, Write, Edit, Bash

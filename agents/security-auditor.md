@@ -2,12 +2,14 @@
 name: security-auditor
 description: |
   Security Auditor for code review, vulnerability assessment, and security best practices.
+
   Use proactively when:
   - Before deploying to production or merging critical code
   - After implementing authentication, authorization, or data handling
   - Reviewing code that handles user input or sensitive data
   - Conducting OWASP compliance checks or dependency audits
   - Security-sensitive changes are made
+
   Trigger phrases: security review, vulnerability, OWASP, audit, CVE, injection, XSS, authentication security, secrets
 model: sonnet
 tools: Read, Glob, Grep, Bash

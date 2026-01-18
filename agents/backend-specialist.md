@@ -2,12 +2,14 @@
 name: backend-specialist
 description: |
   Backend Development Specialist for server-side implementation across any backend stack.
+
   Use proactively when:
   - Implementing APIs, endpoints, or server-side features
   - Working with Node.js, Python, Go, Rust, Java, or other backend technologies
   - Building business logic, services, or data access layers
   - Database interactions, queries, or ORM operations
   - Server-side architecture or performance optimization
+
   Trigger phrases: backend, API, endpoint, server, database, query, Node.js, Python, Go, Rust, Java, REST, GraphQL, service
 model: inherit
 tools: Read, Glob, Grep, Write, Edit, Bash
