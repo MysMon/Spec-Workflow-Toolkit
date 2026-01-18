@@ -182,11 +182,14 @@ Why JSON? "Models are less likely to inappropriately modify JSON files compared 
 
 | Agent | Tools | Notes |
 |-------|-------|-------|
-| `code-explorer` | Glob, Grep, LS, Read, NotebookRead, WebFetch, WebSearch, TodoWrite | `NotebookRead` for Jupyter |
-| `code-architect` | Glob, Grep, LS, Read, NotebookRead, WebFetch, WebSearch, TodoWrite | Design-only |
-| `security-auditor` | Read, Glob, Grep, Bash (validated) | Bash restricted via hook |
+| `code-explorer` | Glob, Grep, Read, WebFetch, WebSearch, TodoWrite | Read supports Jupyter notebooks (.ipynb) |
+| `code-architect` | Glob, Grep, Read, WebFetch, WebSearch, TodoWrite | Design-only, read-only |
+| `security-auditor` | Read, Glob, Grep, Bash (validated) | Bash restricted via PreToolUse hook |
 
-**Note**: `KillShell` and `BashOutput` excluded - not needed for analysis-focused agents.
+**Note**:
+- `Read` tool natively supports Jupyter notebooks (.ipynb files) - no separate NotebookRead needed
+- Directory listing is done via `Bash` with `ls` command when needed
+- Analysis agents intentionally exclude Write/Edit for safety
 
 ---
 

@@ -3,13 +3,11 @@
 PreToolUse hook for security-auditor agent.
 Validates that Bash commands are read-only audit commands only.
 
-Based on official Claude Code subagent documentation:
-https://code.claude.com/docs/en/sub-agents
+Based on Claude Code hooks specification:
+https://code.claude.com/docs/en/hooks
 
-Exit codes:
-- 0: Success, allow the command
-- 1: Error, log and continue
-- 2: Block the command, return error to Claude
+Uses JSON decision control (exit 0 + hookSpecificOutput) for proper blocking.
+This ensures consistent behavior with other hooks in this toolkit.
 """
 
 import json
@@ -151,21 +149,31 @@ def main():
             # Command is allowed
             sys.exit(0)
         else:
-            # Command is blocked
-            print(f"Security Audit Mode: {reason}", file=sys.stderr)
-            print(f"Command blocked: {command[:100]}...", file=sys.stderr)
-            print("", file=sys.stderr)
-            print("Allowed commands for security audit:", file=sys.stderr)
-            print("- Dependency audits: npm audit, pip-audit, cargo audit, etc.", file=sys.stderr)
-            print("- Git history: git log, git blame, git show", file=sys.stderr)
-            print("- File inspection: cat, head, tail, file, ls, find, grep", file=sys.stderr)
-            print("- Package listing: npm list, pip list, go list", file=sys.stderr)
-            sys.exit(2)
+            # Use JSON decision control to properly block the command
+            # Based on: https://code.claude.com/docs/en/hooks
+            allowed_cmds = (
+                "Allowed commands for security audit: "
+                "Dependency audits (npm audit, pip-audit, cargo audit), "
+                "Git history (git log, git blame, git show), "
+                "File inspection (cat, head, tail, ls, find, grep), "
+                "Package listing (npm list, pip list, go list)"
+            )
+            output = {
+                "hookSpecificOutput": {
+                    "hookEventName": "PreToolUse",
+                    "permissionDecision": "deny",
+                    "permissionDecisionReason": f"Security Audit Mode: {reason}. {allowed_cmds}"
+                }
+            }
+            print(json.dumps(output))
+            sys.exit(0)  # Exit 0 with JSON decision control
 
     except json.JSONDecodeError:
+        # Non-blocking error for invalid input
         print("Error: Invalid JSON input", file=sys.stderr)
         sys.exit(1)
     except Exception as e:
+        # Non-blocking error
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
