@@ -37,7 +37,6 @@ docs/                        # Specs and detailed docs
 | `agents/code-architect.md` | Implementation blueprint agent |
 | `skills/core/composable-patterns/SKILL.md` | Anthropic's 6 patterns documentation |
 | `skills/core/context-engineering/SKILL.md` | Context management for long sessions |
-| `skills/core/think-tool/SKILL.md` | Structured reasoning pattern for complex decisions |
 | `skills/workflows/tdd-workflow/SKILL.md` | Test-driven development workflow |
 | `skills/workflows/evaluator-optimizer/SKILL.md` | Iterative improvement pattern with evaluation metrics |
 | `skills/workflows/error-recovery/SKILL.md` | Checkpoint and recovery patterns |
@@ -69,7 +68,7 @@ docs/                        # Specs and detailed docs
 | `/spec-review` | Specification validation before implementation |
 | `/quick-impl` | Fast implementation for small, clear tasks |
 
-## Skills (20 Total)
+## Skills (19 Total)
 
 ### Core Skills
 | Skill | Purpose |
@@ -77,7 +76,6 @@ docs/                        # Specs and detailed docs
 | `composable-patterns` | Anthropic's 6 patterns documentation |
 | `context-engineering` | Context management for long-running sessions |
 | `subagent-contract` | Standardized result formats |
-| `think-tool` | Structured reasoning during tool chains (policy verification, sequential decisions) |
 | `sdd-philosophy` | Spec-first development principles |
 | `security-fundamentals` | Security best practices |
 | `interview` | Structured requirements gathering |
@@ -127,10 +125,10 @@ All 20 skills are now assigned to appropriate agents:
 | `observability` | devops-sre |
 | `git-mastery` | technical-writer |
 | `interview` | product-manager |
-| `think-tool` | Pattern integrated into agents via Structured Reasoning sections |
-| `context-engineering` | Referenced by orchestrator (sdd.md, sdd_context.sh) |
+| `context-engineering` | User-invocable documentation skill |
+| `composable-patterns` | User-invocable documentation skill |
 
-**Note:** `think-tool` pattern is directly integrated into `security-auditor`, `qa-engineer`, `code-architect`, and `backend-specialist` via their Structured Reasoning sections. `context-engineering` is referenced by orchestrators as needed. Both skills serve as detailed reference documentation.
+**Note:** `context-engineering` and `composable-patterns` are user-invocable documentation skills (not referenced in agent YAML). The Structured Reasoning pattern (from Anthropic's "think tool" blog) is directly integrated into `security-auditor`, `qa-engineer`, `code-architect`, and `backend-specialist` agents.
 
 ## Plugin Validation (Official)
 
