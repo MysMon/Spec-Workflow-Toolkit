@@ -10,9 +10,12 @@ description: |
   - Writing Architecture Decision Records (ADRs)
   NOTE: For feature-level implementation blueprints based on existing patterns, use `code-architect` instead.
   Trigger phrases: system architecture, database schema, API contract, ADR, technical decision, scalability, microservices
+
+  Model: Opus - System-level design and ADRs require deep multi-step reasoning
+  Mode: acceptEdits - ADR creation requires write access with auto-approval for efficiency
 model: opus
 tools: Read, Glob, Grep, Write, Bash
-permissionMode: default
+permissionMode: acceptEdits
 skills: sdd-philosophy, security-fundamentals, stack-detector
 ---
 

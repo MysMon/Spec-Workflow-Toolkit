@@ -1,4 +1,4 @@
-# SDD Toolkit Plugin v8.2.0 - Developer Guide
+# SDD Toolkit Plugin v8.3.0 - Developer Guide
 
 This file is for **developers working on this plugin repository**.
 Users who install this plugin receive context via the `SessionStart` hook, not this file.

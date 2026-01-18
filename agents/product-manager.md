@@ -9,10 +9,12 @@ description: |
   - Translating business requests into technical specifications
   - Creating PRDs or specification documents
   Trigger phrases: requirements, PRD, specification, user stories, acceptance criteria, scope definition, stakeholder
-model: sonnet
+
+  Model: Opus - Requirements elicitation requires deep reasoning to extract essential meaning from ambiguous requests
+model: opus
 tools: Read, Glob, Grep, Write, AskUserQuestion
 disallowedTools: Bash, Edit
-permissionMode: default
+permissionMode: acceptEdits
 skills: interview, sdd-philosophy
 ---
 

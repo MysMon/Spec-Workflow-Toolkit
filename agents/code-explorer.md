@@ -14,8 +14,11 @@ description: |
   Model selection by thoroughness (orchestrator should specify):
   - quick: Consider using built-in Explore agent (Haiku) for simple lookups
   - medium/very thorough: This agent (Sonnet) for deep 4-phase analysis
+
+  Model: Sonnet - Balanced capability for deep code analysis
+  Mode: plan (read-only) - Exploration only, no modifications allowed
 model: sonnet
-tools: Glob, Grep, LS, Read, NotebookRead, WebFetch, WebSearch, TodoWrite
+tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
 disallowedTools: Write, Edit, Bash
 permissionMode: plan
 skills: stack-detector

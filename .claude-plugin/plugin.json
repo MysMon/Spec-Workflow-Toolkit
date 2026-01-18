@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "sdd-toolkit",
-  "version": "8.2.0",
+  "version": "8.3.0",
   "description": "Specification-Driven Development Toolkit - Designed for long-running autonomous work sessions. Features aggressive subagent delegation to preserve main context, 7-phase workflow, Opus-powered system architecture, Initializer+Coding pattern for resumable tasks, and confidence-based review scoring. Based on official Anthropic best practices.",
   "author": {
     "name": "MysMon",

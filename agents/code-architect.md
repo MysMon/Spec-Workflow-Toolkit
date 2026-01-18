@@ -8,8 +8,11 @@ description: |
   - Making architectural decisions that affect multiple components
   - Creating implementation roadmaps with specific file paths
   Trigger phrases: design feature, architecture plan, implementation blueprint, how should I implement, design approach
+
+  Model: Sonnet - Balanced capability for architecture design
+  Mode: plan (read-only) - Design blueprints only, specialists handle implementation
 model: sonnet
-tools: Glob, Grep, LS, Read, NotebookRead, WebFetch, WebSearch, TodoWrite
+tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
 disallowedTools: Write, Edit, Bash
 permissionMode: plan
 skills: stack-detector
