@@ -232,6 +232,8 @@ skills: skill1, skill2
 
 ### Key Skills Overview
 
+This plugin includes **20 skills** across 3 categories. Key skills for long-running autonomous work:
+
 | Skill | Purpose | Key Features |
 |-------|---------|--------------|
 | `composable-patterns` | Documents Anthropic's 6 patterns | Pattern selection guide, composition examples |
@@ -240,6 +242,10 @@ skills: skill1, skill2
 | `error-recovery` | Resilient workflows | Checkpoints, graceful degradation, recovery paths |
 | `subagent-contract` | Standardized outputs | Result format spec, confidence scoring |
 | `progress-tracking` | State persistence | JSON schemas, resumption context |
+| `long-running-tasks` | Multi-session work | Initializer+Coding pattern, PreCompact integration |
+| `stack-detector` | Technology detection | Auto-detect languages, frameworks, tools |
+
+See `CLAUDE.md` for complete skill list (20 skills in core/, detection/, workflows/).
 
 ### New Skill
 

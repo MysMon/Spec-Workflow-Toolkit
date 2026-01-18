@@ -58,17 +58,46 @@ docs/                        # Specs and detailed docs
 | `ui-ux-designer` | Sonnet | Design specifications | plan (read-only) |
 | `legacy-modernizer` | Sonnet | Code modernization | acceptEdits |
 
-## Core Skills
+## Available Commands
 
+| Command | Purpose |
+|---------|---------|
+| `/sdd` | 7-phase Specification-Driven Development workflow |
+| `/code-review` | Parallel code review with confidence scoring |
+| `/spec-review` | Specification validation before implementation |
+| `/quick-impl` | Fast implementation for small, clear tasks |
+
+## Skills (20 Total)
+
+### Core Skills
 | Skill | Purpose |
 |-------|---------|
 | `composable-patterns` | Anthropic's 6 patterns documentation |
 | `subagent-contract` | Standardized result formats |
+| `sdd-philosophy` | Spec-first development principles |
+| `security-fundamentals` | Security best practices |
+| `interview` | Structured requirements gathering |
+
+### Detection Skills
+| Skill | Purpose |
+|-------|---------|
+| `stack-detector` | Technology stack auto-detection |
+
+### Workflow Skills
+| Skill | Purpose |
+|-------|---------|
 | `tdd-workflow` | Test-driven development |
 | `evaluator-optimizer` | Iterative improvement |
 | `error-recovery` | Checkpoint and recovery |
 | `progress-tracking` | JSON-based state persistence |
 | `long-running-tasks` | Multi-session work patterns |
+| `parallel-execution` | Concurrent agent coordination |
+| `code-quality` | Linting and formatting |
+| `testing` | Test pyramid and strategies |
+| `git-mastery` | Conventional Commits |
+| `api-design` | API specification patterns |
+| `migration` | Code migration strategies |
+| `observability` | Monitoring and logging |
 
 ## Development Guidelines
 
