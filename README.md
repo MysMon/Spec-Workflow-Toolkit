@@ -268,6 +268,9 @@ flowchart TB
 | `/spec-review` | 仕様検証 | 実装前の仕様確認 |
 | `/code-review` | コードレビュー | コミット前（並列エージェント） |
 | `/quick-impl` | 高速実装 | 明確な小規模タスク |
+| `/project-setup` | ルール生成 | プロジェクト固有ルールの自動生成 |
+| `/resume` | セッション再開 | 進捗ファイルから作業を再開 |
+| `/debug` | 体系的デバッグ | エラー分析・根本原因特定・修正 |
 
 ---
 
@@ -337,6 +340,73 @@ flowchart TB
 
 ---
 
+## プロジェクト固有ルールとの併用
+
+SDD Toolkit はスタック非依存の汎用ワークフローを提供しますが、プロジェクト固有のルールは Claude Code の公式機能 `.claude/rules/` で管理できます。
+
+### `.claude/rules/` ディレクトリ
+
+プロジェクトルートに `.claude/rules/` を作成し、Markdown ファイルを配置すると自動的に読み込まれます：
+
+```
+your-project/
+├── .claude/
+│   ├── CLAUDE.md           # プロジェクト全体の指示
+│   └── rules/
+│       ├── frontend.md     # フロントエンド固有ルール
+│       ├── backend.md      # バックエンド固有ルール
+│       └── testing.md      # テスト規約
+```
+
+### パス条件付きルール
+
+YAML フロントマターの `paths` フィールドで、特定のファイルパターンにのみ適用されるルールを定義できます：
+
+```markdown
+---
+paths:
+  - "src/api/**/*.ts"
+  - "src/services/**/*.ts"
+---
+
+# API 開発ルール
+
+- すべてのエンドポイントで入力バリデーションを実装
+- 標準エラーレスポンスフォーマットを使用
+- OpenAPI ドキュメントコメントを追加
+```
+
+### SDD Toolkit との使い分け
+
+| 用途 | 推奨アプローチ |
+|------|----------------|
+| **汎用ワークフロー** | SDD Toolkit のスキル・エージェント |
+| **プロジェクト固有の規約** | `.claude/rules/` |
+| **技術スタック固有のルール** | `.claude/rules/` + `paths:` 条件 |
+
+### `/project-setup` コマンド
+
+SDD Toolkit には、プロジェクト固有ルールを自動生成する `/project-setup` コマンドが含まれています：
+
+```bash
+# プロジェクトを分析してルールを生成
+/project-setup
+
+# 特定の領域にフォーカス
+/project-setup frontend
+/project-setup testing
+```
+
+このコマンドは：
+1. `stack-detector` でプロジェクトの技術スタックを自動検出
+2. `code-explorer` で既存のパターンを分析
+3. `AskUserQuestion` でユーザーの好みをインタビュー
+4. 適切な `paths:` 条件付きルールファイルを生成
+
+詳細: [Manage Claude's memory](https://code.claude.com/docs/en/memory)
+
+---
+
 ## 公式ベストプラクティスとの関係
 
 > このプラグインは公式プラグインを模倣するのではなく、その**考え方を活用**して独自の目的を達成します。
@@ -368,7 +438,10 @@ sdd-toolkit/
 │   ├── sdd.md                # 7フェーズワークフロー
 │   ├── spec-review.md        # 仕様レビュー
 │   ├── code-review.md        # コードレビュー（信頼度 >= 80）
-│   └── quick-impl.md         # 高速実装
+│   ├── quick-impl.md         # 高速実装
+│   ├── project-setup.md      # ルール生成（.claude/rules/）
+│   ├── resume.md             # セッション再開（進捗ファイルから）
+│   └── debug.md              # 体系的デバッグ
 ├── agents/                    # 12の専門エージェント
 │   ├── code-explorer.md      # 深いコードベース分析（読み取り専用）
 │   ├── code-architect.md     # 機能設計ブループリント

@@ -65,6 +65,9 @@ docs/                        # Specs and detailed docs
 | `/code-review` | Parallel code review with confidence scoring |
 | `/spec-review` | Specification validation before implementation |
 | `/quick-impl` | Fast implementation for small, clear tasks |
+| `/project-setup` | Generate `.claude/rules/` via stack detection and interview |
+| `/resume` | Resume work from progress files (Initializer+Coding pattern) |
+| `/debug` | Systematic debugging with subagent delegation |
 
 ## Skills (17 Total)
 

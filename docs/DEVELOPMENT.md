@@ -62,7 +62,10 @@ sdd-toolkit/
 │   ├── sdd.md               # 7-phase workflow
 │   ├── code-review.md       # Parallel review (confidence >= 80)
 │   ├── spec-review.md       # Spec validation
-│   └── quick-impl.md        # Fast implementation
+│   ├── quick-impl.md        # Fast implementation
+│   ├── project-setup.md     # Rule generation (.claude/rules/)
+│   ├── resume.md            # Session resumption from progress files
+│   └── debug.md             # Systematic debugging workflow
 ├── agents/                   # Specialized subagents (12 roles)
 │   ├── code-explorer.md     # Deep analysis (permissionMode: plan)
 │   ├── code-architect.md    # Implementation blueprints
@@ -548,6 +551,35 @@ Use cases:
 - Normalizing file paths
 - Injecting environment variables
 - Transforming API parameters
+
+---
+
+## Project-Specific Rules (.claude/rules/)
+
+Claude Code supports a `.claude/rules/` directory for project-specific guidelines. This is separate from (and complements) SDD Toolkit's skills and agents.
+
+### When to Use
+
+| Use Case | Approach |
+|----------|----------|
+| Generic workflows (TDD, code quality) | SDD Toolkit skills |
+| Project conventions (naming, structure) | `.claude/rules/` |
+| Tech-specific rules (frontend vs backend) | `.claude/rules/` with `paths:` |
+
+### Path-Conditional Rules
+
+```yaml
+---
+paths:
+  - "src/frontend/**/*.tsx"
+---
+
+# React Component Rules
+- Use functional components with TypeScript
+- Extract hooks for reusable logic
+```
+
+See [Manage Claude's memory](https://code.claude.com/docs/en/memory) for full specification.
 
 ---
 
