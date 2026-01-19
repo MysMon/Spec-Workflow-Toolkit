@@ -80,6 +80,10 @@ When adding, removing, or renaming components:
 2. Update `README.md` tables and directory tree
 3. Update `docs/DEVELOPMENT.md` if templates/specs change
 
+### Version Rule
+
+Version is managed in `plugin.json` only (Single Source of Truth). Do not add version numbers to document titles or content.
+
 ## Validation
 
 ```bash
