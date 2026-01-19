@@ -62,7 +62,8 @@ sdd-toolkit/
 │   ├── sdd.md               # 7-phase workflow
 │   ├── code-review.md       # Parallel review (confidence >= 80)
 │   ├── spec-review.md       # Spec validation
-│   └── quick-impl.md        # Fast implementation
+│   ├── quick-impl.md        # Fast implementation
+│   └── project-setup.md     # Rule generation (.claude/rules/)
 ├── agents/                   # Specialized subagents (12 roles)
 │   ├── code-explorer.md     # Deep analysis (permissionMode: plan)
 │   ├── code-architect.md    # Implementation blueprints

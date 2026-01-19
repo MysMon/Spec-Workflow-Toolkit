@@ -268,6 +268,7 @@ flowchart TB
 | `/spec-review` | 仕様検証 | 実装前の仕様確認 |
 | `/code-review` | コードレビュー | コミット前（並列エージェント） |
 | `/quick-impl` | 高速実装 | 明確な小規模タスク |
+| `/project-setup` | ルール生成 | プロジェクト固有ルールの自動生成 |
 
 ---
 
@@ -381,6 +382,25 @@ paths:
 | **プロジェクト固有の規約** | `.claude/rules/` |
 | **技術スタック固有のルール** | `.claude/rules/` + `paths:` 条件 |
 
+### `/project-setup` コマンド
+
+SDD Toolkit には、プロジェクト固有ルールを自動生成する `/project-setup` コマンドが含まれています：
+
+```bash
+# プロジェクトを分析してルールを生成
+/project-setup
+
+# 特定の領域にフォーカス
+/project-setup frontend
+/project-setup testing
+```
+
+このコマンドは：
+1. `stack-detector` でプロジェクトの技術スタックを自動検出
+2. `code-explorer` で既存のパターンを分析
+3. `AskUserQuestion` でユーザーの好みをインタビュー
+4. 適切な `paths:` 条件付きルールファイルを生成
+
 詳細: [Manage Claude's memory](https://code.claude.com/docs/en/memory)
 
 ---
@@ -416,7 +436,8 @@ sdd-toolkit/
 │   ├── sdd.md                # 7フェーズワークフロー
 │   ├── spec-review.md        # 仕様レビュー
 │   ├── code-review.md        # コードレビュー（信頼度 >= 80）
-│   └── quick-impl.md         # 高速実装
+│   ├── quick-impl.md         # 高速実装
+│   └── project-setup.md      # ルール生成（.claude/rules/）
 ├── agents/                    # 12の専門エージェント
 │   ├── code-explorer.md      # 深いコードベース分析（読み取り専用）
 │   ├── code-architect.md     # 機能設計ブループリント
