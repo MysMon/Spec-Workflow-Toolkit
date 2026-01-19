@@ -14,8 +14,11 @@ A Claude Code plugin implementing Anthropic's 6 composable patterns for long-run
 .claude-plugin/plugin.json   # Plugin metadata
 commands/                    # 7 slash commands
 agents/                      # 12 subagent definitions
-skills/                      # 17 skill definitions (core/, detection/, workflows/)
-hooks/                       # Event handlers + Python validators
+skills/                      # 17 skill definitions
+  core/                      #   4 core skills (subagent-contract, sdd-philosophy, security-fundamentals, interview)
+  detection/                 #   1 detection skill (stack-detector)
+  workflows/                 #   12 workflow skills
+hooks/                       # Event handlers (6 hooks) + Python validators
 docs/                        # DEVELOPMENT.md (detailed specs), specs/
 ```
 
@@ -57,6 +60,17 @@ YAML frontmatter fields:
 - Use JSON decision control (`permissionDecision: "deny"`) with exit 0 (recommended)
 - Exit 2 = blocking error
 - Exit 1, 3, etc. = non-blocking error (tool may still execute!)
+
+**Registered hooks (6 types):**
+
+| Hook | Script | Purpose |
+|------|--------|---------|
+| SessionStart | `sdd_context.sh` | Load progress files on session start |
+| PreToolUse (Bash) | `safety_check.py` | Block dangerous commands |
+| PreToolUse (Write\|Edit) | `prevent_secret_leak.py` | Prevent secret leakage |
+| PreCompact | `pre_compact_save.sh` | Save progress before context compaction |
+| SubagentStop | `subagent_summary.sh` | Summarize subagent results |
+| Stop | `session_summary.sh` | Record session summary on exit |
 
 See `docs/DEVELOPMENT.md` for full hook specification with code examples.
 
