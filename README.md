@@ -337,6 +337,54 @@ flowchart TB
 
 ---
 
+## プロジェクト固有ルールとの併用
+
+SDD Toolkit はスタック非依存の汎用ワークフローを提供しますが、プロジェクト固有のルールは Claude Code の公式機能 `.claude/rules/` で管理できます。
+
+### `.claude/rules/` ディレクトリ
+
+プロジェクトルートに `.claude/rules/` を作成し、Markdown ファイルを配置すると自動的に読み込まれます：
+
+```
+your-project/
+├── .claude/
+│   ├── CLAUDE.md           # プロジェクト全体の指示
+│   └── rules/
+│       ├── frontend.md     # フロントエンド固有ルール
+│       ├── backend.md      # バックエンド固有ルール
+│       └── testing.md      # テスト規約
+```
+
+### パス条件付きルール
+
+YAML フロントマターの `paths` フィールドで、特定のファイルパターンにのみ適用されるルールを定義できます：
+
+```markdown
+---
+paths:
+  - "src/api/**/*.ts"
+  - "src/services/**/*.ts"
+---
+
+# API 開発ルール
+
+- すべてのエンドポイントで入力バリデーションを実装
+- 標準エラーレスポンスフォーマットを使用
+- OpenAPI ドキュメントコメントを追加
+```
+
+### SDD Toolkit との使い分け
+
+| 用途 | 推奨アプローチ |
+|------|----------------|
+| **汎用ワークフロー** | SDD Toolkit のスキル・エージェント |
+| **プロジェクト固有の規約** | `.claude/rules/` |
+| **技術スタック固有のルール** | `.claude/rules/` + `paths:` 条件 |
+
+詳細: [Manage Claude's memory](https://code.claude.com/docs/en/memory)
+
+---
+
 ## 公式ベストプラクティスとの関係
 
 > このプラグインは公式プラグインを模倣するのではなく、その**考え方を活用**して独自の目的を達成します。
