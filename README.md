@@ -1,4 +1,4 @@
-# SDD Toolkit v9.0.0
+# SDD Toolkit
 
 **Claude Code 向け仕様駆動開発ツールキット**
 
