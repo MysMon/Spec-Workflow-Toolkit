@@ -142,33 +142,35 @@ From Anthropic Best Practices:
 
 ## Search Strategies
 
+Use the Grep and Glob tools available to this agent.
+
 ### Finding Related Code
 
-```bash
+```
 # Find all files importing a module
-grep -r "import.*from.*moduleName" --include="*.ts"
+Grep: pattern="import.*from.*moduleName" glob="*.ts"
 
 # Find all usages of a function
-grep -r "functionName\(" --include="*.{ts,tsx,js,jsx}"
+Grep: pattern="functionName\(" glob="*.{ts,tsx,js,jsx}"
 
 # Find all implementations of an interface
-grep -r "implements InterfaceName" --include="*.ts"
+Grep: pattern="implements InterfaceName" glob="*.ts"
 
 # Find all test files for a module
-find . -name "*moduleName*test*" -o -name "*moduleName*spec*"
+Glob: pattern="**/*moduleName*test*" or "**/*moduleName*spec*"
 ```
 
 ### Tracing Data Flow
 
-```bash
+```
 # Find where a type is used
-grep -r "TypeName" --include="*.ts"
+Grep: pattern="TypeName" glob="*.ts"
 
 # Find database queries
-grep -r "SELECT\|INSERT\|UPDATE\|DELETE" --include="*.{ts,js,sql}"
+Grep: pattern="SELECT|INSERT|UPDATE|DELETE" glob="*.{ts,js,sql}"
 
 # Find API endpoints
-grep -r "@Get\|@Post\|router\.\|app\." --include="*.{ts,js}"
+Grep: pattern="@Get|@Post|router\.|app\." glob="*.{ts,js}"
 ```
 
 ## Exploration Depth Levels
