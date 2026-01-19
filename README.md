@@ -269,6 +269,8 @@ flowchart TB
 | `/code-review` | コードレビュー | コミット前（並列エージェント） |
 | `/quick-impl` | 高速実装 | 明確な小規模タスク |
 | `/project-setup` | ルール生成 | プロジェクト固有ルールの自動生成 |
+| `/resume` | セッション再開 | 進捗ファイルから作業を再開 |
+| `/debug` | 体系的デバッグ | エラー分析・根本原因特定・修正 |
 
 ---
 
@@ -437,7 +439,9 @@ sdd-toolkit/
 │   ├── spec-review.md        # 仕様レビュー
 │   ├── code-review.md        # コードレビュー（信頼度 >= 80）
 │   ├── quick-impl.md         # 高速実装
-│   └── project-setup.md      # ルール生成（.claude/rules/）
+│   ├── project-setup.md      # ルール生成（.claude/rules/）
+│   ├── resume.md             # セッション再開（進捗ファイルから）
+│   └── debug.md              # 体系的デバッグ
 ├── agents/                    # 12の専門エージェント
 │   ├── code-explorer.md      # 深いコードベース分析（読み取り専用）
 │   ├── code-architect.md     # 機能設計ブループリント
