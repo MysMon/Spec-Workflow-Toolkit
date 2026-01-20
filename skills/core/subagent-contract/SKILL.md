@@ -10,6 +10,8 @@ description: |
   - Understanding subagent output expectations
   - Designing inter-agent communication
 
+  Trigger phrases: subagent format, agent output, result format, agent communication, orchestrator protocol
+
   This skill defines the CONTRACT between orchestrator and subagents.
 allowed-tools: Read
 model: sonnet

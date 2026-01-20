@@ -49,7 +49,7 @@ Before implementing:
 3. **Check for tests** - Know what to update
 
 ```
-Use the Explore agent (quick mode) to find:
+Launch Task tool with subagent_type=Explore (quick mode) to find:
 - Files related to [task]
 - Existing patterns for similar functionality
 - Test files to update
@@ -69,9 +69,16 @@ Context:
 - Test file: [path]
 ```
 
-For truly trivial changes (typos, config values, simple additions):
+**Trivial Change Definition** (all criteria must be met):
+- ≤10 lines of code changed
+- Single logical change (not multiple unrelated fixes)
+- No new functions, classes, or modules
+- No changes to public APIs or interfaces
+- Examples: typos, config values, import additions, simple string changes
+
+For trivial changes meeting ALL criteria above:
 - Make the change directly
-- Apply code-quality skill
+- Run linter/formatter
 - Run tests
 
 ### Step 4: Verification

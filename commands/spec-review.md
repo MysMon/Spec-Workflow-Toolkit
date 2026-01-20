@@ -46,7 +46,17 @@ If no arguments:
 
 ### Step 2: Launch Parallel Review Agents
 
-**CRITICAL: Launch all 4 agents in a single Task tool call for true parallelism.**
+**CRITICAL: Launch all 4 agents in a single message with 4 separate Task tool calls.**
+
+To achieve true parallelism, invoke multiple Task tools in a single response:
+```
+<parallel-execution>
+Task tool call 1: product-manager (Completeness)
+Task tool call 2: system-architect (Technical Feasibility)
+Task tool call 3: security-auditor (Security)
+Task tool call 4: qa-engineer (Quality/Testability)
+</parallel-execution>
+```
 
 **Agent 1: Completeness Review**
 ```

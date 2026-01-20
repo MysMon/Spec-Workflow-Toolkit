@@ -1,7 +1,7 @@
 ---
 description: "Launch the SDD (Specification-Driven Development) workflow - a guided 7-phase process from discovery to implementation with parallel agent execution"
 argument-hint: "[optional: feature description]"
-allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite, Skill
 ---
 
 # /sdd - Specification-Driven Development Workflow

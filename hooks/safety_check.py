@@ -59,7 +59,7 @@ DANGEROUS_PATTERNS = [
     # System modification
     r"mkfs\.",
     r"dd\s+if=.*of=/dev/",
-    r">\s*/dev/sd",
+    r">\s*/dev/(sd|hd|nvme|vd)[a-z0-9]*",
     r"echo\s+.*>\s*/etc/",
 
     # Fork bombs and resource exhaustion
@@ -90,9 +90,12 @@ DANGEROUS_PATTERNS = [
     r"echo\s+.*>.*\.ssh/authorized_keys",
 
     # Dangerous environment changes
-    r"export\s+PATH=",
+    # Block PATH hijacking (setting PATH to start with non-standard or tmp directories)
+    r"export\s+PATH=['\"]?(/tmp|/var/tmp|\./|\.\./).*",
+    r"export\s+PATH=['\"]?[^$/]",  # PATH not starting with / or $
     r"export\s+LD_PRELOAD",
     r"export\s+LD_LIBRARY_PATH=/",
+    r"export\s+HISTCONTROL=ignorespace",  # Hide commands from history
 
     # Script injection patterns (write then execute)
     r"echo\s+.*>\s*\S+\.sh\s*&&\s*(bash|sh|source)",
