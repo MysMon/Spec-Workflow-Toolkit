@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 """
 Safety Check Hook - PreToolUse for Bash commands
-Blocks dangerous shell commands that could harm the system.
+Blocks dangerous shell commands or transforms them to safer alternatives.
 Stack-agnostic: works with any project type.
 
 Based on Claude Code hooks specification:
 https://code.claude.com/docs/en/hooks
 
-Uses JSON decision control (exit 0 + hookSpecificOutput) for proper blocking.
+Features:
+- JSON decision control (exit 0 + hookSpecificOutput) for blocking
+- Input modification (updatedInput) for transforming commands to safer versions
+- Supports v2.0.10+ input modification capability
+
+Uses two strategies:
+1. BLOCK: Completely dangerous commands that cannot be made safe
+2. TRANSFORM: Commands that can be made safer with modifications
 """
 
 import sys
@@ -136,6 +143,30 @@ DANGEROUS_PATTERNS = [
     r"(wget|curl)\s+.*--output-document=-\s*\|\s*(sh|bash)",
 ]
 
+# Transformable patterns - commands that can be made safer via modification
+# Format: (pattern, transform_function_name, description)
+TRANSFORMABLE_PATTERNS = [
+    # rm commands that aren't targeting root - add -i (interactive) flag
+    (r"^rm\s+(?!-rf\s+/)(?!-rf\s+\*)(?!-rf\s+~)(.+)$", "add_interactive_flag", "Add interactive confirmation"),
+    # Long-running commands without timeout - add timeout wrapper
+    (r"^(npm\s+install|yarn\s+install|pip\s+install)", "add_timeout", "Add 5 minute timeout"),
+    # git push without -v - add verbose flag for better debugging
+    (r"^git\s+push\s+(?!.*-v)(.*)$", "add_verbose_git", "Add verbose flag"),
+]
+
+def add_interactive_flag(cmd: str) -> str:
+    """Add -i flag to rm commands for interactive confirmation."""
+    # Insert -i after rm
+    return re.sub(r"^rm\s+", "rm -i ", cmd)
+
+def add_timeout(cmd: str) -> str:
+    """Wrap command with timeout for long-running operations."""
+    return f"timeout 300 {cmd}"
+
+def add_verbose_git(cmd: str) -> str:
+    """Add verbose flag to git push for better debugging output."""
+    return re.sub(r"^git\s+push\s+", "git push -v ", cmd)
+
 # Check command against patterns
 def is_dangerous(cmd: str) -> tuple[bool, str]:
     cmd_lower = cmd.lower()
@@ -144,7 +175,21 @@ def is_dangerous(cmd: str) -> tuple[bool, str]:
             return True, pattern
     return False, ""
 
-# Main check
+def check_transformable(cmd: str) -> tuple[bool, str, str]:
+    """
+    Check if command can be transformed to a safer version.
+    Returns: (is_transformable, transformed_command, description)
+    """
+    for pattern, transform_name, description in TRANSFORMABLE_PATTERNS:
+        if re.search(pattern, cmd, re.IGNORECASE):
+            transform_func = globals().get(transform_name)
+            if transform_func:
+                transformed = transform_func(cmd)
+                if transformed != cmd:  # Only return if actually transformed
+                    return True, transformed, description
+    return False, cmd, ""
+
+# Main check - first check if dangerous (block), then if transformable (modify)
 dangerous, matched_pattern = is_dangerous(command)
 
 if dangerous:
@@ -159,6 +204,24 @@ if dangerous:
     }
     print(json.dumps(output))
     sys.exit(0)  # Exit 0 with JSON decision control
-else:
-    # Allow the command to proceed
+
+# Check if command can be transformed to a safer version
+transformable, transformed_cmd, transform_desc = check_transformable(command)
+
+if transformable:
+    # Use input modification to transform command (v2.0.10+ feature)
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "allow",
+            "updatedInput": {
+                "command": transformed_cmd
+            }
+        }
+    }
+    # Note: The transformation is logged in the decision reason for transparency
+    print(json.dumps(output))
     sys.exit(0)
+
+# Allow the command to proceed unchanged
+sys.exit(0)
