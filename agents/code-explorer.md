@@ -173,6 +173,52 @@ Grep: pattern="SELECT|INSERT|UPDATE|DELETE" glob="*.{ts,js,sql}"
 Grep: pattern="@Get|@Post|router\.|app\." glob="*.{ts,js}"
 ```
 
+## LSP-Enhanced Navigation (When Available)
+
+Claude Code 2.1.0+ includes LSP (Language Server Protocol) support for supported languages. When LSP is available, prefer it over text-based search for precision.
+
+### When to Use LSP
+
+| Task | LSP Approach | Fallback (Grep) |
+|------|--------------|-----------------|
+| Find definition | `go-to-definition` at symbol | `Grep: "function symbolName"` |
+| Find all references | `find-references` at symbol | `Grep: "symbolName"` |
+| Understand type | `hover` at symbol | Read type definition file |
+| Find implementations | `find-implementations` | `Grep: "implements Interface"` |
+
+### LSP Advantages
+
+- **Precision**: Finds exact symbol references, not string matches
+- **Cross-file**: Follows imports automatically
+- **Type-aware**: Understands generics, overloads, inheritance
+
+### Combining LSP with Search
+
+For comprehensive analysis, use both:
+
+1. **LSP for precision**: Find exact definition of `AuthService.login`
+2. **Grep for patterns**: Find all files with authentication logic
+3. **Glob for structure**: Map the file organization
+
+```
+Strategy for tracing a feature:
+1. LSP: go-to-definition on the entry point
+2. LSP: find-references to see callers
+3. Grep: find related patterns (error handling, logging)
+4. Read: examine key files identified
+```
+
+### Supported Languages
+
+LSP works best with languages that have strong IDE support:
+- TypeScript/JavaScript
+- Python
+- Go
+- Rust
+- Java
+
+For other languages or when LSP is unavailable, fall back to Grep patterns.
+
 ## Exploration Depth Levels
 
 When invoked, Claude specifies thoroughness:

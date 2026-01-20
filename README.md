@@ -71,6 +71,8 @@ claude --plugin-dir /path/to/sdd-toolkit
 | `/debug` | 体系的デバッグ | エラー分析・根本原因特定・修正 |
 | `/merge-conflict` | コンフリクト解決 | マージコンフリクトの体系的解決 |
 | `/doc-audit` | ドキュメント監査 | コードとドキュメントの整合性検証 |
+| `/ci-fix` | CI失敗対応 | CI/CDパイプライン失敗の診断・修正 |
+| `/hotfix` | 緊急修正 | 本番障害の迅速な対応 |
 
 ---
 

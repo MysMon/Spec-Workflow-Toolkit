@@ -12,7 +12,7 @@ A Claude Code plugin implementing Anthropic's 6 composable patterns for long-run
 
 ```
 .claude-plugin/plugin.json   # Plugin metadata
-commands/                    # 11 slash commands
+commands/                    # 13 slash commands
 agents/                      # 12 subagent definitions
 skills/                      # 20 skill definitions
   core/                      #   5 core skills (subagent-contract, sdd-philosophy, security-fundamentals, interview, bounded-autonomy)
