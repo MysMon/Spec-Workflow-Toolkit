@@ -46,7 +46,9 @@ This command orchestrates 7 phases:
 
 **YOU ARE THE ORCHESTRATOR. YOU DO NOT DO THE WORK YOURSELF.**
 
-### ABSOLUTE PROHIBITIONS for the Main Agent
+Load the `subagent-contract` skill for detailed orchestration protocols.
+
+### Absolute Prohibitions
 
 1. **NEVER use Grep/Glob yourself** - Delegate to `code-explorer` or built-in `Explore`
 2. **NEVER read more than 3 files directly** - Delegate bulk reading to subagents
@@ -62,47 +64,11 @@ This command orchestrates 7 phases:
 4. **Track Progress** - Update TodoWrite and progress files
 5. **Read Specific Files** - Only files identified by subagents (max 3 at a time)
 
-### Why This Matters
-
-From Claude Code Best Practices:
-> "Subagents use their own isolated context windows, and only send relevant information back to the orchestrator"
-
-**Context consumption comparison**:
-- Direct exploration: 10,000+ tokens consumed in main context
-- Subagent exploration: ~500 token summary returned
-
-**Long session enablement**:
-- Clean main context = ability to work for hours
-- Polluted main context = session ends prematurely
+**Context Protection**: Subagent exploration returns ~500 tokens vs 10,000+ for direct exploration.
 
 ---
 
-### Context Protection (The Most Important Rule)
-
-**DO NOT explore code yourself. ALWAYS delegate to subagents.**
-
-From Claude Code Best Practices:
-
-> "Subagents use their own isolated context windows, and only send relevant information back to the orchestrator, rather than their full context. This makes them ideal for tasks that require sifting through large amounts of information where most of it won't be useful."
-
-The main orchestrator MUST:
-- Remain focused on orchestration and coordination
-- Never accumulate exploration results in main context
-- Delegate ALL codebase exploration to `code-explorer` agents
-- Delegate ALL implementation to specialist agents
-- Only read specific files identified by subagents (max 3 at a time)
-
-**Why This Matters (Quantified):**
-```
-Direct exploration by orchestrator: 10,000+ tokens consumed in main context
-Subagent exploration:               ~500 token summary returned
-Savings:                            95%+ context preservation
-```
-
-**Long Session Enablement:**
-- Clean main context = ability to work for hours autonomously
-- Polluted main context = session ends prematurely
-- This is the key to completing complex, multi-day projects
+### Agent Selection
 
 | Agent | Model | Use For |
 |-------|-------|---------|
@@ -272,55 +238,13 @@ Ask user: "Ready to start implementation? This will modify files in your codebas
 
 #### Long-Running Autonomous Work Pattern
 
-From Effective Harnesses for Long-Running Agents:
+Load the `long-running-tasks` skill for the Initializer + Coding pattern and progress file details.
 
-> "The agent tends to try to do too much at once—essentially attempting to one-shot the app."
-
-**The Initializer + Coding Pattern:**
-
-| Role | When | What to Do |
-|------|------|------------|
-| **INITIALIZER** | No progress file exists | Create progress files, break down work, set up state |
-| **CODING** | Progress file exists | Read state, implement ONE feature, update state, commit |
-
-**Workspace ID:**
-
-Use the workspace ID shown in SessionStart hook output. Format: `{branch}_{path-hash}` (e.g., `main_a1b2c3d4`).
-
-**Progress File Structure:**
-
-Create `.claude/workspaces/{workspace-id}/claude-progress.json`:
-```json
-{
-  "workspaceId": "[workspace-id]",
-  "project": "[feature-name]",
-  "status": "in_progress",
-  "currentTask": "Implementing [component]",
-  "startedAt": "[ISO timestamp]",
-  "resumptionContext": {
-    "position": "Phase 5 - Implementation",
-    "nextAction": "Create [specific file]",
-    "completedSteps": ["step1", "step2"],
-    "blockers": []
-  }
-}
-```
-
-Create `.claude/workspaces/{workspace-id}/feature-list.json`:
-```json
-{
-  "workspaceId": "[workspace-id]",
-  "features": [
-    {"id": "F001", "name": "[Component 1]", "status": "completed", "files": ["src/..."]},
-    {"id": "F002", "name": "[Component 2]", "status": "in_progress", "files": []},
-    {"id": "F003", "name": "[Component 3]", "status": "pending", "files": []}
-  ]
-}
-```
-
-**Workspace ID Format:** `{branch}_{path-hash}` (e.g., `main_a1b2c3d4`)
-
-**Why JSON?** From Anthropic: "Models are less likely to inappropriately modify structured data."
+**Key Principles:**
+- **INITIALIZER** (first session): Create progress files, break down work
+- **CODING** (each session): Read state, implement ONE feature, update state, commit
+- Use workspace ID from SessionStart hook: `{branch}_{path-hash}`
+- Progress files: `.claude/workspaces/{workspace-id}/claude-progress.json` and `feature-list.json`
 
 ---
 
@@ -345,31 +269,10 @@ Create `.claude/workspaces/{workspace-id}/feature-list.json`:
 
 #### TDD Integration (Optional but Recommended)
 
-For features with clear acceptance criteria, use Test-Driven Development:
-
-```
-TDD Cycle for Each Feature:
-
-1. RED: Delegate to qa-engineer
-   "Write failing tests for [feature] based on acceptance criteria"
-   Output: Test file created, tests run and FAIL
-
-2. GREEN: Delegate to frontend/backend-specialist
-   "Implement minimal code to pass tests at [test-file]"
-   Output: Implementation created, ALL tests PASS
-
-3. REFACTOR: Delegate to code-architect (review) then specialist
-   "Review implementation for quality, suggest improvements"
-   Output: Clean code, tests still PASS
-```
-
-See `skills/workflows/tdd-workflow/SKILL.md` for complete TDD patterns.
-
-**When to use TDD:**
-- Features with clear input/output expectations
-- Bug fixes (write test that reproduces bug first)
-- Critical path functionality
-- Refactoring existing code
+Load the `tdd-workflow` skill for complete TDD patterns. Use when features have clear acceptance criteria:
+- RED: `qa-engineer` writes failing tests
+- GREEN: Specialist implements minimal code to pass
+- REFACTOR: Review and clean up
 
 ---
 
@@ -410,21 +313,7 @@ Expected output: Working service with tests
 
 #### Progress Tracking Integration
 
-**TodoWrite + JSON Files work together:**
-
-```
-TodoWrite: Real-time UI for user visibility
-JSON Files: Persistent state for session resumption
-```
-
-Update BOTH after each milestone:
-1. Mark TodoWrite item as completed
-2. Update JSON files
-3. Git commit with descriptive message
-
-**Track progress** using TodoWrite tool. Update status as each component completes.
-
-**Update progress file** after each significant milestone.
+Load the `progress-tracking` skill for detailed schemas. Update both TodoWrite and JSON files after each milestone.
 
 ### Phase 6: Quality Review
 
@@ -528,17 +417,7 @@ See `skills/workflows/evaluator-optimizer/SKILL.md` for detailed pattern.
 
 #### Error Recovery During Review
 
-If review agents encounter errors:
-
-1. **Checkpoint current state** to progress file
-2. **Document the error** with full context
-3. **Attempt recovery** using error-recovery skill patterns
-4. **If unrecoverable**: Present options to user
-   - Retry with different approach
-   - Skip this check
-   - Abort and investigate
-
-See `skills/workflows/error-recovery/SKILL.md` for recovery patterns.
+Load the `error-recovery` skill if review agents encounter errors. Checkpoint state, attempt recovery, and escalate to user if unrecoverable.
 
 ### Phase 7: Summary
 

@@ -93,6 +93,36 @@ DANGEROUS_PATTERNS = [
     r"export\s+PATH=",
     r"export\s+LD_PRELOAD",
     r"export\s+LD_LIBRARY_PATH=/",
+
+    # Script injection patterns (write then execute)
+    r"echo\s+.*>\s*\S+\.sh\s*&&\s*(bash|sh|source)",
+    r"cat\s+.*>\s*\S+\.sh\s*&&\s*(bash|sh|source)",
+    r"printf\s+.*>\s*\S+\.sh\s*&&\s*(bash|sh|source)",
+
+    # Process substitution abuse
+    r"bash\s+<\(",
+    r"sh\s+<\(",
+
+    # Hex/octal encoded command execution
+    r"\$'\\x[0-9a-fA-F]",
+    r"echo\s+-e\s+.*\\\\x.*\|\s*(sh|bash)",
+    r"printf\s+.*\\\\x.*\|\s*(sh|bash)",
+
+    # Python/Perl/Ruby one-liner execution with dangerous modules
+    r"python[3]?\s+-c\s+.*__import__.*subprocess",
+    r"perl\s+-e\s+.*system\s*\(",
+    r"ruby\s+-e\s+.*system\s*\(",
+
+    # Dangerous xargs patterns
+    r"xargs\s+.*rm\s",
+    r"xargs\s+.*-I.*sh\s+-c",
+
+    # Tar extraction to root or sensitive directories
+    r"tar\s+.*-[xz].*-C\s+/[^a-zA-Z]",
+
+    # Download and execute in one line (additional patterns)
+    r"(wget|curl)\s+.*-O\s+-\s*\|\s*(sh|bash)",
+    r"(wget|curl)\s+.*--output-document=-\s*\|\s*(sh|bash)",
 ]
 
 # Check command against patterns

@@ -14,7 +14,8 @@ description: |
 
   Trigger phrases: system architecture, database schema, API contract, ADR, technical decision, scalability, microservices
 model: opus
-tools: Read, Glob, Grep, Write, Bash
+tools: Read, Glob, Grep, Write
+disallowedTools: Bash, Edit
 permissionMode: acceptEdits
 skills: sdd-philosophy, security-fundamentals, stack-detector, api-design, parallel-execution, long-running-tasks, subagent-contract
 ---
