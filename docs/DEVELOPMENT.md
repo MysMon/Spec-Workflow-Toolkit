@@ -55,6 +55,7 @@ All URLs are centralized here. Skill and agent files should use plain text attri
 |--------|------------------------|-------------|-----------|
 | Architecture options | 3 approaches | Single definitive | Reduces decision fatigue |
 | Progress format | `.txt` | `.json` | Machine-readable, less prone to corruption |
+| Progress isolation | Project-level | Workspace-level | Supports git worktrees, concurrent projects |
 | Agent specialization | 3 general | 12 specialized | Domain expertise improves quality |
 
 ### Context Management
