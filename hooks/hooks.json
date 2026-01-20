@@ -16,7 +16,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash|mcp__.*__(exec|run|shell|command|bash|terminal)",
         "hooks": [
           {
             "type": "command",

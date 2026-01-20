@@ -290,28 +290,12 @@ When starting or resuming:
 
 This plugin includes a `PreCompact` hook that automatically saves state before context compaction.
 
-### What Happens During Compaction
+### Compaction Process Flow
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    COMPACTION PROCESS                            │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  1. Context approaches limit (~50-70% full)                      │
-│        ↓                                                        │
-│  2. PreCompact hook triggers (pre_compact_save.sh)              │
-│        - Saves timestamp to workspace progress file              │
-│        - Outputs reminder about post-compaction recovery        │
-│        ↓                                                        │
-│  3. System compacts context (summarizes conversation)           │
-│        - Full context is condensed                              │
-│        - Details may be lost                                    │
-│        ↓                                                        │
-│  4. Agent continues with reduced context                         │
-│        - CRITICAL: Must read progress files to restore state    │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+1. Context approaches limit (~50-70% full)
+2. **PreCompact hook** triggers → saves state to workspace progress file
+3. System compacts context (summarizes, details may be lost)
+4. Agent continues with reduced context → **must read progress files to restore state**
 
 ### Post-Compaction Recovery Protocol
 
@@ -385,6 +369,58 @@ With proper recovery:
 - All decisions are preserved in JSON
 - Key file references enable quick context loading
 - Work continues smoothly across compaction boundaries
+
+## Context Editing (Advanced)
+
+Claude Code includes **Context Editing** - an automatic feature that removes stale tool calls and results when approaching token limits.
+
+From Anthropic's Context Management announcement:
+
+> "Context editing automatically clears stale tool calls and results from within the context window when approaching token limits... reducing token consumption by 84%."
+
+### How Context Editing Works
+
+Unlike compaction (which summarizes the conversation), context editing **surgically removes** completed tool interactions while preserving:
+- Conversation flow
+- Important decisions
+- Current task state
+
+```
+Before Context Editing:
+[Turn 1: Read file A → Result: 500 lines]
+[Turn 2: Read file B → Result: 800 lines]
+[Turn 3: Edit file A → Success]
+[Turn 4: Current task discussion]
+
+After Context Editing:
+[Turn 1: Read file A → [removed - stale]]
+[Turn 2: Read file B → [removed - stale]]
+[Turn 3: Edit file A → [removed - completed]]
+[Turn 4: Current task discussion]  ← preserved
+```
+
+### Progress Files + Context Editing = Long Sessions
+
+Combining progress files with context editing enables extended autonomous work:
+
+| Feature | Compaction | Context Editing |
+|---------|-----------|-----------------|
+| **Trigger** | Manual or ~70% full | Automatic near limits |
+| **Method** | Summarizes conversation | Removes stale tool calls |
+| **Preserves** | Summary only | Conversation + decisions |
+| **Recovery** | Requires progress file | Often self-recovers |
+| **Token savings** | ~60-70% | Up to 84% |
+
+### Best Practice: Use Both
+
+1. **Context Editing** handles routine cleanup automatically
+2. **Progress Files** provide insurance for major context loss
+3. **PreCompact Hook** saves state before any compaction
+
+**Recommendation**: Even with context editing, maintain progress files for:
+- Multi-session work
+- Complex decisions that must survive any context loss
+- Work that spans multiple days
 
 ## Best Practices
 
