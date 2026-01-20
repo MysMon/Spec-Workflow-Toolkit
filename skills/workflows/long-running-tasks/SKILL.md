@@ -55,7 +55,7 @@ From Anthropic's research: The agent tends to try to do too much at once—essen
 From Claude Code Best Practices:
 
 1. **Use TodoWrite extensively** - Break down work, track progress visibly
-2. **JSON-based state persistence** - Use `.claude/claude-progress.json` and `.claude/feature-list.json`
+2. **JSON-based state persistence** - Use `.claude/workspaces/{workspace-id}/claude-progress.json` and `.claude/workspaces/{workspace-id}/feature-list.json`
 3. **Checkpoint frequently** - Claude Code auto-saves before changes
 4. **Mark complete immediately** - Don't batch completions
 
@@ -197,8 +197,8 @@ This plugin includes a `PreCompact` hook that automatically:
 - Outputs context reminder for post-compaction recovery
 
 **After compaction**, always:
-1. Read `.claude/claude-progress.json` to restore context
-2. Check `feature-list.json` for current task status
+1. Read `.claude/workspaces/{workspace-id}/claude-progress.json` to restore context
+2. Check `.claude/workspaces/{workspace-id}/feature-list.json` for current task status
 3. Continue from the documented position
 
 ## Large Migration Pattern
