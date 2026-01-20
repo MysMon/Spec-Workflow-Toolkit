@@ -1,250 +1,314 @@
 # Stack Consultation Reference
 
-Detailed technology reference for stack consultation. Load on demand when deeper information is needed.
+Evaluation frameworks and research methodologies for technology selection. Load on demand when deeper guidance is needed.
 
-## Technology Quick Reference
-
-### Frontend Frameworks (2025)
-
-| Framework | Best For | Learning Curve | Performance | Ecosystem |
-|-----------|----------|----------------|-------------|-----------|
-| **Next.js** | Full-stack, SEO, Enterprise | Medium | Excellent | Extensive |
-| **Remix** | Performance-critical, Forms | Medium | Excellent | Growing |
-| **Nuxt** | Vue ecosystem, Full-stack | Medium | Good | Extensive |
-| **SvelteKit** | Performance, Simplicity | Low | Excellent | Growing |
-| **Astro** | Content sites, Static | Low | Excellent | Good |
-| **Vite+React** | SPAs, Dashboards | Low | Good | Extensive |
-
-### Backend Frameworks
-
-| Framework | Language | Best For | Learning Curve |
-|-----------|----------|----------|----------------|
-| **Express** | Node.js | Flexibility, APIs | Low |
-| **Fastify** | Node.js | Performance APIs | Low |
-| **Hono** | Node.js/Edge | Edge computing | Low |
-| **NestJS** | Node.js | Enterprise, Structure | High |
-| **FastAPI** | Python | Modern APIs, ML | Low |
-| **Django** | Python | Full-stack, Admin | Medium |
-| **Gin** | Go | High-performance | Medium |
-| **Axum** | Rust | Maximum performance | High |
-| **Laravel** | PHP | Rapid development | Medium |
-| **Spring Boot** | Java/Kotlin | Enterprise | High |
-
-### Databases
-
-| Database | Type | Best For | Scaling |
-|----------|------|----------|---------|
-| **PostgreSQL** | Relational | General purpose, JSONB | Vertical + Read replicas |
-| **MySQL** | Relational | Web apps, WordPress | Read replicas |
-| **SQLite** | Relational | Embedded, Small apps | Single node |
-| **MongoDB** | Document | Flexible schema | Horizontal |
-| **Redis** | Key-Value | Caching, Sessions | Cluster |
-| **Supabase** | PostgreSQL + BaaS | Rapid development | Managed |
-| **PlanetScale** | MySQL + Serverless | Serverless apps | Branching |
-| **Turso** | SQLite + Edge | Edge applications | Edge replicas |
-
-### Hosting Platforms
-
-| Platform | Best For | Free Tier | Scaling |
-|----------|----------|-----------|---------|
-| **Vercel** | Next.js, Jamstack | Generous | Automatic |
-| **Netlify** | Static, Serverless | Generous | Automatic |
-| **Cloudflare Pages** | Edge, Global | Generous | Automatic |
-| **Railway** | Full-stack, DBs | Limited | Automatic |
-| **Render** | Full-stack | Limited | Automatic |
-| **Fly.io** | Containers, Global | Limited | Manual |
-| **AWS** | Everything | Complex | Manual |
-| **GCP** | ML, Big Data | Complex | Manual |
-
-### Authentication Solutions
-
-| Solution | Type | Best For | Pricing |
-|----------|------|----------|---------|
-| **Auth.js** | Library | Next.js, Self-hosted | Free |
-| **Clerk** | Service | Fast integration | Freemium |
-| **Supabase Auth** | Service | Supabase users | Included |
-| **Firebase Auth** | Service | Firebase users | Freemium |
-| **Auth0** | Service | Enterprise | Freemium |
-| **Keycloak** | Self-hosted | Enterprise, Control | Free |
-
-### ORMs and Database Tools
-
-| Tool | Language | Best For |
-|------|----------|----------|
-| **Prisma** | TypeScript | Type-safety, DX |
-| **Drizzle** | TypeScript | Performance, Control |
-| **TypeORM** | TypeScript | Decorators, Legacy |
-| **Sequelize** | JavaScript | Legacy, MySQL |
-| **SQLAlchemy** | Python | Flexibility |
-| **Django ORM** | Python | Django apps |
-| **GORM** | Go | Go applications |
+**Important**: This document contains no specific technology recommendations. All technology options must be discovered via WebSearch during consultation.
 
 ---
 
-## Stack Templates
+## Evaluation Framework
 
-### SaaS Starter (TypeScript)
+### Primary Evaluation Axes
 
-```
-Frontend: Next.js 14+ (App Router)
-Backend: Next.js API Routes / tRPC
-Database: PostgreSQL (Supabase or Neon)
-Auth: Auth.js or Clerk
-Payments: Stripe
-Hosting: Vercel
-Styling: Tailwind CSS
-```
+Use these axes to compare any technology options discovered through research:
 
-**Rationale**: Maximum developer velocity with excellent DX and ecosystem.
+| Axis | Weight | Key Questions |
+|------|--------|---------------|
+| **Requirement Fit** | Critical | Does it directly solve the stated problem? |
+| **Constraint Match** | Critical | Compatible with team skills, budget, timeline? |
+| **Maturity** | High | Production-ready? Active maintenance? Security track record? |
+| **Ecosystem** | High | Quality of documentation? Available libraries? Tooling support? |
+| **Integration** | Medium | Works with other chosen components? Standard protocols? |
+| **Community** | Medium | Active contributors? Responsive to issues? Learning resources? |
+| **Future-proofing** | Low | Corporate backing? Clear roadmap? Migration paths? |
 
-### High-Performance API (Go)
+### Scoring Guidelines
 
-```
-Framework: Gin or Echo
-Database: PostgreSQL
-Caching: Redis
-API Spec: OpenAPI 3.1
-Hosting: AWS ECS / GCP Cloud Run
-```
-
-**Rationale**: Excellent performance, low resource usage, strong typing.
-
-### Data-Intensive Application (Python)
-
-```
-Backend: FastAPI
-Database: PostgreSQL + TimescaleDB
-Queue: Celery + Redis
-ML: PyTorch / scikit-learn
-Hosting: AWS / GCP
-```
-
-**Rationale**: Python ecosystem for data processing and ML.
-
-### Content Site / Blog
-
-```
-Framework: Astro or Next.js
-CMS: Sanity / Contentful / Notion API
-Database: None or SQLite
-Hosting: Vercel / Cloudflare Pages
-```
-
-**Rationale**: Static generation for performance and cost.
-
-### Mobile App Backend
-
-```
-Backend: FastAPI or Express
-Database: PostgreSQL
-Real-time: Supabase Realtime / Socket.io
-Push: Firebase Cloud Messaging
-Hosting: Railway / Render
-```
-
-**Rationale**: Simple setup with mobile-specific features.
+| Score | Meaning |
+|-------|---------|
+| ✅ Strong | Clearly meets requirement with evidence |
+| ⚠️ Partial | Meets requirement with caveats or workarounds |
+| ❌ Weak | Does not meet requirement or significant gaps |
+| ❓ Unknown | Insufficient information, needs more research |
 
 ---
 
-## Decision Matrices
+## Research Methodology
 
-### When to Choose Next.js
+### Source Prioritization
 
-✅ Choose when:
-- SEO is important
-- You need SSR/SSG
-- Team knows React
-- Full-stack TypeScript desired
-- Vercel deployment preferred
+When gathering information via WebSearch/WebFetch, prioritize sources in this order:
 
-❌ Avoid when:
-- Simple SPA is sufficient
-- Team prefers Vue/Svelte
-- Need maximum backend flexibility
-- Avoiding vendor lock-in is priority
+| Priority | Source Type | Why |
+|----------|-------------|-----|
+| 1 | Official documentation | Most accurate, current |
+| 2 | GitHub repository | Real activity metrics, issues |
+| 3 | Recent (< 1 year) comparison articles | Contextual analysis |
+| 4 | Production experience reports | Real-world validation |
+| 5 | Stack Overflow activity | Community health indicator |
+| 6 | Tutorial prevalence | Learning resource availability |
 
-### When to Choose PostgreSQL
+### Information to Extract
 
-✅ Choose when:
-- Complex queries needed
-- Data integrity is critical
-- JSON flexibility desired (JSONB)
-- Full-text search needed
-- Standard SQL preferred
+For each technology candidate discovered:
 
-❌ Avoid when:
-- Document-oriented data model better
-- Extreme horizontal scaling needed
-- Simple key-value sufficient
-- Edge deployment required
+```markdown
+## [Technology Name]
 
-### When to Choose Serverless
+### Basic Info
+- Current stable version: [from official docs]
+- License: [open source type / commercial]
+- Primary maintainer: [company / community]
 
-✅ Choose when:
-- Traffic is unpredictable
-- Cost optimization important
-- Scaling should be automatic
-- Cold starts acceptable
-- Simple deployment preferred
+### Strengths (from research)
+- [Strength 1 with source]
+- [Strength 2 with source]
 
-❌ Avoid when:
-- Consistent low latency required
-- Long-running processes needed
-- WebSocket connections required
-- Cost at scale is concern
-- Local development parity needed
+### Weaknesses (from research)
+- [Weakness 1 with source]
+- [Weakness 2 with source]
+
+### Fit Analysis
+- Requirement match: [analysis]
+- Constraint compatibility: [analysis]
+- Risk factors: [analysis]
+
+### Sources
+- [URL 1] (date accessed)
+- [URL 2] (date accessed)
+```
+
+### Red Flags to Watch For
+
+| Red Flag | What It Indicates |
+|----------|-------------------|
+| No commits in 6+ months | Potentially abandoned |
+| Many open security issues | Maintenance concerns |
+| Breaking changes in minor versions | Stability concerns |
+| Sparse documentation | High learning curve |
+| Single maintainer | Bus factor risk |
+| No clear migration path | Lock-in risk |
+
+### Green Flags to Look For
+
+| Green Flag | What It Indicates |
+|------------|-------------------|
+| Active release cycle | Healthy maintenance |
+| Corporate backing + community | Sustainable model |
+| Comprehensive documentation | Lower learning curve |
+| Large ecosystem | Problem-solving resources |
+| Clear deprecation policy | Predictable evolution |
+| Multiple successful case studies | Production-proven |
+
+---
+
+## Query Construction Guide
+
+### Requirement-to-Query Mapping
+
+Transform user requirements into effective search queries:
+
+| Requirement Type | Query Pattern |
+|-----------------|---------------|
+| Interaction: Visual interface | `"[platform] UI frameworks [year] comparison"` |
+| Interaction: CLI | `"CLI framework [language] [year]"` |
+| Interaction: API | `"API framework [language] [year] production"` |
+| Data: Structured | `"relational database [year] comparison"` |
+| Data: Unstructured | `"document database [year] comparison"` |
+| Data: Real-time | `"real-time database [year]"` |
+| Data: Large-scale | `"big data processing [year] tools"` |
+| Communication: Real-time | `"real-time communication [year] tools"` |
+| Communication: Async | `"message queue [year] comparison"` |
+| Deploy: Cloud | `"cloud deployment platform [year]"` |
+| Deploy: Edge | `"edge computing platform [year]"` |
+| Deploy: Embedded | `"embedded development [year] tools"` |
+
+### Query Refinement
+
+If initial search results are too broad:
+- Add constraint: `"[query] for small teams"`
+- Add use case: `"[query] for startups"`
+- Add comparison: `"[query] vs alternatives"`
+
+If results are too narrow or outdated:
+- Remove year: `"[query]"` (then verify recency manually)
+- Broaden scope: `"[category] tools comparison"`
+
+---
+
+## Decision Patterns
+
+### When Requirements Conflict
+
+| Situation | Resolution Strategy |
+|-----------|---------------------|
+| Speed vs. Quality | Clarify timeline criticality with user |
+| Cost vs. Capability | Define minimum viable requirements |
+| Familiarity vs. Fit | Assess learning curve vs. long-term benefit |
+| Simplicity vs. Scale | Start simple with clear scale-up path |
+
+### When No Clear Winner
+
+If evaluation produces no obvious choice:
+
+1. **Re-examine requirements**: Are all stated requirements truly essential?
+2. **Identify deciding factor**: What single aspect matters most?
+3. **Consider hybrid**: Can multiple tools solve different aspects?
+4. **Default to simplicity**: When equal, choose the simpler option
+5. **Acknowledge uncertainty**: Present to user with honest assessment
+
+### When Research is Inconclusive
+
+If WebSearch/WebFetch doesn't provide clear answers:
+
+1. Search for alternative query formulations
+2. Look for "lessons learned" or "post-mortem" articles
+3. Check GitHub issues for real-world problems
+4. Acknowledge gaps and note them in recommendations
 
 ---
 
 ## Common Pitfalls
 
-### Over-engineering
+### In Requirements Gathering
 
-**Symptom**: Choosing Kubernetes for a blog
-**Solution**: Start simple, scale when needed
+| Pitfall | Symptom | Resolution |
+|---------|---------|------------|
+| Solution bias | User asks for specific tech | Ask what problem they're solving |
+| Scope creep | Requirements keep expanding | Establish MVP boundaries |
+| Assumption | User says "standard" or "normal" | Ask for specific behaviors |
+| Vagueness | "Fast", "scalable", "modern" | Quantify: how fast? how many users? |
 
-### Under-engineering
+### In Research
 
-**Symptom**: SQLite for multi-tenant SaaS
-**Solution**: Consider growth from start for data layer
+| Pitfall | Symptom | Resolution |
+|---------|---------|------------|
+| Recency bias | Newest = best | Verify production readiness |
+| Popularity bias | Most stars = best | Check fit for specific needs |
+| Tutorial bias | Many tutorials = good | Tutorials ≠ production quality |
+| Benchmark bias | Fastest = best | Benchmarks ≠ real workload |
 
-### Trend-chasing
+### In Recommendations
 
-**Symptom**: Choosing newest framework without evaluation
-**Solution**: Evaluate stability, community, and fit
-
-### Ignoring Team Skills
-
-**Symptom**: Choosing Rust when team knows JavaScript
-**Solution**: Factor in learning curve and timeline
+| Pitfall | Symptom | Resolution |
+|---------|---------|------------|
+| Overconfidence | Strong rec without evidence | Always cite sources |
+| Analysis paralysis | Too many options presented | Limit to top 3 with clear ranking |
+| Hidden assumptions | "Obviously you need X" | State all assumptions explicitly |
+| Ignoring constraints | Perfect tech but wrong fit | Re-check constraint compatibility |
 
 ---
 
-## Search Query Templates
+## Scaffolding Best Practices
 
-### For Framework Evaluation
+### Before Running Any Commands
+
+1. **Verify command currency**: Search for official getting-started guide
+2. **Check prerequisites**: What must be installed first?
+3. **Understand what it creates**: What files/folders will appear?
+4. **Plan project location**: Where should project be created?
+
+### After Scaffolding
+
+1. **Verify success**: Can the project build/run?
+2. **Document setup**: Record exact commands used
+3. **Create .gitignore**: Based on technologies used (search for template)
+4. **Initialize CLAUDE.md**: Capture decisions for future sessions
+
+### CLAUDE.md Template for New Projects
+
+```markdown
+# [Project Name]
+
+## Technology Stack
+
+| Component | Technology | Version | Chosen Because |
+|-----------|------------|---------|----------------|
+| [Layer]   | [Name]     | [Ver]   | [Rationale]    |
+
+## Setup Commands Used
+
+```bash
+# [Exact commands that were run]
+```
+
+## Key Decisions
+
+| Decision | Choice | Alternatives Considered | Rationale |
+|----------|--------|------------------------|-----------|
+| [Area]   | [What] | [Options]              | [Why]     |
+
+## Project Structure
 
 ```
-"[Framework A] vs [Framework B] [year] production experience"
-"[Framework] scalability case study [year]"
-"[Framework] performance benchmark [year]"
-"migrating from [Framework A] to [Framework B] experience"
+[Directory tree created by scaffolding]
 ```
 
-### For Database Selection
+## Development Commands
+
+```bash
+# Start development
+[command]
+
+# Run tests
+[command]
+
+# Build
+[command]
+```
+```
+
+---
+
+## Domain-Specific Considerations
+
+When researching, be aware of domain-specific evaluation criteria:
+
+### Systems with Human Users
+- Accessibility compliance requirements
+- Localization/internationalization needs
+- Device/browser compatibility
+
+### Systems with High Reliability Needs
+- Failure mode analysis
+- Backup/recovery capabilities
+- Monitoring/observability support
+
+### Systems with Regulatory Requirements
+- Compliance certification availability
+- Audit logging capabilities
+- Data residency options
+
+### Systems with Performance Requirements
+- Benchmark methodology validation
+- Scaling characteristics
+- Resource consumption patterns
+
+---
+
+## Research Query Templates
+
+### For Initial Discovery
 
 ```
-"[Database] for [use case] [year]"
-"[Database A] vs [Database B] [year] comparison"
-"[Database] scaling experience production"
-"[Database] cost at scale"
+"best [category] tools [year] comparison"
+"[category] framework comparison [year] production"
+"top [category] solutions [year]"
 ```
 
-### For Hosting Comparison
+### For Deep Evaluation
 
 ```
-"[Platform A] vs [Platform B] pricing [year]"
-"[Platform] for [Framework] deployment"
-"[Platform] production experience [year]"
-"[Platform] limitations gotchas"
+"[technology] production experience [year]"
+"[technology] pros cons real world"
+"[technology] vs [alternative] which to choose"
+"[technology] problems issues"
+```
+
+### For Setup Information
+
+```
+"[technology] getting started official"
+"[technology] installation guide [year]"
+"[technology] project setup tutorial"
 ```

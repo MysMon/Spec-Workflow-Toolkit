@@ -1,13 +1,13 @@
 ---
 name: stack-consultation
 description: |
-  Interactive technology stack consultation for new projects. Use when:
-  - Starting a completely new project with no existing codebase
+  Interactive technology stack consultation for new projects using dynamic research. Use when:
+  - Starting a new project with no existing codebase
   - User doesn't know what technology stack to use
-  - User wants recommendations for frameworks, databases, or tools
-  - Need to research and compare technology options
+  - User wants recommendations based on current best practices
+  - Need to research and compare technology options with latest information
   - User says "what stack should I use" or "help me choose"
-  Trigger phrases: stack consultation, recommend stack, what framework, choose technology, new project stack, tech stack advice, which database, help me decide stack
+  Trigger phrases: stack consultation, recommend stack, what technology, choose tools, new project stack, tech advice, help me decide
 allowed-tools: AskUserQuestion, WebSearch, WebFetch, Read, Write, Bash, Glob, Grep, Task, TodoWrite
 model: sonnet
 user-invocable: true
@@ -15,488 +15,391 @@ user-invocable: true
 
 # Stack Consultation
 
-Interactive consultation system that helps users choose and set up technology stacks for new projects through structured interviews, real-time research, and guided scaffolding.
+Interactive consultation that helps users choose and set up technology stacks through **requirements-based interviewing** and **dynamic research** using WebSearch/WebFetch.
 
-## Overview
+## Design Principles
 
-This skill combines:
-1. **Structured Interviewing** - Understand what you're building
-2. **RAG-Powered Research** - Fetch latest technology information
-3. **Trade-off Analysis** - Compare options with pros/cons
-4. **Collaborative Decision** - Make choices together
-5. **Project Scaffolding** - Set up the decided stack
+1. **No Hardcoded Technologies**: Never recommend specific frameworks by name from memory. Always use WebSearch to find current options.
+2. **Requirements-First**: Understand what the user needs before researching solutions.
+3. **Domain-Agnostic**: Support any project type (web, mobile, embedded, games, data, desktop, CLI, etc.).
+4. **Dynamic Discovery**: Use RAG (WebSearch + WebFetch) to gather current technology landscape.
+5. **Transparent Trade-offs**: Present options with pros/cons based on research, not assumptions.
+
+---
 
 ## Workflow Phases
 
 ```
-Phase 1: Discovery Interview    → Understand project needs
-Phase 2: Constraint Mapping     → Identify limitations
-Phase 3: Stack Research (RAG)   → Fetch current best practices
-Phase 4: Recommendation         → Present options with trade-offs
-Phase 5: Decision              → Confirm choices with user
-Phase 6: Scaffolding           → Build the project structure
+Phase 1: Requirements Discovery  → Understand what user needs (not what category)
+Phase 2: Constraint Mapping      → Identify limitations and preferences
+Phase 3: Dynamic Research (RAG)  → Search for current solutions
+Phase 4: Analysis & Comparison   → Evaluate options against requirements
+Phase 5: Collaborative Decision  → Present findings, decide together
+Phase 6: Scaffolding            → Set up the decided stack
 ```
 
 ---
 
-## Phase 1: Discovery Interview
+## Phase 1: Requirements Discovery
 
-**Goal**: Understand what the user wants to build.
+**Goal**: Understand the user's needs in terms of **what the system must do**, not what technology category it fits.
 
-### 1.1 Project Type
+### 1.1 Core Purpose
 
 ```
-Question: "What type of application are you building?"
-Header: "App Type"
+Question: "What is the primary purpose of what you're building?"
+Header: "Purpose"
+(Free text response - don't constrain with options)
+```
+
+If user's response is vague, ask clarifying questions:
+- "Who or what will use this system?"
+- "What problem does it solve?"
+- "What does success look like?"
+
+### 1.2 Interaction Model
+
+```
+Question: "How will users/systems interact with this?"
+Header: "Interaction"
 Options:
-- "Web Application (browser-based)"
-- "Mobile App (iOS/Android)"
-- "API/Backend Service"
-- "CLI Tool or Script"
+- "Humans via visual interface (screens, graphics)"
+- "Humans via text/voice commands"
+- "Other software via API/messages"
+- "Physical world (sensors, actuators, hardware)"
+- "No direct interaction (background/batch processing)"
 ```
 
-### 1.2 Project Nature
+### 1.3 Data Characteristics
 
 ```
-Question: "What best describes your project?"
-Header: "Nature"
-Options:
-- "MVP/Prototype (speed matters most)"
-- "Production application (reliability matters)"
-- "Learning project (educational)"
-- "Enterprise system (scale & compliance)"
-```
-
-### 1.3 Core Features
-
-```
-Question: "What are the main features? (select all that apply)"
-Header: "Features"
+Question: "What kind of data will this handle?"
+Header: "Data"
 MultiSelect: true
 Options:
-- "User authentication & accounts"
-- "Real-time updates (chat, notifications)"
-- "File uploads & media handling"
-- "Payment processing"
+- "Structured records (users, orders, inventory)"
+- "Unstructured content (text, documents, media)"
+- "Real-time streams (events, sensors, logs)"
+- "Large datasets requiring batch processing"
 ```
 
-### 1.4 Additional Context
+### 1.4 Communication Patterns
 
-If user selects "Web Application":
 ```
-Question: "What type of web application?"
-Header: "Web Type"
+Question: "What communication patterns are needed?"
+Header: "Comms"
+MultiSelect: true
 Options:
-- "Content site / Blog / Marketing"
-- "SaaS / Dashboard / Admin panel"
-- "E-commerce / Marketplace"
-- "Social / Community platform"
+- "Request-response (user asks, system answers)"
+- "Real-time bidirectional (chat, collaboration)"
+- "Push notifications (alerts, updates)"
+- "Offline-capable (works without network)"
+```
+
+### 1.5 Deployment Environment
+
+```
+Question: "Where will this run?"
+Header: "Deploy"
+Options:
+- "User's device (phone, desktop, browser)"
+- "Cloud servers"
+- "Edge/embedded devices"
+- "Hybrid (multiple environments)"
+- "Not sure yet"
 ```
 
 ---
 
 ## Phase 2: Constraint Mapping
 
-**Goal**: Identify technical and practical limitations.
+**Goal**: Identify practical limitations that affect technology choices.
 
-### 2.1 Team Experience
+### 2.1 Team Skills
 
 ```
-Question: "What languages/frameworks does your team know well?"
-Header: "Experience"
+Question: "What programming languages does your team know well? (if any)"
+Header: "Languages"
+(Free text - don't constrain options)
+```
+
+### 2.2 Existing Systems
+
+```
+Question: "Are there existing systems this must integrate with?"
+Header: "Integration"
+Options:
+- "Yes, specific platforms/APIs (I'll describe)"
+- "Must follow organizational standards"
+- "No constraints, greenfield project"
+```
+
+### 2.3 Resource Constraints
+
+```
+Question: "What are your primary constraints?"
+Header: "Constraints"
 MultiSelect: true
 Options:
-- "JavaScript/TypeScript"
-- "Python"
-- "Go / Rust"
-- "None specific (open to learn)"
+- "Limited budget (prefer free/cheap options)"
+- "Tight timeline (prefer familiar, proven tools)"
+- "Small team (prefer simpler stacks)"
+- "Regulatory/compliance requirements"
 ```
 
-### 2.2 Infrastructure Constraints
+### 2.4 Scale Expectations
 
 ```
-Question: "Any infrastructure requirements?"
-Header: "Infra"
+Question: "What scale do you anticipate?"
+Header: "Scale"
 Options:
-- "Cloud (AWS/GCP/Azure) - flexible"
-- "Serverless preferred (Vercel/Netlify/Cloudflare)"
-- "Self-hosted / On-premise required"
-- "No preference"
-```
-
-### 2.3 Budget Considerations
-
-```
-Question: "What's your infrastructure budget expectation?"
-Header: "Budget"
-Options:
-- "Free tier / Minimal ($0-50/month)"
-- "Startup budget ($50-500/month)"
-- "Growth budget ($500-5000/month)"
-- "Enterprise (cost not primary concern)"
-```
-
-### 2.4 Timeline
-
-```
-Question: "When do you need the first version?"
-Header: "Timeline"
-Options:
-- "ASAP (days to 1-2 weeks)"
-- "Short-term (1-2 months)"
-- "Medium-term (3-6 months)"
-- "Long-term (6+ months)"
+- "Personal/small team use (<100 users)"
+- "Department/organization (100-10,000)"
+- "Public service (10,000+)"
+- "Unknown/variable"
 ```
 
 ---
 
-## Phase 3: Stack Research (RAG)
+## Phase 3: Dynamic Research (RAG)
 
-**Goal**: Fetch current technology information using web search.
+**Goal**: Use WebSearch and WebFetch to discover current technology options based on gathered requirements.
 
-### Research Strategy
+### 3.1 Construct Search Queries
 
-Based on interview responses, construct targeted searches:
+Transform requirements into search queries. **Never search for specific technology names from memory.**
 
-#### For Web Applications
+#### Query Construction Patterns
+
+| Requirement | Search Query Template |
+|-------------|----------------------|
+| Visual interface + browser | `"best frontend frameworks [year] comparison"` |
+| API backend | `"backend frameworks [year] [language if specified] production"` |
+| Real-time communication | `"real-time communication tools [year] comparison"` |
+| Data storage | `"database comparison [year] [data type]"` |
+| Deployment | `"deployment platforms [year] [constraint]"` |
+
+#### Example Query Generation
+
 ```
-Search queries:
-1. "[framework] vs [framework] 2025 comparison"
-2. "best [category] framework [year] production"
-3. "[framework] performance benchmarks latest"
-4. "[framework] developer experience 2025"
-```
+User needs: Visual interface, structured data, real-time updates, cloud deployment, team knows Python
 
-#### For Databases
-```
-Search queries:
-1. "[db type] comparison 2025 (PostgreSQL vs MySQL vs ...)"
-2. "best database for [use case] 2025"
-3. "[database] scalability production experience"
-```
-
-#### For Hosting/Infrastructure
-```
-Search queries:
-1. "[platform] pricing 2025 comparison"
-2. "best hosting for [framework] 2025"
-3. "[platform] developer experience review"
+Queries to run:
+1. "best frontend frameworks 2025 comparison production"
+2. "Python backend frameworks 2025 real-time support"
+3. "database for real-time applications 2025"
+4. "cloud deployment platforms 2025 Python applications"
 ```
 
-### Information Extraction
+### 3.2 Execute Research
 
-After searching, use WebFetch on top results to extract:
+For each technology category needed:
 
-1. **Pros/Cons** - Advantages and disadvantages
-2. **Use Cases** - When to use vs. when not to use
-3. **Production Stories** - Real-world experiences
-4. **Performance Data** - Benchmarks if available
-5. **Community Health** - Activity, support, ecosystem
+1. **WebSearch** with constructed query
+2. **Identify top candidates** from search results (usually 3-5)
+3. **WebFetch** on authoritative sources for each candidate:
+   - Official documentation (for current version, features)
+   - Recent comparison articles (< 1 year old)
+   - Production experience reports
 
-### Research Output Template
+### 3.3 Extract Information
+
+For each candidate technology, extract:
+
+| Attribute | What to Find |
+|-----------|--------------|
+| Current version | Latest stable release |
+| Primary use case | What it's designed for |
+| Strengths | Documented advantages |
+| Weaknesses | Known limitations |
+| Learning curve | Complexity for new users |
+| Community health | Activity, support availability |
+| License/cost | Open source? Pricing model? |
+
+### 3.4 Research Output
+
+Compile findings into structured format:
 
 ```markdown
-## Technology Research: [Category]
+## Research Results: [Category]
 
-### Option A: [Technology Name]
-- **Latest Version**: [version]
-- **Best For**: [use cases]
-- **Pros**: [list]
-- **Cons**: [list]
-- **Community**: [health assessment]
-- **Source**: [publication/date]
+### Candidates Discovered
 
-### Option B: [Technology Name]
-...
+| Name | Version | Best For | License |
+|------|---------|----------|---------|
+| [A]  | [ver]   | [use]    | [lic]   |
+| [B]  | [ver]   | [use]    | [lic]   |
+| [C]  | [ver]   | [use]    | [lic]   |
 
-### Comparison Summary
-| Aspect | Option A | Option B | Option C |
-|--------|----------|----------|----------|
-| Learning Curve | ... | ... | ... |
-| Performance | ... | ... | ... |
-| Ecosystem | ... | ... | ... |
-| Cost | ... | ... | ... |
+### Detailed Analysis
+
+#### [Candidate A]
+- **Strengths**: [from research]
+- **Weaknesses**: [from research]
+- **Fit for your requirements**: [analysis]
+
+### Sources
+- [Title] (date) - [url]
 ```
 
 ---
 
-## Phase 4: Recommendation
+## Phase 4: Analysis & Comparison
 
-**Goal**: Present analyzed options with clear trade-offs.
+**Goal**: Evaluate discovered options against user's specific requirements.
 
-### Recommendation Template
+### 4.1 Evaluation Framework
+
+Score each candidate against the evaluation axes:
+
+| Axis | Question | Weight |
+|------|----------|--------|
+| **Requirement Fit** | Does it solve the stated problem? | High |
+| **Constraint Compatibility** | Works with team skills, budget, timeline? | High |
+| **Integration** | Works with other chosen components? | Medium |
+| **Maturity** | Production-ready? Active maintenance? | Medium |
+| **Ecosystem** | Libraries, tools, documentation quality? | Medium |
+| **Future-proofing** | Long-term viability, migration path? | Low |
+
+### 4.2 Trade-off Matrix
+
+For the top candidates, create explicit trade-off comparison:
 
 ```markdown
-## Stack Recommendation for [Project Name]
+## Trade-off Analysis
 
-Based on your requirements:
-- Project type: [type]
-- Key features: [features]
-- Team experience: [experience]
-- Timeline: [timeline]
-
-### Recommended Stack
-
-#### Frontend
-**Recommendation: [Framework]**
-- Why: [reasons based on requirements]
-- Alternative: [alternative] if [condition]
-
-#### Backend
-**Recommendation: [Framework]**
-- Why: [reasons]
-- Alternative: [alternative]
-
-#### Database
-**Recommendation: [Database]**
-- Why: [reasons]
-- Alternative: [alternative]
-
-#### Hosting
-**Recommendation: [Platform]**
-- Why: [reasons]
-- Estimated Cost: [range]
-
-### Trade-off Summary
-
-| Decision | Optimized For | Trade-off |
-|----------|---------------|-----------|
-| [Choice] | [Benefit] | [Cost] |
+| Aspect | [Option A] | [Option B] | [Option C] |
+|--------|------------|------------|------------|
+| Your requirement 1 | ✅ Strong | ⚠️ Partial | ❌ Weak |
+| Your requirement 2 | ⚠️ Partial | ✅ Strong | ✅ Strong |
+| Team skill match | ✅ | ❌ | ⚠️ |
+| Learning curve | Low | High | Medium |
+| Community activity | High | Medium | Growing |
 ```
 
-### Present to User
+### 4.3 Recommendation Formulation
+
+Based on analysis, formulate recommendation:
+
+```markdown
+## Recommendation
+
+### Primary Choice: [Technology]
+**Why**: [Specific reasons tied to user's requirements]
+
+### Alternative: [Technology]
+**Consider if**: [Conditions where this would be better]
+
+### Not Recommended: [Technology]
+**Why not**: [Specific mismatch with requirements]
+```
+
+---
+
+## Phase 5: Collaborative Decision
+
+**Goal**: Present findings and make decisions together with the user.
+
+### 5.1 Present Findings
+
+Show the user:
+1. Summary of their requirements
+2. Research methodology used
+3. Candidates discovered
+4. Trade-off analysis
+5. Your recommendation with reasoning
+
+### 5.2 Decision Points
 
 ```
-Question: "Here's my recommended stack. How would you like to proceed?"
+Question: "Based on this research, how would you like to proceed?"
 Header: "Decision"
 Options:
-- "Looks good, let's proceed with setup"
-- "I'd like to discuss alternatives"
-- "Can you research [specific technology] more?"
-- "Let me adjust some requirements"
+- "Your recommendation looks good, let's proceed"
+- "I'd like to explore [specific technology] more"
+- "Can you research alternative approaches?"
+- "Let me reconsider my requirements"
 ```
 
----
+### 5.3 Iterate if Needed
 
-## Phase 5: Decision
+If user wants more research:
+- Conduct additional WebSearch on specific topics
+- Dive deeper with WebFetch on specific technologies
+- Revisit requirements if they've changed
 
-**Goal**: Confirm final technology choices.
+### 5.4 Final Confirmation
 
-### Final Confirmation
-
-```
-Question: "Confirm your stack choices:"
-Header: "Confirm"
-Options:
-- "Yes, proceed with: [summary of choices]"
-- "I want to change: [component]"
-```
-
-### Document Decision
-
-Create a stack decision record:
+Before scaffolding, confirm the complete stack:
 
 ```markdown
-# Stack Decision Record
+## Final Stack Decision
 
-**Project**: [name]
-**Date**: [date]
-**Decision Made By**: User + Claude consultation
+| Layer | Choice | Rationale |
+|-------|--------|-----------|
+| [Layer 1] | [Tech] | [Why] |
+| [Layer 2] | [Tech] | [Why] |
 
-## Final Stack
-
-| Layer | Technology | Version | Rationale |
-|-------|------------|---------|-----------|
-| Frontend | [tech] | [ver] | [why] |
-| Backend | [tech] | [ver] | [why] |
-| Database | [tech] | [ver] | [why] |
-| Hosting | [tech] | - | [why] |
-
-## Alternatives Considered
-
-| Layer | Alternative | Why Not Chosen |
-|-------|-------------|----------------|
-| ... | ... | ... |
-
-## Research Sources
-
-- [Source 1]
-- [Source 2]
+Proceed with project setup?
 ```
 
 ---
 
 ## Phase 6: Scaffolding
 
-**Goal**: Set up the project with the decided stack.
+**Goal**: Set up the project with the decided technologies.
 
-### Scaffolding Strategy
+### 6.1 Research Setup Commands
 
-Based on confirmed stack, execute appropriate setup:
+**Do not assume setup commands from memory.** Use WebSearch/WebFetch to find current official setup instructions:
 
-#### JavaScript/TypeScript Projects
-
-```bash
-# Next.js
-npx create-next-app@latest [project-name] --typescript --tailwind --eslint --app
-
-# Vite + React
-npm create vite@latest [project-name] -- --template react-ts
-
-# Express + TypeScript
-mkdir [project-name] && cd [project-name]
-npm init -y
-npm install express typescript @types/express @types/node ts-node
-npx tsc --init
+```
+WebSearch: "[technology name] getting started official documentation [year]"
+WebFetch: [official docs URL] → "Extract installation and project setup commands"
 ```
 
-#### Python Projects
+### 6.2 Execute Setup
 
-```bash
-# FastAPI
-mkdir [project-name] && cd [project-name]
-python -m venv venv
-source venv/bin/activate
-pip install fastapi uvicorn sqlalchemy
+Run the officially documented setup commands.
 
-# Django
-pip install django
-django-admin startproject [project-name]
-```
+### 6.3 Post-Setup
 
-#### Go Projects
+1. **Initialize version control** (git init, .gitignore)
+2. **Create CLAUDE.md** documenting:
+   - Decided stack with rationale
+   - Setup commands used
+   - Key architectural decisions
+3. **Verify setup** by running basic commands (build, test)
 
-```bash
-mkdir [project-name] && cd [project-name]
-go mod init [module-name]
-# Install chosen framework (gin, echo, fiber, etc.)
-```
-
-### Post-Scaffolding Setup
-
-1. **Initialize Git**
-   ```bash
-   git init
-   echo "node_modules/\n.env\n.env.local" > .gitignore
-   ```
-
-2. **Create initial structure**
-   - Set up recommended folder structure
-   - Create placeholder files
-
-3. **Configure development tools**
-   - ESLint/Prettier (JS/TS)
-   - Black/Ruff (Python)
-   - golangci-lint (Go)
-
-4. **Generate CLAUDE.md**
-   - Document the decided stack
-   - Add project-specific rules
-
-### Scaffolding Output
+### 6.4 Handoff
 
 ```markdown
 ## Project Setup Complete
 
-### Created Structure
-```
-[project-name]/
-├── src/
-│   └── ...
-├── package.json (or equivalent)
-├── .gitignore
-├── CLAUDE.md
-└── README.md
-```
+### Stack
+[List of technologies with versions]
+
+### Setup Commands Used
+[Commands that were run]
 
 ### Next Steps
-1. `cd [project-name]`
-2. Review generated files
-3. Run `npm install` (or equivalent)
-4. Start development with `npm run dev`
+- [First recommended action based on the stack]
+- [Second recommended action]
 
-### Recommended First Tasks
-- [ ] Set up database connection
-- [ ] Implement basic routing
-- [ ] Add authentication (if needed)
+### Documentation Created
+- CLAUDE.md - Project context for future sessions
+- README.md - Human-readable project documentation
 ```
-
----
-
-## Quick Decision Trees
-
-### Web Application
-
-```
-User Auth Required?
-├── Yes → Consider: Supabase, Firebase, Auth.js
-└── No → Simpler setup
-
-Real-time needed?
-├── Yes → Consider: Socket.io, Supabase Realtime, Pusher
-└── No → Standard REST/GraphQL
-
-SEO important?
-├── Yes → SSR/SSG: Next.js, Nuxt, Astro
-└── No → SPA: Vite+React, Vue
-```
-
-### Database Selection
-
-```
-Data structure?
-├── Relational → PostgreSQL (default), MySQL, SQLite
-├── Document → MongoDB, Firestore
-├── Key-Value → Redis, DynamoDB
-└── Graph → Neo4j, Dgraph
-
-Scale expectation?
-├── Small (<10GB) → SQLite, Supabase
-├── Medium → PostgreSQL, PlanetScale
-└── Large → Managed services, sharding
-```
-
----
-
-## RAG Best Practices
-
-### Effective Search Queries
-
-| Need | Good Query | Bad Query |
-|------|------------|-----------|
-| Framework comparison | "Next.js vs Remix 2025 production" | "best framework" |
-| Database choice | "PostgreSQL vs MongoDB for SaaS 2025" | "what database" |
-| Hosting | "Vercel pricing tiers 2025" | "cheap hosting" |
-
-### Source Evaluation
-
-Prioritize information from:
-1. Official documentation
-2. Engineering blogs from reputable companies
-3. Recent conference talks/articles (< 1 year old)
-4. Community discussions with verified experiences
-
-Deprioritize:
-1. Outdated articles (> 2 years)
-2. Promotional content
-3. Unverified claims without sources
-
-### When to Search
-
-- Always search for: Latest versions, pricing, recent comparisons
-- Sometimes search: Well-established best practices
-- Rarely search: Basic syntax, fundamental concepts
 
 ---
 
 ## Rules
 
-- ALWAYS start with discovery interview before recommending
-- ALWAYS use WebSearch for current technology information
-- ALWAYS present trade-offs, not just recommendations
+- NEVER recommend technologies by name without first researching current options
+- NEVER assume technology features from training data - always verify with WebFetch
+- NEVER use technology-specific questions in Phase 1 (requirements first)
+- ALWAYS use WebSearch to discover current options
+- ALWAYS present trade-offs based on research, not assumptions
 - ALWAYS confirm decisions before scaffolding
-- ALWAYS create CLAUDE.md after scaffolding
-- NEVER recommend without understanding requirements
-- NEVER proceed to scaffolding without explicit confirmation
-- NEVER skip the research phase for unfamiliar technologies
-- NEVER assume user preferences without asking
+- ALWAYS verify setup commands from official documentation
+- ALWAYS create CLAUDE.md after project setup
