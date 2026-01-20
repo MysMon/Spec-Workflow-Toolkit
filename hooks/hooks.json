@@ -65,7 +65,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session_summary.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session_summary.sh",
+            "timeout": 5000
           }
         ]
       }

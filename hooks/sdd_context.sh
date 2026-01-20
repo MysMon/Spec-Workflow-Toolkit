@@ -40,12 +40,17 @@ fi
 # Extract resumption context if progress file exists
 if [ -n "$PROGRESS_FILE" ] && [ -f "$PROGRESS_FILE" ]; then
     # Try to extract key information using basic tools
+    # Use environment variable to safely pass file path to Python
     if command -v python3 &> /dev/null; then
-        RESUMPTION_INFO=$(python3 -c "
+        RESUMPTION_INFO=$(PROGRESS_FILE_PATH="$PROGRESS_FILE" python3 -c "
 import json
+import os
 import sys
 try:
-    with open('$PROGRESS_FILE', 'r') as f:
+    progress_file = os.environ.get('PROGRESS_FILE_PATH', '')
+    if not progress_file:
+        sys.exit(0)
+    with open(progress_file, 'r') as f:
         data = json.load(f)
     ctx = data.get('resumptionContext', {})
     status = data.get('status', 'unknown')
@@ -69,13 +74,18 @@ except Exception as e:
 fi
 
 # Extract feature progress if feature file exists
+# Use environment variable to safely pass file path to Python
 FEATURE_PROGRESS=""
 if [ -n "$FEATURE_FILE" ] && [ -f "$FEATURE_FILE" ]; then
     if command -v python3 &> /dev/null; then
-        FEATURE_PROGRESS=$(python3 -c "
+        FEATURE_PROGRESS=$(FEATURE_FILE_PATH="$FEATURE_FILE" python3 -c "
 import json
+import os
 try:
-    with open('$FEATURE_FILE', 'r') as f:
+    feature_file = os.environ.get('FEATURE_FILE_PATH', '')
+    if not feature_file:
+        exit(0)
+    with open(feature_file, 'r') as f:
         data = json.load(f)
     total = data.get('totalFeatures', len(data.get('features', [])))
     completed = data.get('completed', 0)
@@ -113,7 +123,7 @@ fi
 
 # --- Output Context ---
 cat << 'EOF'
-## SDD Toolkit v9.0.0 - Session Initialized
+## SDD Toolkit - Session Initialized
 
 **Official References:**
 - [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)

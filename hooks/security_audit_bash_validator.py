@@ -168,14 +168,28 @@ def main():
             print(json.dumps(output))
             sys.exit(0)  # Exit 0 with JSON decision control
 
-    except json.JSONDecodeError:
-        # Non-blocking error for invalid input
-        print("Error: Invalid JSON input", file=sys.stderr)
-        sys.exit(1)
+    except json.JSONDecodeError as e:
+        # Use JSON decision control to deny on parse errors (fail-safe)
+        output = {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": f"Security Audit Mode: Invalid JSON input - {e}"
+            }
+        }
+        print(json.dumps(output))
+        sys.exit(0)
     except Exception as e:
-        # Non-blocking error
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
+        # Use JSON decision control to deny on errors (fail-safe)
+        output = {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": f"Security Audit Mode: Validation error - {e}"
+            }
+        }
+        print(json.dumps(output))
+        sys.exit(0)
 
 
 if __name__ == '__main__':
