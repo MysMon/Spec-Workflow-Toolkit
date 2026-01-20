@@ -1,6 +1,6 @@
 ---
 description: "Resume work from progress files - restore context and continue from last checkpoint"
-argument-hint: "[optional: project-name or 'list' to show all]"
+argument-hint: "[optional: 'list' | workspace-id | project-name]"
 allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
 ---
 
@@ -16,6 +16,31 @@ Based on Anthropic's Initializer + Coding Agent pattern from Effective Harnesses
 
 **The Solution:** This command reads structured progress files to restore context and continue from exactly where work stopped.
 
+## Multi-Project Workspace Isolation
+
+Progress files are now isolated per workspace to support concurrent projects and git worktrees.
+
+### Workspace Structure
+
+```
+.claude/workspaces/
+├── main_a1b2c3d4/              # main branch workspace
+│   ├── claude-progress.json
+│   ├── feature-list.json
+│   └── logs/
+│       ├── subagent_activity.log
+│       └── sessions/
+└── feature-auth_e5f6g7h8/      # feature branch worktree
+    ├── claude-progress.json
+    └── logs/
+```
+
+### Workspace ID Format
+
+`{branch}_{path-hash}` where:
+- `branch`: Current git branch (e.g., `main`, `feature-auth`)
+- `path-hash`: MD5 hash of working directory path (8 chars)
+
 ## When to Use
 
 - Starting a new session after `/sdd` was interrupted
@@ -23,40 +48,57 @@ Based on Anthropic's Initializer + Coding Agent pattern from Effective Harnesses
 - Recovering after context compaction
 - Resuming after explicit `/clear`
 - Checking status of in-progress work
-
-## Progress File Locations
-
-```
-.claude/
-├── claude-progress.json    # Resumption context, position, decisions
-└── feature-list.json       # Task/feature status tracking
-```
+- Switching between workspaces/worktrees
 
 ---
 
 ## Execution Instructions
 
-### Phase 1: Progress Detection
+### Phase 1: Workspace Detection
 
-**Goal:** Find and validate existing progress files.
-
-**Check for progress files:**
-
-```bash
-ls -la .claude/claude-progress.json .claude/feature-list.json 2>/dev/null
-```
+**Goal:** Find and validate available workspaces and progress files.
 
 **If argument is "list":**
-- Search for all progress files across subdirectories
-- Display summary of each project's status
-- Exit after listing
+
+```bash
+# List all available workspaces
+ls -la .claude/workspaces/ 2>/dev/null
+```
+
+For each workspace found, display:
+- Workspace ID
+- Project name (from progress file)
+- Status (in_progress, completed, blocked)
+- Last updated timestamp
+- Current position
+
+Example output:
+```markdown
+## Available Workspaces
+
+| Workspace ID | Project | Status | Last Updated | Position |
+|--------------|---------|--------|--------------|----------|
+| main_a1b2c3d4 | auth-feature | in_progress | 2025-01-16 | Phase 5 - Implementation |
+| feature-api_e5f6g7h8 | api-refactor | completed | 2025-01-15 | Done |
+```
+
+**If argument is a workspace ID:**
+- Look for `.claude/workspaces/{workspace-id}/claude-progress.json`
+- If not found, report error
 
 **If argument is a project name:**
-- Look for `.claude/claude-progress.json` with matching project name
-- Or look in `[project-name]/.claude/claude-progress.json`
+- Search all workspaces for matching project name
+- If multiple matches, list and ask user to choose
+
+**If no argument:**
+1. Use the workspace ID shown in SessionStart hook output (format: `{branch}_{path-hash}`)
+2. Check for workspace progress file at `.claude/workspaces/{workspace-id}/claude-progress.json`
+3. If not found, check legacy locations (`.claude/claude-progress.json`)
+4. If legacy found, offer migration to workspace structure
 
 **If no progress files found:**
-- Report: "No progress files found in this directory."
+- Report: "No progress files found for this workspace."
+- List available workspaces if any exist
 - Suggest: "Use `/sdd` to start a new tracked workflow."
 - Exit
 
@@ -69,6 +111,7 @@ ls -la .claude/claude-progress.json .claude/feature-list.json 2>/dev/null
 ```json
 // Key fields to extract from claude-progress.json:
 {
+  "workspaceId": "main_a1b2c3d4",
   "project": "...",
   "status": "in_progress | completed | blocked",
   "currentTask": "...",
@@ -87,6 +130,7 @@ ls -la .claude/claude-progress.json .claude/feature-list.json 2>/dev/null
 ```json
 // Key fields from feature-list.json:
 {
+  "workspaceId": "main_a1b2c3d4",
   "features": [
     {"id": "F001", "name": "...", "status": "completed"},
     {"id": "F002", "name": "...", "status": "in_progress"},
@@ -114,6 +158,9 @@ git log --oneline -5
 
 # Check current branch
 git branch --show-current
+
+# Check if in a worktree
+git worktree list
 ```
 
 **If uncommitted changes exist:**
@@ -124,6 +171,10 @@ git branch --show-current
 - Report discrepancy
 - Ask user how to proceed
 
+**If current branch doesn't match workspace:**
+- Warn: "Current branch `X` doesn't match workspace `Y`"
+- Ask if user wants to switch workspace or continue
+
 ### Phase 4: Context Restoration Display
 
 **Goal:** Present clear resumption context to user.
@@ -132,6 +183,11 @@ git branch --show-current
 
 ```markdown
 ## Resuming: [Project Name]
+
+### Workspace
+**ID**: `main_a1b2c3d4`
+**Branch**: `main`
+**Path**: `/path/to/project`
 
 ### Progress
 [====>     ] 4/10 features (40%)
@@ -184,7 +240,7 @@ Options:
 
 **If "Start fresh":**
 - Confirm: "This will archive current progress. Are you sure?"
-- If confirmed: Move progress files to `.claude/archive/[timestamp]/`
+- If confirmed: Move progress files to `.claude/workspaces/{id}/archive/[timestamp]/`
 - Exit with suggestion to run `/sdd`
 
 **If "Just checking status":**
@@ -235,7 +291,7 @@ Identify the current feature's domain:
 ```json
 // Add new session entry
 {
-  "id": [next session number],
+  "id": "[session-id]",
   "started": "[current timestamp]",
   "summary": "Resumed from checkpoint",
   "continuing": true
@@ -250,6 +306,7 @@ Identify the current feature's domain:
 
 ```json
 {
+  "workspaceId": "main_a1b2c3d4",
   "project": "project-name",
   "started": "ISO timestamp",
   "lastUpdated": "ISO timestamp",
@@ -257,7 +314,7 @@ Identify the current feature's domain:
   "currentTask": "Current task description",
   "sessions": [
     {
-      "id": 1,
+      "id": "20250116_100000_abc1",
       "started": "ISO timestamp",
       "ended": "ISO timestamp",
       "summary": "What was accomplished",
@@ -283,7 +340,8 @@ Identify the current feature's domain:
   "compactionHistory": [
     {
       "timestamp": "ISO timestamp",
-      "positionAtCompaction": "Where we were"
+      "positionAtCompaction": "Where we were",
+      "workspaceId": "main_a1b2c3d4"
     }
   ]
 }
@@ -293,6 +351,7 @@ Identify the current feature's domain:
 
 ```json
 {
+  "workspaceId": "main_a1b2c3d4",
   "project": "project-name",
   "totalFeatures": 10,
   "completed": 3,
@@ -343,18 +402,31 @@ If status is "completed":
    - Start new related work
    - Archive and close
 
+### Legacy File Migration
+
+If legacy files found (`.claude/claude-progress.json` or `claude-progress.json`):
+
+1. Detect current workspace ID
+2. Offer to migrate to new structure
+3. Migration copies (not moves) files
+4. Updates workspaceId field in migrated files
+5. Original files preserved for safety
+
 ---
 
 ## Usage Examples
 
 ```bash
-# Resume work in current directory
+# Resume work in current workspace
 /resume
 
-# List all tracked projects
+# List all tracked workspaces
 /resume list
 
-# Resume specific project
+# Resume specific workspace
+/resume main_a1b2c3d4
+
+# Resume by project name (searches all workspaces)
 /resume auth-feature
 
 # Check status without continuing
@@ -369,6 +441,7 @@ If status is "completed":
 | `/clear` | Cleared context but want to continue |
 | Compaction | Context was automatically compacted |
 | Session end | Starting new session next day |
+| `git worktree add` | Switching to different worktree |
 
 ## Tips for Best Results
 
@@ -377,6 +450,7 @@ If status is "completed":
 3. **Document decisions**: Future sessions need to understand past choices
 4. **Update nextAction**: Be specific about what comes next
 5. **List key files**: Include file:line references for quick context loading
+6. **Use workspace IDs**: They uniquely identify branch + directory combinations
 
 ## Comparison with --continue Flag
 
@@ -385,4 +459,5 @@ If status is "completed":
 | Restores | Conversation history | Structured progress state |
 | Scope | Last session in directory | Multi-session project state |
 | Context | Full message history | Curated resumption context |
+| Workspace aware | No | Yes |
 | Best for | Recent interruptions | Long-running projects |

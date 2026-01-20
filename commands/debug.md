@@ -411,8 +411,9 @@ For complex bugs requiring multiple sessions:
 **Create checkpoint:**
 
 ```json
-// Add to .claude/claude-progress.json
+// Add to .claude/workspaces/{workspace-id}/claude-progress.json
 {
+  "workspaceId": "{workspace-id}",
   "currentTask": "Debugging: [error description]",
   "resumptionContext": {
     "position": "Debug Phase 3 - Root cause identified",

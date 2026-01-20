@@ -26,6 +26,10 @@ build/
 # Claude Code local settings (personal, not shared)
 .claude/settings.local.json
 
+# Claude Code workspace logs (session-specific, not shared)
+# Progress files (.claude/workspaces/*/claude-progress.json) ARE tracked
+.claude/workspaces/*/logs/
+
 # IDE
 .idea/
 .vscode/

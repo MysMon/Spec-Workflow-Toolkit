@@ -289,11 +289,16 @@ Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com
 | **INITIALIZER** | No progress file exists | Create progress files, break down work, set up state |
 | **CODING** | Progress file exists | Read state, implement ONE feature, update state, commit |
 
+**Workspace ID:**
+
+Use the workspace ID shown in SessionStart hook output. Format: `{branch}_{path-hash}` (e.g., `main_a1b2c3d4`).
+
 **Progress File Structure:**
 
-Create `.claude/claude-progress.json`:
+Create `.claude/workspaces/{workspace-id}/claude-progress.json`:
 ```json
 {
+  "workspaceId": "[workspace-id]",
   "project": "[feature-name]",
   "status": "in_progress",
   "currentTask": "Implementing [component]",
@@ -307,9 +312,10 @@ Create `.claude/claude-progress.json`:
 }
 ```
 
-Create `.claude/feature-list.json`:
+Create `.claude/workspaces/{workspace-id}/feature-list.json`:
 ```json
 {
+  "workspaceId": "[workspace-id]",
   "features": [
     {"id": "F001", "name": "[Component 1]", "status": "completed", "files": ["src/..."]},
     {"id": "F002", "name": "[Component 2]", "status": "in_progress", "files": []},
@@ -317,6 +323,8 @@ Create `.claude/feature-list.json`:
   ]
 }
 ```
+
+**Workspace ID Format:** `{branch}_{path-hash}` (e.g., `main_a1b2c3d4`)
 
 **Why JSON?** From Anthropic: "Models are less likely to inappropriately modify structured data."
 
