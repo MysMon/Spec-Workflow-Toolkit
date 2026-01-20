@@ -250,6 +250,68 @@ npm test &
 # Use Ctrl+B to background running tasks
 ```
 
+## Subagent Resume Pattern
+
+Patterns for efficiently utilizing subagents in long-running tasks.
+
+### Why Resume Matters
+
+From Claude Code Subagents Documentation:
+
+> "Resumed subagents retain their full conversation history, including all previous tool calls, results, and reasoning."
+
+Benefits of resuming subagents:
+- No need to rebuild context from scratch
+- Continue exactly where the agent stopped
+- Prevent loss of exploration results
+
+### Basic Resume Pattern
+
+```
+Initial invocation:
+"Use code-explorer to analyze module A"
+[Agent completes, returns results]
+
+Continuation (resume same agent):
+"Continue that code-explorer and also analyze module B"
+[Resumes with full context from previous conversation]
+```
+
+### Background Subagent Recovery
+
+When a background subagent fails due to missing permissions:
+
+1. The agent skips the failed tool call and continues
+2. After completion, can be resumed in foreground to retry
+3. Interactive permission prompts are available when resumed
+
+### Background Subagent Limitations
+
+| Feature | Foreground | Background |
+|---------|------------|------------|
+| MCP tools | ✅ Available | ❌ Not available |
+| Permission prompts | ✅ Interactive | ❌ Auto-denied |
+| AskUserQuestion | ✅ Available | ❌ Fails |
+| Resume | - | ✅ Can resume in foreground |
+
+### When to Use Resume
+
+| Scenario | Recommended Action |
+|----------|-------------------|
+| Expanding exploration | Resume same code-explorer |
+| Additional review checks | Resume same security-auditor |
+| Recovering from permission errors | Resume in foreground |
+| Need fresh context | Launch new agent |
+
+### Transcript Location
+
+Subagent transcripts are stored at:
+```
+~/.claude/projects/{project}/{sessionId}/subagents/agent-{agentId}.jsonl
+```
+
+Automatic cleanup after 30 days by default (configurable via `cleanupPeriodDays` setting).
+
 ## Multi-Session Work
 
 When work spans multiple sessions:
