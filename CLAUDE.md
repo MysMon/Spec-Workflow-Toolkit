@@ -101,6 +101,22 @@ When adding, removing, or renaming components:
 
 Version is managed in `plugin.json` only (Single Source of Truth). Do not add version numbers to document titles or content.
 
+### Obsolescence Prevention
+
+Avoid content that becomes outdated when external tools/APIs change.
+
+| Avoid | Instead |
+|-------|---------|
+| Specific API method names | Conceptual descriptions ("find references") |
+| Version numbers ("v2.1.0") | "When available" or omit |
+| Prescriptive tool requirements | Examples with alternatives |
+
+**Skills**: Define processes, not static knowledge. Use WebSearch for current options.
+
+**Commands/Agents**: Concrete examples OK if framed as examples, not requirements.
+
+See `docs/DEVELOPMENT.md` "Command and Agent Content Guidelines" for details.
+
 ## Validation
 
 ```bash

@@ -238,14 +238,13 @@ Example:
 
 ### Regular Audits
 
-| Language | Audit Command |
-|----------|---------------|
-| JavaScript | `npm audit` |
-| Python | `pip-audit` or `safety check` |
-| Go | `govulncheck ./...` |
-| Rust | `cargo audit` |
-| Java | `mvn dependency-check:check` |
-| Ruby | `bundle audit` |
+Each ecosystem has standard dependency audit tools. Use the `security-auditor` agent or `stack-detector` skill to identify the appropriate commands for your stack.
+
+**Audit checklist:**
+- Known CVEs in dependencies
+- Outdated packages with security patches
+- Transitive dependency vulnerabilities
+- License compliance (if required)
 
 ### Update Strategy
 
