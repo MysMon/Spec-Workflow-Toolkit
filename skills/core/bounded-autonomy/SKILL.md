@@ -188,10 +188,20 @@ Over-thinking when action is clear.
 **Example**: Extensive deliberation on obvious implementation.
 **Better**: Act on clear cases, deliberate on unclear ones.
 
-## Rules
+## Rules (L1 - Hard)
 
 - ALWAYS respect L1 (Hard) rules without exception
-- ALWAYS explain reasoning when deviating from prescribed approach
 - NEVER use "better judgment" to skip safety/security measures
 - ALWAYS verify L1 compliance before proceeding with alternatives
+
+## Defaults (L2 - Soft)
+
+- Explain reasoning when deviating from prescribed approach
+- Document the tradeoffs of alternative approaches
+- Confirm constraint level before overriding L2 rules
+
+## Guidelines (L3)
+
 - Consider asking user when unsure about constraint level
+- Prefer goal-oriented thinking over mechanical step-following
+- Use thinking prompts for complex multi-step decisions

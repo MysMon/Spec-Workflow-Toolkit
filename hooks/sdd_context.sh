@@ -371,3 +371,6 @@ if [ -n "$AVAILABLE_WORKSPACES" ]; then
         echo ""
     fi
 fi
+
+# Explicit exit for clarity
+exit 0
