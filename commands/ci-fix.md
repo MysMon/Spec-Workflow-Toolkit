@@ -143,10 +143,34 @@ Look for:
    - Environment difference? (CI has different config)
    - Recent code change? (check git blame)
 
-4. **Delegate fix to appropriate agent:**
+4. **Check for flaky test:**
+
+   Before investing in fixes, verify the test isn't flaky:
+
+   ```bash
+   # Run the failing test multiple times locally
+   for i in {1..5}; do npm test -- --testNamePattern="suspect test" && echo "Pass $i" || echo "FAIL $i"; done
+
+   # For pytest
+   for i in {1..5}; do pytest path/to/test.py::test_name -x && echo "Pass $i" || echo "FAIL $i"; done
+   ```
+
+   **Flaky test indicators:**
+   - Test passes some runs, fails others (without code changes)
+   - Test fails only in CI but passes locally
+   - Test mentions timing, sleep, or async operations
+   - Different results when run in isolation vs full suite
+
+   **If flaky test confirmed:**
+   - Load the `testing` skill for detailed flaky test management
+   - Common fixes: replace sleeps with explicit waits, isolate test data, mock time
+   - If can't fix immediately: quarantine (skip with issue reference) and create ticket
+
+5. **Delegate fix to appropriate agent:**
    ```
    If test logic issue → delegate to qa-engineer
    If code bug → delegate to appropriate specialist
+   If flaky test → load testing skill, apply fixes from Flaky Test Management section
    ```
 
 ### Phase 3B: Build Error Resolution

@@ -210,18 +210,26 @@ transformable, transformed_cmd, transform_desc = check_transformable(command)
 
 if transformable:
     # Use input modification to transform command (v2.0.10+ feature)
+    # Include permissionDecisionReason for audit trail and transparency
     output = {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "allow",
+            "permissionDecisionReason": f"Transformed for safety: {transform_desc}. Original: {command[:50]}{'...' if len(command) > 50 else ''}",
             "updatedInput": {
                 "command": transformed_cmd
             }
         }
     }
-    # Note: The transformation is logged in the decision reason for transparency
     print(json.dumps(output))
     sys.exit(0)
 
-# Allow the command to proceed unchanged
+# Allow the command to proceed unchanged - explicit allow for audit consistency
+output = {
+    "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "allow"
+    }
+}
+print(json.dumps(output))
 sys.exit(0)

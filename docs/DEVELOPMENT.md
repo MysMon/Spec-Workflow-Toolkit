@@ -127,9 +127,9 @@ skills: skill1, skill2
 | Model | Use Case | Example Agents |
 |-------|----------|----------------|
 | **Opus** | Complex reasoning, high-impact | system-architect, product-manager |
-| **Sonnet** | Balanced cost/capability | code-explorer, qa-engineer |
+| **Sonnet** | Balanced cost/capability | code-explorer, qa-engineer, frontend-specialist, backend-specialist |
 | **Haiku** | Fast, cheap operations | Scoring in /code-review |
-| **inherit** | User controls tradeoff | frontend-specialist, backend-specialist |
+| **inherit** | User controls tradeoff | (Use when parent context should decide) |
 
 ---
 
@@ -613,6 +613,62 @@ if tool_name.startswith("mcp__"):
 | **Code exploration** | Use built-in `code-explorer` agent; MCP filesystem for specialized access |
 | **GitHub operations** | MCP GitHub server for PR/Issue operations; `/code-review` for review workflow |
 | **E2E testing** | MCP Puppeteer + `qa-engineer` agent for comprehensive testing |
+
+---
+
+## Web Environment (Claude Code on Web)
+
+When running Claude Code on the web (`CLAUDE_CODE_REMOTE=true`), some capabilities differ from CLI usage.
+
+### Environment Detection
+
+Hooks can detect the web environment:
+
+```bash
+#!/bin/bash
+if [ "$CLAUDE_CODE_REMOTE" = "true" ]; then
+    # Web-specific behavior
+    echo "Running in Claude Code on Web"
+fi
+```
+
+### Known Differences
+
+| Feature | CLI | Web | Notes |
+|---------|-----|-----|-------|
+| **File system** | Full local access | Sandboxed workspace | Web has restricted paths |
+| **Git operations** | Full git access | Limited | Some operations may require workarounds |
+| **Shell commands** | User's shell | Containerized | Different env vars, paths |
+| **Interactive prompts** | Supported | Limited | Prefer non-interactive flags |
+| **Long-running processes** | Supported | May timeout | Use timeouts, checkpointing |
+| **MCP servers** | Configurable | Pre-configured | Limited customization |
+
+### Best Practices for Web Compatibility
+
+| Practice | Recommendation |
+|----------|----------------|
+| **Use non-interactive flags** | `git commit -m "msg"` not `-i`, `rm -f` not `-i` |
+| **Avoid absolute paths** | Use `$CLAUDE_PROJECT_DIR` or relative paths |
+| **Handle missing commands** | Check `command -v` before using |
+| **Use progress files** | Essential for session resumption in web |
+| **Set explicit timeouts** | Web sessions may have shorter limits |
+
+### Hook Compatibility
+
+Hooks in this plugin are designed to work in both environments:
+
+- `CLAUDE_CODE_REMOTE` check in `sdd_context.sh`
+- Fallback behaviors when commands unavailable
+- Progress files use relative paths within `.claude/`
+
+### Testing for Web Compatibility
+
+When modifying hooks or scripts:
+
+1. Test with `CLAUDE_CODE_REMOTE=true` environment variable
+2. Verify behavior when typical CLI commands are unavailable
+3. Ensure progress files are written to `.claude/workspaces/`
+4. Test with restricted filesystem access
 
 ---
 
