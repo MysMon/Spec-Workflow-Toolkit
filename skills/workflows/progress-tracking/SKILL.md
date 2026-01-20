@@ -282,9 +282,7 @@ When starting or resuming:
    - Report: "Workspace: [workspace-id]"
    - Report: "Next action: [nextAction]"
 4. If not exists:
-   - Check for legacy files (.claude/claude-progress.json)
-   - If legacy exists, offer migration
-   - Otherwise, initialize new progress tracking
+   - Initialize new progress tracking
    - Create feature list if multiple features
 ```
 
@@ -387,15 +385,6 @@ With proper recovery:
 - All decisions are preserved in JSON
 - Key file references enable quick context loading
 - Work continues smoothly across compaction boundaries
-
-## Legacy File Migration
-
-If old-style progress files exist at `.claude/claude-progress.json` or `claude-progress.json`:
-
-1. **Detect legacy files** during SessionStart
-2. **Offer migration** to new workspace structure
-3. **Copy** (not move) files to preserve originals
-4. **Update** workspace ID in migrated files
 
 ## Best Practices
 

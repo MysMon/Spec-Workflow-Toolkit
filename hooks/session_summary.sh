@@ -3,11 +3,30 @@
 # Outputs a summary of changes made during the session
 # Stack-agnostic
 
+# Source workspace utilities
+SCRIPT_DIR="$(dirname "$0")"
+if [ -f "$SCRIPT_DIR/workspace_utils.sh" ]; then
+    source "$SCRIPT_DIR/workspace_utils.sh"
+fi
+
 echo ""
 echo "═══════════════════════════════════════════════════"
 echo "                  SESSION SUMMARY                   "
 echo "═══════════════════════════════════════════════════"
 echo ""
+
+# Display workspace info
+if command -v get_workspace_id &> /dev/null; then
+    WORKSPACE_ID=$(get_workspace_id)
+    echo "🗂️  Workspace: $WORKSPACE_ID"
+
+    # Check for progress file
+    PROGRESS_FILE=$(get_progress_file "$WORKSPACE_ID")
+    if [ -f "$PROGRESS_FILE" ]; then
+        echo "  📋 Progress file: exists"
+    fi
+    echo ""
+fi
 
 # Check if we're in a git repository
 if git rev-parse --git-dir > /dev/null 2>&1; then

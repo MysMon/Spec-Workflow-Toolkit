@@ -180,55 +180,6 @@ PYEOF
 }
 
 # ============================================================================
-# LEGACY MIGRATION
-# ============================================================================
-
-# Check for legacy progress files (old structure)
-# Returns: path to legacy file if found, empty if not
-find_legacy_progress() {
-    # Check old locations in order of preference
-    if [ -f ".claude/claude-progress.json" ]; then
-        echo ".claude/claude-progress.json"
-    elif [ -f "claude-progress.json" ]; then
-        echo "claude-progress.json"
-    fi
-}
-
-# Check for legacy feature files (old structure)
-find_legacy_features() {
-    if [ -f ".claude/feature-list.json" ]; then
-        echo ".claude/feature-list.json"
-    elif [ -f "feature-list.json" ]; then
-        echo "feature-list.json"
-    fi
-}
-
-# Migrate legacy files to new workspace structure
-# This is a non-destructive operation - copies files, doesn't delete originals
-migrate_legacy_files() {
-    local workspace_id="${1:-$(get_workspace_id)}"
-    local legacy_progress="$(find_legacy_progress)"
-    local legacy_features="$(find_legacy_features)"
-
-    if [ -n "$legacy_progress" ] || [ -n "$legacy_features" ]; then
-        ensure_workspace_exists "$workspace_id"
-
-        if [ -n "$legacy_progress" ] && [ ! -f "$(get_progress_file "$workspace_id")" ]; then
-            cp "$legacy_progress" "$(get_progress_file "$workspace_id")"
-            echo "Migrated: $legacy_progress -> $(get_progress_file "$workspace_id")"
-        fi
-
-        if [ -n "$legacy_features" ] && [ ! -f "$(get_feature_file "$workspace_id")" ]; then
-            cp "$legacy_features" "$(get_feature_file "$workspace_id")"
-            echo "Migrated: $legacy_features -> $(get_feature_file "$workspace_id")"
-        fi
-
-        return 0
-    fi
-    return 1
-}
-
-# ============================================================================
 # SESSION MANAGEMENT
 # ============================================================================
 
