@@ -256,13 +256,31 @@ Example:
 4. Schedule regular dependency updates
 ```
 
-## Rules
+## Rules (L1 - Hard)
 
-- NEVER hardcode secrets
-- ALWAYS validate untrusted input
-- NEVER trust client-side validation alone
-- ALWAYS use parameterized queries
-- NEVER log sensitive data
-- ALWAYS hash passwords with strong algorithms
-- NEVER expose stack traces to users
-- ALWAYS keep dependencies updated
+Security rules are L1 by default. These prevent vulnerabilities and data breaches.
+
+- NEVER hardcode secrets (use environment variables or secret managers)
+- ALWAYS validate untrusted input at all boundaries
+- NEVER trust client-side validation alone (always validate server-side)
+- ALWAYS use parameterized queries (prevent SQL injection)
+- NEVER log sensitive data (passwords, tokens, PII)
+- ALWAYS hash passwords with strong algorithms (bcrypt, argon2, scrypt)
+
+## Defaults (L2 - Soft)
+
+Important practices that may have context-specific exceptions.
+
+- Expose stack traces only in development, never in production
+- Keep dependencies updated (balance security vs stability)
+- Use HTTPS for all external communications
+- Implement rate limiting on authentication endpoints
+
+## Guidelines (L3)
+
+Recommendations that improve security posture.
+
+- Consider implementing Content Security Policy (CSP)
+- Prefer allowlist over denylist for input validation
+- Consider using security headers (HSTS, X-Frame-Options)
+- Review OWASP Top 10 periodically for new vulnerabilities

@@ -278,9 +278,23 @@ This skill is typically invoked automatically by other agents:
 3. Stack profile is generated
 4. Agent proceeds with stack-specific patterns (Claude already knows language best practices)
 
-## Rules
+## Rules (L1 - Hard)
 
-- ALWAYS check multiple indicators (don't rely on single file)
-- ALWAYS report uncertainty if mixed signals
-- NEVER assume stack without evidence
-- ALWAYS list detected tools in output
+Critical for accurate detection.
+
+- NEVER assume stack without evidence (inaccurate recommendations)
+
+## Defaults (L2 - Soft)
+
+Important for reliable detection. Override with reasoning when appropriate.
+
+- Check multiple indicators (don't rely on single file)
+- Report uncertainty if mixed signals
+- List detected tools in output
+
+## Guidelines (L3)
+
+Recommendations for thorough detection.
+
+- Consider checking recent git history for technology changes
+- Prefer checking actual source files over just config when ambiguous

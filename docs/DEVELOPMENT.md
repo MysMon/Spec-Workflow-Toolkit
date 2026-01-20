@@ -457,6 +457,210 @@ Used in `/code-review` and agent outputs:
 
 ---
 
+## MCP Integration
+
+Model Context Protocol (MCP) servers extend Claude Code's capabilities. This plugin can work alongside MCP servers.
+
+### MCP Tool Naming Convention
+
+MCP tools follow the pattern: `mcp__<server>__<tool>`
+
+Examples:
+- `mcp__memory__create_entities`
+- `mcp__filesystem__read_file`
+- `mcp__github__search_repositories`
+
+### Hook Considerations for MCP Tools
+
+When writing PreToolUse hooks, consider MCP tools:
+
+```python
+# Check for MCP tools
+tool_name = data.get("tool_name", "")
+
+if tool_name.startswith("mcp__"):
+    # MCP tool - extract server and tool name
+    parts = tool_name.split("__")
+    if len(parts) >= 3:
+        server_name = parts[1]
+        actual_tool = parts[2]
+```
+
+### Recommended MCP Servers for SDD Workflows
+
+| MCP Server | Use Case | SDD Integration |
+|------------|----------|-----------------|
+| `@anthropic/mcp-server-memory` | Persistent memory | Complements progress-tracking |
+| `@anthropic/mcp-server-github` | GitHub operations | PRレビュー対応フロー |
+| `@anthropic/mcp-server-puppeteer` | Browser automation | E2E testing in qa-engineer |
+| `@anthropic/mcp-server-filesystem` | File operations | Alternative to built-in tools |
+
+### Configuration Example
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-github"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-memory"]
+    }
+  }
+}
+```
+
+### SDD Toolkit + MCP Best Practices
+
+| Pattern | Recommendation |
+|---------|----------------|
+| **Progress tracking** | Use JSON files (this plugin) for workflow state, MCP memory for persistent knowledge |
+| **Code exploration** | Use built-in `code-explorer` agent; MCP filesystem for specialized access |
+| **GitHub operations** | MCP GitHub server for PR/Issue operations; `/code-review` for review workflow |
+| **E2E testing** | MCP Puppeteer + `qa-engineer` agent for comprehensive testing |
+
+---
+
+## Instruction Design Guidelines
+
+Based on Anthropic's research and community best practices for balancing accuracy with creative problem-solving.
+
+### The Bounded Autonomy Principle
+
+From [Claude 4.5 Best Practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-4-best-practices):
+
+> "Claude often performs better with high level instructions to just think deeply about a task rather than step-by-step prescriptive guidance. The model's creativity in approaching problems may exceed a human's ability to prescribe the optimal thinking process."
+
+**Key insight**: Be prescriptive about goals, constraints, and verification—but allow flexibility in execution.
+
+### Rule Hierarchy
+
+Not all rules are equal. Classify instructions by enforcement level:
+
+| Level | Name | Enforcement | Examples |
+|-------|------|-------------|----------|
+| **L1** | Hard Rules | Absolute, no exceptions | Security constraints, secret protection, safety |
+| **L2** | Soft Rules | Default behavior, override with reasoning | Code style, commit format, review thresholds |
+| **L3** | Guidelines | Recommendations, adapt to context | Implementation approach, tool selection |
+
+**Syntax convention for this plugin:**
+
+```markdown
+## Rules (L1 - Hard)
+- NEVER commit secrets
+- ALWAYS validate user input
+
+## Defaults (L2 - Soft)
+- Use conventional commit format (unless project specifies otherwise)
+- Confidence threshold >= 80% (adjust based on task criticality)
+
+## Recommendations (L3 - Guidelines)
+- Consider using subagents for exploration
+- Prefer JSON for state files
+```
+
+### Goal-Oriented vs Step-by-Step Instructions
+
+| Approach | When to Use | Example |
+|----------|-------------|---------|
+| **Goal-Oriented** | Creative tasks, problem-solving, design | "Design a solution that handles X while respecting constraints Y and Z" |
+| **Step-by-Step** | Safety-critical, compliance, verification | "1. Check X, 2. Validate Y, 3. Confirm Z before proceeding" |
+
+**Pattern for commands and skills:**
+
+```markdown
+## Goal
+[What success looks like - end state description]
+
+## Constraints (L1/L2)
+[Non-negotiable requirements]
+
+## Approach (L3)
+[Recommended strategy - Claude may adapt based on situation]
+
+## Verification
+[How to confirm success]
+```
+
+### Avoiding Over-Specification
+
+From [System Dynamics Review research](https://onlinelibrary.wiley.com/doi/10.1002/sdr.70008):
+
+> "Explicit constraints may lead to over-control problems that suppress emergent behaviors."
+
+**Signs of over-specification:**
+- Every step is numbered and prescribed
+- No room for judgment or adaptation
+- Instructions longer than 500 lines
+- Same outcome regardless of context
+
+**Remedies:**
+- Replace prescriptive steps with success criteria
+- Add "Claude may adapt this approach based on the specific situation"
+- Use thinking prompts: "Before implementing, consider alternatives"
+
+### Encouraging Appropriate Initiative
+
+From [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
+
+Claude 4.x follows instructions precisely. To encourage creative problem-solving:
+
+```markdown
+## Flexibility Clause
+
+These guidelines are starting points, not rigid rules.
+If you identify a better approach that achieves the same goals:
+1. Explain your reasoning
+2. Confirm the approach still meets all L1 (Hard) constraints
+3. Proceed with the improved approach
+```
+
+### Thinking Prompts for Complex Decisions
+
+For tasks requiring judgment, add thinking prompts:
+
+```markdown
+## Before Implementation
+
+Think deeply about:
+- What are the tradeoffs of different approaches?
+- What would a senior engineer consider?
+- Are there better solutions I haven't explored?
+- Does this approach satisfy all constraints?
+
+Use your judgment rather than following steps mechanically.
+```
+
+### Progressive Disclosure for Instructions
+
+Keep main instructions concise; put details in reference files:
+
+```
+my-skill/
+├── SKILL.md           # Core instructions (<300 lines)
+│   └── [Goal + Constraints + High-level approach]
+├── reference.md       # Detailed patterns (loaded on demand)
+│   └── [Step-by-step procedures for specific scenarios]
+└── examples.md        # Concrete examples
+    └── [Show, don't tell]
+```
+
+### Measuring Instruction Effectiveness
+
+When iterating on instructions:
+
+1. **Test with varied contexts** - Same instruction, different situations
+2. **Check for brittleness** - Does minor rephrasing break behavior?
+3. **Verify creative latitude** - Can Claude find better solutions?
+4. **Confirm constraint adherence** - Are L1 rules always followed?
+
+---
+
 ## Operational Rules
 
 ### Before Committing

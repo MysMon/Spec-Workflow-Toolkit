@@ -141,13 +141,27 @@ Projects typically enforce quality via:
 
 ---
 
-## Rules
+## Rules (L1 - Hard)
 
-- ALWAYS detect tooling before running commands
-- ALWAYS use project's configured scripts/commands
-- ALWAYS check for scripts in package.json/Makefile first
-- NEVER install or assume tools
-- NEVER run tools without their config present
-- NEVER hardcode tool commands (discover them)
-- ALWAYS verify build after fixes
-- ALWAYS report errors clearly (don't ignore them)
+Critical for respecting project configuration.
+
+- NEVER install or assume tools (changes project dependencies)
+- NEVER run tools without their config present (wrong settings)
+- NEVER hardcode tool commands (discover them dynamically)
+
+## Defaults (L2 - Soft)
+
+Important for effective quality checks. Override with reasoning when appropriate.
+
+- Detect tooling before running commands
+- Use project's configured scripts/commands (npm run lint, make lint)
+- Check for scripts in package.json/Makefile first
+- Verify build after fixes
+- Report errors clearly (don't ignore them)
+
+## Guidelines (L3)
+
+Recommendations for comprehensive quality assurance.
+
+- Consider running all quality tools in sequence (lint → format → typecheck)
+- Prefer auto-fix mode when available (--fix, -w)

@@ -212,11 +212,29 @@ After interview, produce this summary:
 | Skipping NFRs | Incomplete spec | Always ask |
 | Rushing | Misses details | Take time |
 
-## Rules
+## Rules (L1 - Hard)
 
-- NEVER assume requirements that weren't stated
-- ALWAYS document trade-offs discussed
-- NEVER skip non-functional requirements
-- ALWAYS get explicit scope confirmation
-- NEVER proceed with open questions
-- ALWAYS summarize understanding back to user
+Critical for requirements accuracy. Violations lead to incorrect implementations.
+
+- NEVER assume requirements that weren't stated (assumptions cause rework)
+- NEVER skip non-functional requirements (incomplete spec)
+- ALWAYS get explicit scope confirmation before proceeding
+- NEVER proceed with open questions (ambiguity causes wrong decisions)
+
+## Defaults (L2 - Soft)
+
+Important for quality. Override with reasoning when appropriate.
+
+- Document trade-offs discussed during the interview
+- Summarize understanding back to user before concluding
+- Use structured question templates (can adapt for context)
+- Produce requirements summary in the specified format
+
+## Guidelines (L3)
+
+Recommendations for better interviews.
+
+- Consider asking "why" to understand motivation, not just requests
+- Prefer trade-off questions over open-ended ones
+- Consider documenting even "obvious" requirements
+- Use plain language unless user is technical

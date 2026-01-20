@@ -235,11 +235,27 @@ Check background results when ready.
 - Architecture suggestions → Discuss with team
 ```
 
-## Rules
+## Rules (L1 - Hard)
 
-- ALWAYS verify tasks are independent before parallelizing
-- ALWAYS define aggregation strategy before launching
-- NEVER run parallel agents that modify same files
-- ALWAYS include confidence scores in agent outputs
-- NEVER skip result aggregation
-- ALWAYS limit to 3-4 parallel agents for manageability
+Critical for conflict-free parallel execution.
+
+- ALWAYS verify tasks are independent before parallelizing (prevent race conditions)
+- NEVER run parallel agents that modify same files (causes conflicts)
+- NEVER skip result aggregation (scattered insights are useless)
+
+## Defaults (L2 - Soft)
+
+Important for effective parallelism. Override with reasoning when appropriate.
+
+- Define aggregation strategy before launching
+- Include confidence scores in agent outputs
+- Limit to 3-4 parallel agents for manageability
+- Use consistent output format across agents
+
+## Guidelines (L3)
+
+Recommendations for optimal parallel execution.
+
+- Consider using background agents for long-running analyses
+- Prefer boosting confidence scores when multiple agents agree
+- Consider flagging conflicting findings for human review

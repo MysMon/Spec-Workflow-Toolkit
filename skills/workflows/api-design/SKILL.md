@@ -346,13 +346,28 @@ Before finalizing an API design:
 - [ ] Deprecation policy
 - [ ] Examples for all endpoints
 
-## Rules
+## Rules (L1 - Hard)
 
-- ALWAYS design the contract before implementation
-- ALWAYS use consistent naming conventions
-- NEVER expose internal identifiers directly
-- ALWAYS validate input at API boundaries
-- NEVER return stack traces in production errors
-- ALWAYS use appropriate HTTP status codes
+Critical for API security and reliability.
+
+- NEVER expose internal identifiers directly (security risk)
+- NEVER return stack traces in production errors (information disclosure)
+- ALWAYS validate input at API boundaries (security requirement)
 - NEVER break backwards compatibility without versioning
-- ALWAYS document all endpoints
+
+## Defaults (L2 - Soft)
+
+Important for API quality. Override with reasoning when appropriate.
+
+- Design the contract before implementation
+- Use consistent naming conventions across endpoints
+- Use appropriate HTTP status codes
+- Document all endpoints with examples
+
+## Guidelines (L3)
+
+Recommendations for excellent API design.
+
+- Consider cursor-based pagination for large datasets
+- Prefer OpenAPI/GraphQL SDL/Protobuf for contract definition
+- Consider deprecation headers before removing endpoints

@@ -1,0 +1,338 @@
+---
+description: "Respond to PR review comments - analyze feedback, implement changes, and reply systematically"
+argument-hint: "<PR number or URL>"
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
+---
+
+# /review-response - PR Review Response Workflow
+
+A structured workflow to efficiently address PR review comments. Analyzes reviewer feedback, implements requested changes, and prepares responses.
+
+## Design Principles
+
+1. **Understand before acting**: Read all comments before making changes
+2. **Batch related changes**: Group similar feedback to avoid conflicts
+3. **Track responses**: Ensure every comment is addressed
+4. **Preserve reviewer intent**: Ask if feedback is unclear
+
+---
+
+## When to Use
+
+- Received review comments on a PR
+- Need to address multiple reviewer feedback items
+- Want systematic tracking of review responses
+- Need to implement changes and reply to reviewers
+
+## Input Formats
+
+```bash
+# PR number (requires gh CLI or MCP GitHub server)
+/review-response 123
+
+# PR URL
+/review-response https://github.com/owner/repo/pull/123
+
+# Current branch's PR
+/review-response
+```
+
+---
+
+## Execution Instructions
+
+### Phase 1: Gather Review Comments
+
+**Goal:** Collect all review comments and categorize them.
+
+**Fetch PR comments:**
+
+```bash
+# Using GitHub CLI
+gh pr view $PR_NUMBER --comments
+gh pr view $PR_NUMBER --json reviews,comments
+
+# Get review comments on specific files
+gh api repos/{owner}/{repo}/pulls/{pr_number}/comments
+```
+
+**If no PR number provided:**
+
+```bash
+# Find PR for current branch
+gh pr view --json number,title,url
+```
+
+**Categorize comments:**
+
+| Category | Description | Priority |
+|----------|-------------|----------|
+| **Required Changes** | "Must fix", blocking approval | High |
+| **Suggestions** | "Consider", "Maybe", improvements | Medium |
+| **Questions** | Clarification requests | Medium |
+| **Nitpicks** | Style, naming, minor | Low |
+| **Praise** | Positive feedback | N/A |
+
+### Phase 2: Create Response Plan
+
+**Goal:** Plan how to address each comment.
+
+**Create TodoWrite list:**
+
+```
+For each comment:
+1. File path and line number
+2. Comment category
+3. Planned action (implement/discuss/decline)
+4. Estimated complexity
+```
+
+**Group related comments:**
+
+```
+Group by:
+- Same file (batch changes)
+- Same reviewer (maintain context)
+- Same topic (consistent approach)
+```
+
+**Ask for prioritization if many comments:**
+
+```
+Question: "I found [N] review comments. How should I prioritize?"
+Header: "Priority"
+Options:
+- "Required changes first" (Recommended)
+- "By file (minimize conflicts)"
+- "Quick wins first"
+- "Let me choose specific items"
+```
+
+### Phase 3: Implement Changes
+
+**Goal:** Make requested changes systematically.
+
+**For each comment group:**
+
+**Step 1: Understand the feedback**
+
+```
+Launch code-explorer agent to analyze:
+
+Review comment: [comment text]
+File: [file path]
+Line: [line number]
+
+Tasks:
+1. Read the code being reviewed
+2. Understand the reviewer's concern
+3. Check if similar patterns exist elsewhere
+4. Identify the best approach to address feedback
+
+Thoroughness: quick
+```
+
+**Step 2: Implement the change**
+
+For straightforward changes:
+- Make the change directly
+- Ensure consistency with codebase style
+
+For complex changes:
+```
+DELEGATE to appropriate specialist:
+- Code logic → backend-specialist or frontend-specialist
+- Tests → qa-engineer
+- Architecture concerns → code-architect
+
+Include:
+- Original code
+- Review comment
+- Any similar patterns found
+```
+
+**Step 3: Mark as addressed**
+
+Update TodoWrite after each change.
+
+### Phase 4: Handle Discussions
+
+**Goal:** Prepare responses for comments that need discussion.
+
+**For questions from reviewers:**
+
+```
+Launch code-explorer to gather context:
+- Why was this implementation chosen?
+- What alternatives were considered?
+- What are the tradeoffs?
+
+Prepare a concise response explaining the reasoning.
+```
+
+**For suggestions you disagree with:**
+
+1. Understand the reviewer's perspective
+2. Prepare a respectful counterpoint with reasoning
+3. Offer compromise if possible
+
+**Ask user for discussion items:**
+
+```
+Question: "How should I respond to this suggestion?"
+Header: "Response"
+Options:
+- "Implement as suggested"
+- "Propose alternative: [brief description]"
+- "Respectfully decline with reasoning"
+- "Ask reviewer for clarification"
+```
+
+### Phase 5: Verification
+
+**Goal:** Ensure all changes work together.
+
+**Run verification:**
+
+```bash
+# Discover and run tests
+npm test  # or pytest, go test, etc.
+
+# Discover and run linting
+npm run lint  # or equivalent
+
+# Build check
+npm run build  # or equivalent
+```
+
+**Check for conflicts:**
+
+```bash
+# Ensure changes don't conflict
+git status
+git diff --stat
+```
+
+### Phase 6: Prepare Commit
+
+**Goal:** Create a clean commit addressing the review.
+
+**Commit message format:**
+
+```
+fix: address PR review feedback
+
+- [Summary of change 1]
+- [Summary of change 2]
+- [Summary of change 3]
+
+Addresses review comments from @reviewer
+```
+
+**Ask about commit:**
+
+```
+Question: "All changes are implemented. How should I proceed?"
+Header: "Commit"
+Options:
+- "Commit all changes together"
+- "Commit by category (separate commits)"
+- "Show me the diff first"
+- "I'll commit manually"
+```
+
+### Phase 7: Summary Report
+
+**Goal:** Provide overview for review response.
+
+```markdown
+## Review Response Summary
+
+### PR: #[number] - [title]
+
+### Comments Addressed
+
+| # | File | Comment | Action | Status |
+|---|------|---------|--------|--------|
+| 1 | `path/file.ts:45` | [summary] | Implemented | ✅ |
+| 2 | `path/other.ts:12` | [summary] | Discussed | 💬 |
+| 3 | `path/test.ts:78` | [summary] | Declined | ❌ |
+
+### Changes Made
+
+| File | Changes |
+|------|---------|
+| `path/file.ts` | [description] |
+
+### Responses to Post
+
+| Comment | Response |
+|---------|----------|
+| @reviewer on file.ts:45 | [your response] |
+
+### Verification
+
+- [ ] Tests pass
+- [ ] Lint passes
+- [ ] Build succeeds
+- [ ] No regressions
+
+### Next Steps
+
+1. Push changes
+2. Post responses to PR comments
+3. Request re-review
+```
+
+---
+
+## Comment Response Templates
+
+### Implemented as Requested
+
+```
+Done! Updated [file] to [description of change].
+```
+
+### Implemented with Modification
+
+```
+Good catch! I've addressed this, though I went with [approach] because [reason]. Let me know if you'd prefer the original suggestion.
+```
+
+### Clarification Provided
+
+```
+The reason for this approach is [explanation]. We considered [alternative] but chose this because [tradeoff].
+
+Happy to discuss further or change if you see issues with this approach.
+```
+
+### Respectful Decline
+
+```
+Thanks for the suggestion! I considered this but decided to keep the current approach because [reason].
+
+[If applicable: I've opened an issue to track this as a potential future improvement: #XXX]
+```
+
+### Request for Clarification
+
+```
+Could you elaborate on this feedback? I want to make sure I understand what you're looking for.
+
+Are you suggesting [interpretation A] or [interpretation B]?
+```
+
+---
+
+## Rules
+
+- ALWAYS read all comments before implementing changes
+- ALWAYS track every comment (even if declining)
+- ALWAYS verify changes don't break existing functionality
+- ALWAYS prepare responses for discussion items
+- NEVER ignore or dismiss reviewer feedback without explanation
+- NEVER make unrelated changes in the same commit
+- NEVER push without verification
+- ALWAYS thank reviewers for their feedback

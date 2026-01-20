@@ -369,13 +369,29 @@ Claude Code automatically creates checkpoints before each edit.
 | Silent failures | Problems hidden | Always log and report |
 | Continuing past blockers | Invalid state | Stop and resolve |
 
-## Rules
+## Rules (L1 - Hard)
 
-- ALWAYS checkpoint before risky operations
-- ALWAYS verify success after each significant action
-- NEVER ignore error messages or warnings
-- ALWAYS document errors with full context
+Critical for reliable recovery and data safety.
+
+- ALWAYS checkpoint before risky operations (enables rollback)
+- ALWAYS verify success after each significant action (ground truth)
+- NEVER ignore error messages or warnings (problems compound)
 - NEVER continue past a blocker without user confirmation
-- ALWAYS provide recovery options when reporting errors
 - NEVER lose work - commit early and often
-- ALWAYS test recovery paths during development
+
+## Defaults (L2 - Soft)
+
+Important for operational quality. Override with reasoning when appropriate.
+
+- Document errors with full context (aids debugging)
+- Provide recovery options when reporting errors
+- Use exponential backoff for retries
+- Log all failure attempts with timestamps
+
+## Guidelines (L3)
+
+Recommendations for robust error handling.
+
+- Consider testing recovery paths during development
+- Prefer graceful degradation over complete failure
+- Consider using Claude Code's `/rewind` for quick rollbacks

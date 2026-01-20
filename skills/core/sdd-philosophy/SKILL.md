@@ -87,10 +87,66 @@ For detailed information:
 - **Workflow Examples**: See [examples/workflow-example.md](examples/workflow-example.md)
 - **Project Template**: See `docs/specs/SPEC-TEMPLATE.md`
 
-## Rules
+## Balancing Structure with Flexibility
 
-- NEVER implement without approved spec
+SDD provides structure, but rigid adherence can hinder effective problem-solving.
+
+### Goal-Oriented Approach
+
+From Claude 4.5 Best Practices:
+
+> "Claude often performs better with high level instructions rather than step-by-step prescriptive guidance."
+
+**Apply to SDD:**
+- Phases define WHAT to achieve, not exactly HOW
+- Adapt approach based on task complexity
+- Skip phases when genuinely unnecessary (e.g., typo fixes)
+
+### When to Apply Full SDD
+
+| Scenario | Full 7-Phase | Abbreviated |
+|----------|--------------|-------------|
+| New feature | ✅ | |
+| Complex change | ✅ | |
+| Architecture decision | ✅ | |
+| Bug fix | | ✅ `/debug` |
+| Typo/config change | | ✅ `/quick-impl` |
+| Clear, scoped task | | ✅ `/quick-impl` |
+
+### Flexibility Clause
+
+The SDD workflow is a framework, not a checklist.
+
+If you identify that a situation warrants deviation:
+1. Confirm all L1 rules are still respected (no code without understanding, no skipping security)
+2. Explain why the standard approach doesn't fit
+3. Proceed with the adapted approach
+
+**L1 Rules (Never Skip):**
+- Understanding requirements before implementation
+- Security review for security-sensitive code
+- Approval for scope changes
+
+**L2/L3 (Adapt as Needed):**
+- Number of exploration agents
+- Spec document format
+- Phase ordering for simple tasks
+
+## Rules (L1 - Hard)
+
+- NEVER implement without understanding requirements
 - ALWAYS clarify before assuming
 - NEVER add scope without approval
-- ALWAYS document deviations
-- NEVER skip acceptance criteria
+- ALWAYS document significant deviations
+
+## Defaults (L2 - Soft)
+
+- Create formal spec for features > 1 day effort
+- Use `/sdd` for new features (can use `/quick-impl` for obvious small tasks)
+- Acceptance criteria should be testable
+
+## Guidelines (L3)
+
+- Consider TDD for complex logic
+- Prefer parallel agent execution when independent
+- Document architectural decisions in ADRs

@@ -137,7 +137,20 @@ if [ -n "$WORKSPACE_ID" ]; then
     echo "### Current Workspace"
     echo ""
     echo "**Workspace ID**: \`$WORKSPACE_ID\`"
-    echo "**Branch**: \`$(git branch --show-current 2>/dev/null || echo 'N/A')\`"
+    CURRENT_BRANCH=$(git branch --show-current 2>/dev/null)
+    if [ -n "$CURRENT_BRANCH" ]; then
+        echo "**Branch**: \`$CURRENT_BRANCH\`"
+    elif git rev-parse --git-dir > /dev/null 2>&1; then
+        # Git repo exists but HEAD is detached
+        echo "**Branch**: \`detached HEAD\`"
+        echo ""
+        echo "> **Note**: You are in detached HEAD state. Consider checking out a branch for proper workspace isolation."
+    else
+        # Not a git repository
+        echo "**Git**: Not initialized"
+        echo ""
+        echo "> **Note**: This is not a Git repository. Progress tracking will use directory-based workspace ID. Consider running \`git init\` for full feature support."
+    fi
     echo "**Working Directory**: \`$(pwd)\`"
     echo ""
 fi

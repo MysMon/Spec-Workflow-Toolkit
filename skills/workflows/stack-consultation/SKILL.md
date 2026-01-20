@@ -393,13 +393,28 @@ Run the officially documented setup commands.
 
 ---
 
-## Rules
+## Rules (L1 - Hard)
+
+Critical for providing accurate, current recommendations.
 
 - NEVER recommend technologies by name without first researching current options
 - NEVER assume technology features from training data - always verify with WebFetch
 - NEVER use technology-specific questions in Phase 1 (requirements first)
-- ALWAYS use WebSearch to discover current options
-- ALWAYS present trade-offs based on research, not assumptions
-- ALWAYS confirm decisions before scaffolding
-- ALWAYS verify setup commands from official documentation
-- ALWAYS create CLAUDE.md after project setup
+- ALWAYS confirm decisions before scaffolding (user must approve)
+
+## Defaults (L2 - Soft)
+
+Important for quality consultation. Override with reasoning when appropriate.
+
+- Use WebSearch to discover current options
+- Present trade-offs based on research, not assumptions
+- Verify setup commands from official documentation
+- Create CLAUDE.md after project setup
+
+## Guidelines (L3)
+
+Recommendations for effective stack consultation.
+
+- Consider presenting 3-5 candidates for each technology category
+- Prefer creating a trade-off matrix for complex decisions
+- Consider future-proofing in technology evaluation

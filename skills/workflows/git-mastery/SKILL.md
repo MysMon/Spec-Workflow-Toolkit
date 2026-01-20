@@ -214,11 +214,102 @@ BREAKING CHANGE: <detailed explanation of what breaks>
 Migration: <how to migrate>
 ```
 
-## Rules
+## Undo & Recovery Patterns
 
-- ALWAYS use conventional commit format
-- ALWAYS check git status before committing
-- NEVER commit unrelated changes together
-- ALWAYS write meaningful descriptions
-- NEVER force push to shared branches
-- ALWAYS update changelog for user-facing changes
+### Scenario-Based Recovery
+
+| Situation | Command | Risk Level |
+|-----------|---------|------------|
+| Undo last commit (keep changes) | `git reset --soft HEAD~1` | Safe |
+| Undo last commit (discard changes) | `git reset --hard HEAD~1` | Destructive |
+| Undo specific commit (public) | `git revert <hash>` | Safe |
+| Discard unstaged changes | `git checkout -- <file>` | Destructive |
+| Discard all local changes | `git reset --hard HEAD` | Destructive |
+| Recover deleted branch | `git reflog` + `git checkout -b <branch> <hash>` | Safe |
+
+### Safe Rollback Workflow
+
+```bash
+# 1. Check current state
+git status
+git log --oneline -5
+
+# 2. Create backup branch (always!)
+git branch backup-$(date +%Y%m%d-%H%M%S)
+
+# 3. Perform rollback
+git revert <commit-hash>  # For pushed commits
+# OR
+git reset --soft HEAD~1   # For unpushed commits
+
+# 4. Verify
+git log --oneline -5
+git diff HEAD~1
+```
+
+### Stash for Temporary Storage
+
+```bash
+# Save current work
+git stash push -m "WIP: feature description"
+
+# List stashes
+git stash list
+
+# Restore latest
+git stash pop
+
+# Restore specific
+git stash apply stash@{2}
+
+# Drop stash
+git stash drop stash@{0}
+```
+
+### Emergency Recovery
+
+```bash
+# Find lost commits
+git reflog
+
+# Recover lost commit
+git cherry-pick <hash>
+
+# Recover deleted file from history
+git checkout <commit-hash> -- path/to/file
+```
+
+### What NOT to Do
+
+| Dangerous Action | Why | Safe Alternative |
+|------------------|-----|------------------|
+| `git push --force` on shared branch | Overwrites others' work | `git revert` + regular push |
+| `git reset --hard` without backup | Permanent data loss | Create backup branch first |
+| `git clean -fd` without review | Deletes untracked files | `git clean -fdn` (dry-run) first |
+
+## Rules (L1 - Hard)
+
+Critical for data safety and team collaboration. Violations can cause data loss or disrupt others.
+
+- NEVER force push to shared branches (overwrites others' work)
+- ALWAYS create backup branch before destructive operations
+- NEVER use `--hard` reset without understanding consequences
+- NEVER commit secrets or credentials
+
+## Defaults (L2 - Soft)
+
+Important for consistency and quality. Override with reasoning when appropriate.
+
+- Use conventional commit format for semantic versioning
+- Check git status before committing
+- Avoid committing unrelated changes together
+- Write meaningful descriptions in commit messages
+- Update changelog for user-facing changes
+
+## Guidelines (L3)
+
+Recommendations for better git hygiene.
+
+- Consider using `git add -p` for partial staging
+- Prefer rebase for linear history on feature branches
+- Consider signing commits for verified authorship

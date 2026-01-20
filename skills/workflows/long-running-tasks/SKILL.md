@@ -226,16 +226,31 @@ For detailed session protocols and examples, see the `progress-tracking` skill.
 | No progress log | Can't track what happened | Log each action |
 | Skipping tests | Regressions compound | Test after each batch |
 
-## Rules
+## Rules (L1 - Hard)
 
-- ALWAYS create workspace progress files for tasks > 3 steps
-- ALWAYS use workspace-isolated paths: `.claude/workspaces/{workspace-id}/`
-- ALWAYS update progress files after each significant action
-- ALWAYS include workspaceId in progress files
-- ALWAYS mark todos complete immediately
-- NEVER have more than one todo in_progress
-- ALWAYS document resumption context in JSON (position, nextAction, keyFiles)
-- ALWAYS test after batched changes
-- ALWAYS read workspace progress files first after compaction or new session
-- NEVER use plain text files for state - use JSON for reliability
+Critical for session continuity and data integrity.
+
+- ALWAYS include workspaceId in progress files (prevents workspace conflicts)
 - NEVER write to progress files outside current workspace
+- ALWAYS read workspace progress files first after compaction or new session
+- NEVER have more than one todo in_progress (focus and clarity)
+
+## Defaults (L2 - Soft)
+
+Important for effective long-running tasks. Override with reasoning when appropriate.
+
+- Create workspace progress files for tasks > 3 steps
+- Use workspace-isolated paths: `.claude/workspaces/{workspace-id}/`
+- Update progress files after each significant action
+- Mark todos complete immediately (not batched)
+- Document resumption context in JSON (position, nextAction, keyFiles)
+- Test after batched changes
+- Use JSON for state persistence (not plain text)
+
+## Guidelines (L3)
+
+Recommendations for managing complex tasks.
+
+- Consider using the Initializer + Coding pattern for multi-session work
+- Prefer ONE feature at a time approach
+- Consider background subagents for non-blocking operations

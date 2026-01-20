@@ -411,12 +411,28 @@ Combined Score = weighted average
 Feedback = aggregated from all evaluators
 ```
 
-## Rules
+## Rules (L1 - Hard)
 
-- ALWAYS define clear evaluation criteria before starting
-- ALWAYS set maximum iteration limits
-- NEVER let generator evaluate its own output (use separate agent)
-- ALWAYS provide actionable feedback (not just "needs improvement")
-- ALWAYS track iteration count and score progression
+Critical for effective optimization loops.
+
+- ALWAYS define clear evaluation criteria before starting (otherwise cannot converge)
+- ALWAYS set maximum iteration limits (prevent infinite loops)
+- NEVER let generator evaluate its own output (bias toward approval)
 - NEVER ignore evaluation feedback in subsequent iterations
-- ALWAYS return best attempt if max iterations reached
+
+## Defaults (L2 - Soft)
+
+Important for quality results. Override with reasoning when appropriate.
+
+- Provide actionable feedback (not just "needs improvement")
+- Track iteration count and score progression
+- Return best attempt if max iterations reached
+- Use separate agent instances for generator and evaluator
+
+## Guidelines (L3)
+
+Recommendations for better optimization.
+
+- Consider using multiple specialized evaluators for complex outputs
+- Prefer score thresholds of 80+ for production-quality outputs
+- Consider diminishing returns beyond 3-4 iterations

@@ -376,13 +376,27 @@ Run officially documented commands.
 
 ---
 
-## Rules
+## Rules (L1 - Hard)
+
+Critical for providing accurate, current recommendations.
 
 - NEVER recommend technologies without first researching via WebSearch
 - NEVER assume features or setup commands from training data
-- NEVER use technology-specific options in Phase 1 questions
-- ALWAYS use WebSearch to discover current options
-- ALWAYS present trade-offs based on research evidence
-- ALWAYS confirm decisions before scaffolding
-- ALWAYS verify setup commands from official documentation
-- ALWAYS create CLAUDE.md after project setup
+- NEVER use technology-specific options in Phase 1 questions (requirements first)
+- ALWAYS confirm decisions before scaffolding (user must approve)
+
+## Defaults (L2 - Soft)
+
+Important for quality consultation. Override with reasoning when appropriate.
+
+- Use WebSearch to discover current options
+- Present trade-offs based on research evidence
+- Verify setup commands from official documentation
+- Create CLAUDE.md after project setup
+
+## Guidelines (L3)
+
+Recommendations for effective consultation.
+
+- Consider presenting 3-5 candidates per technology category
+- Prefer creating trade-off matrices for complex decisions
