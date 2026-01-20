@@ -11,6 +11,8 @@ description: |
 allowed-tools: Read, Glob, Grep, Bash
 model: haiku
 user-invocable: false
+context: fork
+agent: Explore
 ---
 
 # Stack Detector
