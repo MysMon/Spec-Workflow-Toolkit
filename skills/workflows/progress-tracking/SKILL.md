@@ -12,7 +12,7 @@ description: |
   Trigger phrases: track progress, resume, continue, multi-session, persist state, progress file, feature list
 allowed-tools: Read, Write, Glob, Grep, TodoWrite
 model: sonnet
-user-invocable: true
+user-invocable: false
 ---
 
 # Progress Tracking System

@@ -1,7 +1,7 @@
 ---
 description: "Review code changes using 5 parallel specialized agents with confidence-based scoring and filtering"
 argument-hint: "[file path, directory, PR #, or 'staged' for git staged changes]"
-allowed-tools: Read, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite
+allowed-tools: Read, Glob, Grep, Bash, Task, AskUserQuestion
 ---
 
 # /code-review - Parallel Code Review

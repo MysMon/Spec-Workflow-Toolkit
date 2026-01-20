@@ -10,7 +10,7 @@ description: |
   Trigger phrases: detect stack, what framework, identify technology, project setup, package.json, go.mod, Cargo.toml, requirements.txt
 allowed-tools: Read, Glob, Grep, Bash
 model: haiku
-user-invocable: true
+user-invocable: false
 ---
 
 # Stack Detector

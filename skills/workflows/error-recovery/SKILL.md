@@ -305,6 +305,18 @@ When chaining multiple AI agents:
 - Circuit breakers at each stage prevent cascading failures
 - Use partial results when possible instead of complete failure
 
+### Subagent Circuit Breaker Thresholds
+
+Production-tested thresholds for autonomous agent loops (from Ralph for Claude Code):
+
+| Threshold | Value | Action |
+|-----------|-------|--------|
+| NO_PROGRESS | 3 loops | Stop after 3 loops with no file changes |
+| SAME_ERROR | 5 times | Escalate after 5 identical errors |
+| OUTPUT_DECLINE | 70% | Pause if output quality drops >70% |
+
+**Application:** Track `files_changed`, `error_messages`, and `output_quality` for each subagent invocation. When thresholds are hit, stop retrying and communicate clearly with the user about the situation and options.
+
 ## Recovery Workflows
 
 ### Workflow 1: Resume After Crash
