@@ -162,15 +162,25 @@ Look for:
    - Different results when run in isolation vs full suite
 
    **If flaky test confirmed:**
-   - Load the `testing` skill for detailed flaky test management
-   - Common fixes: replace sleeps with explicit waits, isolate test data, mock time
-   - If can't fix immediately: quarantine (skip with issue reference) and create ticket
+
+   Load the `testing` skill which provides comprehensive flaky test management:
+   - **Detection patterns**: Local and CI-based flaky test detection
+   - **Common causes and solutions**: Timing dependencies, shared state, race conditions
+   - **Fix strategies**: Explicit waits, test data isolation, time mocking, random seeding
+   - **Quarantine protocol**: How to skip flaky tests safely with proper tracking
+   - **CI retry strategies**: Framework-specific retry options
+
+   Quick fixes to try first:
+   - Replace `sleep()` with explicit wait conditions
+   - Isolate test data (unique per test, not shared)
+   - Mock time-dependent code
+   - Seed random generators for reproducibility
 
 5. **Delegate fix to appropriate agent:**
    ```
    If test logic issue → delegate to qa-engineer
    If code bug → delegate to appropriate specialist
-   If flaky test → load testing skill, apply fixes from Flaky Test Management section
+   If flaky test → load testing skill, apply Flaky Test Management patterns
    ```
 
 ### Phase 3B: Build Error Resolution
