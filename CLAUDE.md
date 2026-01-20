@@ -54,6 +54,8 @@ YAML frontmatter fields:
 - `argument-hint`: Placeholder for arguments
 - `allowed-tools`: Tools available during execution
 
+**Validation Rule:** Ensure `allowed-tools` includes all tools referenced in instructions. If the command says "Use AskUserQuestion to confirm", then `AskUserQuestion` must be in `allowed-tools`.
+
 ### Editing Hooks (`hooks/hooks.json`)
 
 **CRITICAL for PreToolUse hooks:**

@@ -358,7 +358,12 @@ source "$(dirname "$0")/workspace_utils.sh"
 PROGRESS_FILE=$(get_progress_file)
 
 if [ -f "$PROGRESS_FILE" ]; then
-    # Update progress file with compaction timestamp
+    # Use environment variables to safely pass data to Python (see Hook Scripting Security)
+    PROGRESS_FILE_PATH="$PROGRESS_FILE" python3 << 'PYEOF'
+import os
+progress_file = os.environ.get('PROGRESS_FILE_PATH', '')
+# ... update progress file
+PYEOF
 fi
 
 echo "## Pre-Compaction State Saved"
@@ -372,6 +377,52 @@ exit 0
   "trigger": "manual|auto",
   "custom_instructions": "user's /compact message"
 }
+```
+
+### Hook Scripting Security
+
+**Shell Variable Injection Risk:**
+
+Never interpolate shell variables directly into Python code:
+
+```bash
+# DANGEROUS - shell variable injection vulnerability
+python3 -c "
+with open('$FILE_PATH', 'r') as f:  # If FILE_PATH contains quotes, breaks/injects
+    data = json.load(f)
+"
+
+# SAFE - use environment variables
+FILE_PATH="$FILE_PATH" python3 -c "
+import os
+file_path = os.environ.get('FILE_PATH', '')
+with open(file_path, 'r') as f:
+    data = json.load(f)
+"
+```
+
+**Fail-Safe Error Handling:**
+
+Hooks that validate commands should fail-safe (deny on error):
+
+```python
+try:
+    data = json.loads(sys.stdin.read())
+    # ... validation logic
+except Exception as e:
+    # WRONG: exit 1 is non-blocking, command may still execute
+    # sys.exit(1)
+
+    # CORRECT: Use JSON decision control to deny
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": f"Validation error: {e}"
+        }
+    }
+    print(json.dumps(output))
+    sys.exit(0)
 ```
 
 ---

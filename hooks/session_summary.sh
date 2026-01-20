@@ -18,12 +18,12 @@ echo ""
 # Display workspace info
 if command -v get_workspace_id &> /dev/null; then
     WORKSPACE_ID=$(get_workspace_id)
-    echo "🗂️  Workspace: $WORKSPACE_ID"
+    echo "[WORKSPACE] $WORKSPACE_ID"
 
     # Check for progress file
     PROGRESS_FILE=$(get_progress_file "$WORKSPACE_ID")
     if [ -f "$PROGRESS_FILE" ]; then
-        echo "  📋 Progress file: exists"
+        echo "  [PROGRESS] Progress file: exists"
     fi
     echo ""
 fi
@@ -31,13 +31,13 @@ fi
 # Check if we're in a git repository
 if git rev-parse --git-dir > /dev/null 2>&1; then
     # Git status summary
-    echo "📊 Git Status:"
+    echo "[GIT STATUS]"
     echo "──────────────"
 
     # Staged changes
     STAGED=$(git diff --cached --name-only 2>/dev/null | wc -l)
     if [ "$STAGED" -gt 0 ]; then
-        echo "  ✅ Staged files: $STAGED"
+        echo "  [STAGED] Staged files: $STAGED"
         git diff --cached --name-only 2>/dev/null | head -5 | sed 's/^/     /'
         [ "$STAGED" -gt 5 ] && echo "     ... and $((STAGED - 5)) more"
     fi
@@ -45,7 +45,7 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     # Unstaged changes
     UNSTAGED=$(git diff --name-only 2>/dev/null | wc -l)
     if [ "$UNSTAGED" -gt 0 ]; then
-        echo "  📝 Modified files: $UNSTAGED"
+        echo "  [MODIFIED] Modified files: $UNSTAGED"
         git diff --name-only 2>/dev/null | head -5 | sed 's/^/     /'
         [ "$UNSTAGED" -gt 5 ] && echo "     ... and $((UNSTAGED - 5)) more"
     fi
@@ -53,7 +53,7 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     # Untracked files
     UNTRACKED=$(git ls-files --others --exclude-standard 2>/dev/null | wc -l)
     if [ "$UNTRACKED" -gt 0 ]; then
-        echo "  🆕 Untracked files: $UNTRACKED"
+        echo "  [NEW] Untracked files: $UNTRACKED"
         git ls-files --others --exclude-standard 2>/dev/null | head -5 | sed 's/^/     /'
         [ "$UNTRACKED" -gt 5 ] && echo "     ... and $((UNTRACKED - 5)) more"
     fi
@@ -62,24 +62,24 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     BRANCH=$(git branch --show-current 2>/dev/null)
     if [ -n "$BRANCH" ]; then
         echo ""
-        echo "  🌿 Current branch: $BRANCH"
+        echo "  [BRANCH] Current branch: $BRANCH"
 
         # Check if ahead/behind remote
         AHEAD=$(git rev-list --count @{u}..HEAD 2>/dev/null || echo "0")
         BEHIND=$(git rev-list --count HEAD..@{u} 2>/dev/null || echo "0")
-        [ "$AHEAD" -gt 0 ] && echo "     ↑ $AHEAD commit(s) ahead of remote"
-        [ "$BEHIND" -gt 0 ] && echo "     ↓ $BEHIND commit(s) behind remote"
+        [ "$AHEAD" -gt 0 ] && echo "     ^ $AHEAD commit(s) ahead of remote"
+        [ "$BEHIND" -gt 0 ] && echo "     v $BEHIND commit(s) behind remote"
     fi
 
     # Recent commits in this session (last hour)
     RECENT=$(git log --oneline --since="1 hour ago" 2>/dev/null | wc -l)
     if [ "$RECENT" -gt 0 ]; then
         echo ""
-        echo "  📜 Recent commits:"
+        echo "  [COMMITS] Recent commits:"
         git log --oneline --since="1 hour ago" 2>/dev/null | head -5 | sed 's/^/     /'
     fi
 else
-    echo "📁 Not a git repository"
+    echo "[INFO] Not a git repository"
 fi
 
 echo ""

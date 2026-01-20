@@ -1,7 +1,7 @@
 ---
 description: "Quick implementation for well-defined, small tasks that don't need full SDD workflow"
 argument-hint: "<task description>"
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite
 ---
 
 # /quick-impl - Quick Implementation

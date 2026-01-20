@@ -31,14 +31,28 @@ if command -v get_workspace_id &> /dev/null; then
 fi
 
 # If progress file exists, add compaction timestamp
+# Use environment variables to safely pass data to Python
 if [ -n "$PROGRESS_FILE" ] && command -v python3 &> /dev/null; then
-    python3 << PYEOF
+    PROGRESS_FILE_PATH="$PROGRESS_FILE" \
+    COMPACT_TRIGGER="$TRIGGER" \
+    COMPACT_CUSTOM="$CUSTOM" \
+    COMPACT_WORKSPACE_ID="$WORKSPACE_ID" \
+    python3 << 'PYEOF'
 import json
+import os
 import sys
 from datetime import datetime
 
 try:
-    with open("$PROGRESS_FILE", "r") as f:
+    progress_file = os.environ.get('PROGRESS_FILE_PATH', '')
+    trigger = os.environ.get('COMPACT_TRIGGER', 'unknown')
+    custom = os.environ.get('COMPACT_CUSTOM', '')
+    workspace_id = os.environ.get('COMPACT_WORKSPACE_ID', '')
+
+    if not progress_file:
+        sys.exit(0)
+
+    with open(progress_file, "r") as f:
         data = json.load(f)
 
     # Add compaction event to history
@@ -47,9 +61,9 @@ try:
 
     data["compactionHistory"].append({
         "timestamp": datetime.now().isoformat(),
-        "trigger": "$TRIGGER",
-        "customInstructions": "$CUSTOM" if "$CUSTOM" else None,
-        "workspaceId": "$WORKSPACE_ID" if "$WORKSPACE_ID" else None
+        "trigger": trigger,
+        "customInstructions": custom if custom else None,
+        "workspaceId": workspace_id if workspace_id else None
     })
 
     # Keep only last 10 compaction events
@@ -58,7 +72,7 @@ try:
     # Update last compaction timestamp
     data["lastCompaction"] = datetime.now().isoformat()
 
-    with open("$PROGRESS_FILE", "w") as f:
+    with open(progress_file, "w") as f:
         json.dump(data, f, indent=2)
 
 except Exception as e:

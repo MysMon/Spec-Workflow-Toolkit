@@ -140,27 +140,31 @@ workspace_has_progress() {
 
 # Get workspace metadata (for display)
 # Returns: JSON with workspace info
+# Uses environment variables to safely pass data to Python
 get_workspace_info() {
     local workspace_id="${1:-$(get_workspace_id)}"
     local progress_file="$(get_progress_file "$workspace_id")"
     local feature_file="$(get_feature_file "$workspace_id")"
 
     if [ -f "$progress_file" ] && command -v python3 &> /dev/null; then
-        python3 << PYEOF
+        WORKSPACE_ID_VAR="$workspace_id" \
+        PROGRESS_FILE_VAR="$progress_file" \
+        FEATURE_FILE_VAR="$feature_file" \
+        python3 << 'PYEOF'
 import json
 import os
 
-workspace_id = "$workspace_id"
-progress_file = "$progress_file"
-feature_file = "$feature_file"
+workspace_id = os.environ.get('WORKSPACE_ID_VAR', '')
+progress_file = os.environ.get('PROGRESS_FILE_VAR', '')
+feature_file = os.environ.get('FEATURE_FILE_VAR', '')
 
 info = {
     "workspaceId": workspace_id,
-    "hasProgress": os.path.exists(progress_file),
-    "hasFeatures": os.path.exists(feature_file)
+    "hasProgress": os.path.exists(progress_file) if progress_file else False,
+    "hasFeatures": os.path.exists(feature_file) if feature_file else False
 }
 
-if os.path.exists(progress_file):
+if progress_file and os.path.exists(progress_file):
     try:
         with open(progress_file, 'r') as f:
             data = json.load(f)

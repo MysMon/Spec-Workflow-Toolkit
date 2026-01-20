@@ -1,7 +1,7 @@
 ---
 description: "Review a specification using multiple specialized agents in parallel for comprehensive validation"
 argument-hint: "[path to spec file or feature name]"
-allowed-tools: Read, Write, Glob, Grep, Task, AskUserQuestion
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion
 ---
 
 # /spec-review - Parallel Specification Review
