@@ -173,51 +173,33 @@ Grep: pattern="SELECT|INSERT|UPDATE|DELETE" glob="*.{ts,js,sql}"
 Grep: pattern="@Get|@Post|router\.|app\." glob="*.{ts,js}"
 ```
 
-## LSP-Enhanced Navigation (When Available)
+## Language-Aware Navigation (When Available)
 
-Claude Code 2.1.0+ includes LSP (Language Server Protocol) support for supported languages. When LSP is available, prefer it over text-based search for precision.
+Claude Code may provide language-aware navigation capabilities (e.g., LSP integration) for supported languages. When available, prefer semantic navigation over text-based search for precision.
 
-### When to Use LSP
+### Semantic vs Text-Based Search
 
-| Task | LSP Approach | Fallback (Grep) |
-|------|--------------|-----------------|
-| Find definition | `go-to-definition` at symbol | `Grep: "function symbolName"` |
-| Find all references | `find-references` at symbol | `Grep: "symbolName"` |
-| Understand type | `hover` at symbol | Read type definition file |
-| Find implementations | `find-implementations` | `Grep: "implements Interface"` |
+| Need | Semantic (if available) | Text-Based (always works) |
+|------|------------------------|---------------------------|
+| Find where symbol is defined | Jump to definition | `Grep: "function symbolName"` |
+| Find all usages | Find references | `Grep: "symbolName"` |
+| Understand types | Type information | Read type definition file |
 
-### LSP Advantages
+### Why Prefer Semantic Navigation
 
 - **Precision**: Finds exact symbol references, not string matches
 - **Cross-file**: Follows imports automatically
-- **Type-aware**: Understands generics, overloads, inheritance
+- **Type-aware**: Understands language semantics
 
-### Combining LSP with Search
+### Combining Approaches
 
-For comprehensive analysis, use both:
+For comprehensive analysis, use both when available:
 
-1. **LSP for precision**: Find exact definition of `AuthService.login`
-2. **Grep for patterns**: Find all files with authentication logic
+1. **Semantic for precision**: Find exact definition of a symbol
+2. **Grep for patterns**: Find all files matching a pattern
 3. **Glob for structure**: Map the file organization
 
-```
-Strategy for tracing a feature:
-1. LSP: go-to-definition on the entry point
-2. LSP: find-references to see callers
-3. Grep: find related patterns (error handling, logging)
-4. Read: examine key files identified
-```
-
-### Supported Languages
-
-LSP works best with languages that have strong IDE support:
-- TypeScript/JavaScript
-- Python
-- Go
-- Rust
-- Java
-
-For other languages or when LSP is unavailable, fall back to Grep patterns.
+Text-based search (Grep/Glob) always works regardless of language support.
 
 ## Exploration Depth Levels
 
