@@ -111,6 +111,7 @@ skills: skill1, skill2
 | `disallowedTools` | No | Explicitly prohibited tools |
 | `permissionMode` | No | `default`, `acceptEdits`, `plan`, `dontAsk` |
 | `skills` | No | Comma-separated skill names |
+| `hooks` | No | Agent-scoped lifecycle hooks (PreToolUse, PostToolUse, Stop) |
 
 #### permissionMode Options
 
@@ -166,6 +167,9 @@ user-invocable: false
 | `allowed-tools` | No | Tools available when skill is active |
 | `model` | No | Model to use |
 | `user-invocable` | No | `true` = user can run `/skill-name` |
+| `context` | No | `fork` = run in isolated sub-agent context |
+| `agent` | No | Agent type when `context: fork` (e.g., `Explore`, `Plan`, `general-purpose`) |
+| `hooks` | No | Skill-scoped lifecycle hooks (PreToolUse, PostToolUse, Stop) |
 
 #### Progressive Disclosure Guidelines
 
