@@ -154,17 +154,45 @@ Benefits of resuming subagents:
 - No need to rebuild context from scratch
 - Continue exactly where the agent stopped
 - Prevent loss of exploration results
+- Recover from permission errors or interruptions
 
 ### Basic Resume Pattern
 
 ```
 Initial invocation:
 "Use code-explorer to analyze module A"
-[Agent completes, returns results]
+[Agent completes, returns agent ID: agent-abc123]
 
 Continuation (resume same agent):
-"Continue that code-explorer and also analyze module B"
+"Resume agent-abc123 and also analyze module B"
 [Resumes with full context from previous conversation]
+```
+
+### Orchestrator Resume Protocol
+
+When orchestrating long tasks, track agent IDs for potential resume:
+
+```json
+{
+  "activeAgents": {
+    "exploration": "agent-abc123",
+    "implementation": "agent-def456"
+  },
+  "completedAgents": [
+    {"id": "agent-xyz789", "task": "architecture review", "summary": "..."}
+  ]
+}
+```
+
+**Resume Decision Tree:**
+
+```
+Agent completed successfully?
+├─ Yes: Store summary, clear agent ID
+└─ No (interrupted/failed):
+    ├─ Permission error → Resume in foreground
+    ├─ Context exhaustion → Start new agent with summary
+    └─ Network error → Resume after brief wait
 ```
 
 ### Background Subagent Recovery
@@ -174,6 +202,18 @@ When a background subagent fails due to missing permissions:
 1. The agent skips the failed tool call and continues
 2. After completion, can be resumed in foreground to retry
 3. Interactive permission prompts are available when resumed
+
+**Recovery Example:**
+
+```
+# Background agent hit permission error
+Agent agent-abc123 completed with partial results.
+Skipped operations: Write to /etc/config (permission denied)
+
+# Resume in foreground to complete
+Resume agent-abc123 in foreground to retry failed operations.
+[Interactive permission prompt appears]
+```
 
 ### Background Subagent Limitations
 
@@ -191,7 +231,21 @@ When a background subagent fails due to missing permissions:
 | Expanding exploration | Resume same code-explorer |
 | Additional review checks | Resume same security-auditor |
 | Recovering from permission errors | Resume in foreground |
-| Need fresh context | Launch new agent |
+| Agent hit context limit | Start new agent with summary |
+| Need completely fresh perspective | Launch new agent |
+
+### Context Preservation on Resume
+
+When resuming, the agent retains:
+- Full conversation history
+- All previous tool calls and results
+- Reasoning and decisions made
+- Files read and analysis performed
+
+This makes resume ideal for:
+- Iterative exploration (analyze A, then B, then C)
+- Multi-phase reviews (security, then performance, then accessibility)
+- Error recovery without losing work
 
 ### Transcript Location
 

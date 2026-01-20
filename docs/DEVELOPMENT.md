@@ -361,19 +361,67 @@ else:
 | `"deny"` | Prevent execution, show reason |
 | `"ask"` | Show UI confirmation |
 
-**Tool Input Modification:**
+**Tool Input Modification (v2.0.10+):**
+
+Instead of blocking dangerous operations, hooks can now modify tool inputs to make them safe:
 
 ```python
-output = {
-    "hookSpecificOutput": {
-        "hookEventName": "PreToolUse",
-        "permissionDecision": "allow",
-        "updatedInput": {
-            "command": f"safe_wrapper {command}"
+#!/usr/bin/env python3
+import json
+import sys
+
+data = json.loads(sys.stdin.read())
+tool_input = data.get("tool_input", {})
+command = tool_input.get("command", "")
+
+# Example: Add timeout to potentially long-running commands
+if command.startswith("npm install"):
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "allow",
+            "updatedInput": {
+                "command": f"timeout 300 {command}"  # 5 minute timeout
+            }
         }
     }
-}
+    print(json.dumps(output))
+    sys.exit(0)
+
+# Example: Redirect destructive commands to dry-run
+if "rm -rf" in command:
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "allow",
+            "updatedInput": {
+                "command": f"echo '[DRY RUN] Would execute: {command}'"
+            }
+        }
+    }
+    print(json.dumps(output))
+    sys.exit(0)
+
+sys.exit(0)  # Allow unmodified
 ```
+
+**Use Cases for Input Modification:**
+
+| Scenario | Original Input | Modified Input |
+|----------|---------------|----------------|
+| Add safety wrapper | `rm -rf temp/` | `trash temp/` (safer delete) |
+| Add timeout | `npm install` | `timeout 300 npm install` |
+| Add verbosity | `git push` | `git push -v` |
+| Redirect output | `command` | `command \| tee log.txt` |
+
+**When to Modify vs Block:**
+
+| Situation | Recommendation |
+|-----------|----------------|
+| Can make safe with wrapper | Modify |
+| Fundamentally dangerous | Block (deny) |
+| Needs user awareness | Ask |
+| Always safe | Allow without modification |
 
 **Input Schema:**
 

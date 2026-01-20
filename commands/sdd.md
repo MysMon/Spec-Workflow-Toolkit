@@ -304,10 +304,38 @@ Expected output: Working service with tests
 
 **After each specialist agent completes:**
 1. Verify the agent's output summary
-2. Update `feature-list.json` (mark feature as completed)
-3. Update `claude-progress.json` (update currentTask, nextAction)
-4. Run TodoWrite to update visible progress
-5. Ask user if they want to review before committing
+2. Note the agent ID for potential resume (if partial completion)
+3. Update `feature-list.json` (mark feature as completed)
+4. Update `claude-progress.json` (update currentTask, nextAction)
+5. Run TodoWrite to update visible progress
+6. Ask user if they want to review before committing
+
+---
+
+#### Subagent Resume for Iterative Work
+
+When a specialist agent needs additional work or hit an error:
+
+```
+# Agent completed but needs follow-up
+"Resume agent-abc123 to also handle edge case X"
+[Agent continues with full prior context]
+
+# Agent hit permission error in background
+"Resume agent-abc123 in foreground to retry failed operations"
+[Interactive prompts now available]
+```
+
+**When to Resume vs New Agent:**
+
+| Scenario | Action |
+|----------|--------|
+| Expanding scope of same feature | Resume |
+| Permission error recovery | Resume in foreground |
+| Completely different feature | New agent |
+| Agent hit context limit | New agent with summary |
+
+See `long-running-tasks` skill for detailed resume patterns.
 
 ---
 
