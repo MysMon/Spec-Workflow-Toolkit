@@ -127,9 +127,9 @@ skills: skill1, skill2
 | Model | Use Case | Example Agents |
 |-------|----------|----------------|
 | **Opus** | Complex reasoning, high-impact | system-architect, product-manager |
-| **Sonnet** | Balanced cost/capability | code-explorer, qa-engineer, frontend-specialist, backend-specialist |
+| **Sonnet** | Balanced cost/capability | code-explorer, qa-engineer, security-auditor |
 | **Haiku** | Fast, cheap operations | Scoring in /code-review |
-| **inherit** | User controls tradeoff | (Use when parent context should decide) |
+| **inherit** | User controls tradeoff | frontend-specialist, backend-specialist |
 
 ---
 
