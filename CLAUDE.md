@@ -14,8 +14,8 @@ A Claude Code plugin implementing Anthropic's 6 composable patterns for long-run
 .claude-plugin/plugin.json   # Plugin metadata
 commands/                    # 9 slash commands
 agents/                      # 12 subagent definitions
-skills/                      # 18 skill definitions
-  core/                      #   4 core skills (subagent-contract, sdd-philosophy, security-fundamentals, interview)
+skills/                      # 19 skill definitions
+  core/                      #   5 core skills (subagent-contract, sdd-philosophy, security-fundamentals, interview, bounded-autonomy)
   detection/                 #   1 detection skill (stack-detector)
   workflows/                 #   13 workflow skills
 hooks/                       # Event handlers (5 event types, 6 handlers) + Python validators
@@ -105,6 +105,23 @@ Version is managed in `plugin.json` only (Single Source of Truth). Do not add ve
 ```bash
 /plugin validate
 ```
+
+## Rule Hierarchy (L1/L2/L3)
+
+This plugin uses a 3-level rule hierarchy for balancing accuracy with creative problem-solving:
+
+| Level | Name | Enforcement | In Skills/Commands |
+|-------|------|-------------|-------------------|
+| **L1** | Hard Rules | Never break | `NEVER`, `ALWAYS`, `MUST` |
+| **L2** | Soft Rules | Default, override with reasoning | `should`, `by default` |
+| **L3** | Guidelines | Recommendations | `consider`, `prefer`, `recommend` |
+
+**When writing instructions:**
+- Use L1 sparingly (security, safety, data integrity)
+- L2 for best practices that may have exceptions
+- L3 for suggestions that depend on context
+
+See `docs/DEVELOPMENT.md` "Instruction Design Guidelines" for full specification.
 
 ## Coding Standards
 
