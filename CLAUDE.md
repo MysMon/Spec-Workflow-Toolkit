@@ -18,7 +18,7 @@ skills/                      # 18 skill definitions
   core/                      #   4 core skills (subagent-contract, sdd-philosophy, security-fundamentals, interview)
   detection/                 #   1 detection skill (stack-detector)
   workflows/                 #   13 workflow skills
-hooks/                       # Event handlers (6 hooks) + Python validators
+hooks/                       # Event handlers (5 event types, 6 handlers) + Python validators
 docs/                        # DEVELOPMENT.md (detailed specs), specs/
 ```
 
@@ -61,7 +61,7 @@ YAML frontmatter fields:
 - Exit 2 = blocking error
 - Exit 1, 3, etc. = non-blocking error (tool may still execute!)
 
-**Registered hooks (6 types):**
+**Registered hooks (5 event types, 6 handlers):**
 
 | Hook | Script | Purpose |
 |------|--------|---------|

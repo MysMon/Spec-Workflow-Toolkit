@@ -27,7 +27,7 @@ Each issue is scored 0-100:
 **Default Threshold:** 80 (unified with `/code-review` for consistency)
 
 **Why 80% threshold?**
-- Aligned with [official code-review plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/code-review) pattern
+- Aligned with official code-review plugin pattern
 - Reduces false positives and noise
 - Ensures only actionable issues are reported
 - Users can adjust with `--threshold` flag if needed
