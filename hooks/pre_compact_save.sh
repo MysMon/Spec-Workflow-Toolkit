@@ -17,7 +17,7 @@ INPUT=$(cat)
 TRIGGER=$(echo "$INPUT" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('trigger','unknown'))" 2>/dev/null || echo "unknown")
 CUSTOM=$(echo "$INPUT" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('custom_instructions',''))" 2>/dev/null || echo "")
 
-# Determine progress file location (workspace-isolated or legacy)
+# Determine progress file location (workspace-isolated)
 PROGRESS_FILE=""
 WORKSPACE_ID=""
 
@@ -27,15 +27,6 @@ if command -v get_workspace_id &> /dev/null; then
 
     if [ -f "$WORKSPACE_PROGRESS" ]; then
         PROGRESS_FILE="$WORKSPACE_PROGRESS"
-    fi
-fi
-
-# Fall back to legacy locations if workspace file not found
-if [ -z "$PROGRESS_FILE" ]; then
-    if [ -f ".claude/claude-progress.json" ]; then
-        PROGRESS_FILE=".claude/claude-progress.json"
-    elif [ -f "claude-progress.json" ]; then
-        PROGRESS_FILE="claude-progress.json"
     fi
 fi
 

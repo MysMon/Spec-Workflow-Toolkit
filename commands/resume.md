@@ -93,8 +93,6 @@ Example output:
 **If no argument:**
 1. Use the workspace ID shown in SessionStart hook output (format: `{branch}_{path-hash}`)
 2. Check for workspace progress file at `.claude/workspaces/{workspace-id}/claude-progress.json`
-3. If not found, check legacy locations (`.claude/claude-progress.json`)
-4. If legacy found, offer migration to workspace structure
 
 **If no progress files found:**
 - Report: "No progress files found for this workspace."
@@ -401,16 +399,6 @@ If status is "completed":
    - Review what was done
    - Start new related work
    - Archive and close
-
-### Legacy File Migration
-
-If legacy files found (`.claude/claude-progress.json` or `claude-progress.json`):
-
-1. Detect current workspace ID
-2. Offer to migrate to new structure
-3. Migration copies (not moves) files
-4. Updates workspaceId field in migrated files
-5. Original files preserved for safety
 
 ---
 

@@ -18,9 +18,8 @@ WORKSPACE_DIR=""
 PROGRESS_FILE=""
 FEATURE_FILE=""
 RESUMPTION_INFO=""
-LEGACY_DETECTED=""
 
-# Get current workspace ID
+# Get current workspace ID and paths
 if command -v get_workspace_id &> /dev/null; then
     WORKSPACE_ID=$(get_workspace_id)
     WORKSPACE_DIR=$(get_workspace_dir "$WORKSPACE_ID")
@@ -28,30 +27,14 @@ if command -v get_workspace_id &> /dev/null; then
     FEATURE_FILE=$(get_feature_file "$WORKSPACE_ID")
 fi
 
-# Check for workspace-based progress files first
-if [ -n "$WORKSPACE_ID" ] && [ -f "$PROGRESS_FILE" ]; then
-    : # Progress file exists in workspace
-else
-    # Fall back to legacy locations
+# Verify progress file exists (clear if not)
+if [ -n "$PROGRESS_FILE" ] && [ ! -f "$PROGRESS_FILE" ]; then
     PROGRESS_FILE=""
-    if [ -f ".claude/claude-progress.json" ]; then
-        PROGRESS_FILE=".claude/claude-progress.json"
-        LEGACY_DETECTED="true"
-    elif [ -f "claude-progress.json" ]; then
-        PROGRESS_FILE="claude-progress.json"
-        LEGACY_DETECTED="true"
-    fi
 fi
 
-# Check for feature files
-if [ -n "$WORKSPACE_ID" ] && [ -f "$(get_feature_file "$WORKSPACE_ID")" ]; then
-    FEATURE_FILE=$(get_feature_file "$WORKSPACE_ID")
-elif [ -f ".claude/feature-list.json" ]; then
-    FEATURE_FILE=".claude/feature-list.json"
-    LEGACY_DETECTED="true"
-elif [ -f "feature-list.json" ]; then
-    FEATURE_FILE="feature-list.json"
-    LEGACY_DETECTED="true"
+# Verify feature file exists (clear if not)
+if [ -n "$FEATURE_FILE" ] && [ ! -f "$FEATURE_FILE" ]; then
+    FEATURE_FILE=""
 fi
 
 # Extract resumption context if progress file exists
@@ -147,28 +130,6 @@ if [ -n "$WORKSPACE_ID" ]; then
     echo "**Branch**: \`$(git branch --show-current 2>/dev/null || echo 'N/A')\`"
     echo "**Working Directory**: \`$(pwd)\`"
     echo ""
-fi
-
-# --- Legacy Migration Notice ---
-if [ -n "$LEGACY_DETECTED" ]; then
-    cat << 'EOF'
-### Legacy Files Detected
-
-Old-style progress files found. Consider migrating to workspace-isolated structure:
-
-```
-.claude/workspaces/{workspace-id}/
-├── claude-progress.json
-├── feature-list.json
-└── logs/
-```
-
-Migration preserves original files and enables:
-- Multi-project isolation
-- Concurrent session support
-- Better resume capability
-
-EOF
 fi
 
 # --- Role-Specific Banner ---
