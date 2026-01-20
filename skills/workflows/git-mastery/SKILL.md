@@ -214,6 +214,79 @@ BREAKING CHANGE: <detailed explanation of what breaks>
 Migration: <how to migrate>
 ```
 
+## Undo & Recovery Patterns
+
+### Scenario-Based Recovery
+
+| Situation | Command | Risk Level |
+|-----------|---------|------------|
+| Undo last commit (keep changes) | `git reset --soft HEAD~1` | Safe |
+| Undo last commit (discard changes) | `git reset --hard HEAD~1` | Destructive |
+| Undo specific commit (public) | `git revert <hash>` | Safe |
+| Discard unstaged changes | `git checkout -- <file>` | Destructive |
+| Discard all local changes | `git reset --hard HEAD` | Destructive |
+| Recover deleted branch | `git reflog` + `git checkout -b <branch> <hash>` | Safe |
+
+### Safe Rollback Workflow
+
+```bash
+# 1. Check current state
+git status
+git log --oneline -5
+
+# 2. Create backup branch (always!)
+git branch backup-$(date +%Y%m%d-%H%M%S)
+
+# 3. Perform rollback
+git revert <commit-hash>  # For pushed commits
+# OR
+git reset --soft HEAD~1   # For unpushed commits
+
+# 4. Verify
+git log --oneline -5
+git diff HEAD~1
+```
+
+### Stash for Temporary Storage
+
+```bash
+# Save current work
+git stash push -m "WIP: feature description"
+
+# List stashes
+git stash list
+
+# Restore latest
+git stash pop
+
+# Restore specific
+git stash apply stash@{2}
+
+# Drop stash
+git stash drop stash@{0}
+```
+
+### Emergency Recovery
+
+```bash
+# Find lost commits
+git reflog
+
+# Recover lost commit
+git cherry-pick <hash>
+
+# Recover deleted file from history
+git checkout <commit-hash> -- path/to/file
+```
+
+### What NOT to Do
+
+| Dangerous Action | Why | Safe Alternative |
+|------------------|-----|------------------|
+| `git push --force` on shared branch | Overwrites others' work | `git revert` + regular push |
+| `git reset --hard` without backup | Permanent data loss | Create backup branch first |
+| `git clean -fd` without review | Deletes untracked files | `git clean -fdn` (dry-run) first |
+
 ## Rules
 
 - ALWAYS use conventional commit format
@@ -222,3 +295,5 @@ Migration: <how to migrate>
 - ALWAYS write meaningful descriptions
 - NEVER force push to shared branches
 - ALWAYS update changelog for user-facing changes
+- ALWAYS create backup branch before destructive operations
+- NEVER use `--hard` reset without understanding consequences

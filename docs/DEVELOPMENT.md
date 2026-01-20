@@ -457,6 +457,75 @@ Used in `/code-review` and agent outputs:
 
 ---
 
+## MCP Integration
+
+Model Context Protocol (MCP) servers extend Claude Code's capabilities. This plugin can work alongside MCP servers.
+
+### MCP Tool Naming Convention
+
+MCP tools follow the pattern: `mcp__<server>__<tool>`
+
+Examples:
+- `mcp__memory__create_entities`
+- `mcp__filesystem__read_file`
+- `mcp__github__search_repositories`
+
+### Hook Considerations for MCP Tools
+
+When writing PreToolUse hooks, consider MCP tools:
+
+```python
+# Check for MCP tools
+tool_name = data.get("tool_name", "")
+
+if tool_name.startswith("mcp__"):
+    # MCP tool - extract server and tool name
+    parts = tool_name.split("__")
+    if len(parts) >= 3:
+        server_name = parts[1]
+        actual_tool = parts[2]
+```
+
+### Recommended MCP Servers for SDD Workflows
+
+| MCP Server | Use Case | SDD Integration |
+|------------|----------|-----------------|
+| `@anthropic/mcp-server-memory` | Persistent memory | Complements progress-tracking |
+| `@anthropic/mcp-server-github` | GitHub operations | PRレビュー対応フロー |
+| `@anthropic/mcp-server-puppeteer` | Browser automation | E2E testing in qa-engineer |
+| `@anthropic/mcp-server-filesystem` | File operations | Alternative to built-in tools |
+
+### Configuration Example
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-github"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-memory"]
+    }
+  }
+}
+```
+
+### SDD Toolkit + MCP Best Practices
+
+| Pattern | Recommendation |
+|---------|----------------|
+| **Progress tracking** | Use JSON files (this plugin) for workflow state, MCP memory for persistent knowledge |
+| **Code exploration** | Use built-in `code-explorer` agent; MCP filesystem for specialized access |
+| **GitHub operations** | MCP GitHub server for PR/Issue operations; `/code-review` for review workflow |
+| **E2E testing** | MCP Puppeteer + `qa-engineer` agent for comprehensive testing |
+
+---
+
 ## Operational Rules
 
 ### Before Committing
