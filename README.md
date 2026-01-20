@@ -131,13 +131,19 @@ flowchart TD
 | **INITIALIZER** | 初回セッション | 進捗ファイル作成、機能分解、状態初期化 |
 | **CODING** | 各セッション | 進捗読み込み、1 機能実装、テスト、進捗更新 |
 
-### 進捗ファイル
+### 進捗ファイル（ワークスペース分離）
 
 ```
-.claude/
-├── claude-progress.json    # 進捗ログと再開コンテキスト
-└── feature-list.json       # 機能/タスクのステータス追跡
+.claude/workspaces/
+└── {workspace-id}/           # 形式: {branch}_{path-hash} 例: main_a1b2c3d4
+    ├── claude-progress.json  # 進捗ログと再開コンテキスト
+    ├── feature-list.json     # 機能/タスクのステータス追跡
+    └── logs/
+        ├── subagent_activity.log
+        └── sessions/
 ```
+
+**ワークスペース ID**: Git ブランチ名とパスのハッシュで構成。Git worktree ごとに分離され、複数プロジェクトの同時実行をサポート。
 
 > **なぜ JSON か？** 「モデルは Markdown ファイルと比較して JSON ファイルを不適切に変更する可能性が低い」- Anthropic
 

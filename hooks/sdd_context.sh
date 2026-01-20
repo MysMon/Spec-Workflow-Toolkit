@@ -4,27 +4,58 @@
 # Based on:
 # - https://www.anthropic.com/engineering/claude-code-best-practices
 # - https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
+# - https://code.claude.com/docs/en/common-workflows (Git worktrees)
 
-# --- Progress File Detection ---
+# Source workspace utilities
+SCRIPT_DIR="$(dirname "$0")"
+if [ -f "$SCRIPT_DIR/workspace_utils.sh" ]; then
+    source "$SCRIPT_DIR/workspace_utils.sh"
+fi
+
+# --- Workspace Detection ---
+WORKSPACE_ID=""
+WORKSPACE_DIR=""
 PROGRESS_FILE=""
 FEATURE_FILE=""
 RESUMPTION_INFO=""
+LEGACY_DETECTED=""
 
-# Check for progress tracking files
-if [ -f ".claude/claude-progress.json" ]; then
-    PROGRESS_FILE=".claude/claude-progress.json"
-elif [ -f "claude-progress.json" ]; then
-    PROGRESS_FILE="claude-progress.json"
+# Get current workspace ID
+if command -v get_workspace_id &> /dev/null; then
+    WORKSPACE_ID=$(get_workspace_id)
+    WORKSPACE_DIR=$(get_workspace_dir "$WORKSPACE_ID")
+    PROGRESS_FILE=$(get_progress_file "$WORKSPACE_ID")
+    FEATURE_FILE=$(get_feature_file "$WORKSPACE_ID")
 fi
 
-if [ -f ".claude/feature-list.json" ]; then
+# Check for workspace-based progress files first
+if [ -n "$WORKSPACE_ID" ] && [ -f "$PROGRESS_FILE" ]; then
+    : # Progress file exists in workspace
+else
+    # Fall back to legacy locations
+    PROGRESS_FILE=""
+    if [ -f ".claude/claude-progress.json" ]; then
+        PROGRESS_FILE=".claude/claude-progress.json"
+        LEGACY_DETECTED="true"
+    elif [ -f "claude-progress.json" ]; then
+        PROGRESS_FILE="claude-progress.json"
+        LEGACY_DETECTED="true"
+    fi
+fi
+
+# Check for feature files
+if [ -n "$WORKSPACE_ID" ] && [ -f "$(get_feature_file "$WORKSPACE_ID")" ]; then
+    FEATURE_FILE=$(get_feature_file "$WORKSPACE_ID")
+elif [ -f ".claude/feature-list.json" ]; then
     FEATURE_FILE=".claude/feature-list.json"
+    LEGACY_DETECTED="true"
 elif [ -f "feature-list.json" ]; then
     FEATURE_FILE="feature-list.json"
+    LEGACY_DETECTED="true"
 fi
 
 # Extract resumption context if progress file exists
-if [ -n "$PROGRESS_FILE" ]; then
+if [ -n "$PROGRESS_FILE" ] && [ -f "$PROGRESS_FILE" ]; then
     # Try to extract key information using basic tools
     if command -v python3 &> /dev/null; then
         RESUMPTION_INFO=$(python3 -c "
@@ -39,7 +70,9 @@ try:
     position = ctx.get('position', 'Not specified')
     next_action = ctx.get('nextAction', 'Not specified')
     blockers = ctx.get('blockers', [])
+    workspace_id = data.get('workspaceId', 'Not set')
 
+    print(f'Workspace: {workspace_id}')
     print(f'Status: {status}')
     print(f'Current Task: {current}')
     print(f'Position: {position}')
@@ -54,7 +87,7 @@ fi
 
 # Extract feature progress if feature file exists
 FEATURE_PROGRESS=""
-if [ -n "$FEATURE_FILE" ]; then
+if [ -n "$FEATURE_FILE" ] && [ -f "$FEATURE_FILE" ]; then
     if command -v python3 &> /dev/null; then
         FEATURE_PROGRESS=$(python3 -c "
 import json
@@ -82,8 +115,14 @@ except Exception as e:
     fi
 fi
 
+# List available workspaces
+AVAILABLE_WORKSPACES=""
+if [ -d ".claude/workspaces" ]; then
+    AVAILABLE_WORKSPACES=$(ls -1 ".claude/workspaces" 2>/dev/null | head -10)
+fi
+
 # --- Determine Role (Initializer vs Coding) ---
-if [ -n "$PROGRESS_FILE" ]; then
+if [ -n "$PROGRESS_FILE" ] && [ -f "$PROGRESS_FILE" ]; then
     CURRENT_ROLE="CODING"
 else
     CURRENT_ROLE="INITIALIZER"
@@ -99,6 +138,38 @@ cat << 'EOF'
 - [Subagent Documentation](https://code.claude.com/docs/en/sub-agents)
 
 EOF
+
+# --- Workspace Info ---
+if [ -n "$WORKSPACE_ID" ]; then
+    echo "### Current Workspace"
+    echo ""
+    echo "**Workspace ID**: \`$WORKSPACE_ID\`"
+    echo "**Branch**: \`$(git branch --show-current 2>/dev/null || echo 'N/A')\`"
+    echo "**Working Directory**: \`$(pwd)\`"
+    echo ""
+fi
+
+# --- Legacy Migration Notice ---
+if [ -n "$LEGACY_DETECTED" ]; then
+    cat << 'EOF'
+### Legacy Files Detected
+
+Old-style progress files found. Consider migrating to workspace-isolated structure:
+
+```
+.claude/workspaces/{workspace-id}/
+├── claude-progress.json
+├── feature-list.json
+└── logs/
+```
+
+Migration preserves original files and enables:
+- Multi-project isolation
+- Concurrent session support
+- Better resume capability
+
+EOF
+fi
 
 # --- Role-Specific Banner ---
 if [ "$CURRENT_ROLE" = "CODING" ]; then
@@ -120,10 +191,11 @@ else
 
 No progress file detected. You are in **Initializer Role**:
 1. **Analyze** the full task scope and break into features
-2. **Create** `.claude/claude-progress.json` with project info
-3. **Create** `.claude/feature-list.json` with all features (status: pending)
-4. **Document** resumption context for future sessions
-5. **Start** implementing the first feature
+2. **Create** workspace progress files:
+   - `.claude/workspaces/{workspace-id}/claude-progress.json`
+   - `.claude/workspaces/{workspace-id}/feature-list.json`
+3. **Document** resumption context for future sessions
+4. **Start** implementing the first feature
 
 EOF
 fi
@@ -137,7 +209,28 @@ cat << 'EOF'
 
 ---
 
-### ⚠️ ORCHESTRATOR RULES (NON-NEGOTIABLE)
+### Multi-Project Isolation
+
+This plugin uses workspace-based isolation for concurrent project support:
+
+```
+.claude/workspaces/
+├── main_a1b2c3d4/          # main branch workspace
+│   ├── claude-progress.json
+│   ├── feature-list.json
+│   └── logs/
+└── feature-auth_e5f6g7h8/  # feature branch workspace
+    ├── claude-progress.json
+    └── logs/
+```
+
+**Workspace ID Format**: `{branch}_{path-hash}`
+
+Each git worktree gets its own isolated workspace. Use `/resume list` to see all workspaces.
+
+---
+
+### ORCHESTRATOR RULES (NON-NEGOTIABLE)
 
 **YOU ARE THE ORCHESTRATOR. YOU DO NOT DO THE WORK YOURSELF.**
 
@@ -188,9 +281,10 @@ Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com
 
 **Solution**: Focus on ONE feature, complete it fully, then move to the next.
 
-**State Files:**
-- `.claude/claude-progress.json` - Progress log with resumption context
-- `.claude/feature-list.json` - Feature/task status tracking
+**State Files (per workspace):**
+- `.claude/workspaces/{id}/claude-progress.json` - Progress log with resumption context
+- `.claude/workspaces/{id}/feature-list.json` - Feature/task status tracking
+- `.claude/workspaces/{id}/logs/` - Session and subagent logs
 
 **TodoWrite Integration:**
 1. Read feature-list.json to populate TodoWrite
@@ -206,6 +300,8 @@ Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com
 | `/spec-review` | Validate specifications before implementation |
 | `/code-review` | Review code before committing (parallel agents) |
 | `/quick-impl` | Small, clear tasks with obvious scope |
+| `/resume` | Resume work from progress files |
+| `/resume list` | List all available workspaces |
 
 ### Parallel Agent Execution
 
@@ -231,29 +327,30 @@ This toolkit implements Anthropic's 6 composable patterns:
 
 | Skill | Use For |
 |-------|---------|
-| \`tdd-workflow\` | Test-first development (Red-Green-Refactor) |
-| \`evaluator-optimizer\` | Iterative quality improvement |
-| \`error-recovery\` | Checkpoint and recovery patterns |
-| \`subagent-contract\` | Standardized result formats |
-| \`progress-tracking\` | JSON-based state persistence |
+| `tdd-workflow` | Test-first development (Red-Green-Refactor) |
+| `evaluator-optimizer` | Iterative quality improvement |
+| `error-recovery` | Checkpoint and recovery patterns |
+| `subagent-contract` | Standardized result formats |
+| `progress-tracking` | JSON-based state persistence |
 
 ### Quick Reference
 
-- **Specs location**: \`docs/specs/[feature-name].md\`
-- **Progress files**: \`.claude/claude-progress.json\`, \`.claude/feature-list.json\`
-- **Use \`/clear\`** frequently between major tasks
+- **Specs location**: `docs/specs/[feature-name].md`
+- **Progress files**: `.claude/workspaces/{id}/claude-progress.json`
+- **Use `/clear`** frequently between major tasks
 - **Ask questions** rather than assume requirements
 - **Confidence threshold**: 80% (only report issues >= 80 confidence)
 
 EOF
 
 # --- Output Resumption Context if Available ---
-if [ -n "$PROGRESS_FILE" ]; then
+if [ -n "$PROGRESS_FILE" ] && [ -f "$PROGRESS_FILE" ]; then
     echo ""
     echo "### Resumable Work Detected"
     echo ""
+    echo "**Workspace ID**: \`$WORKSPACE_ID\`"
     echo "**Progress File**: \`$PROGRESS_FILE\`"
-    if [ -n "$FEATURE_FILE" ]; then
+    if [ -n "$FEATURE_FILE" ] && [ -f "$FEATURE_FILE" ]; then
         echo "**Feature File**: \`$FEATURE_FILE\`"
     fi
     echo ""
@@ -273,4 +370,20 @@ if [ -n "$PROGRESS_FILE" ]; then
     echo ""
     echo "To resume: Read the progress file and continue from the documented position."
     echo ""
+fi
+
+# --- Output Available Workspaces if Multiple ---
+if [ -n "$AVAILABLE_WORKSPACES" ]; then
+    WORKSPACE_COUNT=$(echo "$AVAILABLE_WORKSPACES" | wc -l)
+    if [ "$WORKSPACE_COUNT" -gt 1 ]; then
+        echo ""
+        echo "### Available Workspaces"
+        echo ""
+        echo "Multiple workspaces detected. Use \`/resume list\` to see details."
+        echo ""
+        echo "\`\`\`"
+        echo "$AVAILABLE_WORKSPACES"
+        echo "\`\`\`"
+        echo ""
+    fi
 fi

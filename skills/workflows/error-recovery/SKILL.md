@@ -88,7 +88,7 @@ When ideal path fails, fall back to alternative approaches rather than complete 
    - Confirm file was written correctly
 
 2. **Record State**
-   - Update .claude/claude-progress.json
+   - Update .claude/workspaces/{workspace-id}/claude-progress.json
    - Add entry to progress log
    - Note files modified
 
@@ -238,17 +238,18 @@ Safe Mode (on error):
 ### Workflow 1: Resume After Crash
 
 ```markdown
-1. Read .claude/claude-progress.json
-2. Identify last checkpoint:
+1. Identify current workspace ID (branch + path hash)
+2. Read .claude/workspaces/{workspace-id}/claude-progress.json
+3. Identify last checkpoint:
    - Position: "Phase 5, Feature F003, step 2"
    - Last action: "Created AuthService class"
    - Next action: "Add login method"
-3. Verify file state:
+4. Verify file state:
    - Run `git status` to check uncommitted changes
    - Compare files to checkpoint expectation
-4. If state is valid:
+5. If state is valid:
    - Continue from documented next action
-5. If state is corrupted:
+6. If state is corrupted:
    - Roll back to last commit: `git checkout -- .`
    - Resume from that checkpoint
 ```

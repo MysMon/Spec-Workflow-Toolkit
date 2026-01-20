@@ -324,10 +324,15 @@ Fires before context compaction. Use to preserve state:
 
 ```bash
 #!/bin/bash
+# See hooks/pre_compact_save.sh for workspace-isolated implementation
 INPUT=$(cat)
 TRIGGER=$(echo "$INPUT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('trigger','unknown'))")
 
-if [ -f ".claude/claude-progress.json" ]; then
+# Source workspace utilities for workspace-isolated paths
+source "$(dirname "$0")/workspace_utils.sh"
+PROGRESS_FILE=$(get_progress_file)
+
+if [ -f "$PROGRESS_FILE" ]; then
     # Update progress file with compaction timestamp
 fi
 

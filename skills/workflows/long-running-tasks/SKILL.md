@@ -27,7 +27,7 @@ Anthropic's recommended pattern uses **two distinct roles**:
 ### 1. Initializer Role (First Session Only)
 
 On first run:
-- **Create** `.claude/claude-progress.json` and `.claude/feature-list.json`
+- **Create** workspace progress files in `.claude/workspaces/{workspace-id}/`
 - **Analyze** the full task scope and break into features
 - **Initialize** git repository state
 - **Document** resumption context for future sessions
@@ -63,14 +63,15 @@ From Claude Code Best Practices:
 
 ## State Management Pattern
 
-### 1. Initialize Progress Files
+### 1. Initialize Progress Files (Workspace-Isolated)
 
-At task start, create the progress structure:
+At task start, create the progress structure in the workspace directory:
 
-**`.claude/claude-progress.json`** - Resumption context:
+**`.claude/workspaces/{workspace-id}/claude-progress.json`** - Resumption context:
 
 ```json
 {
+  "workspaceId": "main_a1b2c3d4",
   "project": "task-name",
   "status": "in_progress",
   "startedAt": "2025-01-15T10:00:00Z",
@@ -92,10 +93,11 @@ At task start, create the progress structure:
 }
 ```
 
-**`.claude/feature-list.json`** - Task breakdown:
+**`.claude/workspaces/{workspace-id}/feature-list.json`** - Task breakdown:
 
 ```json
 {
+  "workspaceId": "main_a1b2c3d4",
   "features": [
     {"id": "F001", "name": "Step 1: Description", "status": "pending"},
     {"id": "F002", "name": "Step 2: Description", "status": "pending"},
@@ -103,6 +105,8 @@ At task start, create the progress structure:
   ]
 }
 ```
+
+**Workspace ID Format:** `{branch}_{path-hash}` (e.g., `main_a1b2c3d4`, `feature-auth_e5f6g7h8`)
 
 ### 2. Update Progress Continuously
 
@@ -250,24 +254,26 @@ When work spans multiple sessions:
 
 ### End of Session
 
-1. Update `.claude/claude-progress.json` with current position
-2. Update `.claude/feature-list.json` with feature status
+1. Update `.claude/workspaces/{workspace-id}/claude-progress.json` with current position
+2. Update `.claude/workspaces/{workspace-id}/feature-list.json` with feature status
 3. Commit WIP changes with descriptive message
 4. Ensure resumptionContext has clear next action
 
 ### Start of Next Session
 
-1. Read `.claude/claude-progress.json` for resumption context
-2. Check `.claude/feature-list.json` for current feature status
-3. Identify first `pending` or `in_progress` feature
-4. Continue from documented position
+1. Identify current workspace ID (based on branch + path)
+2. Read `.claude/workspaces/{workspace-id}/claude-progress.json` for resumption context
+3. Check `.claude/workspaces/{workspace-id}/feature-list.json` for current feature status
+4. Identify first `pending` or `in_progress` feature
+5. Continue from documented position
 
 ## Example: Database Migration
 
-**`.claude/claude-progress.json`**:
+**`.claude/workspaces/feature-prisma_b2c3d4e5/claude-progress.json`**:
 
 ```json
 {
+  "workspaceId": "feature-prisma_b2c3d4e5",
   "project": "migrate-to-prisma",
   "status": "in_progress",
   "startedAt": "2025-01-15T10:00:00Z",
@@ -311,10 +317,11 @@ When work spans multiple sessions:
 }
 ```
 
-**`.claude/feature-list.json`**:
+**`.claude/workspaces/feature-prisma_b2c3d4e5/feature-list.json`**:
 
 ```json
 {
+  "workspaceId": "feature-prisma_b2c3d4e5",
   "features": [
     {"id": "F001", "name": "Audit existing Sequelize models", "status": "completed"},
     {"id": "F002", "name": "Create Prisma schema", "status": "completed"},
@@ -329,7 +336,7 @@ When work spans multiple sessions:
 }
 ```
 
-**Resumption note**: After compaction or new session, read these files first to understand current state.
+**Resumption note**: After compaction or new session, read workspace files first to understand current state.
 
 ## Anti-Patterns to Avoid
 
@@ -343,11 +350,14 @@ When work spans multiple sessions:
 
 ## Rules
 
-- ALWAYS create `.claude/claude-progress.json` and `.claude/feature-list.json` for tasks > 3 steps
+- ALWAYS create workspace progress files for tasks > 3 steps
+- ALWAYS use workspace-isolated paths: `.claude/workspaces/{workspace-id}/`
 - ALWAYS update progress files after each significant action
+- ALWAYS include workspaceId in progress files
 - ALWAYS mark todos complete immediately
 - NEVER have more than one todo in_progress
 - ALWAYS document resumption context in JSON (position, nextAction, keyFiles)
 - ALWAYS test after batched changes
-- ALWAYS read progress files first after compaction or new session
+- ALWAYS read workspace progress files first after compaction or new session
 - NEVER use plain text files for state - use JSON for reliability
+- NEVER write to progress files outside current workspace

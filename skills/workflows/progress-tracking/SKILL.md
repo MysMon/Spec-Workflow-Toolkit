@@ -21,6 +21,46 @@ JSON-based progress tracking for autonomous, long-running tasks that may span mu
 
 Based on Anthropic's Effective Harnesses for Long-Running Agents pattern.
 
+## Multi-Project Isolation
+
+Based on Claude Code's official git worktree recommendations, this system isolates each workspace to prevent conflicts when running multiple projects or sessions concurrently.
+
+### Workspace Structure
+
+```
+.claude/
+└── workspaces/
+    └── {workspace-id}/           # Format: {branch}_{path-hash}
+        ├── claude-progress.json  # Progress log with resumption context
+        ├── feature-list.json     # Feature/task tracking
+        ├── session-state.json    # Current session state (optional)
+        └── logs/
+            ├── subagent_activity.log
+            └── sessions/
+                └── {session-id}.log
+```
+
+### Workspace ID Generation
+
+The workspace ID is generated from:
+- **Branch name**: Current git branch (e.g., `main`, `feature-auth`)
+- **Path hash**: MD5 hash of working directory path (8 chars)
+
+Example workspace IDs:
+- `main_a1b2c3d4` - main branch in directory with hash a1b2c3d4
+- `feature-auth_e5f6g7h8` - feature/auth branch in different worktree
+
+### Why This Structure?
+
+From Claude Code Issue #1985 (Session Isolation):
+> "File path from one session appeared in the context of a completely separate session"
+
+This structure ensures:
+1. **Worktree isolation**: Different git worktrees get different workspaces
+2. **Branch isolation**: Same directory, different branch = different workspace
+3. **Session tracking**: Each session has its own log file
+4. **Resume capability**: Easy identification by branch name
+
 ## Core Principle
 
 **Context windows are limited.** Complex tasks cannot be completed in a single window. This system provides:
@@ -38,19 +78,11 @@ From Anthropic's research: "Models are less likely to inappropriately modify JSO
 - Machine-readable for automation
 - Clear separation of data and presentation
 
-## File Structure
-
-```
-.claude/
-├── claude-progress.json    # Progress log
-├── feature-list.json       # Task/feature tracking
-└── session-state.json      # Current session state (optional)
-```
-
 ## claude-progress.json Schema
 
 ```json
 {
+  "workspaceId": "main_a1b2c3d4",
   "project": "project-name",
   "started": "2025-01-16T10:00:00Z",
   "lastUpdated": "2025-01-16T14:30:00Z",
@@ -58,7 +90,7 @@ From Anthropic's research: "Models are less likely to inappropriately modify JSO
   "currentTask": "Implementing user authentication",
   "sessions": [
     {
-      "id": 1,
+      "id": "20250116_100000_abc1",
       "started": "2025-01-16T10:00:00Z",
       "ended": "2025-01-16T12:00:00Z",
       "summary": "Set up project structure, created database schema",
@@ -87,6 +119,7 @@ From Anthropic's research: "Models are less likely to inappropriately modify JSO
 
 ```json
 {
+  "workspaceId": "main_a1b2c3d4",
   "project": "project-name",
   "totalFeatures": 10,
   "completed": 3,
@@ -119,23 +152,30 @@ From Anthropic's research: "Models are less likely to inappropriately modify JSO
 
 ### Starting a New Task
 
-1. **Initialize Progress Files**
+1. **Determine Workspace ID**
+   ```bash
+   # Generated automatically by hooks:
+   # {branch}_{path-hash} e.g., main_a1b2c3d4
    ```
-   Create .claude/claude-progress.json with:
+
+2. **Initialize Progress Files**
+   ```
+   Create .claude/workspaces/{workspace-id}/claude-progress.json with:
+   - Workspace ID
    - Project name
    - Start timestamp
    - Initial status
    - First session entry
    ```
 
-2. **Create Feature List** (if multiple features)
+3. **Create Feature List** (if multiple features)
    ```
-   Create .claude/feature-list.json with:
+   Create .claude/workspaces/{workspace-id}/feature-list.json with:
    - All features to implement
    - All marked as "pending" initially
    ```
 
-3. **Use TodoWrite in Parallel**
+4. **Use TodoWrite in Parallel**
    ```
    TodoWrite for real-time visibility
    JSON files for persistence across sessions
@@ -190,18 +230,24 @@ From Anthropic's research: "Models are less likely to inappropriately modify JSO
 
 ### Resuming Work
 
-1. **Read Progress Files**
+1. **List Available Workspaces**
    ```
-   Read .claude/claude-progress.json
-   Read .claude/feature-list.json (if exists)
+   Check .claude/workspaces/ for available workspaces
+   Display workspace IDs with project names and status
    ```
 
-2. **Understand Current State**
+2. **Read Progress Files for Selected Workspace**
+   ```
+   Read .claude/workspaces/{workspace-id}/claude-progress.json
+   Read .claude/workspaces/{workspace-id}/feature-list.json (if exists)
+   ```
+
+3. **Understand Current State**
    - Check resumptionContext.position
    - Review last session summary
    - Note any blockers
 
-3. **Continue from Documented Point**
+4. **Continue from Documented Point**
    - Start new session entry
    - Follow nextAction from resumption context
 
@@ -227,14 +273,18 @@ Flow:
 When starting or resuming:
 
 ```
-1. Check if .claude/claude-progress.json exists
-2. If exists:
+1. Get current workspace ID (branch + path hash)
+2. Check if .claude/workspaces/{workspace-id}/claude-progress.json exists
+3. If exists:
    - Read resumptionContext
    - Read last session summary
    - Report: "Resuming from: [position]"
+   - Report: "Workspace: [workspace-id]"
    - Report: "Next action: [nextAction]"
-3. If not exists:
-   - Initialize new progress tracking
+4. If not exists:
+   - Check for legacy files (.claude/claude-progress.json)
+   - If legacy exists, offer migration
+   - Otherwise, initialize new progress tracking
    - Create feature list if multiple features
 ```
 
@@ -252,7 +302,7 @@ This plugin includes a `PreCompact` hook that automatically saves state before c
 │  1. Context approaches limit (~50-70% full)                      │
 │        ↓                                                        │
 │  2. PreCompact hook triggers (pre_compact_save.sh)              │
-│        - Saves timestamp to claude-progress.json                 │
+│        - Saves timestamp to workspace progress file              │
 │        - Outputs reminder about post-compaction recovery        │
 │        ↓                                                        │
 │  3. System compacts context (summarizes conversation)           │
@@ -271,7 +321,7 @@ This plugin includes a `PreCompact` hook that automatically saves state before c
 
 1. **Read progress file** to restore context:
    ```
-   Read .claude/claude-progress.json
+   Read .claude/workspaces/{workspace-id}/claude-progress.json
    ```
 
 2. **Check for compaction history**:
@@ -301,6 +351,7 @@ Ensure your progress files contain enough context to recover:
 
 ```json
 {
+  "workspaceId": "main_a1b2c3d4",
   "resumptionContext": {
     "position": "Phase 5 - Implementation: AuthService login method",
     "nextAction": "Add token refresh logic to src/services/auth.ts:67",
@@ -337,6 +388,15 @@ With proper recovery:
 - Key file references enable quick context loading
 - Work continues smoothly across compaction boundaries
 
+## Legacy File Migration
+
+If old-style progress files exist at `.claude/claude-progress.json` or `claude-progress.json`:
+
+1. **Detect legacy files** during SessionStart
+2. **Offer migration** to new workspace structure
+3. **Copy** (not move) files to preserve originals
+4. **Update** workspace ID in migrated files
+
 ## Best Practices
 
 ### DO
@@ -346,6 +406,7 @@ With proper recovery:
 - Use feature-list.json for tasks with multiple deliverables
 - Commit progress files to git for persistence
 - Include file paths in log entries
+- Include workspaceId in all progress files
 
 ### DON'T
 
@@ -353,11 +414,13 @@ With proper recovery:
 - Use vague resumption context ("continue working")
 - Forget to update feature status on completion
 - Leave blockers undocumented
+- Mix progress from different workspaces
 
 ## Example: Database Migration
 
 ```json
 {
+  "workspaceId": "feature-prisma_b2c3d4e5",
   "project": "sequelize-to-prisma-migration",
   "status": "in_progress",
   "currentTask": "Migrating Order model",
@@ -385,3 +448,5 @@ With proper recovery:
 - NEVER leave nextAction empty or vague
 - ALWAYS include file paths in log entries
 - ALWAYS sync TodoWrite with feature-list on resume
+- ALWAYS include workspaceId in progress files
+- NEVER write to progress files outside current workspace
