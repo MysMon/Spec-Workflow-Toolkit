@@ -287,14 +287,28 @@ Alert when:
 
 ---
 
-## Rules
+## Rules (L1 - Hard)
 
-- ALWAYS use structured logging (not print/console.log)
-- NEVER log sensitive data (PII, tokens, passwords)
-- ALWAYS propagate trace context across services
-- ALWAYS include correlation IDs in logs
-- ALWAYS discover existing project patterns before implementing
-- ALWAYS use WebSearch for current library recommendations
-- NEVER hardcode specific library examples without research
-- ALWAYS expose health check endpoints
-- ALWAYS link alerts to runbooks
+Critical for security and operational safety.
+
+- NEVER log sensitive data (PII, tokens, passwords) - security requirement
+- ALWAYS propagate trace context across services (enables debugging)
+- ALWAYS include correlation IDs in logs (request tracing)
+
+## Defaults (L2 - Soft)
+
+Important for operational quality. Override with reasoning when appropriate.
+
+- Use structured logging (not print/console.log)
+- Expose health check endpoints for orchestration
+- Discover existing project patterns before implementing
+- Use WebSearch for current library recommendations
+- Link alerts to runbooks
+
+## Guidelines (L3)
+
+Recommendations for comprehensive observability.
+
+- Consider using RED/USE/Golden Signals frameworks for metrics
+- Prefer sampling traces in high-traffic environments
+- Consider SLO-based alerting over threshold-based

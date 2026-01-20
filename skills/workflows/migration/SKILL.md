@@ -211,14 +211,29 @@ When migration fails mid-way:
 
 ---
 
-## Rules
+## Rules (L1 - Hard)
 
-- ALWAYS backup before migration
-- ALWAYS test migrations in non-production first
-- ALWAYS have a rollback plan
-- ALWAYS discover the project's migration tool before running commands
-- ALWAYS use WebSearch to verify current command syntax
+Critical for data safety. Violations can cause data loss.
+
+- ALWAYS backup before migration (recovery requirement)
 - NEVER run destructive migrations without explicit confirmation
-- NEVER assume migrations are automatically reversible
 - NEVER run reset/drop commands in production
-- NEVER hardcode ORM-specific commands (discover them)
+- NEVER assume migrations are automatically reversible
+
+## Defaults (L2 - Soft)
+
+Important for safe operations. Override with reasoning when appropriate.
+
+- Test migrations in non-production first
+- Have a rollback plan documented
+- Discover the project's migration tool before running commands
+- Use WebSearch to verify current command syntax
+- Never hardcode ORM-specific commands (discover them)
+
+## Guidelines (L3)
+
+Recommendations for robust migration practices.
+
+- Consider using the add/copy/drop pattern for column renames
+- Prefer concurrent index creation for large tables
+- Consider schema drift checks before migrations

@@ -287,13 +287,29 @@ git checkout <commit-hash> -- path/to/file
 | `git reset --hard` without backup | Permanent data loss | Create backup branch first |
 | `git clean -fd` without review | Deletes untracked files | `git clean -fdn` (dry-run) first |
 
-## Rules
+## Rules (L1 - Hard)
 
-- ALWAYS use conventional commit format
-- ALWAYS check git status before committing
-- NEVER commit unrelated changes together
-- ALWAYS write meaningful descriptions
-- NEVER force push to shared branches
-- ALWAYS update changelog for user-facing changes
+Critical for data safety and team collaboration. Violations can cause data loss or disrupt others.
+
+- NEVER force push to shared branches (overwrites others' work)
 - ALWAYS create backup branch before destructive operations
 - NEVER use `--hard` reset without understanding consequences
+- NEVER commit secrets or credentials
+
+## Defaults (L2 - Soft)
+
+Important for consistency and quality. Override with reasoning when appropriate.
+
+- Use conventional commit format for semantic versioning
+- Check git status before committing
+- Avoid committing unrelated changes together
+- Write meaningful descriptions in commit messages
+- Update changelog for user-facing changes
+
+## Guidelines (L3)
+
+Recommendations for better git hygiene.
+
+- Consider using `git add -p` for partial staging
+- Prefer rebase for linear history on feature branches
+- Consider signing commits for verified authorship

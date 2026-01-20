@@ -375,13 +375,28 @@ Options:
 
 ---
 
-## Rules
+## Rules (L1 - Hard)
 
-- ALWAYS discover project's test/build commands before running them
-- ALWAYS identify root cause before implementing fix
-- ALWAYS verify fix with tests
-- ALWAYS delegate implementation to appropriate specialist
+Critical for effective debugging and avoiding damage.
+
+- ALWAYS identify root cause before implementing fix (prevents wrong fixes)
+- NEVER skip root cause analysis (surface symptoms mislead)
+- NEVER commit without verification (may introduce more bugs)
+- NEVER ignore regressions (compounds problems)
 - NEVER assume specific framework commands (discover them)
-- NEVER skip root cause analysis
-- NEVER commit without verification
-- NEVER ignore regressions
+
+## Defaults (L2 - Soft)
+
+Important for quality debugging. Override with reasoning when appropriate.
+
+- Discover project's test/build commands before running them
+- Verify fix with tests
+- Delegate implementation to appropriate specialist
+- Document root cause analysis for future reference
+
+## Guidelines (L3)
+
+Recommendations for thorough debugging.
+
+- Consider using TDD approach (write failing test first)
+- Prefer examining recent git changes when investigating

@@ -429,13 +429,28 @@ With proper recovery:
 }
 ```
 
-## Rules
+## Rules (L1 - Hard)
 
-- ALWAYS create progress files for tasks > 3 steps
-- ALWAYS update resumption context before ending session
-- ALWAYS use JSON format (not Markdown) for state
-- NEVER leave nextAction empty or vague
-- ALWAYS include file paths in log entries
-- ALWAYS sync TodoWrite with feature-list on resume
-- ALWAYS include workspaceId in progress files
-- NEVER write to progress files outside current workspace
+Critical for session continuity and data integrity.
+
+- ALWAYS update resumption context before ending session (enables recovery)
+- NEVER leave nextAction empty or vague (agent cannot resume)
+- ALWAYS include workspaceId in progress files (isolation)
+- NEVER write to progress files outside current workspace (prevents conflicts)
+
+## Defaults (L2 - Soft)
+
+Important for effective progress tracking. Override with reasoning when appropriate.
+
+- Create progress files for tasks > 3 steps
+- Use JSON format (not Markdown) for state
+- Include file paths in log entries
+- Sync TodoWrite with feature-list on resume
+
+## Guidelines (L3)
+
+Recommendations for better progress management.
+
+- Consider committing progress files to git for persistence
+- Prefer frequent small updates over batched large updates
+- Include recent decisions in resumption context for continuity

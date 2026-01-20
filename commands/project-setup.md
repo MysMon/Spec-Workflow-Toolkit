@@ -298,13 +298,27 @@ Next steps:
 
 ---
 
-## Rules
+## Rules (L1 - Hard)
 
-- ALWAYS discover stack through analysis, not hardcoded file lists
-- ALWAYS use domain-agnostic interview questions
-- ALWAYS confirm detected patterns with user
-- ALWAYS use discovered paths for path-conditional rules
-- NEVER assume specific framework/library names
-- NEVER hardcode path patterns (discover them)
+Critical for accurate project rules.
+
+- NEVER assume specific framework/library names (discover through analysis)
+- NEVER hardcode path patterns (discover them from codebase)
 - NEVER create rules for technologies not detected
 - NEVER skip user confirmation before creating files
+
+## Defaults (L2 - Soft)
+
+Important for effective rule generation. Override with reasoning when appropriate.
+
+- Discover stack through analysis, not hardcoded file lists
+- Use domain-agnostic interview questions
+- Confirm detected patterns with user
+- Use discovered paths for path-conditional rules
+
+## Guidelines (L3)
+
+Recommendations for comprehensive project setup.
+
+- Consider generating path-specific rules when clear boundaries exist
+- Prefer matching existing editor/tool configurations

@@ -308,12 +308,28 @@ In Phase 5 (Implementation) of `/sdd`:
 6. Commit working code
 ```
 
-## Rules
+## Rules (L1 - Hard)
 
-- NEVER write implementation before test
-- NEVER skip the RED confirmation step
-- NEVER refactor on RED (failing tests)
-- ALWAYS run all tests before committing
-- ALWAYS keep tests fast and focused
-- NEVER test implementation details, test behavior
-- ALWAYS document why a test exists (in comments or test name)
+Core TDD discipline. Violations undermine the entire methodology.
+
+- NEVER write implementation before test (defeats TDD purpose)
+- NEVER skip the RED confirmation step (proves test validity)
+- NEVER refactor on RED (changing code while tests fail)
+- ALWAYS run all tests before committing (catch regressions)
+
+## Defaults (L2 - Soft)
+
+Important for test quality. Override with reasoning when appropriate.
+
+- Keep tests fast and focused (slow tests get skipped)
+- Test behavior, not implementation details (fragile tests)
+- Write one test at a time (clearer cause-and-effect)
+- Each Red-Green-Refactor cycle should be 3 todos
+
+## Guidelines (L3)
+
+Recommendations for effective TDD practice.
+
+- Consider documenting why a test exists in comments or test name
+- Prefer real implementations over mocks when practical
+- Consider extracting test fixtures for reuse

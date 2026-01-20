@@ -400,11 +400,28 @@ Example:
 
 ## Rules for Subagents
 
-- ALWAYS use the standardized result format
-- ALWAYS include file:line references for all findings
-- ALWAYS provide confidence scores with justification
-- NEVER return raw exploration results (summarize)
-- ALWAYS categorize issues by severity
-- ALWAYS include next steps when applicable
-- NEVER exceed ~500 tokens for summaries (context protection)
-- ALWAYS report blockers that prevent completion
+### Rules (L1 - Hard)
+
+Critical for orchestration consistency and context protection.
+
+- ALWAYS use the standardized result format (enables aggregation)
+- NEVER exceed ~500 tokens for summaries (context protection critical)
+- ALWAYS report blockers that prevent completion (orchestrator needs to know)
+
+### Defaults (L2 - Soft)
+
+Important for quality and usability. Override with reasoning when appropriate.
+
+- Include file:line references for all findings (aids navigation)
+- Provide confidence scores with justification (enables prioritization)
+- Summarize exploration results, don't return raw output
+- Categorize issues by severity (critical/important/minor)
+
+### Guidelines (L3)
+
+Recommendations for better results.
+
+- Include next steps when applicable
+- Suggest recovery options for errors
+- Note trade-offs considered in design decisions
+- Reference patterns found for architectural consistency

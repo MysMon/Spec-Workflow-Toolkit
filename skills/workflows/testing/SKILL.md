@@ -280,13 +280,28 @@ WebSearch: "[test framework name] code coverage command"
 
 ---
 
-## Rules
+## Rules (L1 - Hard)
 
-- ALWAYS discover the project's test framework before running tests
-- ALWAYS use the project's configured test commands
-- ALWAYS write tests BEFORE fixing bugs (reproduce first)
-- ALWAYS test edge cases and error conditions
-- NEVER test implementation details (test behavior)
-- NEVER share mutable state between tests
+Critical for test reliability and safety.
+
+- NEVER share mutable state between tests (causes flakiness)
 - NEVER use hardcoded delays (use proper async waiting)
-- NEVER skip tests without documented reason
+- ALWAYS write tests BEFORE fixing bugs (reproduce first)
+
+## Defaults (L2 - Soft)
+
+Important for effective testing. Override with reasoning when appropriate.
+
+- Discover the project's test framework before running tests
+- Use the project's configured test commands
+- Test edge cases and error conditions
+- Test behavior, not implementation details
+- Document reason when skipping tests
+
+## Guidelines (L3)
+
+Recommendations for comprehensive test coverage.
+
+- Consider using AAA pattern (Arrange-Act-Assert) for clarity
+- Prefer factories for dynamic test data
+- Consider coverage targets around 80%
