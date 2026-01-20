@@ -223,6 +223,48 @@ Skills should define **processes and frameworks**, not static knowledge that can
 
 ---
 
+### Command and Agent Content Guidelines
+
+Commands and agents may include concrete examples for clarity, but should be resilient to change.
+
+#### Acceptable (Examples)
+
+```markdown
+**Example linter commands:**
+npm run lint -- --fix
+python -m black .
+```
+
+The general pattern (auto-fix linters) is stable; specific tools are examples.
+
+#### Risky (Prescriptive)
+
+```markdown
+**Required:** Run `eslint --fix` before committing.
+```
+
+This breaks if eslint is replaced by biome or another tool.
+
+#### Guidelines
+
+| Content Type | Guidance |
+|--------------|----------|
+| **CLI examples** | Use widely-adopted tools (gh, npm, git) as examples |
+| **Tool names** | Frame as examples, not requirements |
+| **API/SDK calls** | Use conceptual descriptions, not specific method names |
+| **Version numbers** | Avoid; use "current version" or "when available" |
+| **File paths** | Use patterns (`*lint*`) over specific names (`eslint.config.js`) |
+
+#### Stability Spectrum
+
+| Stable (OK to hardcode) | Moderate (example only) | Unstable (avoid) |
+|------------------------|-------------------------|------------------|
+| OWASP Top 10, CVSS, CWE | eslint, prettier, black | Specific versions |
+| git commands | gh CLI, glab CLI | API method names |
+| HTTP methods | npm audit, pip-audit | Library internals |
+
+---
+
 ### Command Template
 
 Create `commands/[name].md`:

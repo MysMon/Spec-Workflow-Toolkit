@@ -173,6 +173,34 @@ Grep: pattern="SELECT|INSERT|UPDATE|DELETE" glob="*.{ts,js,sql}"
 Grep: pattern="@Get|@Post|router\.|app\." glob="*.{ts,js}"
 ```
 
+## Language-Aware Navigation (When Available)
+
+Claude Code may provide language-aware navigation capabilities (e.g., LSP integration) for supported languages. When available, prefer semantic navigation over text-based search for precision.
+
+### Semantic vs Text-Based Search
+
+| Need | Semantic (if available) | Text-Based (always works) |
+|------|------------------------|---------------------------|
+| Find where symbol is defined | Jump to definition | `Grep: "function symbolName"` |
+| Find all usages | Find references | `Grep: "symbolName"` |
+| Understand types | Type information | Read type definition file |
+
+### Why Prefer Semantic Navigation
+
+- **Precision**: Finds exact symbol references, not string matches
+- **Cross-file**: Follows imports automatically
+- **Type-aware**: Understands language semantics
+
+### Combining Approaches
+
+For comprehensive analysis, use both when available:
+
+1. **Semantic for precision**: Find exact definition of a symbol
+2. **Grep for patterns**: Find all files matching a pattern
+3. **Glob for structure**: Map the file organization
+
+Text-based search (Grep/Glob) always works regardless of language support.
+
 ## Exploration Depth Levels
 
 When invoked, Claude specifies thoroughness:

@@ -12,7 +12,7 @@ A Claude Code plugin implementing Anthropic's 6 composable patterns for long-run
 
 ```
 .claude-plugin/plugin.json   # Plugin metadata
-commands/                    # 11 slash commands
+commands/                    # 13 slash commands
 agents/                      # 12 subagent definitions
 skills/                      # 20 skill definitions
   core/                      #   5 core skills (subagent-contract, sdd-philosophy, security-fundamentals, interview, bounded-autonomy)
@@ -100,6 +100,22 @@ When adding, removing, or renaming components:
 ### Version Rule
 
 Version is managed in `plugin.json` only (Single Source of Truth). Do not add version numbers to document titles or content.
+
+### Obsolescence Prevention
+
+Avoid content that becomes outdated when external tools/APIs change.
+
+| Avoid | Instead |
+|-------|---------|
+| Specific API method names | Conceptual descriptions ("find references") |
+| Version numbers ("v2.1.0") | "When available" or omit |
+| Prescriptive tool requirements | Examples with alternatives |
+
+**Skills**: Define processes, not static knowledge. Use WebSearch for current options.
+
+**Commands/Agents**: Concrete examples OK if framed as examples, not requirements.
+
+See `docs/DEVELOPMENT.md` "Command and Agent Content Guidelines" for details.
 
 ## Validation
 
