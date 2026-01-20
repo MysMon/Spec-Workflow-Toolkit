@@ -91,7 +91,20 @@ git log --oneline -10 -- [files]
 
 ### Step 3: Launch 5 Parallel Review Agents (Sonnet)
 
-**CRITICAL: Launch all 5 agents in a single Task tool call using parallel execution.**
+**CRITICAL: Launch all 5 agents in a single message with 5 separate Task tool calls.**
+
+To achieve true parallelism, invoke multiple Task tools in a single response:
+```
+<parallel-execution>
+Task tool call 1: Agent 1 (CLAUDE.md Compliance)
+Task tool call 2: Agent 2 (Bug Scan)
+Task tool call 3: Agent 3 (Git History)
+Task tool call 4: Agent 4 (PR Comments)
+Task tool call 5: Agent 5 (Code Comments)
+</parallel-execution>
+```
+
+Each Task should use `subagent_type: general-purpose` and `model: sonnet`.
 
 **Agent 1: CLAUDE.md Compliance Audit**
 ```

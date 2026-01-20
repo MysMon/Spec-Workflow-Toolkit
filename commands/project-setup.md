@@ -1,7 +1,7 @@
 ---
 description: "Analyze project and generate .claude/rules/ files through stack detection and user interview"
 argument-hint: "[optional: focus area - e.g., 'frontend', 'testing']"
-allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite, WebSearch
+allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
 ---
 
 # /project-setup - Project Rules Generator

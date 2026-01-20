@@ -30,9 +30,18 @@ if command -v get_workspace_id &> /dev/null; then
     fi
 fi
 
-# If progress file exists, add compaction timestamp
+# If progress file exists, create backup and add compaction timestamp
 # Use environment variables to safely pass data to Python
 if [ -n "$PROGRESS_FILE" ] && command -v python3 &> /dev/null; then
+    # Create backup of progress file before compaction
+    BACKUP_DIR="$(dirname "$PROGRESS_FILE")/backups"
+    mkdir -p "$BACKUP_DIR" 2>/dev/null
+    BACKUP_FILE="$BACKUP_DIR/progress-$(date '+%Y%m%d_%H%M%S').json"
+    cp "$PROGRESS_FILE" "$BACKUP_FILE" 2>/dev/null
+
+    # Keep only last 5 backups
+    ls -t "$BACKUP_DIR"/progress-*.json 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null
+
     PROGRESS_FILE_PATH="$PROGRESS_FILE" \
     COMPACT_TRIGGER="$TRIGGER" \
     COMPACT_CUSTOM="$CUSTOM" \
@@ -55,15 +64,24 @@ try:
     with open(progress_file, "r") as f:
         data = json.load(f)
 
-    # Add compaction event to history
+    # Add compaction event to history with more context
     if "compactionHistory" not in data:
         data["compactionHistory"] = []
+
+    # Capture current state snapshot before compaction
+    current_task = data.get("currentTask", "unknown")
+    resumption_ctx = data.get("resumptionContext", {})
 
     data["compactionHistory"].append({
         "timestamp": datetime.now().isoformat(),
         "trigger": trigger,
         "customInstructions": custom if custom else None,
-        "workspaceId": workspace_id if workspace_id else None
+        "workspaceId": workspace_id if workspace_id else None,
+        "stateSnapshot": {
+            "currentTask": current_task,
+            "position": resumption_ctx.get("position", "unknown"),
+            "nextAction": resumption_ctx.get("nextAction", "unknown")
+        }
     })
 
     # Keep only last 10 compaction events
@@ -71,6 +89,14 @@ try:
 
     # Update last compaction timestamp
     data["lastCompaction"] = datetime.now().isoformat()
+
+    # Add compaction warning to resumption context
+    if "resumptionContext" not in data:
+        data["resumptionContext"] = {}
+    data["resumptionContext"]["lastCompactionWarning"] = (
+        "Context was compacted. Subagent results and intermediate findings may have been lost. "
+        "Re-read key files and re-run critical analyses if needed."
+    )
 
     with open(progress_file, "w") as f:
         json.dump(data, f, indent=2)

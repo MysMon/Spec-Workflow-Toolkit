@@ -25,13 +25,16 @@ get_workspace_id() {
     local branch=""
     local path_hash=""
 
-    # Get current git branch (replace / with - for filesystem safety)
+    # Get current git branch (sanitize for filesystem safety)
+    # Remove all characters except alphanumeric, dots, underscores, and hyphens
     if git rev-parse --git-dir > /dev/null 2>&1; then
-        branch=$(git branch --show-current 2>/dev/null | tr '/' '-' | tr ' ' '-')
+        branch=$(git branch --show-current 2>/dev/null | tr '/' '-' | tr ' ' '-' | tr -dc 'a-zA-Z0-9._-')
         # Fallback to HEAD if detached
         if [ -z "$branch" ]; then
             branch="detached-$(git rev-parse --short HEAD 2>/dev/null || echo 'unknown')"
         fi
+        # Limit branch name length for filesystem compatibility (max 50 chars)
+        branch=$(echo "$branch" | cut -c1-50)
     else
         branch="no-git"
     fi
@@ -39,13 +42,14 @@ get_workspace_id() {
     # Generate hash of absolute working directory path
     # Using md5sum for cross-platform compatibility
     if command -v md5sum &> /dev/null; then
-        path_hash=$(pwd | md5sum | cut -c1-8)
+        # Linux: md5sum outputs "hash  filename", extract just the hash
+        path_hash=$(pwd | md5sum | awk '{print $1}' | cut -c1-8)
     elif command -v md5 &> /dev/null; then
-        # macOS
-        path_hash=$(pwd | md5 | cut -c1-8)
+        # macOS: md5 outputs just the hash (or "MD5 (...) = hash" with -r)
+        path_hash=$(pwd | md5 | awk '{print $NF}' | cut -c1-8)
     else
         # Fallback: use simple hash
-        path_hash=$(pwd | cksum | cut -d' ' -f1 | head -c8)
+        path_hash=$(pwd | cksum | awk '{print $1}' | head -c8)
     fi
 
     echo "${branch}_${path_hash}"

@@ -32,7 +32,16 @@ except json.JSONDecodeError:
 SECRET_PATTERNS = [
     # AWS
     (r"AKIA[0-9A-Z]{16}", "AWS Access Key ID"),
-    (r"[0-9a-zA-Z/+]{40}", "Possible AWS Secret Key"),
+    (r"ASIA[0-9A-Z]{16}", "AWS Session Token ID"),
+
+    # Anthropic
+    (r"sk-ant-[a-zA-Z0-9_-]{48,}", "Anthropic API Key"),
+
+    # OpenAI (sk- followed by alphanumeric, but not Stripe patterns)
+    (r"sk-[a-zA-Z0-9]{32,}(?<!live_)(?<!test_)", "OpenAI API Key"),
+
+    # HuggingFace
+    (r"hf_[a-zA-Z0-9]{34,}", "HuggingFace Token"),
 
     # GitHub
     (r"ghp_[0-9a-zA-Z]{36}", "GitHub Personal Access Token"),
@@ -41,9 +50,12 @@ SECRET_PATTERNS = [
     (r"ghu_[0-9a-zA-Z]{36}", "GitHub User Token"),
     (r"github_pat_[0-9a-zA-Z_]{22,}", "GitHub Fine-grained PAT"),
 
-    # Generic API Keys
-    (r"api[_-]?key[_-]?[=:]\s*['\"]?[a-zA-Z0-9_-]{20,}['\"]?", "Generic API Key"),
-    (r"api[_-]?secret[_-]?[=:]\s*['\"]?[a-zA-Z0-9_-]{20,}['\"]?", "Generic API Secret"),
+    # GitLab
+    (r"glpat-[0-9a-zA-Z_-]{20,}", "GitLab Personal Access Token"),
+
+    # Generic API Keys (more precise - require assignment context)
+    (r"(?:api[_-]?key|apikey)[_-]?[=:]\s*['\"]?[a-zA-Z0-9_-]{20,}['\"]?", "Generic API Key"),
+    (r"(?:api[_-]?secret|apisecret)[_-]?[=:]\s*['\"]?[a-zA-Z0-9_-]{20,}['\"]?", "Generic API Secret"),
 
     # Private Keys
     (r"-----BEGIN\s+(RSA|DSA|EC|OPENSSH|PGP)\s+PRIVATE\s+KEY-----", "Private Key"),
@@ -89,12 +101,29 @@ SECRET_PATTERNS = [
     (r"pwd\s*[=:]\s*['\"][^'\"]{8,}['\"]", "Hardcoded password"),
 ]
 
-# Files that are OK to contain secrets (templates, examples)
+# Files that are OK to contain secrets (templates, examples, documentation)
 ALLOWED_FILES = [
     ".env.example",
     ".env.template",
     ".env.sample",
+    ".env.local.example",
     "example.env",
+    "example.yaml",
+    "example.yml",
+    "SETUP.md",
+    "INSTALL.md",
+    "CONFIG.md",
+]
+
+# Patterns for allowed file paths (regex)
+ALLOWED_PATH_PATTERNS = [
+    r"\.example$",
+    r"\.sample$",
+    r"\.template$",
+    r"/examples?/",
+    r"/docs?/",
+    r"test_fixtures",
+    r"test_data",
 ]
 
 # Check if file should be skipped
@@ -102,7 +131,14 @@ def should_skip_file(path: str) -> bool:
     if not path:
         return False
     filename = os.path.basename(path)
-    return filename in ALLOWED_FILES or filename.endswith(".example")
+    # Check exact filename matches
+    if filename in ALLOWED_FILES:
+        return True
+    # Check path patterns
+    for pattern in ALLOWED_PATH_PATTERNS:
+        if re.search(pattern, path, re.IGNORECASE):
+            return True
+    return False
 
 # Check content for secrets
 def find_secrets(text: str) -> list[tuple[str, str]]:
