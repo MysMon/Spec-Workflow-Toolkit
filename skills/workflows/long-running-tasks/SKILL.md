@@ -221,8 +221,31 @@ Resume agent-abc123 in foreground to retry failed operations.
 |---------|------------|------------|
 | MCP tools | ✅ Available | ❌ Not available |
 | Permission prompts | ✅ Interactive | ❌ Auto-denied |
-| AskUserQuestion | ✅ Available | ❌ Fails |
+| AskUserQuestion | ✅ Available | ❌ Fails silently |
 | Resume | - | ✅ Can resume in foreground |
+
+**Critical Implications for Orchestrators:**
+
+1. **MCP Tools Unavailable**: Background subagents cannot use MCP-provided tools (e.g., `mcp__github__*`, `mcp__memory__*`). If a task requires MCP tools, run the agent in foreground or split the work.
+
+2. **Permission Auto-Denial**: When a background agent attempts an operation requiring permission (e.g., writing to a new file outside allowed paths), the operation is silently skipped. The agent continues but may produce incomplete results.
+
+3. **AskUserQuestion Fails Silently**: Background agents cannot ask clarifying questions. If an agent needs user input mid-task, it will either:
+   - Skip the step and note it in the result
+   - Make a default assumption (potentially incorrect)
+   - Fail the subtask
+
+4. **Recovery Strategy**: When background agent results are incomplete:
+   ```
+   Check agent result for:
+   - "Skipped operations" or "partial results" indicators
+   - Missing expected outputs
+   - Lower-than-expected confidence scores
+
+   If incomplete:
+   → Resume agent in foreground to complete interactively
+   → Or start new foreground agent with specific instructions
+   ```
 
 ### When to Use Resume
 
