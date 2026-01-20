@@ -85,3 +85,5 @@ Review the output above and decide:
 - Delegate follow-up to another agent
 ---
 EOF
+
+exit 0
