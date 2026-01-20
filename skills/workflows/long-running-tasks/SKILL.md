@@ -234,6 +234,77 @@ Resume agent-abc123 in foreground to retry failed operations.
 | Agent hit context limit | Start new agent with summary |
 | Need completely fresh perspective | Launch new agent |
 
+### Resume Decision Tree
+
+Use this decision tree to determine whether to resume an existing agent or start fresh:
+
+```
+Agent task completed?
+├─ No (interrupted/failed):
+│   ├─ Permission error?
+│   │   └─ YES → Resume in foreground (interactive prompts available)
+│   ├─ Network/transient error?
+│   │   └─ YES → Resume after brief wait
+│   ├─ Context exhaustion?
+│   │   └─ YES → Start NEW agent with summary of previous work
+│   └─ User cancellation?
+│       └─ YES → Resume if work should continue, else new agent
+│
+└─ Yes (completed successfully):
+    ├─ Need follow-up on SAME topic?
+    │   └─ YES → Resume (preserves context)
+    ├─ Need work on DIFFERENT topic?
+    │   └─ YES → Start NEW agent
+    └─ Results insufficient?
+        ├─ Missing depth?
+        │   └─ Resume with "dig deeper into X"
+        └─ Wrong direction?
+            └─ Start NEW agent with corrected prompt
+```
+
+### Agent ID Tracking Best Practice
+
+Track agent IDs in your orchestration state for efficient resume:
+
+```json
+{
+  "agentTracking": {
+    "active": {
+      "exploration": {
+        "id": "agent-abc123",
+        "task": "analyzing auth module",
+        "startedAt": "2025-01-16T10:00:00Z"
+      }
+    },
+    "completed": [
+      {
+        "id": "agent-xyz789",
+        "task": "architecture review",
+        "completedAt": "2025-01-16T09:30:00Z",
+        "summary": "Recommended service layer pattern",
+        "resumable": true
+      }
+    ],
+    "failed": [
+      {
+        "id": "agent-def456",
+        "task": "security audit",
+        "failedAt": "2025-01-16T09:45:00Z",
+        "reason": "permission_denied",
+        "recoveryAction": "resume_foreground"
+      }
+    ]
+  }
+}
+```
+
+**Orchestrator Protocol:**
+
+1. **On agent launch**: Record agent ID and task description
+2. **On agent completion**: Move to completed list with summary
+3. **On agent failure**: Record failure reason and recovery action
+4. **Before starting new similar work**: Check if resumable agent exists
+
 ### Context Preservation on Resume
 
 When resuming, the agent retains:

@@ -280,6 +280,143 @@ WebSearch: "[test framework name] code coverage command"
 
 ---
 
+## Flaky Test Management
+
+Flaky tests undermine CI reliability and developer trust. This section provides systematic approaches to detect, diagnose, and fix them.
+
+### Detecting Flaky Tests
+
+**Local Detection:**
+```bash
+# Run test multiple times to detect flakiness
+for i in {1..10}; do npm test -- --testNamePattern="suspect test" && echo "Pass $i" || echo "FAIL $i"; done
+
+# For pytest
+for i in {1..10}; do pytest path/to/test.py::test_name -x && echo "Pass $i" || echo "FAIL $i"; done
+```
+
+**CI Detection Patterns:**
+- Same test fails intermittently across different PRs
+- Test passes on retry without code changes
+- Test fails only on certain CI runners or times
+
+### Common Flaky Test Causes
+
+| Cause | Symptom | Solution |
+|-------|---------|----------|
+| **Timing dependencies** | Fails with "timeout" or inconsistent timing | Use explicit waits, not sleeps |
+| **Shared state** | Fails when run with other tests, passes alone | Isolate test data, use fixtures |
+| **Order dependency** | Fails when test order changes | Make each test independent |
+| **External services** | Network errors, rate limits | Mock external dependencies |
+| **Race conditions** | Intermittent with async code | Proper async/await handling |
+| **Resource exhaustion** | Fails late in test suite | Clean up resources, increase limits |
+| **Time-based logic** | Fails at certain times (midnight, DST) | Mock time/date functions |
+| **Random data** | Different results with random inputs | Seed random generators |
+
+### Fixing Flaky Tests
+
+**Strategy 1: Replace Sleeps with Explicit Waits**
+
+```
+# Bad: Fixed sleep (may be too short or wasteful)
+sleep(2)
+assert element.visible
+
+# Good: Wait for condition with timeout
+wait_for(lambda: element.visible, timeout=5)
+```
+
+**Strategy 2: Isolate Test Data**
+
+```
+# Bad: Tests share database state
+def test_create_user():
+    create_user("john")  # May conflict with other tests
+
+# Good: Each test has isolated data
+def test_create_user(unique_user_factory):
+    user = unique_user_factory()  # Generates unique user per test
+```
+
+**Strategy 3: Mock Time-Dependent Code**
+
+```
+# Bad: Uses real time
+def test_expiration():
+    token = create_token(expires_in=60)
+    time.sleep(61)
+    assert token.is_expired()
+
+# Good: Mocks time
+def test_expiration(mock_time):
+    token = create_token(expires_in=60)
+    mock_time.advance(61)
+    assert token.is_expired()
+```
+
+**Strategy 4: Seed Random Generators**
+
+```
+# Bad: Non-deterministic
+def test_random_selection():
+    result = pick_random_item(items)  # Different each run
+
+# Good: Seeded for reproducibility
+def test_random_selection():
+    random.seed(42)  # Or use pytest-randomly with --randomly-seed
+    result = pick_random_item(items)
+```
+
+### Quarantine Strategy
+
+When a flaky test can't be immediately fixed:
+
+1. **Mark as flaky** - Use framework-specific skip/xfail annotations
+2. **Document the issue** - Create a ticket with reproduction steps
+3. **Exclude from blocking CI** - Move to non-blocking test suite
+4. **Set fix deadline** - Quarantine should be temporary
+
+```
+# Example: Jest
+test.skip('flaky: issue #123 - timing issue in CI', () => {...})
+
+# Example: pytest
+@pytest.mark.skip(reason="Flaky: issue #123 - race condition")
+def test_flaky_feature(): ...
+
+# Example: Track in separate CI job
+# .github/workflows/ci.yml
+- name: Run stable tests (blocking)
+  run: npm test -- --testPathIgnorePatterns="flaky"
+- name: Run flaky tests (non-blocking)
+  run: npm test -- --testPathPattern="flaky" || true
+```
+
+### CI Retry Strategies
+
+**Framework Options:**
+- Jest: `jest --runInBand` (sequential), `jest-circus` retry
+- pytest: `pytest-rerunfailures` plugin
+- CI: Built-in retry (GitHub Actions `retry`, GitLab `retry:`)
+
+**When to Use Retries:**
+- As temporary mitigation while fixing root cause
+- For genuinely transient issues (network glitches)
+- NOT as permanent solution for broken tests
+
+### Flaky Test Prevention
+
+| Practice | Benefit |
+|----------|---------|
+| Run tests in random order | Catches order dependencies early |
+| Run in CI before merge | Catches environment differences |
+| Use test containers | Consistent database/service state |
+| Mock external services | Eliminates network flakiness |
+| Avoid global state | Prevents test interference |
+| Set CI timeouts appropriately | Catches slow/hung tests |
+
+---
+
 ## Rules (L1 - Hard)
 
 Critical for test reliability and safety.
