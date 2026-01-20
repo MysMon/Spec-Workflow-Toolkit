@@ -110,7 +110,7 @@ Temporary failures that may succeed on retry.
 | Rate limiting | Too many requests | Wait and retry |
 | Temporary file lock | File in use | Wait briefly, retry |
 
-**Retry Strategy:**
+**Retry Strategy with Exponential Backoff + Jitter:**
 
 ```
 max_retries = 3
@@ -120,10 +120,14 @@ for attempt in 1..max_retries:
     result = try_operation()
     if success:
         return result
-    wait(base_delay * 2^attempt)
+    # Exponential backoff with jitter prevents thundering herd
+    jitter = random(0, 0.5 * base_delay)
+    wait(base_delay * 2^attempt + jitter)
 
 escalate_to_user("Operation failed after 3 retries")
 ```
+
+**Why Jitter Matters**: Without jitter, multiple agents retrying simultaneously can overwhelm the system at the same intervals (thundering herd problem). Adding randomness spreads retry attempts.
 
 ### Category 2: Recoverable Errors
 
@@ -232,6 +236,74 @@ Safe Mode (on error):
 - Skip optimization
 - Document what was skipped for later
 ```
+
+### Pattern 4: Circuit Breaker
+
+Prevent cascading failures by stopping requests to failing services.
+
+From AI Agent Best Practices:
+
+> "Retries and fallbacks try to recover from failures. Circuit breakers prevent a bad situation from spiraling further."
+
+**States:**
+
+```
+CLOSED (normal) ──[failures >= threshold]──▶ OPEN (blocking)
+     ▲                                           │
+     │                                    [timeout expires]
+     │                                           ▼
+     └────────[success]────────── HALF-OPEN (testing)
+                                           │
+                                    [failure]
+                                           ▼
+                                      OPEN (blocking)
+```
+
+**Implementation:**
+
+```
+circuit_breaker:
+  failure_threshold: 3       # Consecutive failures to open
+  timeout: 30s               # Time before testing again
+  state: CLOSED
+
+on_operation():
+  if state == OPEN:
+    if timeout_expired:
+      state = HALF_OPEN
+    else:
+      return "Service unavailable (circuit open)"
+
+  result = try_operation()
+
+  if success:
+    if state == HALF_OPEN:
+      state = CLOSED
+    failure_count = 0
+    return result
+  else:
+    failure_count++
+    if failure_count >= failure_threshold:
+      state = OPEN
+      start_timeout()
+    return error
+```
+
+**When to Use:**
+
+| Scenario | Use Circuit Breaker |
+|----------|---------------------|
+| External API calls | Yes - prevents overwhelming failing API |
+| Database operations | Yes - prevents connection exhaustion |
+| File system operations | Maybe - depends on failure mode |
+| In-memory operations | No - failures are immediate |
+
+**Agent-Specific Considerations:**
+
+When chaining multiple AI agents:
+- If each agent is 95% reliable, 3 agents = 86% overall reliability
+- Circuit breakers at each stage prevent cascading failures
+- Use partial results when possible instead of complete failure
 
 ## Recovery Workflows
 
