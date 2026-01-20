@@ -309,11 +309,11 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task
 |-------|---------|------------------|
 | `SessionStart` | Inject context | `sdd_context.sh` |
 | `PreToolUse` | Validate/block tools | `safety_check.py`, `prevent_secret_leak.py` |
-| `PostToolUse` | Post-execution actions | - |
+| `PostToolUse` | Post-execution actions | `audit_log.sh` |
 | `PreCompact` | Save state before compaction | `pre_compact_save.sh` |
 | `SubagentStop` | Log completion | `subagent_summary.sh` |
 | `Stop` | Session summary | `session_summary.sh` |
-| `SessionEnd` | Cleanup | - |
+| `SessionEnd` | Cleanup resources | `session_cleanup.sh` |
 | `PermissionRequest` | Custom permission handling | - |
 | `Notification` | External notifications | - |
 | `UserPromptSubmit` | Input preprocessing | - |
@@ -473,6 +473,34 @@ exit 0
 }
 ```
 
+### SessionEnd Hook
+
+Fires when the Claude Code session terminates. Use for cleanup operations:
+
+```bash
+#!/bin/bash
+# session_cleanup.sh - Clean up resources at session end
+
+# Rotate old logs
+find ".claude/workspaces/$WORKSPACE_ID/logs/sessions" -name "*.log" -mtime +30 -exec gzip {} \;
+
+# Remove temporary files
+find ".claude/workspaces/$WORKSPACE_ID" -name "*.tmp" -delete
+
+# Archive completed workspaces older than 30 days
+# (See hooks/session_cleanup.sh for full implementation)
+
+exit 0
+```
+
+**Use Cases:**
+- Log rotation and compression
+- Temporary file cleanup
+- Stale workspace archival
+- Resource deallocation
+
+**Note:** SessionEnd runs after Stop hook. Use Stop for session summary, SessionEnd for cleanup.
+
 ### Hook Scripting Security
 
 **Shell Variable Injection Risk:**
@@ -518,6 +546,100 @@ except Exception as e:
     print(json.dumps(output))
     sys.exit(0)
 ```
+
+### Prompt-Based Hooks
+
+Instead of shell commands, hooks can use LLM evaluation for context-aware decisions:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Evaluate if this command is safe to run in a production environment. Command: $ARGUMENTS. Return JSON: {\"ok\": true/false, \"reason\": \"explanation\"}",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Supported Events for Prompt Hooks:**
+- `PreToolUse` - Evaluate tool calls
+- `PermissionRequest` - Custom permission logic
+- `UserPromptSubmit` - Input validation
+- `Stop` / `SubagentStop` - Output verification
+
+**When to Use Prompt vs Command Hooks:**
+
+| Scenario | Recommended |
+|----------|-------------|
+| Pattern matching (regex, keywords) | Command |
+| Context-aware evaluation | Prompt |
+| Complex business logic | Command |
+| Natural language assessment | Prompt |
+| Performance-critical | Command |
+
+### Component-Scoped Hooks
+
+Hooks can be defined in agent/skill frontmatter for component-specific behavior:
+
+**Agent Frontmatter Example:**
+
+```yaml
+---
+name: security-auditor
+description: Security review specialist
+model: sonnet
+tools: Read, Glob, Grep, Bash
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: "./hooks/security_audit_bash_validator.py"
+  Stop:
+    - hooks:
+        - type: command
+          command: "./hooks/audit_report_generator.sh"
+---
+```
+
+**Skill Frontmatter Example:**
+
+```yaml
+---
+name: code-quality
+description: Code quality analysis
+hooks:
+  PreToolUse:
+    - matcher: "Edit|Write"
+      hooks:
+        - type: command
+          command: "./scripts/lint-check.sh"
+          once: true
+---
+```
+
+**Key Differences from Global Hooks:**
+
+| Aspect | Global Hooks | Component-Scoped |
+|--------|--------------|------------------|
+| Scope | All sessions | While component is active |
+| Location | `hooks/hooks.json` | Agent/Skill frontmatter |
+| Events | All | PreToolUse, PostToolUse, Stop |
+| `once` flag | Not applicable | Supported for skills |
+
+**Use Cases:**
+- Agent-specific validation (security-auditor Bash validation)
+- Skill-specific post-processing
+- Temporary hooks during specific workflows
 
 ---
 
