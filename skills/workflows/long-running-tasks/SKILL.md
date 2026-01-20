@@ -63,9 +63,16 @@ From Claude Code Best Practices:
 
 ## State Management Pattern
 
-### 1. Initialize Progress Files (Workspace-Isolated)
+### 1. Initialize Progress Files
 
-At task start, create the progress structure in the workspace directory:
+At task start, get workspace ID and create progress structure:
+
+```bash
+BRANCH=$(git branch --show-current 2>/dev/null | tr '/' '-' || echo "no-git")
+PATH_HASH=$(pwd | md5sum | cut -c1-8)
+WORKSPACE_ID="${BRANCH}_${PATH_HASH}"
+mkdir -p ".claude/workspaces/${WORKSPACE_ID}"
+```
 
 **`.claude/workspaces/{workspace-id}/claude-progress.json`** - Resumption context:
 

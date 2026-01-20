@@ -96,14 +96,23 @@ Example output:
 3. If not found, check legacy locations
 4. If legacy found, offer migration
 
+**Get current workspace ID:**
+
+```bash
+# Generate workspace ID from branch name + path hash
+BRANCH=$(git branch --show-current 2>/dev/null | tr '/' '-' || echo "no-git")
+PATH_HASH=$(pwd | md5sum | cut -c1-8)
+WORKSPACE_ID="${BRANCH}_${PATH_HASH}"
+echo "Workspace ID: $WORKSPACE_ID"
+```
+
 **Check for current workspace progress:**
 
 ```bash
-# Workspace-based (new structure)
-WORKSPACE_ID=$(get_workspace_id)  # e.g., main_a1b2c3d4
+# Check workspace-based progress file
 ls -la .claude/workspaces/$WORKSPACE_ID/claude-progress.json 2>/dev/null
 
-# Legacy fallback
+# Legacy fallback (if workspace file not found)
 ls -la .claude/claude-progress.json 2>/dev/null
 ls -la claude-progress.json 2>/dev/null
 ```
