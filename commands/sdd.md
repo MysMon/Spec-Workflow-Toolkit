@@ -289,18 +289,13 @@ Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com
 | **INITIALIZER** | No progress file exists | Create progress files, break down work, set up state |
 | **CODING** | Progress file exists | Read state, implement ONE feature, update state, commit |
 
-**Get Workspace ID:**
+**Workspace ID:**
 
-```bash
-BRANCH=$(git branch --show-current 2>/dev/null | tr '/' '-' || echo "no-git")
-PATH_HASH=$(pwd | md5sum | cut -c1-8)
-WORKSPACE_ID="${BRANCH}_${PATH_HASH}"
-mkdir -p ".claude/workspaces/${WORKSPACE_ID}"
-```
+Use the workspace ID shown in SessionStart hook output. Format: `{branch}_{path-hash}` (e.g., `main_a1b2c3d4`).
 
 **Progress File Structure:**
 
-Create `.claude/workspaces/${WORKSPACE_ID}/claude-progress.json`:
+Create `.claude/workspaces/{workspace-id}/claude-progress.json`:
 ```json
 {
   "workspaceId": "[workspace-id]",

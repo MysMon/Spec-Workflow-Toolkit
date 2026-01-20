@@ -65,16 +65,11 @@ From Claude Code Best Practices:
 
 ### 1. Initialize Progress Files
 
-At task start, get workspace ID and create progress structure:
+At task start, use the workspace ID from SessionStart hook output (format: `{branch}_{path-hash}`, e.g., `main_a1b2c3d4`).
 
-```bash
-BRANCH=$(git branch --show-current 2>/dev/null | tr '/' '-' || echo "no-git")
-PATH_HASH=$(pwd | md5sum | cut -c1-8)
-WORKSPACE_ID="${BRANCH}_${PATH_HASH}"
-mkdir -p ".claude/workspaces/${WORKSPACE_ID}"
-```
+Create progress files in `.claude/workspaces/{workspace-id}/`:
 
-**`.claude/workspaces/{workspace-id}/claude-progress.json`** - Resumption context:
+**`claude-progress.json`** - Resumption context:
 
 ```json
 {

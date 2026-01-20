@@ -91,31 +91,10 @@ Example output:
 - If multiple matches, list and ask user to choose
 
 **If no argument:**
-1. Get current workspace ID (based on branch + path)
-2. Check for workspace progress file
-3. If not found, check legacy locations
-4. If legacy found, offer migration
-
-**Get current workspace ID:**
-
-```bash
-# Generate workspace ID from branch name + path hash
-BRANCH=$(git branch --show-current 2>/dev/null | tr '/' '-' || echo "no-git")
-PATH_HASH=$(pwd | md5sum | cut -c1-8)
-WORKSPACE_ID="${BRANCH}_${PATH_HASH}"
-echo "Workspace ID: $WORKSPACE_ID"
-```
-
-**Check for current workspace progress:**
-
-```bash
-# Check workspace-based progress file
-ls -la .claude/workspaces/$WORKSPACE_ID/claude-progress.json 2>/dev/null
-
-# Legacy fallback (if workspace file not found)
-ls -la .claude/claude-progress.json 2>/dev/null
-ls -la claude-progress.json 2>/dev/null
-```
+1. Use the workspace ID shown in SessionStart hook output (format: `{branch}_{path-hash}`)
+2. Check for workspace progress file at `.claude/workspaces/{workspace-id}/claude-progress.json`
+3. If not found, check legacy locations (`.claude/claude-progress.json`)
+4. If legacy found, offer migration to workspace structure
 
 **If no progress files found:**
 - Report: "No progress files found for this workspace."
