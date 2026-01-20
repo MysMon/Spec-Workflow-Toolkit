@@ -10,7 +10,8 @@ description: |
   - Creating diagrams or technical guides
   Trigger phrases: documentation, README, changelog, API docs, release notes, ADR, technical writing, user guide, diagram
 model: sonnet
-tools: Read, Glob, Grep, Write, Edit, Bash
+tools: Read, Glob, Grep, Write, Edit
+disallowedTools: Bash
 permissionMode: acceptEdits
 skills: stack-detector, git-mastery, subagent-contract
 ---
