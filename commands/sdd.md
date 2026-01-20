@@ -8,15 +8,9 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoW
 
 Launch a guided 7-phase development workflow that ensures disciplined, spec-first development with context-preserving subagent delegation.
 
-## Official References
+## References
 
-Based on:
-- [Official feature-dev plugin](https://github.com/anthropics/claude-code/tree/main/plugins/feature-dev)
-- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
-- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
-- [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) - 6 Composable Patterns
-- [Building Agents with Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk)
-- [Subagent Documentation](https://code.claude.com/docs/en/sub-agents)
+Based on official feature-dev plugin, Claude Code Best Practices, Effective Harnesses for Long-Running Agents, Building Effective Agents (6 Composable Patterns), and Subagent Documentation.
 
 ## Composable Patterns Applied
 
@@ -31,7 +25,7 @@ This workflow implements all 6 of Anthropic's composable patterns:
 | **Evaluator-Optimizer** | Quality review with confidence scoring and iteration |
 | **Augmented LLM** | Tools, progress files, retrieval for all agents |
 
-See [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) for detailed pattern documentation.
+See Building Effective Agents for detailed pattern documentation.
 
 ## Phase Overview
 
@@ -70,7 +64,7 @@ This command orchestrates 7 phases:
 
 ### Why This Matters
 
-From [Anthropic Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
+From Claude Code Best Practices:
 > "Subagents use their own isolated context windows, and only send relevant information back to the orchestrator"
 
 **Context consumption comparison**:
@@ -87,7 +81,7 @@ From [Anthropic Best Practices](https://www.anthropic.com/engineering/claude-cod
 
 **DO NOT explore code yourself. ALWAYS delegate to subagents.**
 
-From [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
+From Claude Code Best Practices:
 
 > "Subagents use their own isolated context windows, and only send relevant information back to the orchestrator, rather than their full context. This makes them ideal for tasks that require sifting through large amounts of information where most of it won't be useful."
 
@@ -278,7 +272,7 @@ Ask user: "Ready to start implementation? This will modify files in your codebas
 
 #### Long-Running Autonomous Work Pattern
 
-Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents):
+From Effective Harnesses for Long-Running Agents:
 
 > "The agent tends to try to do too much at once—essentially attempting to one-shot the app."
 

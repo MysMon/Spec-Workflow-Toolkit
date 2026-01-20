@@ -8,7 +8,7 @@ allowed-tools: Read, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite
 
 Launch 5 specialized Sonnet agents in parallel to comprehensively review code changes, then score each issue with Haiku agents for confidence-based filtering.
 
-Based on the official [code-review plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/code-review) pattern.
+Based on the official code-review plugin pattern.
 
 ## Overview
 
@@ -237,7 +237,7 @@ https://github.com/owner/repo/blob/[full-SHA]/path/file.ext#L[start]-L[end]
 
 https://github.com/owner/repo/blob/[full-SHA]/path/file.ext#L[start]-L[end]
 
-🤖 Generated with [Claude Code](https://claude.ai/code)
+🤖 Generated with Claude Code
 ```
 
 **Link Format Requirements:**

@@ -61,145 +61,35 @@ From Claude Code Best Practices:
 
 > **Why JSON over Markdown?** "Models are less likely to improperly modify JSON files compared to Markdown files." - Anthropic
 
-## State Management Pattern
+## State Management
 
-### 1. Initialize Progress Files
+For detailed progress tracking implementation, see the `progress-tracking` skill which covers:
+- JSON file schemas (`claude-progress.json`, `feature-list.json`)
+- Workspace isolation (`{branch}_{path-hash}` format)
+- PreCompact hook integration and compaction recovery
+- Session tracking and resumption context
 
-At task start, use the workspace ID from SessionStart hook output (format: `{branch}_{path-hash}`, e.g., `main_a1b2c3d4`).
-
-Create progress files in `.claude/workspaces/{workspace-id}/`:
-
-**`claude-progress.json`** - Resumption context:
-
-```json
-{
-  "workspaceId": "main_a1b2c3d4",
-  "project": "task-name",
-  "status": "in_progress",
-  "startedAt": "2025-01-15T10:00:00Z",
-  "currentTask": "Setting up project structure",
-  "resumptionContext": {
-    "position": "Phase 1 - Initialization",
-    "nextAction": "Create feature list",
-    "keyFiles": [],
-    "decisions": [],
-    "blockers": []
-  },
-  "log": [
-    {
-      "timestamp": "2025-01-15T10:00:00Z",
-      "action": "Started task",
-      "status": "success"
-    }
-  ]
-}
+**Quick Reference:**
 ```
-
-**`.claude/workspaces/{workspace-id}/feature-list.json`** - Task breakdown:
-
-```json
-{
-  "workspaceId": "main_a1b2c3d4",
-  "features": [
-    {"id": "F001", "name": "Step 1: Description", "status": "pending"},
-    {"id": "F002", "name": "Step 2: Description", "status": "pending"},
-    {"id": "F003", "name": "Step 3: Description", "status": "pending"}
-  ]
-}
-```
-
-**Workspace ID Format:** `{branch}_{path-hash}` (e.g., `main_a1b2c3d4`, `feature-auth_e5f6g7h8`)
-
-### 2. Update Progress Continuously
-
-After each significant action, update both files:
-
-```json
-// Add to log array in claude-progress.json
-{
-  "timestamp": "2025-01-15T11:30:00Z",
-  "action": "Completed Step 1",
-  "status": "success",
-  "filesModified": ["src/config.ts", "src/index.ts"]
-}
-```
-
-```json
-// Update feature status in feature-list.json
-{"id": "F001", "name": "Step 1: Description", "status": "completed"}
-```
-
-### 3. Mark Completion
-
-```json
-// Final state in claude-progress.json
-{
-  "project": "task-name",
-  "status": "completed",
-  "startedAt": "2025-01-15T10:00:00Z",
-  "completedAt": "2025-01-15T14:00:00Z",
-  "summary": {
-    "accomplished": ["Created X", "Modified Y"],
-    "filesChanged": ["src/config.ts", "src/index.ts"],
-    "followUp": ["Deploy to staging", "Run integration tests"]
-  }
-}
+.claude/workspaces/{workspace-id}/
+├── claude-progress.json  # Progress log, resumption context
+└── feature-list.json     # Feature/task status tracking
 ```
 
 ## TodoWrite Integration
 
-**CRITICAL**: Use TodoWrite for real-time tracking alongside file-based state.
+Use TodoWrite alongside JSON files:
 
-```
-Flow:
-1. Create todos from plan file
-2. Mark todo in_progress BEFORE starting
-3. Mark todo completed IMMEDIATELY after
-4. Add new todos as discovered
-5. Keep only ONE in_progress at a time
-```
+| System | Purpose | Scope |
+|--------|---------|-------|
+| TodoWrite | Real-time visibility | Current session |
+| JSON files | Persistence | Across sessions |
 
-### Example TodoWrite Pattern
-
-```
-Initial todos:
-1. [in_progress] Analyze current codebase structure
-2. [pending] Create migration plan
-3. [pending] Implement changes for module A
-4. [pending] Implement changes for module B
-5. [pending] Run tests and fix issues
-6. [pending] Update documentation
-```
-
-## Checkpoints and Recovery
-
-### Using Checkpoints
-
-Claude Code automatically creates checkpoints before each edit:
-
-- **Safe experimentation** - Try approaches without fear
-- **Use `/rewind`** - Roll back to previous state if needed
-- **Esc twice** - Cancel current operation and discuss
-
-### Recovery from Context Limits
-
-When approaching context limits:
-
-1. Write current state to plan file
-2. Document "Resumption Context" section
-3. User can `/clear` and continue with state file
-
-### PreCompact Hook Integration
-
-This plugin includes a `PreCompact` hook that automatically:
-- Saves compaction timestamp to progress file
-- Maintains compaction history (last 10 events)
-- Outputs context reminder for post-compaction recovery
-
-**After compaction**, always:
-1. Read `.claude/workspaces/{workspace-id}/claude-progress.json` to restore context
-2. Check `.claude/workspaces/{workspace-id}/feature-list.json` for current task status
-3. Continue from the documented position
+**Flow:**
+1. Mark todo `in_progress` BEFORE starting work
+2. Mark `completed` IMMEDIATELY after finishing
+3. Keep only ONE `in_progress` at a time
+4. Sync from JSON files on session resume
 
 ## Large Migration Pattern
 
@@ -314,93 +204,17 @@ Automatic cleanup after 30 days by default (configurable via `cleanupPeriodDays`
 
 ## Multi-Session Work
 
-When work spans multiple sessions:
+**End of Session:**
+1. Update progress files with current position
+2. Commit WIP changes with descriptive message
+3. Ensure `resumptionContext.nextAction` is specific
 
-### End of Session
+**Start of Next Session:**
+1. Read workspace progress files
+2. Find first `pending` or `in_progress` feature
+3. Continue from documented position
 
-1. Update `.claude/workspaces/{workspace-id}/claude-progress.json` with current position
-2. Update `.claude/workspaces/{workspace-id}/feature-list.json` with feature status
-3. Commit WIP changes with descriptive message
-4. Ensure resumptionContext has clear next action
-
-### Start of Next Session
-
-1. Identify current workspace ID (based on branch + path)
-2. Read `.claude/workspaces/{workspace-id}/claude-progress.json` for resumption context
-3. Check `.claude/workspaces/{workspace-id}/feature-list.json` for current feature status
-4. Identify first `pending` or `in_progress` feature
-5. Continue from documented position
-
-## Example: Database Migration
-
-**`.claude/workspaces/feature-prisma_b2c3d4e5/claude-progress.json`**:
-
-```json
-{
-  "workspaceId": "feature-prisma_b2c3d4e5",
-  "project": "migrate-to-prisma",
-  "status": "in_progress",
-  "startedAt": "2025-01-15T10:00:00Z",
-  "currentTask": "Migrate Order model",
-  "resumptionContext": {
-    "position": "Phase 2 - Model Migration",
-    "nextAction": "Migrate Order model (complex relations)",
-    "keyFiles": [
-      "prisma/schema.prisma:45",
-      "src/repositories/order.repository.ts:12"
-    ],
-    "decisions": [
-      "Using Prisma's implicit m-n relations",
-      "Keeping soft deletes pattern"
-    ],
-    "blockers": []
-  },
-  "log": [
-    {
-      "timestamp": "2025-01-15T10:00:00Z",
-      "action": "Analyzed existing Sequelize models (12 found)",
-      "status": "success"
-    },
-    {
-      "timestamp": "2025-01-15T10:30:00Z",
-      "action": "Created initial schema.prisma",
-      "status": "success"
-    },
-    {
-      "timestamp": "2025-01-15T11:00:00Z",
-      "action": "Generated Prisma client",
-      "status": "success"
-    },
-    {
-      "timestamp": "2025-01-15T11:30:00Z",
-      "action": "Migrated User and Product models",
-      "status": "success",
-      "filesModified": ["prisma/schema.prisma", "src/repositories/user.ts"]
-    }
-  ]
-}
-```
-
-**`.claude/workspaces/feature-prisma_b2c3d4e5/feature-list.json`**:
-
-```json
-{
-  "workspaceId": "feature-prisma_b2c3d4e5",
-  "features": [
-    {"id": "F001", "name": "Audit existing Sequelize models", "status": "completed"},
-    {"id": "F002", "name": "Create Prisma schema", "status": "completed"},
-    {"id": "F003", "name": "Generate Prisma client", "status": "completed"},
-    {"id": "F004", "name": "Migrate User model", "status": "completed"},
-    {"id": "F005", "name": "Migrate Product model", "status": "completed"},
-    {"id": "F006", "name": "Migrate Order model (complex relations)", "status": "in_progress"},
-    {"id": "F007", "name": "Update repository layer", "status": "pending"},
-    {"id": "F008", "name": "Run integration tests", "status": "pending"},
-    {"id": "F009", "name": "Remove Sequelize dependencies", "status": "pending"}
-  ]
-}
-```
-
-**Resumption note**: After compaction or new session, read workspace files first to understand current state.
+For detailed session protocols and examples, see the `progress-tracking` skill.
 
 ## Anti-Patterns to Avoid
 
