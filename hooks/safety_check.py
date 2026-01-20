@@ -41,13 +41,20 @@ DANGEROUS_PATTERNS = [
     r"chmod\s+-R\s+777",
     r"chown\s+-R\s+root",
 
-    # Dangerous downloads
+    # Dangerous downloads and remote execution
     r"curl\s+.*\|\s*sh",
     r"curl\s+.*\|\s*bash",
     r"wget\s+.*\|\s*sh",
     r"wget\s+.*\|\s*bash",
     r"curl\s+.*>\s*/",
     r"wget\s+.*-O\s*/",
+
+    # Arbitrary code execution
+    r"\beval\s+",
+    r"source\s+/dev/",
+    r"source\s+<\(",
+    r"\.\s+<\(",
+    r"base64\s+.*-d.*\|\s*(sh|bash)",
 
     # System modification
     r"mkfs\.",
@@ -64,9 +71,23 @@ DANGEROUS_PATTERNS = [
     r"unset\s+HISTFILE",
     r"export\s+HISTSIZE=0",
 
-    # Network attacks
+    # Network attacks and reverse shells
     r"nc\s+-l.*\|.*sh",
     r"ncat.*-e\s+/bin",
+    r"bash\s+-i\s+.*>/dev/tcp/",
+    r"python.*socket.*connect.*exec",
+    r"perl.*socket.*exec",
+    r"php\s+-r.*fsockopen",
+
+    # Crontab manipulation
+    r"crontab\s+-r",
+    r"echo\s+.*>>\s*/var/spool/cron",
+    r"echo\s+.*>>\s*/etc/cron",
+
+    # SSH key manipulation
+    r">\s*~/.ssh/authorized_keys",
+    r">>\s*~/.ssh/authorized_keys",
+    r"echo\s+.*>.*\.ssh/authorized_keys",
 
     # Dangerous environment changes
     r"export\s+PATH=",
