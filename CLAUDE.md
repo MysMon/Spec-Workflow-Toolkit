@@ -12,12 +12,12 @@ A Claude Code plugin implementing Anthropic's 6 composable patterns for long-run
 
 ```
 .claude-plugin/plugin.json   # Plugin metadata
-commands/                    # 7 slash commands
+commands/                    # 8 slash commands
 agents/                      # 12 subagent definitions
-skills/                      # 17 skill definitions
+skills/                      # 18 skill definitions
   core/                      #   4 core skills (subagent-contract, sdd-philosophy, security-fundamentals, interview)
   detection/                 #   1 detection skill (stack-detector)
-  workflows/                 #   12 workflow skills
+  workflows/                 #   13 workflow skills
 hooks/                       # Event handlers (6 hooks) + Python validators
 docs/                        # DEVELOPMENT.md (detailed specs), specs/
 ```

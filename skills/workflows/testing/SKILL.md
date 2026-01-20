@@ -1,14 +1,13 @@
 ---
 name: testing
 description: |
-  Test strategy, unit testing, integration testing, and E2E testing patterns across any stack. Use when:
+  Test strategy, patterns, and best practices applicable to any technology stack. Use when:
   - Writing unit, integration, or E2E tests
   - Developing test strategies or improving coverage
-  - Using Jest, Vitest, pytest, Go testing, or Rust testing
-  - Setting up Playwright or Cypress for E2E
-  - Debugging failing tests or flaky tests
-  - Asked about mocking, fixtures, or test data
-  Trigger phrases: write tests, unit test, integration test, E2E test, test coverage, pytest, jest, vitest, playwright, cypress, mock, fixture
+  - Learning testing best practices
+  - Debugging failing or flaky tests
+  - Setting up test data, mocks, or fixtures
+  Trigger phrases: write tests, unit test, integration test, E2E test, test coverage, test strategy, mock, fixture, test data
 allowed-tools: Read, Glob, Grep, Bash, Write, Edit
 model: sonnet
 user-invocable: true
@@ -16,7 +15,15 @@ user-invocable: true
 
 # Testing
 
-Stack-adaptive testing patterns and practices.
+Stack-adaptive testing patterns and practices. This skill defines **testing principles and methodologies**, not specific framework commands.
+
+## Design Principles
+
+1. **Discover, don't assume**: Detect what testing tools the project uses
+2. **Project-first**: Use the project's configured test commands
+3. **Patterns over tools**: Teach testing concepts that apply to any framework
+
+---
 
 ## Test Pyramid
 
@@ -34,11 +41,12 @@ Stack-adaptive testing patterns and practices.
 
 ### Arrange-Act-Assert (AAA)
 
+Universal pattern for all test frameworks:
+
 ```
-// All languages follow this pattern
 Arrange: Set up test data and dependencies
-Act: Execute the code under test
-Assert: Verify expected outcomes
+Act:     Execute the code under test
+Assert:  Verify expected outcomes
 ```
 
 ### Naming Convention
@@ -52,77 +60,86 @@ Examples:
 - login_withInvalidCredentials_throwsAuthError
 ```
 
-## Framework Detection & Commands
+---
 
-### Detect Test Framework
+## Framework Detection
+
+### Step 1: Discover Test Configuration
+
+Look for test configuration files in the project:
 
 ```bash
-# JavaScript
-ls vitest.config.* jest.config.* 2>/dev/null
+# List potential test config files
+ls -la *test*.config.* *jest*.* *vitest*.* pytest.ini setup.cfg pyproject.toml 2>/dev/null
 
-# Python
-grep -q pytest pyproject.toml requirements.txt 2>/dev/null
+# Check for test directories
+ls -d tests/ test/ __tests__/ spec/ *_test/ 2>/dev/null
 
-# Go (built-in)
-ls *_test.go 2>/dev/null
-
-# Rust (built-in)
-grep -q "#\[test\]" src/*.rs 2>/dev/null
-
-# Java
-ls pom.xml build.gradle 2>/dev/null
+# Check package.json/pyproject.toml for test scripts
+grep -A 5 '"test"' package.json 2>/dev/null
+grep -A 5 '\[tool.pytest' pyproject.toml 2>/dev/null
 ```
 
-### Run Tests
+### Step 2: Use Project's Test Commands
 
-| Language | Command |
-|----------|---------|
-| JavaScript (Vitest) | `npm test` or `npx vitest` |
-| JavaScript (Jest) | `npm test` or `npx jest` |
-| Python (pytest) | `pytest` or `python -m pytest` |
-| Go | `go test ./...` |
-| Rust | `cargo test` |
-| Java (Maven) | `mvn test` |
-| Java (Gradle) | `./gradlew test` |
+**Always prefer project-defined scripts:**
 
-### Coverage Reports
+```bash
+# Check for defined test scripts
+grep -E '"test":|"test:' package.json 2>/dev/null    # JavaScript
+grep -A 3 '\[scripts\]' pyproject.toml 2>/dev/null   # Python
+cat Makefile 2>/dev/null | grep -E '^test:'          # Any language
+```
 
-| Language | Command |
-|----------|---------|
-| JavaScript | `npm run test:coverage` |
-| Python | `pytest --cov=src` |
-| Go | `go test -cover ./...` |
-| Rust | `cargo tarpaulin` |
+**Run using the project's configured command:**
+- If `npm test` is configured → use `npm test`
+- If `make test` exists → use `make test`
+- Otherwise, search for the standard command for the detected framework
 
-## Unit Testing Patterns
+### Step 3: Research Framework Commands
+
+If the test framework is unfamiliar, use WebSearch:
+
+```
+WebSearch: "[framework name] run tests command [year]"
+WebFetch: [official docs] → "Extract test execution commands"
+```
+
+---
+
+## Unit Testing Principles
 
 ### What to Unit Test
 
-- Business logic
-- Edge cases
-- Error conditions
+- Business logic and algorithms
+- Edge cases and boundary conditions
+- Error conditions and exception handling
 - Input validation
-- Pure functions
+- Pure functions (no side effects)
 
 ### What NOT to Unit Test
 
-- Framework code
-- External libraries
+- Framework/library code
 - Simple getters/setters
-- Implementation details
+- Implementation details (test behavior, not structure)
+- Third-party integrations (use integration tests)
 
 ### Mocking Guidelines
 
 **When to Mock:**
 - External services (APIs, databases)
-- Time-dependent operations
+- Time-dependent operations (dates, timers)
 - Random number generation
 - File system operations
+- Network requests
 
 **When NOT to Mock:**
-- The code under test
-- Simple utilities
-- Domain logic
+- The code under test itself
+- Simple utility functions
+- Internal domain logic
+- Anything that's fast and deterministic
+
+---
 
 ## Integration Testing
 
@@ -130,96 +147,146 @@ ls pom.xml build.gradle 2>/dev/null
 
 ```
 1. Set up test database/state
-2. Make HTTP request
-3. Assert response status
-4. Assert response body
-5. Assert side effects (database state)
-6. Clean up
+2. Make HTTP request to endpoint
+3. Assert response status code
+4. Assert response body structure and values
+5. Assert side effects (database state changes)
+6. Clean up test data
 ```
 
-### Database Testing
+### Database Testing Strategies
 
-```
-Strategies:
-- Use test database
-- Transaction rollback
-- Seed and clean per test
-- Use containers (testcontainers)
-```
+| Strategy | Description | Use When |
+|----------|-------------|----------|
+| Transaction rollback | Run test in transaction, rollback after | Fast isolation needed |
+| Test database | Separate database for tests | Full integration testing |
+| Seed and clean | Load fixtures, clean after | Realistic data scenarios |
+| Containers | Ephemeral DB per test run | CI/CD environments |
+
+---
 
 ## E2E Testing
 
-### Locator Priority (Playwright/Cypress)
+### Locator Priority
 
-1. `getByRole()` - Most accessible
-2. `getByLabel()` - Form inputs
-3. `getByText()` - Content
-4. `getByTestId()` - Last resort
+Best practices for finding elements (applies to most E2E frameworks):
+
+1. **Accessibility roles** - Most robust, works like users interact
+2. **Labels** - For form inputs
+3. **Text content** - For visible content
+4. **Test IDs** - Last resort, explicit for testing
 
 ### Page Object Model
 
+Organize E2E tests with page abstractions:
+
 ```
 pages/
-  login.page.ts
-  dashboard.page.ts
-  settings.page.ts
+  login.page.[ext]
+  dashboard.page.[ext]
+  settings.page.[ext]
 
 tests/
-  login.spec.ts
-  dashboard.spec.ts
+  login.spec.[ext]
+  dashboard.spec.[ext]
 ```
 
 ### E2E Best Practices
 
-- Test critical user journeys
-- Use realistic test data
-- Avoid flaky selectors
-- Don't test everything E2E
+- Test critical user journeys, not everything
+- Use realistic but consistent test data
+- Avoid flaky selectors (prefer stable identifiers)
+- Keep E2E test count low (pyramid principle)
+- Run E2E tests in isolated environments
+
+---
 
 ## Test Data Management
 
 ### Factories
 
-```
 Use factories for dynamic test data:
-- Generate realistic data
-- Override specific fields
-- Avoid hardcoded values
-```
+- Generate realistic data programmatically
+- Override specific fields as needed
+- Avoid hardcoded magic values in tests
 
 ### Fixtures
 
-```
 Use fixtures for stable scenarios:
-- Predefined user accounts
-- Reference data sets
-- Configuration presets
-```
+- Predefined user accounts for login tests
+- Reference data sets that don't change
+- Configuration presets for different scenarios
 
-## Coverage Targets
+---
 
-| Type | Target |
-|------|--------|
+## Coverage Guidelines
+
+### Target Thresholds
+
+| Metric | Suggested Target |
+|--------|------------------|
 | Statements | 80% |
 | Branches | 80% |
 | Functions | 80% |
 | Lines | 80% |
 
+### Coverage Commands
+
+Discover coverage commands from project configuration:
+
+```bash
+# Check for coverage scripts
+grep -E 'coverage|cov' package.json 2>/dev/null
+grep -E 'coverage|cov' pyproject.toml 2>/dev/null
+grep -E 'coverage|cov' Makefile 2>/dev/null
+```
+
+If no coverage script exists, search for the framework's coverage option:
+```
+WebSearch: "[test framework name] code coverage command"
+```
+
+---
+
 ## Test Quality Checklist
 
-- [ ] Tests are independent (no shared state)
+- [ ] Tests are independent (no shared mutable state)
 - [ ] Tests are deterministic (same result every run)
 - [ ] Tests clean up after themselves
-- [ ] Tests are fast (unit < 100ms)
-- [ ] Test names describe what they test
-- [ ] Tests cover happy path and error cases
+- [ ] Tests are fast (unit < 100ms typical)
+- [ ] Test names describe what they verify
+- [ ] Tests cover both success and error cases
+- [ ] No hardcoded paths or environment-specific values
+
+---
+
+## Debugging Failing Tests
+
+### Process
+
+1. **Read the failure message** - Understand expected vs actual
+2. **Run test in isolation** - Verify it's not dependent on other tests
+3. **Add logging** - Print intermediate values
+4. **Check test setup** - Verify preconditions are met
+5. **Verify mocks** - Ensure mocks return expected values
+6. **Check for flakiness** - Run multiple times
+
+### Flaky Test Indicators
+
+- Test passes/fails inconsistently
+- Test depends on timing or order
+- Test uses real external services
+- Test has race conditions in async code
+
+---
 
 ## Rules
 
-- ALWAYS write tests BEFORE fixing bugs
-- ALWAYS test edge cases
-- NEVER test implementation details
-- NEVER share state between tests
-- ALWAYS clean up test data
-- NEVER use sleep/delays (use proper waits)
-- ALWAYS prefer real implementations when fast
+- ALWAYS discover the project's test framework before running tests
+- ALWAYS use the project's configured test commands
+- ALWAYS write tests BEFORE fixing bugs (reproduce first)
+- ALWAYS test edge cases and error conditions
+- NEVER test implementation details (test behavior)
+- NEVER share mutable state between tests
+- NEVER use hardcoded delays (use proper async waiting)
+- NEVER skip tests without documented reason

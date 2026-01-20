@@ -8,15 +8,14 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion, Task, TodoW
 
 A structured debugging workflow that leverages subagent delegation to analyze errors, trace root causes, and implement verified fixes.
 
-## Purpose
+## Design Principles
 
-From Claude Code Best Practices: "Describe a bug or paste an error message. Claude Code will analyze your codebase, identify the problem, and implement a fix."
+1. **Stack-agnostic**: Works for any language/framework
+2. **Discover before assuming**: Detect project's test/build commands
+3. **Root cause first**: Identify cause before implementing fix
+4. **Verify fixes**: Always test that the fix works
 
-This command formalizes that process with:
-- Parallel analysis using `code-explorer` agents
-- Root cause isolation before fixing
-- TDD-style verification (reproduce, fix, verify)
-- Clear context preservation for complex bugs
+---
 
 ## When to Use
 
@@ -30,20 +29,20 @@ This command formalizes that process with:
 
 ```bash
 # Error message
-/debug "TypeError: Cannot read property 'id' of undefined"
+/debug "Error: Something went wrong"
 
 # Stack trace (paste directly)
 /debug
 [paste stack trace]
 
 # Failing test
-/debug --test "UserService.login should return token"
+/debug --test "TestName"
 
 # Suspicious file
-/debug --file src/services/auth.ts
+/debug --file path/to/file
 
 # Behavior description
-/debug "Login works but logout doesn't clear the session"
+/debug "Expected X but got Y"
 ```
 
 ---
@@ -75,8 +74,6 @@ Categories:
 6. Performance - Slow or resource-intensive
 ```
 
-**Output:** Error classification and initial hypothesis.
-
 ### Phase 2: Context Gathering
 
 **Goal:** Gather relevant context using subagent delegation.
@@ -104,14 +101,18 @@ Output:
 - Potential causes ranked by likelihood
 ```
 
-**For test failures, also run:**
+**For test failures:**
+
+First, discover the project's test command:
 
 ```bash
-# Run the failing test with verbose output
-npm test -- --testNamePattern="[test name]" --verbose
-# or
-pytest -xvs -k "[test name]"
+# Check for test scripts
+grep -E '"test"' package.json 2>/dev/null
+grep -E '^test:' Makefile 2>/dev/null
+ls pytest.ini setup.cfg pyproject.toml 2>/dev/null
 ```
+
+Then run with verbose output using the discovered command.
 
 **Collect environmental context:**
 
@@ -120,10 +121,10 @@ pytest -xvs -k "[test name]"
 git log --oneline -10
 
 # Check if issue is in uncommitted changes
-git diff
+git diff --stat
 
-# Check dependencies
-npm list --depth=0 2>/dev/null || pip list 2>/dev/null
+# Check for dependency issues (discover package manager first)
+ls package-lock.json yarn.lock pnpm-lock.yaml requirements.txt Pipfile.lock go.sum 2>/dev/null
 ```
 
 ### Phase 3: Root Cause Analysis
@@ -157,7 +158,7 @@ Options:
 
 ### Immediate Cause
 [What directly caused the error]
-File: `src/services/auth.ts:45`
+File: `[file:line]`
 
 ### Root Cause
 [Why the immediate cause happened]
@@ -165,25 +166,20 @@ File: `src/services/auth.ts:45`
 ### Evidence
 - [Evidence 1]
 - [Evidence 2]
-
-### Related Code
-- `src/services/auth.ts:45` - Error occurs here
-- `src/controllers/login.ts:23` - Calls the failing function
-- `src/models/user.ts:12` - Data structure involved
 ```
 
 ### Phase 4: Fix Planning
 
 **Goal:** Design a fix strategy before implementation.
 
-**Determine fix approach:**
+**Determine fix approach based on cause, not technology:**
 
 | Root Cause Type | Fix Approach |
 |-----------------|--------------|
-| Null/undefined check missing | Add defensive check |
+| Missing validation | Add defensive check |
 | Wrong logic/algorithm | Correct the logic |
-| Missing error handling | Add try/catch and handling |
-| Type mismatch | Fix type or conversion |
+| Missing error handling | Add error handling |
+| Type/data mismatch | Fix type or conversion |
 | Race condition | Add synchronization |
 | Missing dependency | Add import/installation |
 | Configuration error | Fix config values |
@@ -216,75 +212,58 @@ Options:
 
 **Goal:** Implement the fix with appropriate agent delegation.
 
-**⚠️ ORCHESTRATOR RULE: Do not implement the fix yourself. Delegate.**
+**DELEGATE to appropriate specialist based on code location, not assumed technology:**
+
+```
+DELEGATE to code-explorer first to determine:
+- What type of code is this? (frontend/backend/test/config)
+- What patterns does this codebase use?
+
+Then DELEGATE to appropriate specialist:
+- Frontend code → frontend-specialist
+- Backend code → backend-specialist
+- Infrastructure → devops-sre
+- Test code → qa-engineer
+```
 
 **For TDD approach:**
 
 ```
 Step 1: DELEGATE to qa-engineer
-Task: Write a test that reproduces this bug:
-- Bug: [description]
-- Root cause: [root cause]
-- Expected: Test should FAIL with current code
-- File: Create in appropriate test file
+Task: Write a test that reproduces this bug
 
 Step 2: Verify test fails
-Run the new test, confirm it reproduces the bug
+Run the new test using project's test command
 
 Step 3: DELEGATE to appropriate specialist
-Task: Fix the bug to make this test pass:
-- Test file: [test file path]
-- Bug location: [file:line]
-- Root cause: [root cause]
-- Constraint: Minimal change, don't break other tests
+Task: Fix the bug to make this test pass
 
 Step 4: Verify fix
 Run the new test, confirm it PASSES
 Run full test suite, confirm no regressions
 ```
 
-**For direct fix approach:**
-
-```
-DELEGATE to appropriate specialist:
-- Frontend bug → frontend-specialist
-- Backend bug → backend-specialist
-- Build/config → devops-sre
-- Test issue → qa-engineer
-
-Task: Fix this bug:
-- Location: [file:line]
-- Root cause: [root cause]
-- Expected behavior: [what should happen]
-- Constraint: Minimal change to fix the issue
-```
-
-**After implementation:**
-
-1. Run relevant tests
-2. Verify the original error no longer occurs
-3. Check for regressions
-
 ### Phase 6: Verification
 
-**Goal:** Confirm the fix works and doesn't introduce new issues.
+**Goal:** Confirm the fix works.
 
-**Run verification steps:**
+**Discover and run verification commands:**
 
 ```bash
-# Run specific test (if TDD)
-npm test -- --testNamePattern="[test name]"
+# Discover test command
+grep -E '"test"' package.json 2>/dev/null && echo "npm test"
+grep -E '^test:' Makefile 2>/dev/null && echo "make test"
+ls pytest.ini 2>/dev/null && echo "pytest"
 
-# Run related test suite
-npm test -- [test file]
+# Discover build command
+grep -E '"build"' package.json 2>/dev/null && echo "npm run build"
+grep -E '^build:' Makefile 2>/dev/null && echo "make build"
 
-# Run full test suite
-npm test
-
-# Check for lint/type errors
-npm run lint
-npm run typecheck
+# Discover lint command
+grep -E '"lint"' package.json 2>/dev/null && echo "npm run lint"
 ```
+
+Run discovered commands to verify fix.
 
 **If tests fail after fix:**
 
@@ -293,15 +272,9 @@ npm run typecheck
 3. If regression: iterate on fix
 4. If unrelated: note for separate investigation
 
-**If all tests pass:**
-
-Proceed to summary.
-
 ### Phase 7: Summary
 
-**Goal:** Document what was done and any follow-up needed.
-
-**Display fix summary:**
+**Goal:** Document what was done.
 
 ```markdown
 ## Debug Summary
@@ -319,16 +292,16 @@ File: `[file:line]`
 ### Files Modified
 | File | Changes |
 |------|---------|
-| `src/services/auth.ts` | Added null check at line 45 |
+| `[path]` | [description] |
 
 ### Verification
-- [x] Reproducing test created: `auth.test.ts:123`
-- [x] Test passes after fix
-- [x] Full test suite passes
-- [x] No regressions detected
+- [ ] Reproducing test created (if TDD)
+- [ ] Test passes after fix
+- [ ] Full test suite passes
+- [ ] No regressions detected
 
 ### Recommendations
-[Any follow-up actions or related improvements]
+[Any follow-up actions]
 ```
 
 **Ask about commit:**
@@ -362,7 +335,7 @@ Options:
 ### Test Failure Debugging
 
 ```
-1. Run test with verbose output
+1. Discover and run test with verbose output
 2. Identify:
    - Expected value
    - Actual value
@@ -376,10 +349,10 @@ Options:
 
 ```
 1. Compare environments:
-   - Node/Python version
-   - Dependencies versions
+   - Runtime version
+   - Dependency versions
    - Environment variables
-   - Database state
+   - Database/service state
 
 2. Check for:
    - Hardcoded paths
@@ -392,10 +365,8 @@ Options:
 ```
 1. Identify the slow operation
 2. Add timing measurements
-3. Profile if available:
-   - Node: --inspect + Chrome DevTools
-   - Python: cProfile
-4. Look for:
+3. Check for profiling tools in project
+4. Look for common issues:
    - N+1 queries
    - Unnecessary loops
    - Memory leaks
@@ -404,70 +375,13 @@ Options:
 
 ---
 
-## Integration with Progress Tracking
+## Rules
 
-For complex bugs requiring multiple sessions:
-
-**Create checkpoint:**
-
-```json
-// Add to .claude/workspaces/{workspace-id}/claude-progress.json
-{
-  "workspaceId": "{workspace-id}",
-  "currentTask": "Debugging: [error description]",
-  "resumptionContext": {
-    "position": "Debug Phase 3 - Root cause identified",
-    "nextAction": "Implement fix in src/services/auth.ts:45",
-    "keyFiles": [
-      "src/services/auth.ts:45",
-      "src/controllers/login.ts:23"
-    ],
-    "decisions": [
-      "Root cause: null user object not checked",
-      "Fix approach: Add early return with error"
-    ],
-    "blockers": []
-  }
-}
-```
-
-Use `/resume` to continue debugging in next session.
-
----
-
-## Usage Examples
-
-```bash
-# Debug a runtime error
-/debug "TypeError: Cannot read property 'name' of undefined at UserService.getProfile"
-
-# Debug a test failure
-/debug --test "UserService.getProfile should return user data"
-
-# Debug unexpected behavior
-/debug "The login endpoint returns 200 but the session cookie isn't set"
-
-# Debug a build error
-/debug "Module not found: Can't resolve './components/Button'"
-
-# Debug with a file focus
-/debug --file src/services/user.service.ts
-```
-
-## Tips for Best Results
-
-1. **Provide complete error messages**: Include the full stack trace if available
-2. **Describe expected vs actual**: Be clear about what should happen
-3. **Choose TDD approach**: Writing a reproducing test prevents regressions
-4. **Be patient with analysis**: Root cause identification prevents wasted effort
-5. **Check recent changes**: `git log` and `git diff` are invaluable
-
-## Comparison with Ad-hoc Debugging
-
-| Aspect | Ad-hoc | /debug |
-|--------|--------|--------|
-| Analysis | Manual | Structured via code-explorer |
-| Fix verification | Optional | Required (TDD encouraged) |
-| Documentation | None | Automatic summary |
-| Regression check | Often skipped | Always run |
-| Context for resume | Lost | Preserved in progress files |
+- ALWAYS discover project's test/build commands before running them
+- ALWAYS identify root cause before implementing fix
+- ALWAYS verify fix with tests
+- ALWAYS delegate implementation to appropriate specialist
+- NEVER assume specific framework commands (discover them)
+- NEVER skip root cause analysis
+- NEVER commit without verification
+- NEVER ignore regressions

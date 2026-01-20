@@ -44,6 +44,9 @@ claude --plugin-dir /path/to/sdd-toolkit
 # 小規模タスクの高速実装
 /quick-impl README のタイポを修正
 
+# 新規プロジェクトのスタック相談・構築
+/stack-consult
+
 # セッション再開（進捗ファイルから）
 /resume
 
@@ -62,6 +65,7 @@ claude --plugin-dir /path/to/sdd-toolkit
 | `/code-review` | コードレビュー | コミット前（並列エージェント） |
 | `/quick-impl` | 高速実装 | 明確な小規模タスク |
 | `/project-setup` | ルール生成 | プロジェクト固有ルールの自動生成 |
+| `/stack-consult` | スタック相談 | 新規プロジェクトの技術選定・構築 |
 | `/resume` | セッション再開 | 進捗ファイルから作業を再開 |
 | `/debug` | 体系的デバッグ | エラー分析・根本原因特定・修正 |
 

@@ -193,6 +193,30 @@ my-skill/
 | `From Claude Code Best Practices:` | `[Claude Code Best Practices](https://...)` |
 | Plain text attribution | `## Sources` or `## References` sections |
 
+#### Skill Design Principles
+
+Skills should define **processes and frameworks**, not static knowledge that can become outdated.
+
+| Principle | Implementation |
+|-----------|----------------|
+| **No hardcoded technologies** | Use WebSearch to discover current options |
+| **Requirements-first** | Ask what the user needs before suggesting solutions |
+| **Domain-agnostic** | Avoid technology-category questions (e.g., "Web or Mobile?") |
+| **Dynamic discovery** | RAG (WebSearch + WebFetch) for current information |
+| **Evaluation frameworks** | Define how to compare, not what to compare |
+
+**Good skill content:**
+- Research methodologies
+- Evaluation frameworks and criteria
+- Query construction patterns
+- Decision-making processes
+
+**Avoid in skills:**
+- Specific technology names/versions
+- Comparison tables with hardcoded options
+- Setup commands for specific tools
+- Recommendations that can become outdated
+
 ---
 
 ### Command Template
