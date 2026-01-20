@@ -22,8 +22,16 @@ try:
     tool_input = data.get("tool_input", {})
     command = tool_input.get("command", "")
 except json.JSONDecodeError:
-    # Fallback for direct command input
-    command = input_data
+    # Fail-safe: deny on parse error (do not process raw input)
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": "Safety check failed: Invalid JSON input format"
+        }
+    }
+    print(json.dumps(output))
+    sys.exit(0)
 
 # Dangerous command patterns (stack-agnostic)
 DANGEROUS_PATTERNS = [

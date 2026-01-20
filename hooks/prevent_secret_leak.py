@@ -25,8 +25,16 @@ try:
     content = tool_input.get("content", "") or tool_input.get("new_string", "")
     file_path = tool_input.get("file_path", "")
 except json.JSONDecodeError:
-    content = input_data
-    file_path = ""
+    # Fail-safe: deny on parse error (do not process raw input)
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": "Secret leak check failed: Invalid JSON input format"
+        }
+    }
+    print(json.dumps(output))
+    sys.exit(0)
 
 # Secret patterns (stack-agnostic)
 SECRET_PATTERNS = [

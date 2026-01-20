@@ -326,13 +326,22 @@ Are you suggesting [interpretation A] or [interpretation B]?
 
 ---
 
-## Rules
+## Rules (L1 - Hard)
 
 - ALWAYS read all comments before implementing changes
-- ALWAYS track every comment (even if declining)
-- ALWAYS verify changes don't break existing functionality
-- ALWAYS prepare responses for discussion items
 - NEVER ignore or dismiss reviewer feedback without explanation
-- NEVER make unrelated changes in the same commit
 - NEVER push without verification
-- ALWAYS thank reviewers for their feedback
+- ALWAYS verify changes don't break existing functionality
+
+## Defaults (L2 - Soft)
+
+- Track every comment, even if declining
+- Prepare responses for discussion items
+- Make a single commit for related changes (unless user prefers separate)
+- Thank reviewers for their feedback
+
+## Guidelines (L3)
+
+- Consider batching by file to minimize conflicts
+- Prefer implementing suggestions before discussing disagreements
+- Consider asking for re-review after significant changes

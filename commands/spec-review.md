@@ -258,3 +258,25 @@ docs/specs/[feature-name]-review.md
 ```
 
 This creates an audit trail of what was reviewed and decided.
+
+---
+
+## Rules (L1 - Hard)
+
+- ALWAYS use parallel agent execution (4 agents in single message)
+- ALWAYS apply confidence filtering before reporting (default >= 80)
+- NEVER proceed to implementation with unaddressed critical issues (>= 90 confidence)
+- ALWAYS de-duplicate findings across agents
+
+## Defaults (L2 - Soft)
+
+- Use 80% confidence threshold (adjustable with --threshold)
+- Save review results to docs/specs/[feature-name]-review.md
+- Boost confidence by 10 when multiple agents flag same issue
+- Ask user before proceeding when critical issues found
+
+## Guidelines (L3)
+
+- Consider re-running review after spec updates
+- Prefer addressing critical issues before important ones
+- Consider domain-specific reviewers for specialized specs

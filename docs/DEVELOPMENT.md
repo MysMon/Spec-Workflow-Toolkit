@@ -559,7 +559,7 @@ Not all rules are equal. Classify instructions by enforcement level:
 - Use conventional commit format (unless project specifies otherwise)
 - Confidence threshold >= 80% (adjust based on task criticality)
 
-## Recommendations (L3 - Guidelines)
+## Guidelines (L3)
 - Consider using subagents for exploration
 - Prefer JSON for state files
 ```
