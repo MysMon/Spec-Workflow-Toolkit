@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Safety Check Hook - PreToolUse for Bash commands
+Safety Check Hook - PreToolUse for Bash and MCP command execution tools
 Blocks dangerous shell commands or transforms them to safer alternatives.
 Stack-agnostic: works with any project type.
 
@@ -11,6 +11,7 @@ Features:
 - JSON decision control (exit 0 + hookSpecificOutput) for blocking
 - Input modification (updatedInput) for transforming commands to safer versions
 - Supports v2.0.10+ input modification capability
+- MCP tool support: Validates commands from MCP servers (mcp__*__exec, mcp__*__shell, etc.)
 
 Uses two strategies:
 1. BLOCK: Completely dangerous commands that cannot be made safe
@@ -24,10 +25,45 @@ import json
 # Read tool input from stdin (Claude Code passes JSON)
 input_data = sys.stdin.read().strip()
 
+def extract_command_from_input(tool_name: str, tool_input: dict) -> str:
+    """
+    Extract command string from tool input, handling both Bash and MCP tools.
+    MCP tools may use different field names for the command.
+    """
+    # Standard Bash tool
+    if tool_name == "Bash":
+        return tool_input.get("command", "")
+
+    # MCP tools - try common field names for command execution
+    # Different MCP servers use different field names
+    command_fields = [
+        "command",      # Most common
+        "cmd",          # Short form
+        "script",       # For script execution
+        "shell_command",
+        "bash_command",
+        "exec",
+        "run",
+        "code",         # Some servers use this
+        "input",        # Terminal tools may use this
+    ]
+
+    for field in command_fields:
+        if field in tool_input and isinstance(tool_input[field], str):
+            return tool_input[field]
+
+    # Some MCP tools pass command as first positional argument in an array
+    if "args" in tool_input and isinstance(tool_input["args"], list) and len(tool_input["args"]) > 0:
+        return str(tool_input["args"][0])
+
+    return ""
+
 try:
     data = json.loads(input_data)
+    tool_name = data.get("tool_name", "Bash")
     tool_input = data.get("tool_input", {})
-    command = tool_input.get("command", "")
+    command = extract_command_from_input(tool_name, tool_input)
+    is_mcp_tool = tool_name.startswith("mcp__")
 except json.JSONDecodeError:
     # Fail-safe: deny on parse error (do not process raw input)
     output = {
@@ -195,20 +231,23 @@ dangerous, matched_pattern = is_dangerous(command)
 if dangerous:
     # Use JSON decision control to properly block the command
     # Based on: https://code.claude.com/docs/en/hooks
+    tool_type = f"MCP tool ({tool_name})" if is_mcp_tool else "Bash"
     output = {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
-            "permissionDecisionReason": f"Blocked dangerous command matching pattern: {matched_pattern}"
+            "permissionDecisionReason": f"Blocked dangerous {tool_type} command matching pattern: {matched_pattern}"
         }
     }
     print(json.dumps(output))
     sys.exit(0)  # Exit 0 with JSON decision control
 
 # Check if command can be transformed to a safer version
+# Note: Transformations only apply to Bash tool (we know its schema)
+# MCP tools have varying schemas, so we only block dangerous commands
 transformable, transformed_cmd, transform_desc = check_transformable(command)
 
-if transformable:
+if transformable and not is_mcp_tool:
     # Use input modification to transform command (v2.0.10+ feature)
     # Include permissionDecisionReason for audit trail and transparency
     output = {

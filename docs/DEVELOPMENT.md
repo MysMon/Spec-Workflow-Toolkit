@@ -698,6 +698,50 @@ if tool_name.startswith("mcp__"):
         actual_tool = parts[2]
 ```
 
+#### Security: MCP Tools That Execute Commands
+
+Some MCP tools can execute shell commands (e.g., `mcp__shell__exec`, `mcp__terminal__run`). These should be validated like the Bash tool.
+
+**Matching MCP command tools in hooks.json:**
+
+```json
+{
+  "matcher": "Bash|mcp__.*__(exec|run|shell|command|bash|terminal)",
+  "hooks": [
+    {
+      "type": "command",
+      "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/safety_check.py"
+    }
+  ]
+}
+```
+
+**Extracting commands from MCP tool inputs:**
+
+MCP tools may use different field names for commands. A robust validator should check multiple fields:
+
+```python
+def extract_command_from_mcp_input(tool_input: dict) -> str:
+    """Extract command from MCP tool input with varying schemas."""
+    command_fields = [
+        "command", "cmd", "script", "shell_command",
+        "bash_command", "exec", "run", "code", "input"
+    ]
+    for field in command_fields:
+        if field in tool_input and isinstance(tool_input[field], str):
+            return tool_input[field]
+    return ""
+```
+
+#### Best Practices for MCP Hook Validation
+
+| Consideration | Recommendation |
+|--------------|----------------|
+| **Unknown schemas** | Only block dangerous patterns; avoid transformations |
+| **Fail-safe default** | When in doubt, deny (MCP tools may have elevated permissions) |
+| **Audit logging** | Log all MCP tool invocations for security review |
+| **Input extraction** | Try multiple common field names for command extraction |
+
 ### Recommended MCP Servers for SDD Workflows
 
 | MCP Server | Use Case | SDD Integration |
