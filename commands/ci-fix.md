@@ -34,6 +34,26 @@ CI failures are a common interruption in development workflows. This command pro
 
 ---
 
+## Rules (L1 - Hard)
+
+- NEVER push fixes without running tests locally first
+- NEVER commit secrets or credentials exposed in CI logs
+- ALWAYS verify the fix addresses the root cause, not just symptoms
+
+## Defaults (L2 - Soft)
+
+- Delegate code fixes to specialist agents (qa-engineer, frontend/backend-specialist)
+- Run full CI check suite locally before pushing
+- Document root cause in commit message
+
+## Guidelines (L3)
+
+- Consider if the CI failure reveals a larger systemic issue
+- Prefer auto-fix tools (eslint --fix, black) for lint issues
+- Check if failure is flaky before investing in fixes
+
+---
+
 ## Execution Instructions
 
 ### Phase 1: Gather CI Context
