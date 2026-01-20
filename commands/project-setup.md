@@ -1,34 +1,28 @@
 ---
 description: "Analyze project and generate .claude/rules/ files through stack detection and user interview"
 argument-hint: "[optional: focus area - e.g., 'frontend', 'testing']"
-allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
+allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite, WebSearch
 ---
 
 # /project-setup - Project Rules Generator
 
 Generate project-specific `.claude/rules/` files by analyzing the codebase and interviewing the user about conventions and preferences.
 
-## Purpose
+## Design Principles
 
-This command helps onboard Claude to a new project by:
-1. Detecting the technology stack automatically
-2. Identifying existing patterns and conventions
-3. Interviewing the user about project-specific rules
-4. Generating `.claude/rules/` files with appropriate `paths:` conditions
+1. **Discover, don't assume**: Detect the stack through analysis, not hardcoded file lists
+2. **Domain-agnostic**: Works for any project type (web, mobile, CLI, embedded, etc.)
+3. **User-driven**: Interview to understand conventions that can't be detected
+4. **Pattern-based**: Generate rules based on discovered patterns, not technology categories
 
-## When to Use
-
-- Setting up Claude Code for a new project
-- Onboarding to an existing codebase
-- Documenting team conventions for AI assistance
-- Creating stack-specific guidelines (frontend vs backend)
+---
 
 ## Phase Overview
 
 ```
-Phase 1: Stack Detection    → Identify technologies
-Phase 2: Pattern Analysis   → Find existing conventions
-Phase 3: User Interview     → Gather preferences
+Phase 1: Stack Detection    → Discover technologies through analysis
+Phase 2: Pattern Analysis   → Find existing conventions in code
+Phase 3: User Interview     → Gather preferences through questions
 Phase 4: Rule Generation    → Create .claude/rules/ files
 Phase 5: Review & Confirm   → User approval
 ```
@@ -39,35 +33,40 @@ Phase 5: Review & Confirm   → User approval
 
 ### Phase 1: Stack Detection
 
-**Goal:** Automatically identify the project's technology stack.
+**Goal:** Discover the project's technology stack through analysis.
 
-**Use the `stack-detector` skill pattern:**
+**Use discovery patterns, not hardcoded file lists:**
 
 ```bash
-# Check for configuration files
-ls -la package.json pyproject.toml go.mod Cargo.toml *.csproj 2>/dev/null
+# Discover project type from common indicators
+ls -la *.json *.toml *.yaml *.yml *.xml *.gradle 2>/dev/null | head -20
 
-# Check for lock files (package manager detection)
-ls -la package-lock.json yarn.lock pnpm-lock.yaml bun.lockb 2>/dev/null
+# Discover language from file extensions
+find . -maxdepth 3 -type f -name "*.ts" -o -name "*.js" -o -name "*.py" -o -name "*.go" -o -name "*.rs" -o -name "*.java" 2>/dev/null | head -5
 
-# Check for framework indicators
-ls -la next.config.* nuxt.config.* vite.config.* angular.json 2>/dev/null
+# Discover build/package configuration
+ls -la package*.json Cargo.toml go.mod pyproject.toml pom.xml build.gradle 2>/dev/null
 ```
 
-**Identify:**
-- Primary language(s)
-- Package manager
-- Frontend framework (if any)
-- Backend framework (if any)
-- Testing framework(s)
-- Linting/formatting tools
-- CI/CD configuration
+**Delegate to `code-explorer` agent if needed:**
 
-**Output:** Stack profile summary for user confirmation.
+```
+Launch code-explorer agent to analyze:
+- Primary language(s) used
+- Project structure and organization
+- Package manager and dependencies
+- Testing setup (if present)
+- Build/lint configuration (if present)
+
+Thoroughness: quick
+Output: Stack profile summary
+```
+
+**Output:** Stack summary for user confirmation (don't assume specific frameworks).
 
 ### Phase 2: Pattern Analysis
 
-**Goal:** Discover existing conventions in the codebase.
+**Goal:** Discover existing conventions through code analysis, not assumptions.
 
 **Delegate to `code-explorer` agent:**
 
@@ -84,26 +83,26 @@ Thoroughness: medium
 Output: Convention summary with file:line examples
 ```
 
-**Also check for existing configuration:**
+**Check for existing configuration:**
 
 ```bash
 # Check for existing Claude configuration
 ls -la .claude/ CLAUDE.md .claude/rules/ 2>/dev/null
 
-# Check for linting/formatting configs
-ls -la .eslintrc* .prettierrc* biome.json pyproject.toml .golangci.yml 2>/dev/null
+# Check for quality tool configs (general patterns)
+ls -la .*rc* *.config.* 2>/dev/null | head -10
 
 # Check for editor configs
-ls -la .editorconfig .vscode/ 2>/dev/null
+ls -la .editorconfig .vscode/ .idea/ 2>/dev/null
 ```
 
-**Output:** Pattern summary with specific examples.
+**Output:** Discovered patterns with specific examples from the codebase.
 
 ### Phase 3: User Interview
 
-**Goal:** Gather project-specific preferences through structured questions.
+**Goal:** Gather preferences that can't be detected through code analysis.
 
-**Use `AskUserQuestion` for each category:**
+**Use domain-agnostic questions:**
 
 #### 3.1 Code Style Preferences
 
@@ -113,13 +112,13 @@ Based on detected stack: [stack summary]
 Question: "What code style conventions should Claude follow?"
 Header: "Code Style"
 Options:
-- "Follow existing linter config (detected: [linter])"
-- "Stricter than current config"
+- "Follow existing tool configuration (detected: [tool])"
+- "Match patterns found in codebase"
 - "Let me specify custom rules"
-- "Use framework defaults"
+- "Use language/framework defaults"
 ```
 
-#### 3.2 Testing Conventions
+#### 3.2 Testing Approach
 
 ```
 Question: "What testing approach should Claude use?"
@@ -131,32 +130,34 @@ Options:
 - "Let me specify test requirements"
 ```
 
-#### 3.3 Documentation Preferences
+#### 3.3 Documentation Style
 
 ```
 Question: "What documentation style should Claude follow?"
-Header: "Docs Style"
+Header: "Docs"
 Options:
-- "JSDoc/docstrings for public APIs only"
-- "Comprehensive inline comments"
-- "Minimal comments (self-documenting code)"
+- "Document public APIs only"
+- "Comprehensive documentation"
+- "Minimal (self-documenting code)"
 - "Match existing documentation style"
 ```
 
 #### 3.4 Architecture Boundaries
 
 ```
-Question: "Are there areas Claude should handle differently?"
+Question: "Are there areas that should have different rules?"
 Header: "Boundaries"
 MultiSelect: true
 Options:
-- "Frontend has different rules than backend"
-- "API layer has strict validation requirements"
-- "Database code requires extra review"
+- "Different rules for different parts of codebase"
+- "Some areas require extra review/care"
+- "Strict validation in certain areas"
 - "No special boundaries needed"
 ```
 
-#### 3.5 Security Requirements
+If user selects boundaries, follow up to understand which paths/patterns.
+
+#### 3.5 Security Considerations
 
 ```
 Question: "What security considerations apply?"
@@ -165,7 +166,7 @@ MultiSelect: true
 Options:
 - "Authentication/authorization code needs extra care"
 - "Input validation is critical"
-- "Sensitive data handling (PII, credentials)"
+- "Handles sensitive data (PII, credentials)"
 - "Standard security practices are sufficient"
 ```
 
@@ -179,109 +180,65 @@ Options:
 - "No additional rules needed"
 ```
 
-If "Yes", use follow-up `AskUserQuestion` to gather details.
-
-**Output:** Comprehensive preferences summary.
-
 ### Phase 4: Rule Generation
 
 **Goal:** Generate `.claude/rules/` files based on analysis and interview.
 
-**Create directory structure:**
+**Create directory:**
 
 ```bash
 mkdir -p .claude/rules
 ```
 
-**Generate rule files based on findings:**
+**Generate rule files based on findings (not hardcoded templates):**
 
 #### 4.1 General Rules (always created)
 
 Create `.claude/rules/general.md`:
 
 ```markdown
-# Project: [Project Name]
+# Project: [Project Name from analysis]
 
 ## Technology Stack
-- Language: [detected]
-- Framework: [detected]
-- Package Manager: [detected]
+[Detected stack - discovered, not assumed]
 
 ## Code Style
-[Based on interview responses]
+[From interview + detected patterns]
 
 ## Testing
-[Based on interview responses]
+[From interview + detected patterns]
 
 ## Documentation
-[Based on interview responses]
+[From interview]
+
+## Additional Context
+[Any custom rules from interview]
 ```
 
-#### 4.2 Path-Conditional Rules (if boundaries detected)
+#### 4.2 Path-Conditional Rules (if boundaries identified)
 
-If frontend/backend separation detected, create:
+Only create path-specific rules if:
+1. User indicated different rules for different areas
+2. Analysis found clear separation in codebase
 
-`.claude/rules/frontend.md`:
+**Discover paths from analysis, don't hardcode:**
+
+```bash
+# Find actual directory structure
+find . -maxdepth 2 -type d | grep -v node_modules | grep -v .git | head -20
+```
+
+Create path-conditional rules using discovered paths:
+
 ```yaml
 ---
 paths:
-  - "src/frontend/**"
-  - "src/components/**"
-  - "src/pages/**"
-  - "app/**"
+  - "[discovered path pattern]"
 ---
 
-# Frontend Development Rules
+# [Area] Development Rules
 
-[Frontend-specific rules from interview]
-```
-
-`.claude/rules/backend.md`:
-```yaml
----
-paths:
-  - "src/api/**"
-  - "src/services/**"
-  - "src/server/**"
-  - "server/**"
----
-
-# Backend Development Rules
-
-[Backend-specific rules from interview]
-```
-
-#### 4.3 Testing Rules (if specific testing conventions)
-
-`.claude/rules/testing.md`:
-```yaml
----
-paths:
-  - "**/*.test.*"
-  - "**/*.spec.*"
-  - "tests/**"
-  - "__tests__/**"
----
-
-# Testing Conventions
-
-[Testing rules from interview]
-```
-
-#### 4.4 Security Rules (if security-sensitive areas identified)
-
-`.claude/rules/security.md`:
-```yaml
----
-paths:
-  - "src/auth/**"
-  - "src/api/**"
-  - "**/middleware/**"
----
-
-# Security Requirements
-
-[Security rules from interview]
+[Rules specific to this area from interview]
 ```
 
 ### Phase 5: Review & Confirm
@@ -294,40 +251,28 @@ paths:
 ## Generated Rules Summary
 
 ### Files Created
-| File | Paths Scope | Key Rules |
-|------|-------------|-----------|
+| File | Scope | Key Rules |
+|------|-------|-----------|
 | `general.md` | All files | [summary] |
-| `frontend.md` | src/frontend/** | [summary] |
-| `backend.md` | src/api/** | [summary] |
-| `testing.md` | **/*.test.* | [summary] |
+| [path-specific if created] | [paths] | [summary] |
 
 ### Rule Highlights
-- [Key rule 1]
-- [Key rule 2]
-- [Key rule 3]
+- [Key rule 1 based on interview]
+- [Key rule 2 based on analysis]
 
-Would you like to:
+Options:
 1. Apply these rules as-is
 2. Review and edit before applying
 3. Regenerate with different preferences
 4. Cancel
 ```
 
-**If user chooses to edit:**
-- Open each file for review
-- Allow modifications
-- Confirm final state
+**Final output:**
 
-**Final confirmation:**
-
-```
-Rules have been created in .claude/rules/
+```markdown
+Rules created in .claude/rules/
 
 These rules will be automatically loaded when Claude works on this project.
-
-To modify rules later:
-- Edit files in .claude/rules/
-- Use paths: frontmatter to scope rules to specific files
 
 Next steps:
 1. Review generated rules in .claude/rules/
@@ -337,104 +282,29 @@ Next steps:
 
 ---
 
-## Rule Generation Templates
-
-### General Template
-
-```markdown
-# [Project Name] Development Guidelines
-
-## Stack
-- **Language**: [Language] [Version if known]
-- **Framework**: [Framework]
-- **Package Manager**: [PM]
-
-## Code Conventions
-[From interview + detected patterns]
-
-## File Organization
-[Detected structure]
-
-## Naming Conventions
-- Files: [pattern]
-- Components: [pattern]
-- Functions: [pattern]
-- Variables: [pattern]
-
-## Import Order
-[Detected or specified pattern]
-```
-
-### Path-Conditional Template
-
-```yaml
----
-paths:
-  - "[glob pattern 1]"
-  - "[glob pattern 2]"
----
-
-# [Area] Development Rules
-
-## Scope
-These rules apply to: [description of matched files]
-
-## Conventions
-[Specific rules for this area]
-
-## Patterns to Follow
-[Examples with file:line references from analysis]
-
-## Common Mistakes to Avoid
-[Based on codebase analysis]
-```
-
----
-
-## Integration with Existing Configuration
-
-**If CLAUDE.md exists:**
-- Read existing content
-- Avoid duplicating rules
-- Reference CLAUDE.md in generated rules
-
-**If .claude/rules/ exists:**
-- List existing rules
-- Ask if user wants to merge or replace
-- Preserve custom rules user wants to keep
-
----
-
 ## Usage Examples
 
 ```bash
 # Full setup with interview
 /project-setup
 
-# Focus on frontend rules only
-/project-setup frontend
-
-# Focus on testing conventions
+# Focus on specific area (will ask focused questions)
 /project-setup testing
+/project-setup security
 
 # Regenerate after codebase changes
 /project-setup
 ```
 
-## Tips for Best Results
+---
 
-1. **Run early**: Set up rules when starting work on a project
-2. **Be specific**: More detailed answers lead to better rules
-3. **Review generated rules**: They may need minor adjustments
-4. **Version control rules**: Share with team via git
-5. **Update periodically**: Re-run after major architecture changes
+## Rules
 
-## Comparison with /init
-
-| Aspect | `/init` (built-in) | `/project-setup` |
-|--------|-------------------|------------------|
-| Output | Single CLAUDE.md | Multiple .claude/rules/ files |
-| Path conditions | No | Yes (paths: frontmatter) |
-| User interview | Minimal | Comprehensive |
-| Stack detection | Basic | Detailed |
-| Customization | Limited | Extensive |
+- ALWAYS discover stack through analysis, not hardcoded file lists
+- ALWAYS use domain-agnostic interview questions
+- ALWAYS confirm detected patterns with user
+- ALWAYS use discovered paths for path-conditional rules
+- NEVER assume specific framework/library names
+- NEVER hardcode path patterns (discover them)
+- NEVER create rules for technologies not detected
+- NEVER skip user confirmation before creating files

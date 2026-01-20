@@ -7,96 +7,130 @@ description: |
   - Running the project's configured quality tools
   - Code is failing CI quality checks
   Trigger phrases: lint, format code, run linter, fix formatting, type check, code style
-allowed-tools: Bash, Read, Glob
+allowed-tools: Bash, Read, Glob, Grep
 model: haiku
 user-invocable: true
 ---
 
 # Code Quality
 
-Detect and use the project's configured quality tools. Never assume tools - always check what the project uses.
+Detect and use the project's configured quality tools. This skill defines a **discovery process**, not specific tool commands.
 
-## Philosophy
+## Design Principles
 
-**Projects own their quality configuration.** This skill:
-1. Detects what tools the project has configured
-2. Runs those tools using the project's settings
-3. Never installs or assumes tools that aren't present
+1. **Projects own their configuration**: Never assume which tools are used
+2. **Discover before running**: Check what tools the project has configured
+3. **Use project commands**: Prefer scripts defined in package.json/Makefile/etc.
+4. **Never install**: Don't add tools that aren't already configured
+
+---
 
 ## Workflow
 
-### Step 1: Detect Project Configuration
+### Step 1: Discover Quality Tool Configuration
 
-Check for quality tool configs in the project:
-
-```bash
-# List all potential config files
-ls -la .eslintrc* eslint.config.* .prettierrc* prettier.config.* biome.json* 2>/dev/null
-ls -la ruff.toml pyproject.toml .golangci.yml rustfmt.toml .rubocop.yml 2>/dev/null
-
-# Check package.json scripts (JavaScript/TypeScript)
-grep -A 20 '"scripts"' package.json 2>/dev/null | grep -E '(lint|format|check)'
-```
-
-### Step 2: Use Project's Commands
-
-**Always prefer project-defined npm scripts or Makefile targets:**
+Check for quality tool presence without assuming specific tools:
 
 ```bash
-# JavaScript/TypeScript - check package.json scripts first
-npm run lint          # If "lint" script exists
-npm run format        # If "format" script exists
-npm run typecheck     # If "typecheck" script exists
+# List all config files that might indicate quality tools
+ls -la .* *.config.* *.json *.toml *.yml *.yaml 2>/dev/null | head -30
 
-# Python - check pyproject.toml or Makefile
-make lint             # If Makefile has lint target
-make format           # If Makefile has format target
-
-# Or run detected tools directly
-ruff check . --fix    # If ruff.toml exists
-black .               # If black is in pyproject.toml
+# Check for common config patterns (not specific tools)
+ls -la *lint* *format* *prettier* *eslint* *biome* *ruff* *black* *rubocop* *golangci* 2>/dev/null
 ```
 
-### Step 3: Run Detected Tools
+### Step 2: Check for Defined Scripts
 
-Only run tools that have configuration present:
-
-| Config Present | Command |
-|----------------|---------|
-| `eslint.config.*` or `.eslintrc*` | `npm run lint` or `npx eslint .` |
-| `.prettierrc*` or `prettier.config.*` | `npm run format` or `npx prettier --write .` |
-| `biome.json*` | `npx biome check --write .` |
-| `ruff.toml` or `[tool.ruff]` in pyproject.toml | `ruff check . --fix && ruff format .` |
-| `.golangci.yml` | `golangci-lint run` |
-| `rustfmt.toml` or `.rustfmt.toml` | `cargo fmt` |
-| `.rubocop.yml` | `bundle exec rubocop -a` |
-
-### Step 4: Verify Build
-
-After quality fixes, verify the project still builds:
+**Always prefer project-defined commands:**
 
 ```bash
-# Use project's build command
-npm run build         # JavaScript
-cargo build           # Rust
-go build ./...        # Go
+# JavaScript/TypeScript projects
+grep -A 30 '"scripts"' package.json 2>/dev/null | grep -E '(lint|format|check|style)'
+
+# Python projects
+grep -A 10 '\[tool\.' pyproject.toml 2>/dev/null
+grep -E '(lint|format|check)' Makefile 2>/dev/null
+
+# Any project
+cat Makefile 2>/dev/null | grep -E '^(lint|format|check|style):'
 ```
+
+### Step 3: Run Detected Commands
+
+**Priority order:**
+
+1. **Project scripts** (most reliable)
+   - `npm run lint`, `npm run format`, `make lint`, etc.
+
+2. **Direct tool execution** (if no script but config exists)
+   - Only if configuration file is detected
+   - Search for current command syntax if unsure
+
+3. **Research** (if tool is unfamiliar)
+   ```
+   WebSearch: "[tool name] run command [year]"
+   WebFetch: [official docs] → "Extract CLI usage"
+   ```
+
+### Step 4: Verify Build Still Works
+
+After quality fixes:
+
+```bash
+# Run the project's build command (discover first)
+grep -E '"build"' package.json 2>/dev/null && npm run build
+grep -E '^build:' Makefile 2>/dev/null && make build
+```
+
+---
+
+## Discovery Patterns
+
+### Identifying Quality Tools
+
+Instead of hardcoding tool names, look for patterns:
+
+| Pattern | Indicates |
+|---------|-----------|
+| `*lint*` in filename | Linting configuration |
+| `*format*` or `*prettier*` in filename | Formatting configuration |
+| `*.config.*` files | Tool configuration |
+| `[tool.*]` sections in pyproject.toml | Python tool configs |
+| Scripts with `lint`, `format`, `check` keywords | Project-defined commands |
+
+### Reading Unknown Configurations
+
+If you find a config file for an unfamiliar tool:
+
+1. Read the config file to understand tool name
+2. Check if there's a script that uses it
+3. If needed, WebSearch for the tool's documentation
+4. Run the tool using its documented interface
+
+---
 
 ## What NOT To Do
 
-- **Never install tools** that aren't already configured
-- **Never run tools** without checking for their config first
-- **Never override** project's tool configuration
-- **Never assume** which formatter or linter to use
+| Don't | Why |
+|-------|-----|
+| Install tools that aren't configured | Changes project dependencies |
+| Assume specific tool names | Tools change and vary by project |
+| Run tools without config present | May use wrong settings |
+| Override project configuration | Violates project standards |
+| Hardcode tool commands | Commands change between versions |
 
-## Integration with Git Hooks
+---
+
+## Integration with CI
 
 Projects typically enforce quality via:
-- Pre-commit hooks (husky, pre-commit, lefthook)
-- CI pipelines (GitHub Actions, GitLab CI)
-- Editor integration (VS Code, IDE plugins)
+- Pre-commit hooks
+- CI pipelines (GitHub Actions, GitLab CI, etc.)
+- Editor integration
 
-**This skill complements those mechanisms** by running the same tools on demand.
+**This skill complements those mechanisms** by running the same tools on demand, using the same configuration.
+
+---
 
 ## Success Criteria
 
@@ -105,10 +139,15 @@ Projects typically enforce quality via:
 - Build completes successfully
 - Git hooks pass (if present)
 
+---
+
 ## Rules
 
 - ALWAYS detect tooling before running commands
 - ALWAYS use project's configured scripts/commands
+- ALWAYS check for scripts in package.json/Makefile first
 - NEVER install or assume tools
+- NEVER run tools without their config present
+- NEVER hardcode tool commands (discover them)
 - ALWAYS verify build after fixes
-- NEVER ignore errors, report them clearly
+- ALWAYS report errors clearly (don't ignore them)

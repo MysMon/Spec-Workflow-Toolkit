@@ -2,20 +2,29 @@
 name: observability
 description: |
   Observability patterns for logging, metrics, and distributed tracing. Use when:
-  - Implementing structured logging (pino, structlog, slog)
-  - Setting up metrics and monitoring (Prometheus, Datadog)
-  - Adding distributed tracing (OpenTelemetry, Jaeger)
+  - Implementing structured logging
+  - Setting up metrics and monitoring
+  - Adding distributed tracing
   - Implementing health checks (liveness, readiness)
   - Designing alerts or SLO-based monitoring
-  Trigger phrases: logging, metrics, tracing, monitoring, Prometheus, OpenTelemetry, health check, alerting, SLO, structured logs, observability
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash
+  Trigger phrases: logging, metrics, tracing, monitoring, health check, alerting, SLO, structured logs, observability
+allowed-tools: Read, Glob, Grep, Write, Edit, Bash, WebSearch, WebFetch
 model: sonnet
 user-invocable: true
 ---
 
 # Observability
 
-Stack-agnostic patterns for building observable systems through logging, metrics, and tracing.
+Stack-agnostic patterns for building observable systems through logging, metrics, and tracing. This skill defines **concepts and patterns**, not specific library implementations.
+
+## Design Principles
+
+1. **Concepts over libraries**: Teach patterns that work across any stack
+2. **Discover project tools**: Check what observability tools the project uses
+3. **Research when implementing**: Use WebSearch for current library recommendations
+4. **Follow project conventions**: Match existing logging/metrics patterns
+
+---
 
 ## Three Pillars of Observability
 
@@ -31,24 +40,24 @@ Numerical measurements for monitoring and alerting.
 
 Distributed request tracking across services.
 
+---
+
 ## Structured Logging
 
-### Log Format
+### Log Format Principles
+
+A well-structured log entry should include:
 
 ```json
 {
-  "timestamp": "2024-01-15T10:30:00.123Z",
-  "level": "INFO",
-  "service": "user-service",
-  "version": "1.2.3",
-  "trace_id": "abc123",
-  "span_id": "def456",
-  "message": "User created successfully",
+  "timestamp": "ISO 8601 format",
+  "level": "INFO/WARN/ERROR/DEBUG",
+  "service": "service identifier",
+  "trace_id": "correlation ID for request tracking",
+  "message": "human-readable description",
   "context": {
-    "user_id": "usr_789",
-    "email_domain": "example.com"
-  },
-  "duration_ms": 45
+    "relevant": "contextual data"
+  }
 }
 ```
 
@@ -64,51 +73,32 @@ Distributed request tracking across services.
 
 ### Best Practices
 
-```
-DO:
-- Use structured logging (JSON)
-- Include correlation IDs
+**DO:**
+- Use structured logging (JSON or similar)
+- Include correlation/trace IDs
 - Log at service boundaries
 - Include relevant context
-- Use consistent field names
+- Use consistent field names across services
 
-DON'T:
+**DON'T:**
 - Log sensitive data (passwords, tokens, PII)
 - Log at high frequency in loops
 - Use string concatenation for log messages
 - Log entire request/response bodies
 - Use print statements in production
-```
 
-### Language Examples
+### Implementation
 
-```javascript
-// JavaScript (pino)
-const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  formatters: {
-    level: (label) => ({ level: label }),
-  },
-});
+When implementing logging:
 
-logger.info({ userId: user.id, action: 'create' }, 'User created');
-```
+1. **Discover existing patterns**: Check how the project currently logs
+2. **Research current libraries**:
+   ```
+   WebSearch: "[language] structured logging library [year]"
+   ```
+3. **Follow project conventions**: Match existing log format and style
 
-```python
-# Python (structlog)
-import structlog
-
-logger = structlog.get_logger()
-logger.info("user_created", user_id=user.id, email_domain=email.split("@")[1])
-```
-
-```go
-// Go (slog)
-slog.Info("user created",
-    "user_id", user.ID,
-    "email_domain", emailDomain,
-)
-```
+---
 
 ## Metrics
 
@@ -116,67 +106,59 @@ slog.Info("user created",
 
 | Type | Use Case | Example |
 |------|----------|---------|
-| Counter | Cumulative values | Request count, errors |
-| Gauge | Point-in-time values | Active connections, queue size |
-| Histogram | Distribution | Request latency, response size |
-| Summary | Similar to histogram | Quantiles (p50, p99) |
+| Counter | Cumulative values (only increase) | Request count, errors |
+| Gauge | Point-in-time values (can go up/down) | Active connections, queue size |
+| Histogram | Distribution of values | Request latency, response size |
+| Summary | Pre-calculated quantiles | p50, p99 latency |
 
 ### Naming Conventions
 
 ```
-# Format: <namespace>_<name>_<unit>
+Format: <namespace>_<name>_<unit>
 
-# Good
-http_requests_total
-http_request_duration_seconds
-database_connections_active
-queue_messages_waiting
+Good examples:
+- http_requests_total
+- http_request_duration_seconds
+- database_connections_active
+- queue_messages_waiting
 
-# Bad
-requests              # No namespace, no unit
-httpRequestDuration   # camelCase
-request-latency       # Hyphens, no unit
+Bad examples:
+- requests              (no namespace, no unit)
+- httpRequestDuration   (camelCase, inconsistent)
+- request-latency       (hyphens, no unit)
 ```
 
-### Key Metrics to Track
+### Key Metrics Frameworks
 
-```
-# RED Method (Request-oriented)
-- Rate: requests per second
-- Errors: error rate
-- Duration: latency percentiles
+**RED Method (Request-oriented):**
+- **R**ate: Requests per second
+- **E**rrors: Error rate
+- **D**uration: Latency percentiles
 
-# USE Method (Resource-oriented)
-- Utilization: % time busy
-- Saturation: queue length
-- Errors: error count
+**USE Method (Resource-oriented):**
+- **U**tilization: Percentage time busy
+- **S**aturation: Queue length/backlog
+- **E**rrors: Error count
 
-# Four Golden Signals
-- Latency: time to serve requests
-- Traffic: demand on system
-- Errors: rate of failed requests
-- Saturation: how "full" the system is
-```
+**Four Golden Signals:**
+- Latency: Time to serve requests
+- Traffic: Demand on system
+- Errors: Rate of failed requests
+- Saturation: How "full" the system is
 
-### Prometheus Examples
+### Implementation
 
-```python
-# Python
-from prometheus_client import Counter, Histogram
+When implementing metrics:
 
-REQUEST_COUNT = Counter(
-    'http_requests_total',
-    'Total HTTP requests',
-    ['method', 'endpoint', 'status']
-)
+1. **Identify what to measure**: Use RED/USE/Golden Signals as guide
+2. **Discover existing setup**: Check if project has metrics infrastructure
+3. **Research current tools**:
+   ```
+   WebSearch: "[language] metrics library [year]"
+   WebSearch: "metrics collection [your infrastructure] [year]"
+   ```
 
-REQUEST_LATENCY = Histogram(
-    'http_request_duration_seconds',
-    'HTTP request latency',
-    ['method', 'endpoint'],
-    buckets=[.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10]
-)
-```
+---
 
 ## Distributed Tracing
 
@@ -190,52 +172,38 @@ Trace (entire request journey)
 │       └── Span D: Database Query
 ```
 
-### Trace Context
+- **Trace**: End-to-end request journey across services
+- **Span**: Single operation within a trace
+- **Context**: Propagated trace/span IDs
 
-```http
-# W3C Trace Context
-traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01
-tracestate: vendor1=value1,vendor2=value2
+### Trace Context Propagation
 
-# B3 (Zipkin)
-X-B3-TraceId: 80f198ee56343ba864fe8b2a57d3eff7
-X-B3-SpanId: e457b5a2e4d86bd1
-X-B3-ParentSpanId: 05e3ac9a4f6e3b90
-X-B3-Sampled: 1
-```
+Standard headers for context propagation:
 
-### OpenTelemetry Example
+| Standard | Description |
+|----------|-------------|
+| W3C Trace Context | Modern standard (traceparent, tracestate) |
+| B3 | Zipkin format (X-B3-* headers) |
 
-```javascript
-// JavaScript
-const { trace } = require('@opentelemetry/api');
+### Best Practices
 
-const tracer = trace.getTracer('user-service');
+- Propagate trace context across all service boundaries
+- Include trace IDs in logs for correlation
+- Sample traces in high-traffic environments
+- Add meaningful span names and attributes
 
-async function createUser(userData) {
-  return tracer.startActiveSpan('createUser', async (span) => {
-    try {
-      span.setAttribute('user.email_domain', userData.email.split('@')[1]);
+### Implementation
 
-      const user = await db.users.create(userData);
+When implementing tracing:
 
-      span.setAttribute('user.id', user.id);
-      span.setStatus({ code: SpanStatusCode.OK });
+1. **Check existing setup**: Does project already have tracing?
+2. **Research current standards**:
+   ```
+   WebSearch: "distributed tracing [language] [year]"
+   WebSearch: "[tracing platform] integration guide"
+   ```
 
-      return user;
-    } catch (error) {
-      span.setStatus({
-        code: SpanStatusCode.ERROR,
-        message: error.message,
-      });
-      span.recordException(error);
-      throw error;
-    } finally {
-      span.end();
-    }
-  });
-}
-```
+---
 
 ## Health Checks
 
@@ -244,15 +212,15 @@ async function createUser(userData) {
 ```json
 // GET /health
 {
-  "status": "healthy",
-  "version": "1.2.3",
+  "status": "healthy|degraded|unhealthy",
+  "version": "app version",
   "uptime_seconds": 3600,
   "checks": {
     "database": {
       "status": "healthy",
       "latency_ms": 5
     },
-    "redis": {
+    "cache": {
       "status": "healthy",
       "latency_ms": 2
     },
@@ -262,59 +230,34 @@ async function createUser(userData) {
     }
   }
 }
-
-// Status codes
-// 200: All healthy
-// 503: One or more critical checks failing
 ```
 
-### Liveness vs Readiness
+### Kubernetes Health Checks
 
 | Check | Purpose | Failure Action |
 |-------|---------|----------------|
 | Liveness | Is app running? | Restart container |
 | Readiness | Can handle requests? | Remove from load balancer |
+| Startup | Has app started? | Don't check liveness yet |
 
-```yaml
-# Kubernetes example
-livenessProbe:
-  httpGet:
-    path: /health/live
-    port: 8080
-  initialDelaySeconds: 10
-  periodSeconds: 10
-
-readinessProbe:
-  httpGet:
-    path: /health/ready
-    port: 8080
-  initialDelaySeconds: 5
-  periodSeconds: 5
-```
+---
 
 ## Alerting
 
-### Alert Design
+### Alert Design Principles
 
-```yaml
-# Good alert
-name: High Error Rate
-condition: error_rate > 1% for 5 minutes
-severity: critical
-runbook: https://wiki/runbooks/high-error-rate
-
-# Include
+**Good alerts include:**
 - Clear, actionable name
-- Threshold with duration
+- Threshold with duration (avoid flapping)
 - Severity level
 - Link to runbook
-- Relevant labels/tags
+- Relevant labels/context
 
-# Avoid
-- Flapping alerts (too sensitive)
+**Avoid:**
+- Flapping alerts (too sensitive thresholds)
 - Alerts on symptoms only (dig to root cause)
 - Too many alerts (alert fatigue)
-```
+- Alerts without runbooks
 
 ### SLO-Based Alerting
 
@@ -328,26 +271,30 @@ Alert when:
 - Burn rate > 10x: Fast burn, high severity
 ```
 
+---
+
 ## Implementation Checklist
 
 - [ ] Structured logging configured
 - [ ] Log levels appropriate for environment
 - [ ] Sensitive data excluded from logs
-- [ ] Key metrics identified (RED/USE)
+- [ ] Key metrics identified (RED/USE framework)
 - [ ] Metrics endpoint exposed (/metrics)
-- [ ] Trace context propagated
+- [ ] Trace context propagated across services
 - [ ] Health endpoints implemented (/health)
 - [ ] Alerts defined for critical paths
 - [ ] Runbooks linked to alerts
-- [ ] Dashboards created for key metrics
+
+---
 
 ## Rules
 
-- ALWAYS use structured logging
+- ALWAYS use structured logging (not print/console.log)
 - NEVER log sensitive data (PII, tokens, passwords)
-- ALWAYS propagate trace context
+- ALWAYS propagate trace context across services
 - ALWAYS include correlation IDs in logs
-- NEVER alert on metrics without context
-- ALWAYS link alerts to runbooks
-- NEVER ignore warning-level logs
+- ALWAYS discover existing project patterns before implementing
+- ALWAYS use WebSearch for current library recommendations
+- NEVER hardcode specific library examples without research
 - ALWAYS expose health check endpoints
+- ALWAYS link alerts to runbooks

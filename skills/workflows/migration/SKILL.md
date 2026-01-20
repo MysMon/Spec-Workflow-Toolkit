@@ -1,250 +1,224 @@
 ---
 name: migration
 description: |
-  Safe database schema migration patterns across any ORM/database stack. Use when:
+  Safe database schema migration patterns applicable to any ORM/database stack. Use when:
   - Making database schema changes (add/remove columns, tables)
-  - Running migrations with Prisma, Drizzle, Alembic, Django, Goose, or Flyway
+  - Running migrations safely
   - Managing database versioning and rollbacks
   - Assessing migration risk or planning safe deployment
   - Dealing with schema drift or migration conflicts
-  Trigger phrases: database migration, schema change, add column, prisma migrate, alembic, django migrate, rollback migration, schema drift
-allowed-tools: Bash, Read, AskUserQuestion, Write
+  Trigger phrases: database migration, schema change, add column, migration rollback, schema drift
+allowed-tools: Bash, Read, AskUserQuestion, Write, Glob, Grep, WebSearch, WebFetch
 model: sonnet
 user-invocable: true
 ---
 
 # Database Migration
 
-Safe schema migration patterns across different ORMs and databases.
+Safe schema migration patterns applicable to any ORM and database. This skill defines **migration principles and safety patterns**, not specific ORM commands.
+
+## Design Principles
+
+1. **Discover project tools**: Detect which ORM/migration tool the project uses
+2. **Research commands**: Use WebSearch for current ORM command syntax
+3. **Safety first**: Follow safe migration patterns regardless of tool
+4. **Always have rollback**: Plan for reverting changes
+
+---
 
 ## Migration Safety Checklist
 
 Before any migration:
 
 - [ ] Backup exists or can be restored
-- [ ] Migration is reversible (down migration)
+- [ ] Migration is reversible (down migration defined)
 - [ ] No data loss risk identified
 - [ ] Tested in non-production environment
 - [ ] Schema drift checked
 
-## ORM Detection & Commands
+---
 
-### Detect ORM
+## Tool Discovery
 
-```bash
-# Prisma (JavaScript/TypeScript)
-ls prisma/schema.prisma 2>/dev/null
+### Step 1: Detect Migration Tool
 
-# Drizzle (JavaScript/TypeScript)
-ls drizzle.config.* 2>/dev/null
-
-# SQLAlchemy/Alembic (Python)
-ls alembic.ini alembic/ 2>/dev/null
-
-# Django (Python)
-ls */migrations/ manage.py 2>/dev/null
-
-# GORM/Goose (Go)
-ls migrations/*.sql 2>/dev/null
-
-# Diesel (Rust)
-ls diesel.toml migrations/ 2>/dev/null
-
-# Flyway (Java)
-ls src/main/resources/db/migration/ 2>/dev/null
-```
-
-### Migration Commands
-
-#### Prisma (JavaScript/TypeScript)
+Look for migration-related configuration without assuming specific tools:
 
 ```bash
-# Check for drift
-npx prisma migrate diff --from-schema-datamodel prisma/schema.prisma --to-schema-datasource prisma/schema.prisma
+# Check for migration directories and configs
+ls -la migrations/ db/migrate/ alembic/ prisma/ drizzle/ 2>/dev/null
+ls -la *migrate* *migration* *.prisma diesel.toml 2>/dev/null
 
-# Create migration
-npx prisma migrate dev --name <migration_name>
-
-# Apply migration (production)
-npx prisma migrate deploy
-
-# Generate client
-npx prisma generate
-
-# Reset database (dev only!)
-npx prisma migrate reset
+# Check for migration tools in dependencies
+grep -E 'prisma|drizzle|alembic|django|sequelize|typeorm|knex|goose|diesel|flyway' \
+  package.json pyproject.toml requirements.txt go.mod Cargo.toml pom.xml 2>/dev/null
 ```
 
-#### Drizzle (JavaScript/TypeScript)
+### Step 2: Find Project Commands
 
 ```bash
-# Generate migration
-npx drizzle-kit generate
-
-# Apply migration
-npx drizzle-kit migrate
-
-# Push (direct schema sync, dev only)
-npx drizzle-kit push
+# Check for migration scripts
+grep -E 'migrate|migration|db:' package.json 2>/dev/null
+grep -E '^(migrate|db)' Makefile 2>/dev/null
 ```
 
-#### Alembic (Python)
+### Step 3: Research Current Commands
 
-```bash
-# Create migration
-alembic revision --autogenerate -m "description"
+If tool is detected but commands are unfamiliar:
 
-# Apply migration
-alembic upgrade head
-
-# Rollback
-alembic downgrade -1
-
-# Check current version
-alembic current
+```
+WebSearch: "[ORM/tool name] migration commands [year]"
+WebFetch: [official docs] → "Extract migration CLI commands"
 ```
 
-#### Django (Python)
-
-```bash
-# Create migration
-python manage.py makemigrations
-
-# Apply migration
-python manage.py migrate
-
-# Show migrations
-python manage.py showmigrations
-
-# Rollback
-python manage.py migrate app_name 0001
-```
-
-#### Goose (Go)
-
-```bash
-# Create migration
-goose create <name> sql
-
-# Apply
-goose up
-
-# Rollback
-goose down
-
-# Status
-goose status
-```
-
-#### Flyway (Java)
-
-```bash
-# Apply migrations
-./mvnw flyway:migrate
-
-# Status
-./mvnw flyway:info
-
-# Repair
-./mvnw flyway:repair
-```
+---
 
 ## Safe Migration Patterns
 
-### Adding Column
+These patterns apply to **any** database and migration tool:
 
-```sql
--- Safe: Add nullable column
-ALTER TABLE users ADD COLUMN middle_name VARCHAR(100);
+### Adding a Column
 
--- Safe: Add with default
-ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active';
+**Safe approach (2-step for NOT NULL):**
 
--- Then backfill if needed
-UPDATE users SET status = 'active' WHERE status IS NULL;
-
--- Then add constraint
-ALTER TABLE users ALTER COLUMN status SET NOT NULL;
+```
+Step 1: Add column as nullable
+Step 2: Backfill data if needed
+Step 3: Add NOT NULL constraint (if required)
 ```
 
-### Removing Column
+**Why**: Adding NOT NULL column directly fails on existing rows.
 
-```sql
--- Step 1: Stop using column in code
--- Step 2: Deploy code change
--- Step 3: Drop column
-ALTER TABLE users DROP COLUMN deprecated_field;
+### Removing a Column
+
+**Safe approach (3-step):**
+
+```
+Step 1: Stop using column in application code
+Step 2: Deploy application change
+Step 3: Remove column in migration
 ```
 
-### Renaming Column
+**Why**: Removing column while code uses it causes errors.
 
-```sql
--- Step 1: Add new column
-ALTER TABLE users ADD COLUMN full_name VARCHAR(200);
+### Renaming a Column
 
--- Step 2: Copy data
-UPDATE users SET full_name = name;
+**Safe approach (4-step):**
 
--- Step 3: Deploy code to use new column
--- Step 4: Drop old column
-ALTER TABLE users DROP COLUMN name;
+```
+Step 1: Add new column (copy of old)
+Step 2: Copy data from old to new
+Step 3: Update code to use new column
+Step 4: Remove old column
 ```
 
-### Adding Index
+**Why**: Renaming directly breaks running code during deployment.
 
-```sql
--- Use CONCURRENTLY for large tables (PostgreSQL)
-CREATE INDEX CONCURRENTLY idx_users_email ON users(email);
+### Adding an Index
+
+**Safe approach:**
+
 ```
+- For small tables: Direct index creation
+- For large tables: Use concurrent/online index creation
+```
+
+**Why**: Index creation locks table; concurrent creation avoids downtime.
+
+Note: Concurrent index syntax varies by database - research for your specific database.
+
+---
 
 ## Risk Assessment
 
-| Change | Risk | Mitigation |
-|--------|------|------------|
+| Change Type | Risk Level | Mitigation |
+|-------------|------------|------------|
 | Add nullable column | Low | None needed |
-| Add non-null column | Medium | Add with default or backfill |
+| Add column with default | Low | Check default value |
+| Add NOT NULL column | Medium | Add nullable first, backfill, then constrain |
 | Drop column | High | Ensure code doesn't use it |
 | Rename column | High | Use add/copy/drop pattern |
 | Change column type | High | Test data compatibility |
-| Add index | Low-Medium | Use CONCURRENTLY if large |
+| Add index (small table) | Low | None needed |
+| Add index (large table) | Medium | Use concurrent creation |
 | Drop index | Low | Verify not needed for queries |
+
+---
 
 ## Rollback Strategy
 
-Always have a rollback plan:
+**Always plan for rollback:**
 
-```bash
-# Most ORMs support down migrations
-# Test rollback before applying in production
+1. **Reversible migrations**: Define both up and down migrations
+2. **Test rollback**: Verify down migration works before deploying
+3. **Keep rollback scripts**: Store manual rollback SQL if needed
+4. **Document rollback steps**: Include in deployment checklist
 
-# Example: Prisma
-npx prisma migrate resolve --rolled-back <migration_name>
+### Rollback Commands
 
-# Example: Alembic
-alembic downgrade -1
+Discover the rollback command for your migration tool:
 
-# Manual rollback script
-# Keep migrations/rollback/<migration_name>.sql
 ```
+WebSearch: "[migration tool] rollback command"
+```
+
+---
 
 ## Production Checklist
 
-Before deploying to production:
+Before deploying migrations to production:
 
 1. [ ] Migration tested locally
-2. [ ] Migration tested in staging
-3. [ ] Backup created/verified
-4. [ ] Rollback plan documented
+2. [ ] Migration tested in staging/preview
+3. [ ] Database backup created/verified
+4. [ ] Rollback plan documented and tested
 5. [ ] Downtime window scheduled (if needed)
-6. [ ] Team notified
-7. [ ] Monitoring in place
+6. [ ] Team notified of migration
+7. [ ] Monitoring ready for issues
+8. [ ] Application code compatible with both old and new schema
+
+---
+
+## Common Issues
+
+### Schema Drift
+
+When database differs from migrations:
+
+1. Compare current schema to expected schema
+2. Identify divergent changes
+3. Either:
+   - Generate migration to match current state
+   - Reset to migration state (dev only)
+
+### Migration Conflicts
+
+When multiple migrations conflict:
+
+1. Pull latest migrations
+2. Check for ordering issues
+3. Resolve conflicts in migration files
+4. Re-run migrations
+
+### Failed Migration
+
+When migration fails mid-way:
+
+1. Check what was applied
+2. Manually fix or rollback partial changes
+3. Fix migration and re-attempt
+4. Mark migration as resolved (tool-specific)
+
+---
 
 ## Rules
 
 - ALWAYS backup before migration
-- ALWAYS test migrations in staging first
-- NEVER run destructive migrations without review
+- ALWAYS test migrations in non-production first
 - ALWAYS have a rollback plan
-- NEVER assume migrations are reversible
-- ALWAYS check for schema drift
-- NEVER run reset/drop in production
+- ALWAYS discover the project's migration tool before running commands
+- ALWAYS use WebSearch to verify current command syntax
+- NEVER run destructive migrations without explicit confirmation
+- NEVER assume migrations are automatically reversible
+- NEVER run reset/drop commands in production
+- NEVER hardcode ORM-specific commands (discover them)
