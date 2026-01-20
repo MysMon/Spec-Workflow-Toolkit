@@ -1,4 +1,5 @@
 {
+  "description": "SDD Toolkit global hooks for session management, security validation, and progress tracking. Implements PreToolUse validation for dangerous commands and secret detection, PreCompact for state preservation, and session lifecycle hooks for context management.",
   "hooks": {
     "SessionStart": [
       {
