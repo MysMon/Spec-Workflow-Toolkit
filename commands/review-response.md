@@ -30,8 +30,8 @@ A structured workflow to efficiently address PR review comments. Analyzes review
 # PR number (requires gh CLI or MCP GitHub server)
 /review-response 123
 
-# PR URL
-/review-response https://github.com/owner/repo/pull/123
+# PR URL (GitHub, GitLab, etc.)
+/review-response <PR URL>
 
 # Current branch's PR
 /review-response

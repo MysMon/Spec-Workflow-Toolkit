@@ -244,11 +244,11 @@ Found [N] issues:
 
 1. [Brief description] (CLAUDE.md says "[quote guideline]")
 
-https://github.com/owner/repo/blob/[full-SHA]/path/file.ext#L[start]-L[end]
+   `path/file.ext#L[start]-L[end]`
 
 2. [Brief description] (bug due to [explanation])
 
-https://github.com/owner/repo/blob/[full-SHA]/path/file.ext#L[start]-L[end]
+   `path/file.ext#L[start]-L[end]`
 
 🤖 Generated with Claude Code
 ```

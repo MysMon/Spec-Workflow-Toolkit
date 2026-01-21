@@ -63,10 +63,8 @@ CI failures are a common interruption in development workflows. This command pro
 **If URL provided (`$ARGUMENTS` contains URL):**
 
 ```
-Use WebFetch to retrieve CI log content:
-- GitHub Actions: https://github.com/owner/repo/actions/runs/ID
-- GitLab CI: https://gitlab.com/owner/repo/-/jobs/ID
-- CircleCI, Jenkins, etc.
+Use WebFetch to retrieve CI log content from the provided URL.
+Supported CI platforms: GitHub Actions, GitLab CI, CircleCI, Jenkins, etc.
 ```
 
 **If job name or error message provided:**

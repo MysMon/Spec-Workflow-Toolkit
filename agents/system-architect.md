@@ -16,7 +16,7 @@ description: |
 model: opus
 tools: Read, Glob, Grep, Write
 disallowedTools: Bash, Edit
-permissionMode: acceptEdits
+permissionMode: default
 skills: sdd-philosophy, security-fundamentals, stack-detector, api-design, parallel-execution, long-running-tasks, subagent-contract, insight-recording
 ---
 
