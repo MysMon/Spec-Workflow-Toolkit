@@ -11,7 +11,7 @@ description: |
   - Server-side architecture or performance optimization
 
   Trigger phrases: backend, API, endpoint, server, database, query, Node.js, Python, Go, Rust, Java, REST, GraphQL, service
-model: sonnet
+model: inherit
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
 skills: stack-detector, code-quality, migration, api-design, security-fundamentals, subagent-contract, insight-recording
