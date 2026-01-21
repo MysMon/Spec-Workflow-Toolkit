@@ -186,17 +186,24 @@ Based on interview responses, construct targeted searches:
 | Deployment needed | `"deployment platforms [year] [constraints]"` |
 
 Use the system clock for the year (e.g., `CURRENT_YEAR=$(date +%Y)`), not model memory.
+If current-year results are thin (e.g., early in the year), also query the previous year or use "last 12 months".
 
 Example query generation:
 ```
 Requirements: Visual interface, structured data, real-time updates, Python team
 
 CURRENT_YEAR=$(date +%Y)
+PREV_YEAR=$((CURRENT_YEAR - 1))
 
 Queries:
 1. "web UI frameworks ${CURRENT_YEAR} comparison"
 2. "Python backend frameworks ${CURRENT_YEAR} real-time"
 3. "database real-time applications ${CURRENT_YEAR}"
+
+Fallbacks (if results are sparse):
+- "web UI frameworks ${PREV_YEAR} comparison"
+- "Python backend frameworks ${PREV_YEAR} real-time"
+- "database real-time applications ${PREV_YEAR}"
 ```
 
 #### 3.2 Execute Research
@@ -326,6 +333,7 @@ Proceed with setup?
 **Do not assume setup commands.** Search for current official instructions:
 
 Use the system clock for the year (e.g., `CURRENT_YEAR=$(date +%Y)`), not model memory.
+If current-year results are thin, also try the previous year or a "latest" query.
 
 ```
 WebSearch: "[technology] getting started official documentation ${CURRENT_YEAR}"
