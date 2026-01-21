@@ -12,13 +12,13 @@ A Claude Code plugin implementing Anthropic's 6 composable patterns for long-run
 
 ```
 .claude-plugin/plugin.json   # Plugin metadata
-commands/                    # 13 slash commands
+commands/                    # 14 slash commands
 agents/                      # 12 subagent definitions
-skills/                      # 20 skill definitions
+skills/                      # 21 skill definitions
   core/                      #   5 core skills (subagent-contract, sdd-philosophy, security-fundamentals, interview, bounded-autonomy)
   detection/                 #   1 detection skill (stack-detector)
-  workflows/                 #   14 workflow skills
-hooks/                       # Event handlers (7 event types, 8 handlers) + Python validators
+  workflows/                 #   15 workflow skills
+hooks/                       # Event handlers (7 event types, 9 handlers) + Python validators
 docs/                        # DEVELOPMENT.md (detailed specs), specs/
 ```
 
@@ -30,6 +30,7 @@ docs/                        # DEVELOPMENT.md (detailed specs), specs/
 | See how agents work | `agents/code-explorer.md`, `agents/code-architect.md` |
 | Understand skill pattern | `skills/core/subagent-contract/SKILL.md` |
 | Check hook implementation | `hooks/hooks.json`, `hooks/sdd_context.sh` |
+| Understand insight tracking | `commands/review-insights.md`, `hooks/insight_capture.sh` |
 
 ## Development Rules
 
@@ -63,16 +64,17 @@ YAML frontmatter fields:
 - Exit 2 = blocking error
 - Exit 1, 3, etc. = non-blocking error (tool may still execute!)
 
-**Registered hooks (7 event types, 8 handlers):**
+**Registered hooks (7 event types, 9 handlers):**
 
 | Hook | Script | Purpose |
 |------|--------|---------|
-| SessionStart | `sdd_context.sh` | Load progress files on session start |
+| SessionStart | `sdd_context.sh` | Load progress files and notify pending insights |
 | PreToolUse (Bash) | `safety_check.py` | Block dangerous commands |
 | PreToolUse (Write\|Edit) | `prevent_secret_leak.py` | Prevent secret leakage |
 | PostToolUse | `audit_log.sh` | Audit logging for tool usage tracking |
 | PreCompact | `pre_compact_save.sh` | Save progress before context compaction |
 | SubagentStop | `subagent_summary.sh` | Summarize subagent results |
+| SubagentStop | `insight_capture.sh` | Capture marked insights from subagent output |
 | Stop | `session_summary.sh` | Record session summary on exit |
 | SessionEnd | `session_cleanup.sh` | Clean up resources on session termination |
 

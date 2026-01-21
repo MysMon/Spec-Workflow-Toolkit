@@ -219,6 +219,71 @@ get_session_log() {
 }
 
 # ============================================================================
+# INSIGHT MANAGEMENT
+# ============================================================================
+
+# Get the insights directory for current workspace
+# Returns: .claude/workspaces/{workspace-id}/insights/
+get_insights_dir() {
+    local workspace_id="${1:-$(get_workspace_id)}"
+    echo "$(get_workspace_dir "$workspace_id")/insights"
+}
+
+# Get the pending insights file path for current workspace
+# Returns: .claude/workspaces/{workspace-id}/insights/pending.json
+get_pending_insights_file() {
+    local workspace_id="${1:-$(get_workspace_id)}"
+    echo "$(get_insights_dir "$workspace_id")/pending.json"
+}
+
+# Get the approved insights file path for current workspace
+# Returns: .claude/workspaces/{workspace-id}/insights/approved.json
+get_approved_insights_file() {
+    local workspace_id="${1:-$(get_workspace_id)}"
+    echo "$(get_insights_dir "$workspace_id")/approved.json"
+}
+
+# Count pending insights for a workspace
+# Returns: number of pending insights (0 if none or file doesn't exist)
+count_pending_insights() {
+    local workspace_id="${1:-$(get_workspace_id)}"
+    local pending_file="$(get_pending_insights_file "$workspace_id")"
+
+    if [ -f "$pending_file" ] && command -v python3 &> /dev/null; then
+        python3 << PYEOF
+import json
+import os
+
+pending_file = "$pending_file"
+try:
+    with open(pending_file, 'r') as f:
+        data = json.load(f)
+    count = len([i for i in data.get('insights', []) if i.get('status') == 'pending'])
+    print(count)
+except:
+    print(0)
+PYEOF
+    else
+        echo "0"
+    fi
+}
+
+# Check if workspace has pending insights
+# Returns: 0 if has pending insights, 1 if not
+workspace_has_pending_insights() {
+    local workspace_id="${1:-$(get_workspace_id)}"
+    local count=$(count_pending_insights "$workspace_id")
+    [ "$count" -gt 0 ]
+}
+
+# Ensure insights directory exists
+ensure_insights_dir() {
+    local workspace_id="${1:-$(get_workspace_id)}"
+    local insights_dir="$(get_insights_dir "$workspace_id")"
+    mkdir -p "$insights_dir"
+}
+
+# ============================================================================
 # UTILITY FUNCTIONS
 # ============================================================================
 

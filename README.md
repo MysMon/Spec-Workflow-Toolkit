@@ -64,6 +64,7 @@ claude --plugin-dir /path/to/sdd-toolkit
 | `/spec-review` | 仕様検証 | 実装前の仕様確認 |
 | `/code-review` | コードレビュー | コミット前（並列エージェント） |
 | `/review-response` | レビュー対応 | PRレビューコメントへの対応 |
+| `/review-insights` | 知見レビュー | 蓄積された知見を評価・反映 |
 | `/quick-impl` | 高速実装 | 明確な小規模タスク |
 | `/project-setup` | ルール生成 | プロジェクト固有ルールの自動生成 |
 | `/stack-consult` | スタック相談 | 新規プロジェクトの技術選定・構築 |
@@ -147,6 +148,9 @@ flowchart TD
 └── {workspace-id}/           # 形式: {branch}_{path-hash} 例: main_a1b2c3d4
     ├── claude-progress.json  # 進捗ログと再開コンテキスト
     ├── feature-list.json     # 機能/タスクのステータス追跡
+    ├── insights/             # 知見追跡（自動キャプチャ）
+    │   ├── pending.json      # 未評価の知見
+    │   └── approved.json     # 承認済み（ワークスペース固有）
     └── logs/
         ├── subagent_activity.log
         └── sessions/
@@ -155,6 +159,62 @@ flowchart TD
 **ワークスペース ID**: Git ブランチ名とパスのハッシュで構成。Git worktree ごとに分離され、複数プロジェクトの同時実行をサポート。
 
 > **なぜ JSON か？** 「モデルは Markdown ファイルと比較して JSON ファイルを不適切に変更する可能性が低い」- Anthropic
+
+### 知見追跡（Insight Tracking）
+
+開発中の発見や学習を自動的にキャプチャし、評価・反映するシステム:
+
+```mermaid
+flowchart LR
+    SA[サブエージェント] -->|マーカー付き出力| IC[insight_capture.sh]
+    IC -->|自動記録| PJ[pending.json]
+    PJ -->|/review-insights| User[ユーザー判断]
+    User -->|承認| Dest{反映先}
+    Dest -->|L1/L2| CM[CLAUDE.md]
+    Dest -->|カテゴリ別| CR[.claude/rules/]
+    Dest -->|ワークスペース| AJ[approved.json]
+```
+
+**知見マーカー**: サブエージェントが重要な発見をした際に出力
+
+| マーカー | 用途 |
+|----------|------|
+| `INSIGHT:` | 一般的な学習や発見 |
+| `LEARNED:` | 経験から学んだこと |
+| `DECISION:` | 重要な決定とその理由 |
+| `PATTERN:` | 再利用可能なパターン |
+| `ANTIPATTERN:` | 避けるべきアプローチ |
+
+**使い方**:
+
+```bash
+# セッション開始時に通知される未評価の知見を確認
+/review-insights
+
+# 特定のワークスペースの知見を確認
+/review-insights feature-auth_a1b2c3d4
+
+# 全ワークスペースの未評価知見を一覧
+/review-insights list
+```
+
+**設計原則**:
+- **自動記録**: サブエージェント完了時にマーカー付き出力を自動キャプチャ
+- **ユーザー主導の評価**: 各知見を一つずつインタラクティブに評価
+- **段階的反映**: ワークスペース固有 → `.claude/rules/` → CLAUDE.md
+
+**知見記録対応エージェント**:
+
+`insight-recording` スキルを持つエージェントのみが知見を記録します:
+
+| カテゴリ | 対応エージェント | 理由 |
+|----------|------------------|------|
+| 探索・設計 | code-explorer, code-architect, system-architect | パターン発見・設計決定が主業務 |
+| レビュー | security-auditor, qa-engineer | セキュリティ・品質パターンの発見 |
+| 運用・移行 | legacy-modernizer, devops-sre | 運用知見・移行判断 |
+| 実装 | frontend-specialist, backend-specialist | 実装中に発見するパターン・慣例 |
+
+**非対応エージェント**: technical-writer, ui-ux-designer, product-manager（コードパターン発見が主業務ではない）
 
 ---
 

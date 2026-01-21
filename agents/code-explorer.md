@@ -16,7 +16,7 @@ model: sonnet
 tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
 disallowedTools: Write, Edit, Bash
 permissionMode: plan
-skills: subagent-contract
+skills: subagent-contract, insight-recording
 ---
 
 # Role: Code Explorer
@@ -222,6 +222,10 @@ Your exploration must include:
 5. **Dependency Inventory**: Internal and external dependencies
 6. **Key Files List**: 5-10 files the orchestrator should read for deep understanding
 7. **Observations**: Strengths and improvement opportunities
+
+## Recording Insights
+
+Use `insight-recording` skill markers (PATTERN:, LEARNED:, INSIGHT:) when discovering patterns or learning something unexpected about the codebase. Insights are automatically captured for later review.
 
 ## Rules
 

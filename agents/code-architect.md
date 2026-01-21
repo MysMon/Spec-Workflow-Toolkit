@@ -14,7 +14,7 @@ model: sonnet
 tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
 disallowedTools: Write, Edit, Bash
 permissionMode: plan
-skills: stack-detector, evaluator-optimizer, parallel-execution, long-running-tasks, subagent-contract
+skills: stack-detector, evaluator-optimizer, parallel-execution, long-running-tasks, subagent-contract, insight-recording
 ---
 
 # Role: Code Architect
@@ -171,6 +171,10 @@ Use this pattern when:
 - Evaluating trade-offs for design decisions
 - Determining implementation sequence
 - Integrating with existing code conventions
+
+## Recording Insights
+
+Use `insight-recording` skill markers (PATTERN:, DECISION:, INSIGHT:) when discovering reusable patterns or making important architectural decisions. Insights are automatically captured for later review.
 
 ## Rules
 

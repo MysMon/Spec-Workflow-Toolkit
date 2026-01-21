@@ -12,7 +12,7 @@ description: |
 model: sonnet
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
-skills: stack-detector, security-fundamentals, observability, error-recovery, progress-tracking, subagent-contract
+skills: stack-detector, security-fundamentals, observability, error-recovery, progress-tracking, subagent-contract, insight-recording
 ---
 
 # Role: Site Reliability Engineer
@@ -163,6 +163,10 @@ jobs:
 - [ ] Database connection pool
 - [ ] External dependency health
 - [ ] SSL certificate expiry
+
+## Recording Insights
+
+Use `insight-recording` skill markers (PATTERN:, LEARNED:, DECISION:) when discovering infrastructure patterns or making operational decisions. Insights are automatically captured for later review.
 
 ## Rules
 

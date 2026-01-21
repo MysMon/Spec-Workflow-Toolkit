@@ -372,5 +372,50 @@ if [ -n "$AVAILABLE_WORKSPACES" ]; then
     fi
 fi
 
+# --- Check for Pending Insights ---
+if command -v count_pending_insights &> /dev/null && [ -n "$WORKSPACE_ID" ]; then
+    PENDING_COUNT=$(count_pending_insights "$WORKSPACE_ID")
+    if [ "$PENDING_COUNT" -gt 0 ]; then
+        echo ""
+        echo "### Pending Insights"
+        echo ""
+        echo "**$PENDING_COUNT insight(s)** captured during previous sessions are awaiting review."
+        echo ""
+        echo "Run \`/review-insights\` to evaluate and apply them."
+        echo ""
+        # Show preview of first few insights
+        PENDING_FILE=$(get_pending_insights_file "$WORKSPACE_ID")
+        if [ -f "$PENDING_FILE" ] && command -v python3 &> /dev/null; then
+            PREVIEW=$(PENDING_FILE_VAR="$PENDING_FILE" python3 << 'PYEOF'
+import json
+import os
+
+pending_file = os.environ.get('PENDING_FILE_VAR', '')
+if not pending_file:
+    exit(0)
+
+try:
+    with open(pending_file, 'r') as f:
+        data = json.load(f)
+    insights = [i for i in data.get('insights', []) if i.get('status') == 'pending'][:3]
+    for i, ins in enumerate(insights, 1):
+        content = ins.get('content', '')[:60]
+        if len(ins.get('content', '')) > 60:
+            content += '...'
+        category = ins.get('category', 'insight')
+        print(f"  {i}. [{category}] {content}")
+except:
+    pass
+PYEOF
+)
+            if [ -n "$PREVIEW" ]; then
+                echo "**Recent insights:**"
+                echo "$PREVIEW"
+                echo ""
+            fi
+        fi
+    fi
+fi
+
 # Explicit exit for clarity
 exit 0
