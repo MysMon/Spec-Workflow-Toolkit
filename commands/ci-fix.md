@@ -163,7 +163,7 @@ Look for:
 
    **If flaky test confirmed:**
 
-   Load the `testing` skill which provides comprehensive flaky test management:
+   Refer to the `testing` skill for comprehensive flaky test management (delegate to qa-engineer who has this skill, or read `skills/workflows/testing/SKILL.md` for reference):
    - **Detection patterns**: Local and CI-based flaky test detection
    - **Common causes and solutions**: Timing dependencies, shared state, race conditions
    - **Fix strategies**: Explicit waits, test data isolation, time mocking, random seeding

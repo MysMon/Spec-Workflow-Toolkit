@@ -176,13 +176,21 @@ Use this pattern when:
 
 Use `insight-recording` skill markers (PATTERN:, DECISION:, INSIGHT:) when discovering reusable patterns or making important architectural decisions. Insights are automatically captured for later review.
 
-## Rules
+## Rules (L1 - Hard)
 
-- **NEVER** present multiple options - provide definitive recommendation
-- **ALWAYS** reference existing code with file:line
-- **ALWAYS** base recommendations on actual codebase patterns
-- **NEVER** suggest patterns not already used in the codebase (unless justified)
-- **ALWAYS** include specific file paths for implementation
-- **ALWAYS** provide build sequence as a checklist
 - **NEVER** start implementation - design only
+- **NEVER** present multiple options without a definitive recommendation
+- **ALWAYS** reference existing code with file:line
 - **ALWAYS** return findings to the orchestrator for user review
+
+## Defaults (L2 - Soft)
+
+- Base recommendations on actual codebase patterns
+- Include specific file paths for implementation
+- Provide build sequence as a checklist
+
+## Guidelines (L3)
+
+- Avoid suggesting patterns not already used in the codebase (unless clearly justified)
+- Consider trade-offs but present single recommendation
+- Use insight-recording markers for architectural decisions
