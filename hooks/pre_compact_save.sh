@@ -52,7 +52,18 @@ import os
 import sys
 import fcntl
 import tempfile
+import signal
 from datetime import datetime
+
+# Lock acquisition timeout (seconds)
+LOCK_TIMEOUT = 5
+
+class LockTimeoutError(Exception):
+    """Raised when lock acquisition times out."""
+    pass
+
+def lock_timeout_handler(signum, frame):
+    raise LockTimeoutError("Lock acquisition timed out")
 
 try:
     progress_file = os.environ.get('PROGRESS_FILE_PATH', '')
@@ -63,10 +74,22 @@ try:
     if not progress_file:
         sys.exit(0)
 
-    # Use file locking for safe concurrent access
+    # Use file locking for safe concurrent access with timeout
     lock_file = progress_file + '.lock'
     with open(lock_file, 'w') as lf:
-        fcntl.flock(lf.fileno(), fcntl.LOCK_EX)
+        # Set up timeout for lock acquisition
+        old_handler = signal.signal(signal.SIGALRM, lock_timeout_handler)
+        signal.alarm(LOCK_TIMEOUT)
+        try:
+            fcntl.flock(lf.fileno(), fcntl.LOCK_EX)
+            signal.alarm(0)  # Cancel alarm on successful lock
+        except LockTimeoutError:
+            signal.alarm(0)
+            signal.signal(signal.SIGALRM, old_handler)
+            print(f"Warning: Could not acquire lock within {LOCK_TIMEOUT}s, skipping progress update", file=sys.stderr)
+            sys.exit(0)
+        finally:
+            signal.signal(signal.SIGALRM, old_handler)
 
         try:
             with open(progress_file, "r", encoding='utf-8') as f:

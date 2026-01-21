@@ -103,6 +103,37 @@ SECRET_PATTERNS = [
     # PyPI
     (r"pypi-[a-zA-Z0-9_-]{50,}", "PyPI Token"),
 
+    # Supabase
+    (r"sbp_[a-f0-9]{40,}", "Supabase Service Key"),
+    (r"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+", "Supabase JWT (anon/service key)"),
+
+    # DigitalOcean
+    (r"dop_v1_[a-f0-9]{64}", "DigitalOcean Personal Access Token"),
+    (r"doo_v1_[a-f0-9]{64}", "DigitalOcean OAuth Token"),
+
+    # Datadog
+    (r"DD[A-Z0-9]{32}", "Datadog API Key"),
+    (r"[a-f0-9]{40}", "Datadog App Key (40 char hex)"),
+
+    # Azure
+    (r"[a-zA-Z0-9+/]{86}==", "Azure Storage Account Key"),
+
+    # Vercel
+    (r"vercel_[a-zA-Z0-9_-]{24,}", "Vercel Token"),
+
+    # Netlify
+    (r"[a-f0-9]{64}", "Netlify Personal Access Token (64 char hex)"),
+
+    # HashiCorp Vault
+    (r"hvs\.[a-zA-Z0-9_-]{24,}", "HashiCorp Vault Token"),
+    (r"hvb\.[a-zA-Z0-9_-]{24,}", "HashiCorp Vault Batch Token"),
+
+    # Linear
+    (r"lin_api_[a-zA-Z0-9]{40,}", "Linear API Key"),
+
+    # Figma
+    (r"figd_[a-zA-Z0-9_-]{40,}", "Figma Personal Access Token"),
+
     # Passwords in common formats
     (r"password\s*[=:]\s*['\"][^'\"]{8,}['\"]", "Hardcoded password"),
     (r"passwd\s*[=:]\s*['\"][^'\"]{8,}['\"]", "Hardcoded password"),

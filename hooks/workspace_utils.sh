@@ -296,9 +296,40 @@ validate_workspace_id() {
         return 1
     fi
 
+    # Must not start with dot (hidden files) or hyphen (option injection)
+    if [[ "$id" == .* ]] || [[ "$id" == -* ]]; then
+        return 1
+    fi
+
     # Length check (reasonable limit)
     if [ ${#id} -gt 100 ]; then
         return 1
+    fi
+
+    # Additional security: verify resolved path stays within expected directory
+    # This prevents symlink-based escapes
+    local workspace_dir
+    workspace_dir=".claude/workspaces/${id}"
+
+    # Only check if directory exists (creation is allowed)
+    if [ -e "$workspace_dir" ]; then
+        local resolved_path
+        resolved_path=$(realpath "$workspace_dir" 2>/dev/null)
+        local base_dir
+        base_dir=$(realpath ".claude/workspaces" 2>/dev/null)
+
+        # Ensure resolved path is under base directory
+        if [ -n "$resolved_path" ] && [ -n "$base_dir" ]; then
+            case "$resolved_path" in
+                "$base_dir"/*)
+                    # Path is valid - under base directory
+                    ;;
+                *)
+                    # Path escapes base directory (symlink attack)
+                    return 1
+                    ;;
+            esac
+        fi
     fi
 
     return 0

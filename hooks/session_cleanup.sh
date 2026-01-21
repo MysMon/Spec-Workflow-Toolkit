@@ -20,6 +20,27 @@ LOG_RETENTION_DAYS=30
 MAX_LOG_SIZE_MB=10
 WORKSPACE_BASE=".claude/workspaces"
 
+# --- Cross-Platform Utilities ---
+# Get file modification time in seconds since epoch (cross-platform)
+get_file_mtime() {
+    local file="$1"
+
+    # Check if file exists first (prevents race condition)
+    if [[ ! -f "$file" ]]; then
+        echo 0
+        return
+    fi
+
+    # Try platform-appropriate stat command
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS: stat -f%m returns modification time
+        stat -f%m "$file" 2>/dev/null || echo 0
+    else
+        # Linux: stat -c %Y returns modification time
+        stat -c %Y "$file" 2>/dev/null || echo 0
+    fi
+}
+
 # --- Log Rotation ---
 # Rotate logs that exceed size limit or are older than retention period
 
@@ -98,8 +119,10 @@ archive_stale_workspaces() {
         local progress_file="$workspace_dir/claude-progress.json"
 
         if [ -f "$progress_file" ]; then
-            # Check if progress file is stale
-            local file_age_days=$(( ($(date +%s) - $(stat -c %Y "$progress_file" 2>/dev/null || echo 0)) / 86400 ))
+            # Check if progress file is stale (using cross-platform mtime)
+            local file_mtime
+            file_mtime=$(get_file_mtime "$progress_file")
+            local file_age_days=$(( ($(date +%s) - file_mtime) / 86400 ))
 
             if [ "$file_age_days" -gt "$LOG_RETENTION_DAYS" ]; then
                 # Check if status is completed (safe to archive)
@@ -145,7 +168,8 @@ fi
 # Archive stale workspaces (run periodically, not every session)
 # Only run if a marker file is older than 1 day
 ARCHIVE_MARKER="$WORKSPACE_BASE/.last_archive_check"
-if [ ! -f "$ARCHIVE_MARKER" ] || [ $(( ($(date +%s) - $(stat -c %Y "$ARCHIVE_MARKER" 2>/dev/null || echo 0)) / 86400 )) -gt 0 ]; then
+MARKER_MTIME=$(get_file_mtime "$ARCHIVE_MARKER")
+if [ ! -f "$ARCHIVE_MARKER" ] || [ $(( ($(date +%s) - MARKER_MTIME) / 86400 )) -gt 0 ]; then
     archive_stale_workspaces
     touch "$ARCHIVE_MARKER" 2>/dev/null
 fi
