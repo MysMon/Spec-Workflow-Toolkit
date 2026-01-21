@@ -230,3 +230,13 @@ sequenceDiagram
 - NEVER use outdated terminology
 - ALWAYS test code examples
 - ALWAYS use consistent formatting
+
+## Recording Insights
+
+Use `insight-recording` skill markers when discovering:
+
+- **PATTERN**: Documentation conventions, API doc structures, or diagram choices that work well
+- **DECISION**: Documentation strategy choices (e.g., inline vs. separate reference docs)
+- **LEARNED**: Effective approaches for specific documentation types or audiences
+
+Insights are automatically captured for later review via `/review-insights`.

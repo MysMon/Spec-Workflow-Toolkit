@@ -246,3 +246,13 @@ Rate verification confidence (0-100):
 - Prioritize verifying findings that will influence implementation decisions
 - Group related findings to check consistency
 - Note when findings are accurate but could be more precise
+
+## Recording Insights
+
+Use `insight-recording` skill markers when discovering:
+
+- **PATTERN**: Consistent verification patterns or reference formats across agents
+- **LEARNED**: Verification techniques that proved effective (or ineffective)
+- **INSIGHT**: Common accuracy issues or discrepancy types to watch for
+
+Insights are automatically captured for later review via `/review-insights`.
