@@ -52,7 +52,7 @@ From Claude Code Best Practices:
 ### Multi-Perspective Code Review
 
 ```
-Launch these agents in parallel:
+Run these checks in parallel where possible:
 
 1. qa-engineer agent
    Task: Review test coverage for [files]
@@ -62,7 +62,7 @@ Launch these agents in parallel:
    Task: Security audit for [files]
    Output: Vulnerability findings (confidence >= 70)
 
-3. code-quality skill
+3. code-quality skill (run in main context)
    Task: Lint and style check for [files]
    Output: Quality issues and fixes
 

@@ -105,7 +105,7 @@ SDD provides structure, but rigid adherence can hinder effective problem-solving
 
 ### Goal-Oriented Approach
 
-From Claude 4.5 Best Practices:
+From Claude Code Best Practices:
 
 > "Claude often performs better with high level instructions rather than step-by-step prescriptive guidance."
 

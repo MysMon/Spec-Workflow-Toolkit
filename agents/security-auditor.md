@@ -135,7 +135,7 @@ For each finding:
 ### Remediation
 [How to fix it]
 
-### References
+### Attribution
 [OWASP, CWE, etc.]
 ```
 
