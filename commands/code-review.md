@@ -6,7 +6,7 @@ allowed-tools: Read, Glob, Grep, Bash, Task, AskUserQuestion
 
 # /code-review - Parallel Code Review
 
-Launch 5 specialized Sonnet agents in parallel to comprehensively review code changes, then score each issue with Haiku agents for confidence-based filtering.
+Launch 5 specialized agents in parallel (CLAUDE.md Compliance, Bug Scan, Git History, PR Comments, Code Comments) to comprehensively review code changes, then score each issue with Haiku agents for confidence-based filtering.
 
 Based on the official code-review plugin pattern.
 
@@ -17,7 +17,7 @@ This command implements an 8-step workflow:
 1. **Eligibility Check** (Haiku) - Verify PR is reviewable
 2. **CLAUDE.md Discovery** (Haiku) - Find all guideline files
 3. **Change Summary** (Haiku) - Summarize PR changes
-4. **Parallel Review** (5 Sonnet agents) - Analyze from different perspectives
+4. **Parallel Review** (5 agents: Compliance, Bug Scan, Git History, PR Comments, Code Comments) - Analyze from different perspectives
 5. **Confidence Scoring** (N Haiku agents) - Score each issue found
 6. **Filtering** - Remove issues below 80% confidence
 7. **Re-check Eligibility** (Haiku) - Verify before posting
@@ -104,7 +104,7 @@ Task tool call 5: Agent 5 (Code Comments)
 </parallel-execution>
 ```
 
-Each Task should use `subagent_type: general-purpose` and `model: sonnet`.
+Each Task should use `subagent_type: general-purpose` with `model: inherit` (or omit to use the agent's default model).
 
 **Agent 1: CLAUDE.md Compliance Audit**
 ```
