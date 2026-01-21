@@ -615,16 +615,14 @@ Use `insight-recording` skill markers (PATTERN:, LEARNED:, INSIGHT:) when discov
 | legacy-modernizer | Yes | Legacy patterns, modernization decisions |
 | devops-sre | Yes | Infrastructure patterns, operational insights |
 | **Implementation** |||
-| frontend-specialist | No | Focus on output (code), not exploration |
-| backend-specialist | No | Focus on output (code), not exploration |
+| frontend-specialist | Yes | Component patterns, a11y solutions, framework conventions |
+| backend-specialist | Yes | Service patterns, API conventions, performance optimizations |
 | **Non-Technical** |||
 | technical-writer | No | Produces documentation, not code insights |
 | ui-ux-designer | No | Visual design focus |
 | product-manager | No | Requirements focus, not code-level |
 
 **Why Some Agents Don't Have Insight Recording:**
-
-Implementation specialists (frontend-specialist, backend-specialist) focus on producing code rather than exploring and discovering patterns. While they may encounter patterns, their primary output is implementation, not insight discovery.
 
 Non-technical agents (technical-writer, ui-ux-designer, product-manager) operate at a different abstraction level and don't typically produce insights about code patterns.
 

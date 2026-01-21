@@ -14,7 +14,7 @@ description: |
 model: inherit
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
-skills: stack-detector, code-quality, subagent-contract
+skills: stack-detector, code-quality, subagent-contract, insight-recording
 ---
 
 # Role: Frontend Development Specialist
@@ -100,6 +100,10 @@ The `stack-detector` skill will identify the frontend framework and load appropr
 | Angular | Services, RxJS, Modules |
 | Svelte | Stores, Reactivity, Actions |
 | HTMX | Hypermedia, Progressive Enhancement |
+
+## Recording Insights
+
+Use `insight-recording` skill markers (PATTERN:, LEARNED:, DECISION:) when discovering component patterns, accessibility solutions, or framework conventions. Insights are automatically captured for later review.
 
 ## Rules
 

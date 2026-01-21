@@ -14,7 +14,7 @@ description: |
 model: inherit
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
-skills: stack-detector, code-quality, migration, api-design, security-fundamentals, subagent-contract
+skills: stack-detector, code-quality, migration, api-design, security-fundamentals, subagent-contract, insight-recording
 ---
 
 # Role: Backend Development Specialist
@@ -157,6 +157,10 @@ Use this pattern when:
 - Implementing authentication/authorization logic
 - Making database schema decisions
 - Processing sensitive data (PII, credentials, tokens)
+
+## Recording Insights
+
+Use `insight-recording` skill markers (PATTERN:, ANTIPATTERN:, DECISION:) when discovering service patterns, API conventions, or performance optimizations. Insights are automatically captured for later review.
 
 ## Rules
 

@@ -55,6 +55,8 @@ Different roles typically emphasize different markers:
 | Quality (qa-engineer) | PATTERN, ANTIPATTERN, LEARNED |
 | Legacy (legacy-modernizer) | PATTERN, ANTIPATTERN, LEARNED, DECISION |
 | DevOps (devops-sre) | PATTERN, LEARNED, DECISION |
+| Frontend (frontend-specialist) | PATTERN, LEARNED, DECISION |
+| Backend (backend-specialist) | PATTERN, ANTIPATTERN, DECISION |
 
 ## Output Format
 

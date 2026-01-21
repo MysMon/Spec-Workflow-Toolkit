@@ -212,8 +212,9 @@ flowchart LR
 | 探索・設計 | code-explorer, code-architect, system-architect | パターン発見・設計決定が主業務 |
 | レビュー | security-auditor, qa-engineer | セキュリティ・品質パターンの発見 |
 | 運用・移行 | legacy-modernizer, devops-sre | 運用知見・移行判断 |
+| 実装 | frontend-specialist, backend-specialist | 実装中に発見するパターン・慣例 |
 
-**非対応エージェント**: frontend-specialist, backend-specialist（実装中心）、technical-writer, ui-ux-designer, product-manager（コード知見ではない）
+**非対応エージェント**: technical-writer, ui-ux-designer, product-manager（コードパターン発見が主業務ではない）
 
 ---
 
