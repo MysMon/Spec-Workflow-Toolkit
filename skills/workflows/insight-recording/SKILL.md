@@ -118,7 +118,6 @@ The following agents do NOT have insight-recording:
 | Agent | Rationale |
 |-------|-----------|
 | `product-manager` | Focuses on user-facing requirements, not code-level patterns. Decisions are captured in PRDs/specs. |
-| `technical-writer` | Creates documentation as output, not insights for later review. |
 
 ## Output Format Example
 

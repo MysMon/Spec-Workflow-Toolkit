@@ -80,7 +80,7 @@ Before launching agents, gather:
 
 ```bash
 # Find CLAUDE.md files
-find . -name "CLAUDE.md" -o -name ".claude/rules/*.md"
+find . \( -name "CLAUDE.md" -o -path "./.claude/rules/*.md" \)
 
 # Get git blame for changed lines
 git blame [files]

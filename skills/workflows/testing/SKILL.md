@@ -8,7 +8,7 @@ description: |
   - Debugging failing or flaky tests
   - Setting up test data, mocks, or fixtures
   Trigger phrases: write tests, unit test, integration test, E2E test, test coverage, test strategy, mock, fixture, test data
-allowed-tools: Read, Glob, Grep, Bash, Write, Edit
+allowed-tools: Read, Glob, Grep, Bash, Write, Edit, WebSearch, WebFetch
 model: sonnet
 user-invocable: true
 ---

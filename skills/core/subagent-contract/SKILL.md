@@ -427,7 +427,6 @@ Recommendations for better results.
 - Reference patterns found for architectural consistency
 
 ## Self-Verification Checklist
-
 Before submitting results, subagents MUST verify their output quality to prevent hallucinations and ensure accuracy.
 
 ### Pre-Submission Verification (L1 - Required)
