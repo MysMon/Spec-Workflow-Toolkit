@@ -186,7 +186,7 @@ Based on interview responses, construct targeted searches:
 | Deployment needed | `"deployment platforms [year] [constraints]"` |
 
 Use the system clock for the year (e.g., `CURRENT_YEAR=$(date +%Y)`), not model memory.
-If current-year results are thin (e.g., early in the year), also query the previous year or use "last 12 months".
+If current-year results are thin (e.g., early in the year), broaden queries by adding the previous year and a yearless "latest/recent" variant.
 
 Example query generation:
 ```
@@ -204,6 +204,9 @@ Fallbacks (if results are sparse):
 - "web UI frameworks ${PREV_YEAR} comparison"
 - "Python backend frameworks ${PREV_YEAR} real-time"
 - "database real-time applications ${PREV_YEAR}"
+- "web UI frameworks latest comparison"
+- "Python backend frameworks recent real-time"
+- "database real-time applications recent comparison"
 ```
 
 #### 3.2 Execute Research
@@ -333,7 +336,7 @@ Proceed with setup?
 **Do not assume setup commands.** Search for current official instructions:
 
 Use the system clock for the year (e.g., `CURRENT_YEAR=$(date +%Y)`), not model memory.
-If current-year results are thin, also try the previous year or a "latest" query.
+If current-year results are thin, also try the previous year or a yearless "latest/recent" query.
 
 ```
 WebSearch: "[technology] getting started official documentation ${CURRENT_YEAR}"

@@ -180,7 +180,7 @@ Transform requirements into search queries. **Never search for specific technolo
 | Deployment | `"deployment platforms [year] [constraint]"` |
 
 Use the system clock for the year (e.g., `CURRENT_YEAR=$(date +%Y)`), not model memory.
-If current-year results are thin (e.g., early in the year), also query the previous year or use "last 12 months".
+If current-year results are thin (e.g., early in the year), broaden queries by adding the previous year and a yearless "latest/recent" variant.
 
 #### Example Query Generation
 
@@ -201,6 +201,10 @@ Fallbacks (if results are sparse):
 - "Python backend frameworks ${PREV_YEAR} real-time support"
 - "database for real-time applications ${PREV_YEAR}"
 - "cloud deployment platforms ${PREV_YEAR} Python applications"
+- "best frontend frameworks latest comparison production"
+- "Python backend frameworks recent real-time support"
+- "database for real-time applications recent comparison"
+- "cloud deployment platforms recent Python applications"
 ```
 
 ### 3.2 Execute Research
