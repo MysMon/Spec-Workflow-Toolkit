@@ -702,10 +702,6 @@ hooks:
       hooks:
         - type: command
           command: "./hooks/security_audit_bash_validator.py"
-  Stop:
-    - hooks:
-        - type: command
-          command: "./hooks/audit_report_generator.sh"
 ---
 ```
 

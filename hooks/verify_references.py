@@ -7,8 +7,8 @@ Based on Claude Code hooks specification.
 
 Input: JSON metadata from stdin containing transcript_path to JSONL file
 Output:
-  - If >30% references are invalid: exit 2 with warning message (blocking error)
-  - Otherwise: exit 0 with JSON containing verification summary
+  - If >30% references are invalid: exit 0 with JSON {"continue": false} (SubagentStop control)
+  - Otherwise: exit 0 with JSON {"continue": true} and verification summary
 
 Reference patterns matched:
   - file.ts:123
@@ -370,12 +370,12 @@ def main():
 
         sys.stderr.write(f"verify_references: {error_message}\n")
 
-        # Exit 2 = blocking error
+        # SubagentStop uses JSON control with exit 0 (not exit 2 which is for PreToolUse)
         print(json.dumps({
             "continue": False,
             "systemMessage": error_message
         }))
-        sys.exit(2)
+        sys.exit(0)
 
     # Success - output summary
     if invalid_count > 0:
