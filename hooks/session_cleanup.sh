@@ -26,19 +26,22 @@ get_file_mtime() {
     local file="$1"
 
     # Check if file exists first (prevents race condition)
-    if [[ ! -f "$file" ]]; then
+    if [ ! -f "$file" ]; then
         echo 0
         return
     fi
 
-    # Try platform-appropriate stat command
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS: stat -f%m returns modification time
-        stat -f%m "$file" 2>/dev/null || echo 0
-    else
-        # Linux: stat -c %Y returns modification time
-        stat -c %Y "$file" 2>/dev/null || echo 0
-    fi
+    # Try platform-appropriate stat command (POSIX-compatible)
+    case "$OSTYPE" in
+        darwin*)
+            # macOS: stat -f%m returns modification time
+            stat -f%m "$file" 2>/dev/null || echo 0
+            ;;
+        *)
+            # Linux: stat -c %Y returns modification time
+            stat -c %Y "$file" 2>/dev/null || echo 0
+            ;;
+    esac
 }
 
 # --- Log Rotation ---
