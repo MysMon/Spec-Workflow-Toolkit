@@ -372,7 +372,7 @@ if [ -n "$AVAILABLE_WORKSPACES" ]; then
     fi
 fi
 
-# --- Check for Pending Insights (v3.0 folder-based) ---
+# --- Check for Pending Insights ---
 if command -v count_pending_insights &> /dev/null && [ -n "$WORKSPACE_ID" ]; then
     PENDING_COUNT=$(count_pending_insights "$WORKSPACE_ID")
     if [ "$PENDING_COUNT" -gt 0 ]; then
@@ -383,7 +383,7 @@ if command -v count_pending_insights &> /dev/null && [ -n "$WORKSPACE_ID" ]; the
         echo ""
         echo "Run \`/review-insights\` to evaluate and apply them."
         echo ""
-        # Show preview of first few insights (v3.0: read from individual files)
+        # Show preview of first few insights (read from individual files)
         PENDING_DIR=$(get_pending_insights_dir "$WORKSPACE_ID")
         if [ -d "$PENDING_DIR" ] && command -v python3 &> /dev/null; then
             PREVIEW=$(PENDING_DIR_VAR="$PENDING_DIR" python3 << 'PYEOF'

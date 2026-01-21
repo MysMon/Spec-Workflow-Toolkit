@@ -148,9 +148,11 @@ flowchart TD
 └── {workspace-id}/           # 形式: {branch}_{path-hash} 例: main_a1b2c3d4
     ├── claude-progress.json  # 進捗ログと再開コンテキスト
     ├── feature-list.json     # 機能/タスクのステータス追跡
-    ├── insights/             # 知見追跡（自動キャプチャ）
-    │   ├── pending.json      # 未評価の知見
-    │   └── approved.json     # 承認済み（ワークスペース固有）
+    ├── insights/             # 知見追跡（フォルダベース）
+    │   ├── pending/          # 未評価の知見（個別JSONファイル）
+    │   ├── applied/          # 適用済み
+    │   ├── rejected/         # 却下
+    │   └── archive/          # アーカイブ
     └── logs/
         ├── subagent_activity.log
         └── sessions/
@@ -167,12 +169,12 @@ flowchart TD
 ```mermaid
 flowchart LR
     SA[サブエージェント] -->|マーカー付き出力| IC[insight_capture.sh]
-    IC -->|自動記録| PJ[pending.json]
-    PJ -->|/review-insights| User[ユーザー判断]
+    IC -->|自動記録| PD[pending/]
+    PD -->|/review-insights| User[ユーザー判断]
     User -->|承認| Dest{反映先}
     Dest -->|L1/L2| CM[CLAUDE.md]
     Dest -->|カテゴリ別| CR[.claude/rules/]
-    Dest -->|ワークスペース| AJ[approved.json]
+    Dest -->|ワークスペース| AP[applied/]
 ```
 
 **知見マーカー**: サブエージェントが重要な発見をした際に出力

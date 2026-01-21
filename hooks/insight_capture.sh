@@ -2,7 +2,7 @@
 # Insight Capture Hook: Extract and store insights from subagent output
 # Runs on SubagentStop to capture marked insights
 #
-# VERSION: 3.0.0 - Folder-based architecture (no file locking needed)
+# Folder-based architecture (no file locking needed)
 #
 # SubagentStop hook input format (from Claude Code):
 #   {
@@ -13,7 +13,7 @@
 #     "stop_hook_active": true/false
 #   }
 #
-# Architecture (v3.0):
+# Architecture:
 #   Each insight is stored as a separate file in pending/ directory.
 #   This eliminates the need for file locking and makes operations atomic.
 #
@@ -86,9 +86,9 @@ MAX_TRANSCRIPT_SIZE_VAR="$MAX_TRANSCRIPT_SIZE" \
 MAX_INSIGHTS_PER_CAPTURE_VAR="$MAX_INSIGHTS_PER_CAPTURE" \
 python3 << 'PYEOF'
 """
-Insight Capture Engine v3.0 - Folder-Based Architecture
+Insight Capture Engine - Folder-Based Architecture
 
-Key Design Changes from v2.0:
+Key Design Principles:
 - Each insight is a separate file (no locking needed)
 - File creation is inherently atomic
 - Parallel capture and review without conflicts

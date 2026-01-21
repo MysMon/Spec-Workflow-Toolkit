@@ -4,11 +4,11 @@ argument-hint: "[workspace-id | list]"
 allowed-tools: Read, Write, Edit, AskUserQuestion, Bash, Glob
 ---
 
-# /review-insights - Insight Review Workflow (v3.0)
+# /review-insights - Insight Review Workflow
 
 Review insights captured during development and decide where to apply them. Each insight is processed interactively, one by one, with user confirmation.
 
-## Architecture (v3.0 - Folder-Based)
+## Architecture (Folder-Based)
 
 ```
 .claude/workspaces/{id}/insights/
@@ -279,7 +279,7 @@ File is already moved to `applied/` during Phase 2.
 
 ---
 
-## Insight File Format (v3.0)
+## Insight File Format
 
 Each insight is a separate JSON file:
 

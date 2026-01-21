@@ -219,7 +219,7 @@ get_session_log() {
 }
 
 # ============================================================================
-# INSIGHT MANAGEMENT (v3.0 - Folder-Based Architecture)
+# INSIGHT MANAGEMENT (Folder-Based Architecture)
 # ============================================================================
 #
 # Directory structure:
@@ -236,7 +236,7 @@ get_insights_dir() {
     echo "$(get_workspace_dir "$workspace_id")/insights"
 }
 
-# Get the pending insights directory (v3.0 - folder-based)
+# Get the pending insights directory (folder-based)
 # Returns: .claude/workspaces/{workspace-id}/insights/pending/
 get_pending_insights_dir() {
     local workspace_id="${1:-$(get_workspace_id)}"
@@ -265,7 +265,7 @@ get_archive_insights_dir() {
 }
 
 # DEPRECATED: For backward compatibility only
-# Returns: empty string (no longer used in v3.0)
+# Returns: empty string (deprecated - use get_pending_insights_dir instead)
 get_pending_insights_file() {
     echo ""
 }
@@ -304,7 +304,7 @@ validate_workspace_id() {
     return 0
 }
 
-# Count pending insights for a workspace (v3.0 - counts files in pending/)
+# Count pending insights for a workspace (counts files in pending/)
 # Returns: number of pending insights (0 if none)
 count_pending_insights() {
     local workspace_id="${1:-$(get_workspace_id)}"
@@ -333,7 +333,7 @@ workspace_has_pending_insights() {
     [ "$count" -gt 0 ]
 }
 
-# Ensure insights directory structure exists (v3.0)
+# Ensure insights directory structure exists
 ensure_insights_dir() {
     local workspace_id="${1:-$(get_workspace_id)}"
     local insights_dir="$(get_insights_dir "$workspace_id")"
@@ -485,84 +485,45 @@ cleanup_workspace_temp_files() {
 }
 
 # Archive old insights that have been processed
-# Moves applied/rejected insights to archive file
+# Moves insights from applied/ and rejected/ to archive/ directory
+# Folder-based: simply moves files between directories
 archive_processed_insights() {
     local workspace_id="${1:-$(get_workspace_id)}"
-    local pending_file="$(get_pending_insights_file "$workspace_id")"
-    local archive_file="$(get_insights_dir "$workspace_id")/archive.json"
+    local insights_dir="$(get_insights_dir "$workspace_id")"
+    local applied_dir="$insights_dir/applied"
+    local rejected_dir="$insights_dir/rejected"
+    local archive_dir="$insights_dir/archive"
+    local archived_count=0
 
-    if [ ! -f "$pending_file" ] || ! command -v python3 &> /dev/null; then
-        return 0
+    # Ensure archive directory exists
+    mkdir -p "$archive_dir"
+
+    # Move applied insights to archive
+    if [ -d "$applied_dir" ]; then
+        for file in "$applied_dir"/*.json 2>/dev/null; do
+            [ -f "$file" ] || continue
+            mv "$file" "$archive_dir/"
+            archived_count=$((archived_count + 1))
+        done
     fi
 
-    PENDING_FILE_VAR="$pending_file" \
-    ARCHIVE_FILE_VAR="$archive_file" \
-    python3 << 'PYEOF'
-import json
-import os
-from datetime import datetime
+    # Move rejected insights to archive
+    if [ -d "$rejected_dir" ]; then
+        for file in "$rejected_dir"/*.json 2>/dev/null; do
+            [ -f "$file" ] || continue
+            mv "$file" "$archive_dir/"
+            archived_count=$((archived_count + 1))
+        done
+    fi
 
-pending_file = os.environ.get('PENDING_FILE_VAR', '')
-archive_file = os.environ.get('ARCHIVE_FILE_VAR', '')
-
-if not pending_file or not archive_file:
-    exit(0)
-
-try:
-    # Read pending insights
-    with open(pending_file, 'r', encoding='utf-8') as f:
-        pending_data = json.load(f)
-
-    insights = pending_data.get('insights', [])
-
-    # Separate pending from processed
-    still_pending = []
-    to_archive = []
-
-    for insight in insights:
-        status = insight.get('status', 'pending')
-        if status in ('applied', 'rejected', 'workspace-approved'):
-            to_archive.append(insight)
-        else:
-            still_pending.append(insight)
-
-    if not to_archive:
-        exit(0)  # Nothing to archive
-
-    # Read or create archive
-    try:
-        with open(archive_file, 'r', encoding='utf-8') as f:
-            archive_data = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        archive_data = {
-            'created': datetime.now().isoformat(),
-            'insights': []
-        }
-
-    # Add to archive
-    archive_data['insights'].extend(to_archive)
-    archive_data['lastUpdated'] = datetime.now().isoformat()
-
-    # Write archive
-    with open(archive_file, 'w', encoding='utf-8') as f:
-        json.dump(archive_data, f, indent=2, ensure_ascii=False)
-
-    # Update pending (remove archived)
-    pending_data['insights'] = still_pending
-    pending_data['lastUpdated'] = datetime.now().isoformat()
-
-    with open(pending_file, 'w', encoding='utf-8') as f:
-        json.dump(pending_data, f, indent=2, ensure_ascii=False)
-
-    print(f"Archived {len(to_archive)} processed insights")
-
-except Exception as e:
-    print(f"Archive error: {e}", file=__import__('sys').stderr)
-PYEOF
+    if [ "$archived_count" -gt 0 ]; then
+        echo "Archived $archived_count processed insights"
+    fi
 }
 
 # Get workspace statistics
-# Returns: JSON with counts of insights, logs, etc.
+# Returns: JSON with counts of insights by directory, logs, etc.
+# Folder-based: counts files in pending/, applied/, rejected/, archive/ directories
 get_workspace_stats() {
     local workspace_id="${1:-$(get_workspace_id)}"
 
@@ -573,52 +534,58 @@ get_workspace_stats() {
 
     WORKSPACE_ID_VAR="$workspace_id" \
     WORKSPACE_DIR_VAR="$(get_workspace_dir "$workspace_id")" \
-    PENDING_FILE_VAR="$(get_pending_insights_file "$workspace_id")" \
+    INSIGHTS_DIR_VAR="$(get_insights_dir "$workspace_id")" \
     python3 << 'PYEOF'
 import json
 import os
-from pathlib import Path
+import glob
 
 workspace_id = os.environ.get('WORKSPACE_ID_VAR', '')
 workspace_dir = os.environ.get('WORKSPACE_DIR_VAR', '')
-pending_file = os.environ.get('PENDING_FILE_VAR', '')
+insights_dir = os.environ.get('INSIGHTS_DIR_VAR', '')
+
+def count_json_files(directory):
+    """Count .json files in a directory."""
+    if not directory or not os.path.isdir(directory):
+        return 0
+    return len(glob.glob(os.path.join(directory, '*.json')))
+
+def get_dir_size(directory):
+    """Get total size of files in a directory."""
+    if not directory or not os.path.isdir(directory):
+        return 0
+    total = 0
+    for f in glob.glob(os.path.join(directory, '*')):
+        try:
+            total += os.path.getsize(f)
+        except OSError:
+            pass
+    return total
+
+# Count insights in each directory (folder-based architecture)
+pending_count = count_json_files(os.path.join(insights_dir, 'pending')) if insights_dir else 0
+applied_count = count_json_files(os.path.join(insights_dir, 'applied')) if insights_dir else 0
+rejected_count = count_json_files(os.path.join(insights_dir, 'rejected')) if insights_dir else 0
+archived_count = count_json_files(os.path.join(insights_dir, 'archive')) if insights_dir else 0
 
 stats = {
     'workspaceId': workspace_id,
     'exists': os.path.isdir(workspace_dir) if workspace_dir else False,
     'insights': {
-        'pending': 0,
-        'applied': 0,
-        'rejected': 0,
-        'total': 0
+        'pending': pending_count,
+        'applied': applied_count,
+        'rejected': rejected_count,
+        'archived': archived_count,
+        'total': pending_count + applied_count + rejected_count + archived_count
     },
     'storage': {
-        'pendingFileSize': 0,
+        'insightsSize': get_dir_size(insights_dir) if insights_dir else 0,
         'logFiles': 0,
         'totalSize': 0
     }
 }
 
 if workspace_dir and os.path.isdir(workspace_dir):
-    # Count insights
-    if pending_file and os.path.isfile(pending_file):
-        try:
-            with open(pending_file, 'r') as f:
-                data = json.load(f)
-            insights = data.get('insights', [])
-            stats['insights']['total'] = len(insights)
-            for i in insights:
-                status = i.get('status', 'pending')
-                if status == 'pending':
-                    stats['insights']['pending'] += 1
-                elif status == 'applied':
-                    stats['insights']['applied'] += 1
-                elif status == 'rejected':
-                    stats['insights']['rejected'] += 1
-            stats['storage']['pendingFileSize'] = os.path.getsize(pending_file)
-        except Exception:
-            pass
-
     # Count storage
     total_size = 0
     log_count = 0
