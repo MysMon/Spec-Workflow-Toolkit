@@ -64,7 +64,7 @@ YAML frontmatter fields:
 - Exit 2 = blocking error
 - Exit 1, 3, etc. = non-blocking error (tool may still execute!)
 
-**Global hooks (7 event types, 8 handlers in hooks.json):**
+**Global hooks (7 event types, 10 handlers in hooks.json):**
 
 | Hook | Script | Purpose |
 |------|--------|---------|

@@ -209,7 +209,7 @@ If any agent fails or times out:
 3. If retry fails, proceed with available results and document the gap
 4. Add to progress file: `"warnings": ["Agent X failed, results may be incomplete"]`
 
-**Read all identified key files** to build comprehensive understanding.
+**Read up to 3 of the most critical files** identified by explorers. For remaining files, use `verification-specialist` to validate key findings if needed.
 
 **Present comprehensive summary of findings to user.**
 
@@ -374,12 +374,25 @@ Load the `long-running-tasks` skill for the Initializer + Coding pattern and pro
 
 ---
 
-#### TDD Integration (Optional but Recommended)
+#### Implementation Pattern Selection
 
-Load the `tdd-workflow` skill for complete TDD patterns. Use when features have clear acceptance criteria:
-- RED: `qa-engineer` writes failing tests
+Choose ONE pattern based on feature characteristics:
+
+| Condition | Pattern | Workflow |
+|-----------|---------|----------|
+| Clear acceptance criteria, well-defined behavior | **TDD** | qa-engineer writes failing tests → Specialist implements → Refactor |
+| Exploratory, UI-heavy, or unclear requirements | **Standard** | Specialist implements → qa-engineer validates → Iterate |
+| Bug fix with reproduction steps | **TDD** | qa-engineer writes failing test from repro → Specialist fixes |
+
+**TDD Pattern** (Load `tdd-workflow` skill):
+- RED: `qa-engineer` writes failing tests based on acceptance criteria
 - GREEN: Specialist implements minimal code to pass
 - REFACTOR: Review and clean up
+
+**Standard Pattern**:
+- Specialist implements feature
+- `qa-engineer` validates and writes tests
+- Iterate on feedback
 
 ---
 
@@ -538,14 +551,9 @@ Orchestrator action:
 
 ---
 
-**Score each issue with Haiku agents** (same pattern as /code-review):
+**Use confidence scores from review agents:**
 
-```
-For each issue, launch parallel Haiku agent:
-- Issue description
-- Context
-- Score 0-100 based on rubric
-```
+Each review agent (qa-engineer, security-auditor) returns findings with confidence scores (0-100) based on their expertise. The orchestrator synthesizes these scores rather than re-scoring separately.
 
 **Consolidate findings with confidence weighting:**
 
