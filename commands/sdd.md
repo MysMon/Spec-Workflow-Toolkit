@@ -106,20 +106,24 @@ Before doing any discovery work, create the progress file:
 ```json
 {
   "workspaceId": "{generated-workspace-id}",
-  "currentPhase": 1,
-  "phaseName": "Discovery",
-  "startedAt": "{ISO-8601-timestamp}",
-  "phases": {
-    "1": {"status": "in_progress", "startedAt": "{ISO-8601-timestamp}"},
-    "2": {"status": "pending"},
-    "3": {"status": "pending"},
-    "4": {"status": "pending"},
-    "5": {"status": "pending"},
-    "6": {"status": "pending"},
-    "7": {"status": "pending"}
+  "project": "{project-name}",
+  "started": "{ISO-8601-timestamp}",
+  "lastUpdated": "{ISO-8601-timestamp}",
+  "status": "in_progress",
+  "currentPhase": "phase1-in_progress",
+  "currentTask": "Discovery - gathering requirements",
+  "sessions": [],
+  "log": [],
+  "resumptionContext": {
+    "position": "Phase 1: Discovery",
+    "nextAction": "Complete requirements gathering and user interview",
+    "dependencies": [],
+    "blockers": []
   }
 }
 ```
+
+**Note:** This schema aligns with `progress-tracking` skill and SessionStart hook expectations.
 
 **Why this is L1 (Hard Rule):**
 - Enables session recovery if context is compacted or session restarts
@@ -211,9 +215,11 @@ If any agent fails or times out:
 
 **Progress Update:**
 Update `claude-progress.json`:
+- status: "in_progress"
 - currentPhase: "phase2-complete"
 - currentTask: "Codebase exploration complete"
-- nextAction: "Proceed to Phase 3: Requirements Clarification"
+- resumptionContext.position: "Phase 2 complete"
+- resumptionContext.nextAction: "Proceed to Phase 3: Clarifying Questions"
 
 ### Phase 3: Clarifying Questions
 
@@ -234,9 +240,11 @@ Based on discovery and exploration, identify:
 
 **Progress Update:**
 Update `claude-progress.json`:
+- status: "in_progress"
 - currentPhase: "phase3-complete"
 - currentTask: "Requirements clarified"
-- nextAction: "Proceed to Phase 4: Architecture Design"
+- resumptionContext.position: "Phase 3 complete"
+- resumptionContext.nextAction: "Proceed to Phase 4: Architecture Design"
 
 ### Phase 4: Architecture Design
 
@@ -319,9 +327,11 @@ Based on code-architect findings:
 
 **Progress Update:**
 Update `claude-progress.json`:
+- status: "in_progress"
 - currentPhase: "phase4-complete"
 - currentTask: "Architecture design approved"
-- nextAction: "Proceed to Phase 5: TDD Implementation"
+- resumptionContext.position: "Phase 4 complete"
+- resumptionContext.nextAction: "Proceed to Phase 5: Implementation"
 
 ### Phase 5: Implementation
 
@@ -606,9 +616,11 @@ Load the `error-recovery` skill if review agents encounter errors. Checkpoint st
 
 **Progress Update:**
 Update `claude-progress.json`:
+- status: "in_progress"
 - currentPhase: "phase6-complete"
 - currentTask: "Quality review complete"
-- nextAction: "Proceed to Phase 7: Completion"
+- resumptionContext.position: "Phase 6 complete"
+- resumptionContext.nextAction: "Proceed to Phase 7: Summary"
 
 ### Phase 7: Summary
 
