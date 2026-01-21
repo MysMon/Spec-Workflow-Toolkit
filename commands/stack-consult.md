@@ -185,14 +185,18 @@ Based on interview responses, construct targeted searches:
 | Data storage needed | `"database comparison [year] [data type]"` |
 | Deployment needed | `"deployment platforms [year] [constraints]"` |
 
+Use the system clock for the year (e.g., `CURRENT_YEAR=$(date +%Y)`), not model memory.
+
 Example query generation:
 ```
 Requirements: Visual interface, structured data, real-time updates, Python team
 
+CURRENT_YEAR=$(date +%Y)
+
 Queries:
-1. "web UI frameworks 2026 comparison"
-2. "Python backend frameworks 2026 real-time"
-3. "database real-time applications 2026"
+1. "web UI frameworks ${CURRENT_YEAR} comparison"
+2. "Python backend frameworks ${CURRENT_YEAR} real-time"
+3. "database real-time applications ${CURRENT_YEAR}"
 ```
 
 #### 3.2 Execute Research
@@ -321,8 +325,10 @@ Proceed with setup?
 
 **Do not assume setup commands.** Search for current official instructions:
 
+Use the system clock for the year (e.g., `CURRENT_YEAR=$(date +%Y)`), not model memory.
+
 ```
-WebSearch: "[technology] getting started official documentation 2026"
+WebSearch: "[technology] getting started official documentation ${CURRENT_YEAR}"
 WebFetch: [official docs] → "Extract installation and setup commands"
 ```
 

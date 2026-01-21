@@ -179,16 +179,20 @@ Transform requirements into search queries. **Never search for specific technolo
 | Data storage | `"database comparison [year] [data type]"` |
 | Deployment | `"deployment platforms [year] [constraint]"` |
 
+Use the system clock for the year (e.g., `CURRENT_YEAR=$(date +%Y)`), not model memory.
+
 #### Example Query Generation
 
 ```
 User needs: Visual interface, structured data, real-time updates, cloud deployment, team knows Python
 
+CURRENT_YEAR=$(date +%Y)
+
 Queries to run:
-1. "best frontend frameworks 2025 comparison production"
-2. "Python backend frameworks 2025 real-time support"
-3. "database for real-time applications 2025"
-4. "cloud deployment platforms 2025 Python applications"
+1. "best frontend frameworks ${CURRENT_YEAR} comparison production"
+2. "Python backend frameworks ${CURRENT_YEAR} real-time support"
+3. "database for real-time applications ${CURRENT_YEAR}"
+4. "cloud deployment platforms ${CURRENT_YEAR} Python applications"
 ```
 
 ### 3.2 Execute Research

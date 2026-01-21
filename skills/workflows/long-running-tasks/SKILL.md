@@ -140,6 +140,10 @@ npm test &
 # Use Ctrl+B to background running tasks
 ```
 
+Note:
+- Use background tasks only when the environment supports it.
+- In constrained environments, prefer foreground runs with explicit timeouts (e.g., `timeout 300 npm test`).
+
 ## Subagent Resume Pattern
 
 Patterns for efficiently utilizing subagents in long-running tasks.
