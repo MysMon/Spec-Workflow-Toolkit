@@ -11,7 +11,7 @@ description: |
   - Accessibility (a11y) implementation or review
 
   Trigger phrases: frontend, UI, component, React, Vue, Angular, Svelte, CSS, styling, responsive, accessibility, client-side
-model: inherit
+model: sonnet
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
 skills: stack-detector, code-quality, subagent-contract, insight-recording

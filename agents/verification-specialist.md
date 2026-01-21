@@ -13,8 +13,9 @@ description: |
   Trigger phrases: verify, fact-check, validate findings, confirm references, cross-reference, check accuracy
 model: sonnet
 tools: Read, Glob, Grep
+disallowedTools: Write, Edit, Bash
 permissionMode: plan
-skills: subagent-contract
+skills: subagent-contract, insight-recording
 ---
 
 # Role: Verification Specialist

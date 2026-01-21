@@ -307,7 +307,7 @@ When chaining multiple AI agents:
 
 ### Subagent Circuit Breaker Thresholds
 
-Production-tested thresholds for autonomous agent loops (from Ralph for Claude Code):
+Production-tested thresholds for autonomous agent loops (from Claude Code engineering best practices):
 
 | Threshold | Value | Action |
 |-----------|-------|--------|

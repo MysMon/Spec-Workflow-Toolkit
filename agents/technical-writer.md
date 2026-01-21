@@ -13,7 +13,7 @@ model: sonnet
 tools: Read, Glob, Grep, Write, Edit
 disallowedTools: Bash
 permissionMode: acceptEdits
-skills: stack-detector, git-mastery, subagent-contract
+skills: stack-detector, git-mastery, subagent-contract, insight-recording
 ---
 
 # Role: Technical Writer
