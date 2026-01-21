@@ -4,16 +4,27 @@ argument-hint: "[workspace-id | list]"
 allowed-tools: Read, Write, Edit, AskUserQuestion, Bash, Glob
 ---
 
-# /review-insights - Insight Review Workflow
+# /review-insights - Insight Review Workflow (v3.0)
 
 Review insights captured during development and decide where to apply them. Each insight is processed interactively, one by one, with user confirmation.
 
-## Design Principles
+## Architecture (v3.0 - Folder-Based)
 
-1. **User-driven**: Every decision requires explicit user approval
-2. **One at a time**: Process insights individually to ensure thoughtful review
-3. **Workspace isolation**: Each workspace has its own pending insights
-4. **Graduated destinations**: From workspace-local to project-wide rules
+```
+.claude/workspaces/{id}/insights/
+├── pending/          # New insights (one JSON file per insight)
+│   ├── INS-xxx.json
+│   └── INS-yyy.json
+├── applied/          # Applied to CLAUDE.md or rules
+├── rejected/         # Rejected by user
+└── archive/          # Old insights for reference
+```
+
+**Benefits:**
+- No file locking needed (each insight is a separate file)
+- Concurrent capture and review without conflicts
+- Easy cleanup (just move/delete files)
+- Partial failure resilience
 
 ---
 
@@ -43,15 +54,24 @@ Review insights captured during development and decide where to apply them. Each
 
 ### Phase 1: Load Pending Insights
 
-**Goal:** Identify workspace and load pending insights.
+**Goal:** Identify workspace and load pending insights from the folder.
 
 **If argument is "list":**
 
-Use the Read tool to enumerate `.claude/workspaces/*/insights/pending.json` files and count pending insights in each. For each workspace directory found:
+Enumerate workspace directories and count pending insights:
 
-1. Read the `pending.json` file using the Read tool
-2. Parse the JSON and count entries with `status: "pending"`
-3. Display workspaces with count > 0
+```bash
+# List all workspaces with pending counts
+for dir in .claude/workspaces/*/insights/pending; do
+    if [ -d "$dir" ]; then
+        count=$(find "$dir" -name "*.json" -type f | wc -l)
+        if [ "$count" -gt 0 ]; then
+            workspace=$(basename "$(dirname "$(dirname "$dir")")")
+            echo "$workspace: $count pending"
+        fi
+    fi
+done
+```
 
 Display summary and exit.
 
@@ -74,10 +94,11 @@ Determine current workspace ID using the same logic as `workspace_utils.sh`:
 **Load pending insights:**
 
 ```bash
-PENDING_FILE=".claude/workspaces/${WORKSPACE_ID}/insights/pending.json"
+PENDING_DIR=".claude/workspaces/${WORKSPACE_ID}/insights/pending"
 ```
 
-Read the file and filter for `status: "pending"`.
+Use Glob or find to list all `.json` files in the pending directory.
+Read each file and collect insight objects.
 
 **If no pending insights:**
 
@@ -93,7 +114,13 @@ Exit.
 
 **Goal:** Process each insight one by one with user decisions.
 
-**For each pending insight (process one at a time):**
+**For each pending insight file (process one at a time):**
+
+**Read the insight file:**
+
+```bash
+INSIGHT_FILE=".claude/workspaces/${WORKSPACE_ID}/insights/pending/INS-xxx.json"
+```
 
 **Display the insight:**
 
@@ -104,6 +131,7 @@ Exit.
 **ID**: {insight.id}
 **Captured**: {insight.timestamp}
 **Source**: {insight.source}
+**Category**: {insight.category}
 
 ### Content
 {insight.content}
@@ -160,15 +188,23 @@ Options:
 
 **If "Approve: Keep in workspace only":**
 
-Move to `.claude/workspaces/{id}/insights/approved.json`
+Move file from `pending/` to `applied/`:
+```bash
+mv ".claude/workspaces/${WORKSPACE_ID}/insights/pending/INS-xxx.json" \
+   ".claude/workspaces/${WORKSPACE_ID}/insights/applied/"
+```
 
 **If "Skip for now":**
 
-Leave status as "pending", continue to next.
+Leave file in `pending/`, continue to next.
 
 **If "Reject":**
 
-Update status to "rejected" or move to archive.
+Move file from `pending/` to `rejected/`:
+```bash
+mv ".claude/workspaces/${WORKSPACE_ID}/insights/pending/INS-xxx.json" \
+   ".claude/workspaces/${WORKSPACE_ID}/insights/rejected/"
+```
 
 ### Phase 3: Apply Approved Insights
 
@@ -183,7 +219,7 @@ Update status to "rejected" or move to archive.
    - L2: `- X should Y` or `- By default, do Z`
    - L3: `- Consider X` or `- Prefer Y when Z`
 4. Append to section
-5. Update insight status to "applied"
+5. Move insight file to `applied/`
 
 **For .claude/rules/ additions:**
 
@@ -198,17 +234,11 @@ Update status to "rejected" or move to archive.
 
    ```
 3. Append formatted insight
-4. Update insight status to "applied"
+4. Move insight file to `applied/`
 
 **For workspace-only:**
 
-1. Create/update `.claude/workspaces/{id}/insights/approved.json`
-2. Move insight from pending to approved
-3. Update status to "workspace-approved"
-
-**Update pending.json:**
-
-Remove applied/rejected insights or update their status.
+File is already moved to `applied/` during Phase 2.
 
 ### Phase 4: Summary Report
 
@@ -223,9 +253,9 @@ Remove applied/rejected insights or update their status.
 |---|---------|----------|-------------|
 | 1 | [first 50 chars...] | Approved | CLAUDE.md (L2) |
 | 2 | [first 50 chars...] | Approved | .claude/rules/hooks.md |
-| 3 | [first 50 chars...] | Workspace | approved.json |
-| 4 | [first 50 chars...] | Skipped | - |
-| 5 | [first 50 chars...] | Rejected | - |
+| 3 | [first 50 chars...] | Workspace | applied/ |
+| 4 | [first 50 chars...] | Skipped | pending/ |
+| 5 | [first 50 chars...] | Rejected | rejected/ |
 
 ### Statistics
 
@@ -245,6 +275,25 @@ Remove applied/rejected insights or update their status.
 
 - **Pending in this workspace**: 1 (skipped)
 - **Run `/review-insights` again to process skipped items**
+```
+
+---
+
+## Insight File Format (v3.0)
+
+Each insight is a separate JSON file:
+
+```json
+{
+  "id": "INS-20250121143000-a1b2c3d4",
+  "timestamp": "2025-01-21T14:30:00Z",
+  "category": "pattern",
+  "content": "Error handling uses AppError class with error codes",
+  "source": "code-explorer",
+  "status": "pending",
+  "contentHash": "a1b2c3d4e5f6g7h8",
+  "workspaceId": "main_a1b2c3d4"
+}
 ```
 
 ---
@@ -280,7 +329,7 @@ INSIGHT: PreToolUse hooks with exit 1 are non-blocking - use JSON decision contr
 - Default recommendation is ".claude/rules/" (prevents CLAUDE.md bloat)
 - Default rule level is L2 (Soft Rule) for most insights
 - Process insights in chronological order (oldest first)
-- Show insight source (which agent/hook captured it)
+- Show insight source (which agent captured it)
 
 ## Guidelines (L3)
 

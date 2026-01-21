@@ -503,20 +503,23 @@ exit 0
 
 ### Insight Tracking System
 
-The insight tracking system automatically captures valuable discoveries during development and allows users to review and apply them.
+The insight tracking system (v2.0) automatically captures valuable discoveries during development and allows users to review and apply them. It features production-grade robustness with atomic writes, file locking, code block filtering, and deduplication.
 
 **Architecture:**
 
 ```
 SubagentStop
-    ↓ (marker detection)
-insight_capture.sh
-    ↓ (JSON append)
+    ↓ (metadata with transcript_path)
+insight_capture.sh (v2.0)
+    ↓ (code block filtering, state machine parsing)
+    ↓ (file locking, atomic write, deduplication)
 .claude/workspaces/{id}/insights/pending.json
     ↓ (/review-insights command)
 User Decision
     ↓ (apply)
 CLAUDE.md / .claude/rules/ / workspace
+    ↓ (archive processed)
+.claude/workspaces/{id}/insights/archive.json
 ```
 
 **Skill Reference:**
@@ -535,45 +538,67 @@ Subagents output these markers when they discover something worth recording:
 | `PATTERN:` | Reusable pattern discovered | `PATTERN: Error handling always uses AppError class - see src/errors/` |
 | `ANTIPATTERN:` | Approach to avoid | `ANTIPATTERN: Direct database queries in controllers - use services` |
 
-**insight_capture.sh Implementation:**
+**insight_capture.sh Implementation (v2.0):**
 
 ```bash
 #!/bin/bash
-# SubagentStop hook - extracts markers from subagent transcript and appends to pending.json
-# See hooks/insight_capture.sh for full implementation
-
-# Hook input is metadata JSON with transcript_path (NOT the subagent output directly)
-INPUT=$(cat)  # {"session_id": "...", "transcript_path": "~/.claude/.../xxx.jsonl", ...}
-
-# Python script:
-# 1. Parses metadata JSON to get transcript_path
-# 2. Reads JSONL transcript file
-# 3. Extracts assistant message content
-# 4. Finds insight markers (PATTERN:, LEARNED:, etc.)
-# 5. Appends to pending.json with file locking and atomic write
+# SubagentStop hook - extracts markers from subagent transcript
+# VERSION: 2.0.0 - Production-grade implementation
 
 # Key features:
-# - File locking (fcntl.flock) for concurrent access safety
-# - Atomic writes (temp file + rename) to prevent corruption
-# - UUID-based IDs to prevent collisions
-# - Multiline insight support
+# - Initialization inside lock (no race condition)
+# - Code block filtering (prevents false matches in ```...```)
+# - Inline code filtering (prevents false matches in `...`)
+# - State machine parsing (ReDoS-safe, O(n) time)
+# - Content length limits (10,000 chars max)
+# - Deduplication by content hash
+# - Path validation for security
+# - Non-blocking lock with 5-second timeout
+# - Atomic writes (temp + fsync + os.replace)
+# - Structured logging to capture.log
+# - Transcript size limits (100MB max)
+
+# Processing flow:
+# 1. Validate transcript_path (security check)
+# 2. Stream JSONL, extract assistant messages
+# 3. Filter code blocks and inline code
+# 4. Parse with state machine (not regex)
+# 5. Deduplicate by content hash
+# 6. Acquire lock with timeout
+# 7. Initialize OR read pending.json (inside lock)
+# 8. Atomic write (temp + fsync + rename)
+# 9. Release lock
 ```
 
-**pending.json Schema:**
+**Constraints (v2.0):**
+
+| Constraint | Value | Rationale |
+|------------|-------|-----------|
+| Min content length | 11 chars | Filters noise |
+| Max content length | 10,000 chars | Prevents storage bloat |
+| Max transcript size | 100MB | Memory protection |
+| Max pending.json size | 10MB | Performance protection |
+| Lock timeout | 5 seconds | Prevents deadlocks |
+| Deduplication | By MD5 hash | Identical insights captured once |
+
+**pending.json Schema (v2.0):**
 
 ```json
 {
   "workspaceId": "main_a1b2c3d4",
   "created": "2025-01-21T10:00:00Z",
   "lastUpdated": "2025-01-21T14:30:00Z",
+  "version": "2.0",
+  "totalCaptured": 42,
   "insights": [
     {
-      "id": "INS-20250121143000123",
+      "id": "INS-20250121143000-a1b2c3d4",
       "timestamp": "2025-01-21T14:30:00Z",
       "category": "pattern",
       "content": "Error handling uses AppError class with error codes",
       "source": "code-explorer",
-      "status": "pending"
+      "status": "pending",
+      "contentHash": "a1b2c3d4e5f6"
     }
   ]
 }
@@ -588,12 +613,22 @@ INPUT=$(cat)  # {"session_id": "...", "transcript_path": "~/.claude/.../xxx.json
 | `workspace-approved` | Kept in workspace only |
 | `rejected` | Rejected by user |
 
+**Observability:**
+
+| File | Purpose |
+|------|---------|
+| `pending.json` | Active insights awaiting review |
+| `capture.log` | JSONL log of capture operations |
+| `archive.json` | Processed insights (applied/rejected) |
+
 **Design Principles:**
 
 1. **Explicit markers only**: No automatic inference - subagents must explicitly mark insights
 2. **Workspace isolation**: Each workspace has its own pending.json
 3. **User-driven evaluation**: `/review-insights` processes one insight at a time with AskUserQuestion
 4. **Graduated destinations**: workspace → .claude/rules/ → CLAUDE.md
+5. **Code block safety**: Markers inside code blocks are ignored
+6. **Defense in depth**: Path validation, size limits, timeout protection
 
 **Adding Insight Recording to Agents:**
 

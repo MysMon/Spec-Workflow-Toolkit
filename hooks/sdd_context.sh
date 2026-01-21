@@ -372,7 +372,7 @@ if [ -n "$AVAILABLE_WORKSPACES" ]; then
     fi
 fi
 
-# --- Check for Pending Insights ---
+# --- Check for Pending Insights (v3.0 folder-based) ---
 if command -v count_pending_insights &> /dev/null && [ -n "$WORKSPACE_ID" ]; then
     PENDING_COUNT=$(count_pending_insights "$WORKSPACE_ID")
     if [ "$PENDING_COUNT" -gt 0 ]; then
@@ -383,27 +383,32 @@ if command -v count_pending_insights &> /dev/null && [ -n "$WORKSPACE_ID" ]; the
         echo ""
         echo "Run \`/review-insights\` to evaluate and apply them."
         echo ""
-        # Show preview of first few insights
-        PENDING_FILE=$(get_pending_insights_file "$WORKSPACE_ID")
-        if [ -f "$PENDING_FILE" ] && command -v python3 &> /dev/null; then
-            PREVIEW=$(PENDING_FILE_VAR="$PENDING_FILE" python3 << 'PYEOF'
+        # Show preview of first few insights (v3.0: read from individual files)
+        PENDING_DIR=$(get_pending_insights_dir "$WORKSPACE_ID")
+        if [ -d "$PENDING_DIR" ] && command -v python3 &> /dev/null; then
+            PREVIEW=$(PENDING_DIR_VAR="$PENDING_DIR" python3 << 'PYEOF'
 import json
 import os
+import glob
 
-pending_file = os.environ.get('PENDING_FILE_VAR', '')
-if not pending_file:
+pending_dir = os.environ.get('PENDING_DIR_VAR', '')
+if not pending_dir or not os.path.isdir(pending_dir):
     exit(0)
 
 try:
-    with open(pending_file, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-    insights = [i for i in data.get('insights', []) if i.get('status') == 'pending'][:3]
-    for i, ins in enumerate(insights, 1):
-        content = ins.get('content', '')[:60]
-        if len(ins.get('content', '')) > 60:
-            content += '...'
-        category = ins.get('category', 'insight')
-        print(f"  {i}. [{category}] {content}")
+    # Get up to 3 most recent insight files (sorted by filename which includes timestamp)
+    files = sorted(glob.glob(os.path.join(pending_dir, '*.json')), reverse=True)[:3]
+    for i, filepath in enumerate(files, 1):
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                ins = json.load(f)
+            content = ins.get('content', '')[:60]
+            if len(ins.get('content', '')) > 60:
+                content += '...'
+            category = ins.get('category', 'insight')
+            print(f"  {i}. [{category}] {content}")
+        except (json.JSONDecodeError, IOError):
+            continue  # Skip corrupt files
 except Exception:
     pass  # Silent fail for preview display is acceptable
 PYEOF
