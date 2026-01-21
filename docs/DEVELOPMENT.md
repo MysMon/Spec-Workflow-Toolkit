@@ -519,6 +519,10 @@ User Decision
 CLAUDE.md / .claude/rules/ / workspace
 ```
 
+**Skill Reference:**
+
+The `insight-recording` skill (`skills/workflows/insight-recording/SKILL.md`) provides the standardized protocol that agents follow. Agents with this skill in their `skills:` frontmatter will output markers when they discover valuable insights.
+
 **Insight Markers:**
 
 Subagents output these markers when they discover something worth recording:
@@ -582,24 +586,47 @@ PENDING_FILE=".claude/workspaces/$WORKSPACE_ID/insights/pending.json"
 3. **User-driven evaluation**: `/review-insights` processes one insight at a time with AskUserQuestion
 4. **Graduated destinations**: workspace → .claude/rules/ → CLAUDE.md
 
-**Adding Insight Markers to Agents:**
+**Adding Insight Recording to Agents:**
 
-When creating or updating agents, add the "Recording Insights" section:
+To enable insight recording, add `insight-recording` to the agent's `skills:` frontmatter and add a brief "Recording Insights" section referencing the skill:
+
+```yaml
+skills: stack-detector, subagent-contract, insight-recording
+```
 
 ```markdown
-## Recording Insights (Optional)
+## Recording Insights
 
-When you discover something valuable for future reference, output it with a marker:
-
-| Marker | Use When |
-|--------|----------|
-| `PATTERN:` | Discovered a reusable pattern |
-| `ANTIPATTERN:` | Found an approach to avoid |
-| `DECISION:` | Made an important decision with rationale |
-| `INSIGHT:` | General learning about the codebase |
-
-Only use markers for insights genuinely valuable for future work.
+Use `insight-recording` skill markers (PATTERN:, LEARNED:, INSIGHT:) when discovering patterns. Insights are automatically captured for later review.
 ```
+
+**Agent Insight Recording Coverage:**
+
+| Agent | Has Insight Recording | Rationale |
+|-------|----------------------|-----------|
+| **Exploration & Architecture** |||
+| code-explorer | Yes | Primary exploration role, discovers patterns frequently |
+| code-architect | Yes | Design decisions and pattern analysis |
+| system-architect | Yes | High-level architectural decisions (ADRs) |
+| **Review & Audit** |||
+| security-auditor | Yes | Security patterns and vulnerabilities |
+| qa-engineer | Yes | Testing patterns and quality insights |
+| **Modernization & Operations** |||
+| legacy-modernizer | Yes | Legacy patterns, modernization decisions |
+| devops-sre | Yes | Infrastructure patterns, operational insights |
+| **Implementation** |||
+| frontend-specialist | No | Focus on output (code), not exploration |
+| backend-specialist | No | Focus on output (code), not exploration |
+| **Non-Technical** |||
+| technical-writer | No | Produces documentation, not code insights |
+| ui-ux-designer | No | Visual design focus |
+| product-manager | No | Requirements focus, not code-level |
+
+**Why Some Agents Don't Have Insight Recording:**
+
+Implementation specialists (frontend-specialist, backend-specialist) focus on producing code rather than exploring and discovering patterns. While they may encounter patterns, their primary output is implementation, not insight discovery.
+
+Non-technical agents (technical-writer, ui-ux-designer, product-manager) operate at a different abstraction level and don't typically produce insights about code patterns.
 
 ### Hook Scripting Security
 

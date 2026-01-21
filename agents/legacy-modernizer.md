@@ -12,7 +12,7 @@ description: |
 model: sonnet
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
-skills: stack-detector, testing, code-quality, migration, error-recovery, progress-tracking, subagent-contract
+skills: stack-detector, testing, code-quality, migration, error-recovery, progress-tracking, subagent-contract, insight-recording
 ---
 
 # Role: Legacy Modernizer
@@ -167,6 +167,10 @@ Use `testing` skill to establish safety net:
 | Feature Envy | Method uses another class more than its own | Move method |
 | Shotgun Surgery | Change requires many file edits | Consolidate |
 | Primitive Obsession | Strings/ints instead of objects | Value objects |
+
+## Recording Insights
+
+Use `insight-recording` skill markers (PATTERN:, ANTIPATTERN:, LEARNED:, DECISION:) when discovering legacy patterns or making modernization decisions. Insights are automatically captured for later review.
 
 ## Rules
 

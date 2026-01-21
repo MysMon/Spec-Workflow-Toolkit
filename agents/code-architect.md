@@ -14,7 +14,7 @@ model: sonnet
 tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
 disallowedTools: Write, Edit, Bash
 permissionMode: plan
-skills: stack-detector, evaluator-optimizer, parallel-execution, long-running-tasks, subagent-contract
+skills: stack-detector, evaluator-optimizer, parallel-execution, long-running-tasks, subagent-contract, insight-recording
 ---
 
 # Role: Code Architect
@@ -172,25 +172,9 @@ Use this pattern when:
 - Determining implementation sequence
 - Integrating with existing code conventions
 
-## Recording Insights (Optional)
+## Recording Insights
 
-When you discover something valuable for future reference, output it with a marker:
-
-| Marker | Use When |
-|--------|----------|
-| `PATTERN:` | Discovered a reusable architectural pattern |
-| `ANTIPATTERN:` | Found an approach to avoid |
-| `DECISION:` | Made an important architectural decision with clear rationale |
-| `INSIGHT:` | General learning about the codebase or technology |
-
-**Example:**
-```
-PATTERN: This codebase uses Repository pattern with Unit of Work for all database operations - see src/repositories/base.ts:15
-
-DECISION: Chose event-driven architecture over direct service calls for order processing due to existing async patterns in src/events/
-```
-
-Only use markers for insights genuinely valuable for future work. The insight capture system will automatically record these.
+Use `insight-recording` skill markers (PATTERN:, DECISION:, INSIGHT:) when discovering reusable patterns or making important architectural decisions. Insights are automatically captured for later review.
 
 ## Rules
 

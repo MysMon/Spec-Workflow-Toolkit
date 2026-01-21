@@ -16,7 +16,7 @@ model: sonnet
 tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
 disallowedTools: Write, Edit, Bash
 permissionMode: plan
-skills: subagent-contract
+skills: subagent-contract, insight-recording
 ---
 
 # Role: Code Explorer
@@ -223,25 +223,9 @@ Your exploration must include:
 6. **Key Files List**: 5-10 files the orchestrator should read for deep understanding
 7. **Observations**: Strengths and improvement opportunities
 
-## Recording Insights (Optional)
+## Recording Insights
 
-When you discover something valuable for future reference, output it with a marker:
-
-| Marker | Use When |
-|--------|----------|
-| `PATTERN:` | Discovered a reusable code pattern or convention |
-| `ANTIPATTERN:` | Found problematic code or an approach to avoid |
-| `LEARNED:` | Learned something unexpected about the codebase |
-| `INSIGHT:` | General observation worth remembering |
-
-**Example:**
-```
-PATTERN: Error handling in this codebase always uses custom AppError class with error codes - see src/errors/AppError.ts:8
-
-LEARNED: The legacy auth module at src/auth/legacy/ is deprecated but still used by admin panel - migration planned in Q2
-```
-
-Only use markers for insights genuinely valuable for future work. The insight capture system will automatically record these.
+Use `insight-recording` skill markers (PATTERN:, LEARNED:, INSIGHT:) when discovering patterns or learning something unexpected about the codebase. Insights are automatically captured for later review.
 
 ## Rules
 

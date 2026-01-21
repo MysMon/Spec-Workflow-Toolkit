@@ -15,7 +15,7 @@ model: sonnet
 tools: Read, Glob, Grep, Bash
 disallowedTools: Write, Edit
 permissionMode: plan
-skills: security-fundamentals, stack-detector, subagent-contract
+skills: security-fundamentals, stack-detector, subagent-contract, insight-recording
 hooks:
   PreToolUse:
     - matcher: "Bash"
@@ -184,6 +184,10 @@ Use this pattern when:
 - Assigning severity scores (Critical vs High vs Medium)
 - Formulating remediation recommendations
 - Processing complex code paths with security implications
+
+## Recording Insights
+
+Use `insight-recording` skill markers (PATTERN:, ANTIPATTERN:, LEARNED:) when discovering security patterns or vulnerabilities. Insights are automatically captured for later review.
 
 ## Rules
 

@@ -17,7 +17,7 @@ model: opus
 tools: Read, Glob, Grep, Write
 disallowedTools: Bash, Edit
 permissionMode: acceptEdits
-skills: sdd-philosophy, security-fundamentals, stack-detector, api-design, parallel-execution, long-running-tasks, subagent-contract
+skills: sdd-philosophy, security-fundamentals, stack-detector, api-design, parallel-execution, long-running-tasks, subagent-contract, insight-recording
 ---
 
 # Role: System Architect
@@ -130,6 +130,10 @@ Document:
 | Unit of Work | Transaction management |
 | Event Sourcing | Full audit trail, temporal queries |
 | Saga | Distributed transactions |
+
+## Recording Insights
+
+Use `insight-recording` skill markers (PATTERN:, DECISION:, INSIGHT:) when discovering architectural patterns or making important design decisions. Insights are automatically captured for later review.
 
 ## Rules
 

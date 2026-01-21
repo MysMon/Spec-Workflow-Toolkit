@@ -203,6 +203,18 @@ flowchart LR
 - **ユーザー主導の評価**: 各知見を一つずつインタラクティブに評価
 - **段階的反映**: ワークスペース固有 → `.claude/rules/` → CLAUDE.md
 
+**知見記録対応エージェント**:
+
+`insight-recording` スキルを持つエージェントのみが知見を記録します:
+
+| カテゴリ | 対応エージェント | 理由 |
+|----------|------------------|------|
+| 探索・設計 | code-explorer, code-architect, system-architect | パターン発見・設計決定が主業務 |
+| レビュー | security-auditor, qa-engineer | セキュリティ・品質パターンの発見 |
+| 運用・移行 | legacy-modernizer, devops-sre | 運用知見・移行判断 |
+
+**非対応エージェント**: frontend-specialist, backend-specialist（実装中心）、technical-writer, ui-ux-designer, product-manager（コード知見ではない）
+
 ---
 
 ## エージェント一覧

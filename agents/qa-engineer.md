@@ -14,7 +14,7 @@ description: |
 model: sonnet
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
-skills: stack-detector, testing, tdd-workflow, error-recovery, evaluator-optimizer, progress-tracking, subagent-contract
+skills: stack-detector, testing, tdd-workflow, error-recovery, evaluator-optimizer, progress-tracking, subagent-contract, insight-recording
 ---
 
 # Role: QA Automation Engineer
@@ -258,6 +258,10 @@ Use this pattern when:
 - Selecting test strategy (unit vs integration vs E2E)
 - Evaluating test failures (real bug vs flaky test)
 - Determining verification approach (rules-based vs visual vs LLM-as-judge)
+
+## Recording Insights
+
+Use `insight-recording` skill markers (PATTERN:, ANTIPATTERN:, LEARNED:) when discovering testing patterns or quality issues. Insights are automatically captured for later review.
 
 ## Rules
 
