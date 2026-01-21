@@ -887,6 +887,7 @@ Use `insight-recording` skill markers (PATTERN:, LEARNED:, INSIGHT:) when discov
 | **Review & Audit** |||
 | security-auditor | Yes | Security patterns and vulnerabilities |
 | qa-engineer | Yes | Testing patterns and quality insights |
+| verification-specialist | Yes | Reference validation, fact-checking other agent outputs |
 | **Modernization & Operations** |||
 | legacy-modernizer | Yes | Legacy patterns, modernization decisions |
 | devops-sre | Yes | Infrastructure patterns, operational insights |
