@@ -6,14 +6,14 @@ Users receive context via the `SessionStart` hook, not this file.
 ## What This Plugin Does
 
 A Claude Code plugin implementing Anthropic's 6 composable patterns for long-running autonomous work:
-7-phase SDD workflow, 12 specialized subagents, TDD integration, evaluator-optimizer loops, checkpoint-based error recovery, and progress tracking.
+7-phase SDD workflow, 13 specialized subagents, TDD integration, evaluator-optimizer loops, checkpoint-based error recovery, and progress tracking.
 
 ## Project Structure
 
 ```
 .claude-plugin/plugin.json   # Plugin metadata
 commands/                    # 14 slash commands
-agents/                      # 12 subagent definitions
+agents/                      # 13 subagent definitions
 skills/                      # 21 skill definitions
   core/                      #   5 core skills (subagent-contract, sdd-philosophy, security-fundamentals, interview, bounded-autonomy)
   detection/                 #   1 detection skill (stack-detector)

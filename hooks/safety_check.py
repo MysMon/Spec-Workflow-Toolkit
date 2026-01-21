@@ -184,6 +184,13 @@ DANGEROUS_PATTERNS = [
     r"echo\s+-e\s+.*\\\\x.*\|\s*(sh|bash)",
     r"printf\s+.*\\\\x.*\|\s*(sh|bash)",
 
+    # Octal encoding bypass (e.g., $'\057bin\057rm' = /bin/rm)
+    r"\$'\\[0-7]{3}",
+
+    # Unicode encoding bypass (e.g., $'\u002f' or $'\U0000002f')
+    r"\$'\\u[0-9a-fA-F]+",
+    r"\$'\\U[0-9a-fA-F]+",
+
     # Python/Perl/Ruby one-liner execution with dangerous modules
     r"python[3]?\s+-c\s+.*__import__.*subprocess",
     r"perl\s+-e\s+.*system\s*\(",
@@ -199,6 +206,40 @@ DANGEROUS_PATTERNS = [
     # Download and execute in one line (additional patterns)
     r"(wget|curl)\s+.*-O\s+-\s*\|\s*(sh|bash)",
     r"(wget|curl)\s+.*--output-document=-\s*\|\s*(sh|bash)",
+
+    # Variable expansion obfuscation - rm with suspicious variables that could be /
+    # Block: rm -rf $P, rm -rf ${VAR}, etc. where variable could contain dangerous paths
+    r"rm\s+-rf\s+\$[A-Z_]+\s*$",
+    r"rm\s+-rf\s+\$\{[A-Z_]+\}",
+
+    # Command substitution in strings - potential code injection
+    # Block: strings containing $(...) which executes commands
+    r'["\'][^"\']*\$\([^)]+\)[^"\']*["\']',
+    # Block: backticks inside quoted strings (legacy command substitution)
+    r'["\'][^"\']*`[^`]+`[^"\']*["\']',
+
+    # Additional dangerous commands - in-place file editing on system paths
+    r"sed\s+-i[^\s]*\s+.*\s+/(etc|usr|bin|sbin|lib|boot|sys|proc)/",
+    r"sed\s+--in-place[^\s]*\s+.*\s+/(etc|usr|bin|sbin|lib|boot|sys|proc)/",
+
+    # tee writing to system paths (can bypass redirects blocked by shells)
+    r"tee\s+/(etc|usr|bin|sbin|lib|boot|sys|proc|root)/",
+    r"tee\s+-a\s+/(etc|usr|bin|sbin|lib|boot|sys|proc|root)/",
+
+    # dd writing to any device (broader than just of=/dev/)
+    r"dd\s+.*\bof=/dev/",
+    r"dd\s+.*\bof=/(etc|usr|bin|sbin|lib|boot)/",
+
+    # systemctl service manipulation (privilege escalation, persistence)
+    r"systemctl\s+(enable|disable|start|stop|restart|mask)\s+",
+
+    # chmod dangerous patterns - recursive or overly permissive
+    r"chmod\s+-R\s+",
+    r"chmod\s+[0-7]*7[0-7]*\s+/(etc|usr|bin|sbin|lib|boot|sys|var)/",
+
+    # chown on system directories (privilege escalation)
+    r"chown\s+.*\s+/(etc|usr|bin|sbin|lib|boot|sys|proc)/",
+    r"chown\s+-R\s+",
 ]
 
 # Transformable patterns - commands that can be made safer via modification

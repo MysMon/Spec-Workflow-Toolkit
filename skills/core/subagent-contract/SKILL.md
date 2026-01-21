@@ -442,6 +442,18 @@ All subagents must complete this checklist before returning results:
 - [ ] **Evidence Documented**: Each finding has supporting evidence cited
 ```
 
+### Confidence Breakdown (L1 Required for confidence >= 75)
+
+Report confidence as two components:
+- **verified_confidence**: Based on direct code evidence (file read, test output)
+- **inferred_confidence**: Based on pattern analysis and reasonable assumptions
+- **combined_confidence**: (verified + inferred) / 2
+
+Example:
+- verified_confidence: 90 (read the exact function, saw the bug)
+- inferred_confidence: 70 (similar pattern likely exists elsewhere)
+- combined_confidence: 80
+
 ### Confidence Justification (L2 - Required for Confidence >= 85)
 
 When reporting high confidence (85+), provide explicit justification:

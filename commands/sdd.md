@@ -92,6 +92,47 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 
 **Goal:** Understand what needs to be built and why.
 
+---
+
+#### CRITICAL: Progress File Initialization (L1 - MUST DO FIRST)
+
+**NEVER skip this step. The progress file MUST be created before ANY other Phase 1 work.**
+
+Before doing any discovery work, create the progress file:
+
+1. **Generate workspace ID**: Use format `{branch}_{path-hash}` (from SessionStart hook context)
+2. **Create directory**: `.claude/workspaces/{workspace-id}/`
+3. **Create progress file**: `.claude/workspaces/{workspace-id}/claude-progress.json`
+
+**Initial progress file structure:**
+```json
+{
+  "workspaceId": "{generated-workspace-id}",
+  "currentPhase": 1,
+  "phaseName": "Discovery",
+  "startedAt": "{ISO-8601-timestamp}",
+  "phases": {
+    "1": {"status": "in_progress", "startedAt": "{ISO-8601-timestamp}"},
+    "2": {"status": "pending"},
+    "3": {"status": "pending"},
+    "4": {"status": "pending"},
+    "5": {"status": "pending"},
+    "6": {"status": "pending"},
+    "7": {"status": "pending"}
+  }
+}
+```
+
+**Why this is L1 (Hard Rule):**
+- Enables session recovery if context is compacted or session restarts
+- Provides checkpoint for error recovery
+- Required by SessionStart hook to restore state
+- Other phases depend on this file existing
+
+**Verification:** After creating, read the file back to confirm it was written correctly.
+
+---
+
 If the user provided a feature description (`$ARGUMENTS`), analyze it first:
 - What problem is being solved?
 - Who are the target users?
@@ -370,6 +411,54 @@ Launch these review agents in parallel:
    Compare: Implementation vs docs/specs/[feature]-design.md
    Output: Deviations, missing pieces with file:line
 ```
+
+---
+
+#### Cross-Validation of File References
+
+**After parallel agents complete, validate all file:line references before scoring.**
+
+For each finding that includes a `file:line` reference:
+
+1. **Read the actual file** at the specified line
+2. **Verify the reference exists** - Check that:
+   - The file exists at the specified path
+   - The line number is within the file's range
+   - The code at that line matches what the finding describes
+3. **Handle mismatches:**
+
+| Validation Result | Action |
+|-------------------|--------|
+| File exists, line valid, code matches | Keep finding as-is |
+| File exists, line valid, code differs | Reduce confidence by 20, flag as `"verified": false` |
+| File exists, line out of range | Reduce confidence by 20, flag as `"verified": false` |
+| File does not exist | Reduce confidence by 20, flag as `"verified": false` |
+
+**Example cross-validation:**
+```
+Finding: "SQL injection vulnerability at src/api/users.ts:42"
+
+1. Read src/api/users.ts
+2. Check line 42 exists
+3. Verify line 42 contains SQL-related code matching the description
+4. If line 42 is actually a comment or unrelated code:
+   - Original confidence: 85
+   - Adjusted confidence: 65 (85 - 20)
+   - Add flag: "verified": false, "verificationNote": "Line 42 contains import statement, not SQL query"
+```
+
+**Why cross-validate:**
+- Agents may hallucinate line numbers
+- File may have changed since agent read it
+- Prevents false positives from wasting user time
+- Increases trust in high-confidence findings
+
+**Include verification status in findings output:**
+```markdown
+1. **[Issue Title]** - [Category] (Score: [N], Verified: [Yes/No])
+```
+
+---
 
 **Score each issue with Haiku agents** (same pattern as /code-review):
 
