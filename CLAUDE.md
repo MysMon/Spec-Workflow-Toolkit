@@ -64,7 +64,7 @@ YAML frontmatter fields:
 - Exit 2 = blocking error
 - Exit 1, 3, etc. = non-blocking error (tool may still execute!)
 
-**Registered hooks (7 event types, 10 handlers):**
+**Global hooks (7 event types, 8 handlers in hooks.json):**
 
 | Hook | Script | Purpose |
 |------|--------|---------|
@@ -78,6 +78,8 @@ YAML frontmatter fields:
 | SubagentStop | `verify_references.py` | Validate file:line references in subagent output |
 | Stop | `session_summary.sh` | Record session summary on exit |
 | SessionEnd | `session_cleanup.sh` | Clean up resources on session termination |
+
+**Agent-specific hooks:** Agents can define their own hooks in YAML frontmatter (e.g., `security-auditor.md` defines a stricter Bash validator). These run only when that agent is active. See `docs/DEVELOPMENT.md` "Component-Scoped Hooks" for details.
 
 See `docs/DEVELOPMENT.md` for full hook specification with code examples.
 

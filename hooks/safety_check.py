@@ -240,6 +240,19 @@ DANGEROUS_PATTERNS = [
     # chown on system directories (privilege escalation)
     r"chown\s+.*\s+/(etc|usr|bin|sbin|lib|boot|sys|proc)/",
     r"chown\s+-R\s+",
+
+    # Symlink attacks - creating symlinks to sensitive locations
+    # Block: ln -s targeting system directories or sensitive files
+    r"ln\s+-[sf]+\s+.*/etc/",
+    r"ln\s+-[sf]+\s+.*/root/",
+    r"ln\s+-[sf]+\s+.*/.ssh/",
+    r"ln\s+-[sf]+\s+/etc/",
+    r"ln\s+-[sf]+\s+/root/",
+    r"ln\s+-[sf]+\s+~/.ssh/",
+    # Block: creating symlink then reading/writing through it (TOCTOU pattern)
+    r"ln\s+-[sf]+\s+.*&&\s*(cat|head|tail|less|more|vim|nano|echo|tee)\s+",
+    # Block: force symlink overwrite to existing files
+    r"ln\s+-sf\s+.*\s+\./[^&|;]+$",
 ]
 
 # Transformable patterns - commands that can be made safer via modification
