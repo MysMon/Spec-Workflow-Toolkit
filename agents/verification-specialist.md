@@ -11,7 +11,7 @@ description: |
   - When consolidating reports from parallel agent executions
 
   Trigger phrases: verify, fact-check, validate findings, confirm references, cross-reference, check accuracy
-model: haiku
+model: sonnet
 tools: Read, Glob, Grep
 permissionMode: plan
 skills: subagent-contract

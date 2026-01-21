@@ -81,6 +81,7 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 | `backend-specialist` | **inherit** | API implementation (uses your session's model) |
 | `qa-engineer` | Sonnet | Testing and quality review |
 | `security-auditor` | Sonnet | Security review (read-only) |
+| `verification-specialist` | Sonnet | Reference validation, cross-checking findings from parallel agents |
 
 **Model Selection Strategy**:
 - **Opus**: Complex reasoning, architectural decisions, requirements elicitation (system-architect, product-manager)
@@ -388,7 +389,7 @@ Load the `progress-tracking` skill for detailed schemas. Update both TodoWrite a
 
 **Goal:** Ensure code meets quality, security, and spec requirements.
 
-**LAUNCH 3 PARALLEL REVIEW AGENTS (Sonnet):**
+**LAUNCH 4 PARALLEL REVIEW AGENTS (Sonnet):**
 
 ```
 Launch these review agents in parallel:
@@ -410,44 +411,45 @@ Launch these review agents in parallel:
    Thoroughness: quick
    Compare: Implementation vs docs/specs/[feature]-design.md
    Output: Deviations, missing pieces with file:line
+
+4. verification-specialist agent
+   Focus: Validate file:line references and code quotes from other agents
+   Task: Cross-check findings from qa-engineer, security-auditor, code-explorer for accuracy
+   Output: Verification report with VERIFIED/PARTIAL/UNVERIFIED status for each finding
 ```
 
 ---
 
 #### Cross-Validation of File References
 
-**After parallel agents complete, validate all file:line references before scoring.**
+**After parallel agents complete, review the verification-specialist's report before scoring.**
 
-For each finding that includes a `file:line` reference:
+The verification-specialist agent (launched in parallel above) handles all file:line reference validation. This preserves the orchestrator rule of "NEVER read more than 3 files directly."
 
-1. **Read the actual file** at the specified line
-2. **Verify the reference exists** - Check that:
-   - The file exists at the specified path
-   - The line number is within the file's range
-   - The code at that line matches what the finding describes
-3. **Handle mismatches:**
+**Review the verification-specialist's output for each finding:**
 
-| Validation Result | Action |
-|-------------------|--------|
-| File exists, line valid, code matches | Keep finding as-is |
-| File exists, line valid, code differs | Reduce confidence by 20, flag as `"verified": false` |
-| File exists, line out of range | Reduce confidence by 20, flag as `"verified": false` |
-| File does not exist | Reduce confidence by 20, flag as `"verified": false` |
+| Verification Status | Action |
+|---------------------|--------|
+| VERIFIED | Keep finding as-is, confidence unchanged |
+| PARTIAL | Reduce confidence by 10, note the discrepancy |
+| UNVERIFIED | Reduce confidence by 20, flag as `"verified": false` |
 
-**Example cross-validation:**
+**Example of processing verification report:**
 ```
-Finding: "SQL injection vulnerability at src/api/users.ts:42"
+verification-specialist output:
+- Finding #1 (security-auditor): SQL injection at src/api/users.ts:42
+  Status: UNVERIFIED
+  Note: Line 42 contains import statement, not SQL query. Actual query at line 87.
 
-1. Read src/api/users.ts
-2. Check line 42 exists
-3. Verify line 42 contains SQL-related code matching the description
-4. If line 42 is actually a comment or unrelated code:
-   - Original confidence: 85
-   - Adjusted confidence: 65 (85 - 20)
-   - Add flag: "verified": false, "verificationNote": "Line 42 contains import statement, not SQL query"
+Orchestrator action:
+- Original confidence: 85
+- Adjusted confidence: 65 (85 - 20)
+- Update reference to correct line if provided
+- Add flag: "verified": false, "verificationNote": "Reference corrected to line 87"
 ```
 
-**Why cross-validate:**
+**Why delegate cross-validation to verification-specialist:**
+- Preserves orchestrator context (no bulk file reading)
 - Agents may hallucinate line numbers
 - File may have changed since agent read it
 - Prevents false positives from wasting user time

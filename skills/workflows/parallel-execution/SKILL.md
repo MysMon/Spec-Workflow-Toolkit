@@ -65,6 +65,10 @@ Launch these agents in parallel:
 3. code-quality skill
    Task: Lint and style check for [files]
    Output: Quality issues and fixes
+
+4. verification-specialist agent
+   Task: Validate findings from other parallel agents
+   Output: Verification status (VERIFIED/PARTIAL/UNVERIFIED) with file:line cross-checks
 ```
 
 ### Execution
@@ -83,15 +87,18 @@ After parallel completion:
 ## Combined Review Results
 
 ### Critical Issues (must fix)
-- [From security-auditor] SQL injection in auth.ts:45 (confidence: 95)
-- [From qa-engineer] Missing test for payment flow (confidence: 92)
+- [From security-auditor] SQL injection in auth.ts:45 (confidence: 95) [VERIFIED]
+- [From qa-engineer] Missing test for payment flow (confidence: 92) [VERIFIED]
 
 ### Important Issues (should fix)
-- [From code-quality] Unused import in utils.ts
-- [From qa-engineer] Edge case not covered in validation
+- [From code-quality] Unused import in utils.ts [VERIFIED]
+- [From qa-engineer] Edge case not covered in validation [PARTIAL]
 
 ### Suggestions (consider)
-- [From code-quality] Could use early return pattern
+- [From code-quality] Could use early return pattern [UNVERIFIED]
+
+### Verification Summary
+- [From verification-specialist] 3 VERIFIED, 1 PARTIAL, 1 UNVERIFIED
 ```
 
 ## Parallel Exploration Pattern
