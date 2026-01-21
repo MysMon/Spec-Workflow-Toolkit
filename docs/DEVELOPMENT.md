@@ -539,15 +539,24 @@ Subagents output these markers when they discover something worth recording:
 
 ```bash
 #!/bin/bash
-# Extracts markers from subagent output and appends to pending.json
+# SubagentStop hook - extracts markers from subagent transcript and appends to pending.json
 # See hooks/insight_capture.sh for full implementation
 
-INPUT=$(cat)
-WORKSPACE_ID=$(get_workspace_id)
-PENDING_FILE=".claude/workspaces/$WORKSPACE_ID/insights/pending.json"
+# Hook input is metadata JSON with transcript_path (NOT the subagent output directly)
+INPUT=$(cat)  # {"session_id": "...", "transcript_path": "~/.claude/.../xxx.jsonl", ...}
 
-# Python script extracts markers and appends to JSON
-# Only markers are captured - no automatic inference
+# Python script:
+# 1. Parses metadata JSON to get transcript_path
+# 2. Reads JSONL transcript file
+# 3. Extracts assistant message content
+# 4. Finds insight markers (PATTERN:, LEARNED:, etc.)
+# 5. Appends to pending.json with file locking and atomic write
+
+# Key features:
+# - File locking (fcntl.flock) for concurrent access safety
+# - Atomic writes (temp file + rename) to prevent corruption
+# - UUID-based IDs to prevent collisions
+# - Multiline insight support
 ```
 
 **pending.json Schema:**

@@ -2,6 +2,15 @@
 # SubagentStop Hook: Log subagent completion and summarize
 # This hook runs when a subagent completes its work
 # Logs are now isolated per workspace to support multi-project development
+#
+# SubagentStop hook input format (from Claude Code):
+#   {
+#     "session_id": "...",
+#     "transcript_path": "~/.claude/projects/.../xxx.jsonl",
+#     "permission_mode": "default",
+#     "hook_event_name": "SubagentStop",
+#     "stop_hook_active": true/false
+#   }
 
 # Source workspace utilities
 SCRIPT_DIR="$(dirname "$0")"
@@ -9,34 +18,43 @@ if [ -f "$SCRIPT_DIR/workspace_utils.sh" ]; then
     source "$SCRIPT_DIR/workspace_utils.sh"
 fi
 
-# Read hook input (may contain agent info)
+# Read hook input (JSON metadata)
 INPUT=$(cat)
 
-# Get agent info from environment or input
+# Get agent info from environment variables (set by Claude Code)
 AGENT_NAME="${CLAUDE_AGENT_NAME:-unknown}"
-AGENT_ID="${CLAUDE_AGENT_ID:-unknown}"
-AGENT_STATUS="${CLAUDE_AGENT_STATUS:-completed}"
+AGENT_ID="${CLAUDE_AGENT_ID:-}"
+AGENT_STATUS="completed"
+SESSION_ID=""
+TRANSCRIPT_PATH=""
 
-# Try to extract additional info from JSON input if available
+# Parse metadata JSON to get session info
 if command -v python3 &> /dev/null && [ -n "$INPUT" ]; then
-    EXTRACTED=$(echo "$INPUT" | python3 -c "
-import json, sys
-try:
-    d = json.load(sys.stdin)
-    name = d.get('agent_name', '')
-    aid = d.get('agent_id', '')
-    status = d.get('status', '')
-    duration = d.get('duration_ms', '')
-    print(f'{name}|{aid}|{status}|{duration}')
-except:
-    print('|||')
-" 2>/dev/null)
+    HOOK_INPUT_VAR="$INPUT" \
+    PARSED=$(python3 << 'PYEOF'
+import json
+import os
+import sys
 
-    IFS='|' read -r EXT_NAME EXT_ID EXT_STATUS EXT_DURATION <<< "$EXTRACTED"
-    [ -n "$EXT_NAME" ] && AGENT_NAME="$EXT_NAME"
-    [ -n "$EXT_ID" ] && AGENT_ID="$EXT_ID"
-    [ -n "$EXT_STATUS" ] && AGENT_STATUS="$EXT_STATUS"
-    AGENT_DURATION="${EXT_DURATION:-}"
+hook_input = os.environ.get('HOOK_INPUT_VAR', '')
+if not hook_input:
+    print('|||')
+    sys.exit(0)
+
+try:
+    metadata = json.loads(hook_input)
+    session_id = metadata.get('session_id', '')
+    transcript_path = metadata.get('transcript_path', '')
+    stop_hook_active = 'true' if metadata.get('stop_hook_active', False) else 'false'
+    print(f'{session_id}|{transcript_path}|{stop_hook_active}')
+except json.JSONDecodeError:
+    print('|||')
+except Exception:
+    print('|||')
+PYEOF
+)
+
+    IFS='|' read -r SESSION_ID TRANSCRIPT_PATH STOP_HOOK_ACTIVE <<< "$PARSED"
 fi
 
 # Determine log directory (workspace-isolated or fallback)
@@ -61,8 +79,9 @@ fi
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
 # Build detailed log entry
-LOG_ENTRY="[$TIMESTAMP] Agent: $AGENT_NAME | Status: $AGENT_STATUS | ID: $AGENT_ID"
-[ -n "$AGENT_DURATION" ] && LOG_ENTRY="$LOG_ENTRY | Duration: ${AGENT_DURATION}ms"
+LOG_ENTRY="[$TIMESTAMP] Agent: $AGENT_NAME | Status: $AGENT_STATUS"
+[ -n "$AGENT_ID" ] && LOG_ENTRY="$LOG_ENTRY | ID: $AGENT_ID"
+[ -n "$SESSION_ID" ] && LOG_ENTRY="$LOG_ENTRY | Session: $SESSION_ID"
 [ -n "$WORKSPACE_ID" ] && LOG_ENTRY="$LOG_ENTRY | Workspace: $WORKSPACE_ID"
 
 # Append to activity log

@@ -243,25 +243,65 @@ get_approved_insights_file() {
     echo "$(get_insights_dir "$workspace_id")/approved.json"
 }
 
+# Validate workspace ID to prevent path traversal and injection
+# Returns: 0 if valid, 1 if invalid
+# Usage: validate_workspace_id "workspace-id" || exit 1
+validate_workspace_id() {
+    local id="$1"
+
+    # Must be non-empty
+    if [ -z "$id" ]; then
+        return 1
+    fi
+
+    # Must match allowed characters only (alphanumeric, dot, underscore, hyphen)
+    if [[ ! "$id" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+        return 1
+    fi
+
+    # Must not contain path traversal sequences
+    if [[ "$id" == *".."* ]]; then
+        return 1
+    fi
+
+    # Length check (reasonable limit)
+    if [ ${#id} -gt 100 ]; then
+        return 1
+    fi
+
+    return 0
+}
+
 # Count pending insights for a workspace
 # Returns: number of pending insights (0 if none or file doesn't exist)
 count_pending_insights() {
     local workspace_id="${1:-$(get_workspace_id)}"
+
+    # Validate workspace ID if provided externally
+    if [ -n "$1" ] && ! validate_workspace_id "$1"; then
+        echo "0"
+        return
+    fi
+
     local pending_file="$(get_pending_insights_file "$workspace_id")"
 
     if [ -f "$pending_file" ] && command -v python3 &> /dev/null; then
-        python3 << PYEOF
+        # Use environment variable to safely pass path (prevents injection)
+        PENDING_FILE_VAR="$pending_file" python3 << 'PYEOF'
 import json
 import os
 
-pending_file = "$pending_file"
-try:
-    with open(pending_file, 'r') as f:
-        data = json.load(f)
-    count = len([i for i in data.get('insights', []) if i.get('status') == 'pending'])
-    print(count)
-except:
+pending_file = os.environ.get('PENDING_FILE_VAR', '')
+if not pending_file:
     print(0)
+else:
+    try:
+        with open(pending_file, 'r') as f:
+            data = json.load(f)
+        count = len([i for i in data.get('insights', []) if i.get('status') == 'pending'])
+        print(count)
+    except Exception:
+        print(0)
 PYEOF
     else
         echo "0"

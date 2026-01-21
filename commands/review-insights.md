@@ -47,33 +47,29 @@ Review insights captured during development and decide where to apply them. Each
 
 **If argument is "list":**
 
-```bash
-# Find all workspaces with pending insights
-for dir in .claude/workspaces/*/; do
-    if [ -f "${dir}insights/pending.json" ]; then
-        # Count pending insights
-        count=$(python3 -c "import json; d=json.load(open('${dir}insights/pending.json')); print(len([i for i in d.get('insights',[]) if i.get('status')=='pending']))")
-        if [ "$count" -gt 0 ]; then
-            echo "Workspace: $(basename $dir) - $count pending insights"
-        fi
-    fi
-done
-```
+Use the Read tool to enumerate `.claude/workspaces/*/insights/pending.json` files and count pending insights in each. For each workspace directory found:
+
+1. Read the `pending.json` file using the Read tool
+2. Parse the JSON and count entries with `status: "pending"`
+3. Display workspaces with count > 0
 
 Display summary and exit.
 
 **If argument is workspace-id:**
 
-Use specified workspace.
+**IMPORTANT: Validate workspace ID before use:**
+- Must match pattern `^[a-zA-Z0-9._-]+$`
+- Must NOT contain `..` (path traversal)
+- If validation fails, show error and exit
+
+Use specified workspace after validation.
 
 **If no argument:**
 
-```bash
-# Get current workspace ID (same logic as workspace_utils.sh)
-branch=$(git branch --show-current 2>/dev/null | tr '/' '-' | tr ' ' '-' | tr -dc 'a-zA-Z0-9._-')
-path_hash=$(pwd | md5sum | awk '{print $1}' | cut -c1-8)
-WORKSPACE_ID="${branch}_${path_hash}"
-```
+Determine current workspace ID using the same logic as `workspace_utils.sh`:
+1. Get git branch: `git branch --show-current` (sanitize: replace `/` and space with `-`, keep only `a-zA-Z0-9._-`)
+2. Get path hash: first 8 chars of MD5 hash of current directory
+3. Combine: `{branch}_{hash}`
 
 **Load pending insights:**
 
