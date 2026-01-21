@@ -33,7 +33,7 @@ This command orchestrates 7 phases:
 1. **Discovery** - Understand what needs to be built
 2. **Codebase Exploration** - Understand existing code and patterns (parallel agents)
 3. **Clarifying Questions** - Fill gaps and resolve ambiguities
-4. **Architecture Design** - Design multiple approaches (parallel agents)
+4. **Architecture Design** - Parallel analysis, single recommendation
 5. **Implementation** - Build the feature
 6. **Quality Review** - Ensure code meets standards (parallel agents)
 7. **Summary** - Document what was accomplished
@@ -707,6 +707,6 @@ Create summary including:
 |--------|------|-------------|
 | Phases | 7 | 1 |
 | Exploration | Parallel agents | None |
-| Design options | Multiple | Single |
+| Design options | Single (synthesized) | None |
 | Review | Parallel agents | Basic |
 | Best for | Complex features | Small tasks |

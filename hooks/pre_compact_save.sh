@@ -2,9 +2,7 @@
 # PreCompact Hook: Save critical context before compaction
 # This hook ensures progress state is preserved before context is compacted
 # Now supports workspace-isolated progress files
-# Based on:
-# - https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
-# - https://code.claude.com/docs/en/hooks
+# Based on Claude Code hooks specification and long-running agent patterns.
 
 # Source workspace utilities
 SCRIPT_DIR="$(dirname "$0")"

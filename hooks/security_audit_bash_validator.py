@@ -3,8 +3,7 @@
 PreToolUse hook for security-auditor agent.
 Validates that Bash commands are read-only audit commands only.
 
-Based on Claude Code hooks specification:
-https://code.claude.com/docs/en/hooks
+Based on Claude Code hooks specification.
 
 Uses JSON decision control (exit 0 + hookSpecificOutput) for proper blocking.
 This ensures consistent behavior with other hooks in this toolkit.
@@ -150,7 +149,7 @@ def main():
             sys.exit(0)
         else:
             # Use JSON decision control to properly block the command
-            # Based on: https://code.claude.com/docs/en/hooks
+            # Based on Claude Code hooks specification
             allowed_cmds = (
                 "Allowed commands for security audit: "
                 "Dependency audits (npm audit, pip-audit, cargo audit), "

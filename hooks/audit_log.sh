@@ -2,9 +2,7 @@
 # PostToolUse Hook: Audit logging for tool usage tracking
 # This hook logs tool invocations for debugging, compliance, and session analysis
 #
-# Based on:
-# - https://www.anthropic.com/engineering/claude-code-best-practices
-# - https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
+# Based on Claude Code best practices and long-running agent patterns.
 #
 # PostToolUse hooks receive JSON on stdin with:
 # - tool_name: Name of the tool that was executed

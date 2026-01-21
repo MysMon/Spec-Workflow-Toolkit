@@ -1,10 +1,7 @@
 #!/bin/bash
 # SessionStart Hook: Inject SDD context, detect progress files, and support resumable workflows
 # This hook runs once at session start to provide plugin context to the user's project
-# Based on:
-# - https://www.anthropic.com/engineering/claude-code-best-practices
-# - https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
-# - https://code.claude.com/docs/en/common-workflows (Git worktrees)
+# Based on Claude Code best practices, long-running agent guidance, and common workflows.
 
 # Source workspace utilities
 SCRIPT_DIR="$(dirname "$0")"
@@ -125,10 +122,10 @@ fi
 cat << 'EOF'
 ## SDD Toolkit - Session Initialized
 
-**Official References:**
-- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
-- [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
-- [Subagent Documentation](https://code.claude.com/docs/en/sub-agents)
+**Official References (see docs/DEVELOPMENT.md):**
+- Claude Code Best Practices
+- Effective Harnesses for Long-Running Agents
+- Subagent Documentation
 
 EOF
 
@@ -235,7 +232,7 @@ Each git worktree gets its own isolated workspace. Use `/resume list` to see all
 
 ### Context Management (CRITICAL for Long Sessions)
 
-From [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
+From Claude Code Best Practices:
 
 > "Subagents use their own isolated context windows, and only send relevant information back to the orchestrator."
 
@@ -259,7 +256,7 @@ From [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-c
 
 ### Long-Running Task Support (One Feature at a Time)
 
-Based on [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents):
+Based on Effective Harnesses for Long-Running Agents:
 
 > "The agent tends to try to do too much at once—essentially attempting to one-shot the app."
 

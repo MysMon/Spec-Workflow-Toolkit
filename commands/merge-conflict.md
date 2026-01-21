@@ -150,7 +150,12 @@ git add <file>
 **For "Combine both":**
 
 ```
-DELEGATE to code-architect:
+DELEGATE to the appropriate implementation agent based on file type:
+- Frontend/UI files → frontend-specialist
+- Backend/service files → backend-specialist
+- Infrastructure/config files → devops-sre
+- Legacy refactors → legacy-modernizer
+- Documentation → technical-writer
 
 Merge these two versions preserving both intents:
 

@@ -144,7 +144,7 @@ Would you like to:
 | Aspect | /quick-impl | /sdd |
 |--------|-------------|------|
 | When | Clear, small tasks | Vague or complex features |
-| Phases | 1 (implement) | 6 (full workflow) |
+| Phases | 1 (implement) | 7 (full workflow) |
 | Spec | Not required | Required |
 | Review | Basic checks | Full parallel review |
 | Time | Minutes | Hours to days |

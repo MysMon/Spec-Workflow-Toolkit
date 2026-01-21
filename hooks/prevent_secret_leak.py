@@ -4,8 +4,7 @@ Secret Leak Prevention Hook - PreToolUse for Write/Edit
 Detects secrets and sensitive data before they're written to files.
 Stack-agnostic: works with any project type.
 
-Based on Claude Code hooks specification:
-https://code.claude.com/docs/en/hooks
+Based on Claude Code hooks specification.
 
 Uses JSON decision control (exit 0 + hookSpecificOutput) for proper blocking.
 """
@@ -254,7 +253,7 @@ secrets_found.extend(base64_secrets)
 if secrets_found:
     descriptions = [s[1] for s in secrets_found]
     # Use JSON decision control to properly block the operation
-    # Based on: https://code.claude.com/docs/en/hooks
+    # Based on Claude Code hooks specification
     output = {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",

@@ -5,9 +5,7 @@
 # Usage: source this file in other hook scripts
 #   source "$(dirname "$0")/workspace_utils.sh"
 #
-# Based on:
-# - https://code.claude.com/docs/en/common-workflows (Git worktrees)
-# - https://github.com/anthropics/claude-code/issues/1985 (Session isolation)
+# Based on Claude Code common workflows and session isolation guidance.
 
 # ============================================================================
 # WORKSPACE ID GENERATION

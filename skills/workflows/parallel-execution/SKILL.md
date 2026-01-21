@@ -60,16 +60,14 @@ Launch these agents in parallel:
 
 2. security-auditor agent
    Task: Security audit for [files]
-   Output: Vulnerability findings (confidence >= 70)
+   Output: Vulnerability findings (confidence >= 80)
 
-3. code-quality skill
-   Task: Lint and style check for [files]
-   Output: Quality issues and fixes
-
-4. verification-specialist agent
+3. verification-specialist agent
    Task: Validate findings from other parallel agents
    Output: Verification status (VERIFIED/PARTIAL/UNVERIFIED) with file:line cross-checks
 ```
+
+After the parallel agents complete, run the `code-quality` skill in the main context (or via a separate general-purpose subagent) to execute lint/style checks.
 
 ### Execution
 
@@ -230,7 +228,7 @@ Check background results when ready.
    - Check for XSS vulnerabilities
    - Verify auth on all endpoints
 
-4. **architect** (parallel)
+4. **code-architect** (parallel)
    - Evaluate component structure
    - Check for coupling issues
 

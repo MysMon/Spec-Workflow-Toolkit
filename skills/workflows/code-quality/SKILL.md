@@ -7,7 +7,7 @@ description: |
   - Running the project's configured quality tools
   - Code is failing CI quality checks
   Trigger phrases: lint, format code, run linter, fix formatting, type check, code style
-allowed-tools: Bash, Read, Glob, Grep
+allowed-tools: Bash, Read, Glob, Grep, WebSearch, WebFetch
 model: haiku
 user-invocable: true
 ---

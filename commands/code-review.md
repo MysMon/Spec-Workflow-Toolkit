@@ -79,8 +79,8 @@ Before launching agents, gather:
 3. **Recent history** - Why these files were changed recently
 
 ```bash
-# Find CLAUDE.md files
-find . -name "CLAUDE.md" -o -name ".claude/rules/*.md"
+# Find CLAUDE.md files and project rules
+find . \( -name "CLAUDE.md" -o -path "./.claude/rules/*.md" \)
 
 # Get git blame for changed lines
 git blame [files]

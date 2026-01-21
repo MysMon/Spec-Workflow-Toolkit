@@ -7,7 +7,7 @@
 # - Clean up temporary files created during the session
 # - Archive stale workspace data (older than 30 days)
 #
-# Based on: https://code.claude.com/docs/en/hooks
+# Based on Claude Code hooks specification.
 
 # Source workspace utilities
 SCRIPT_DIR="$(dirname "$0")"

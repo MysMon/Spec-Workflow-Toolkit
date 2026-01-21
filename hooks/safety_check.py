@@ -4,8 +4,7 @@ Safety Check Hook - PreToolUse for Bash and MCP command execution tools
 Blocks dangerous shell commands or transforms them to safer alternatives.
 Stack-agnostic: works with any project type.
 
-Based on Claude Code hooks specification:
-https://code.claude.com/docs/en/hooks
+Based on Claude Code hooks specification.
 
 Features:
 - JSON decision control (exit 0 + hookSpecificOutput) for blocking
@@ -334,7 +333,7 @@ dangerous, matched_pattern = is_dangerous(command)
 
 if dangerous:
     # Use JSON decision control to properly block the command
-    # Based on: https://code.claude.com/docs/en/hooks
+    # Based on Claude Code hooks specification
     tool_type = f"MCP tool ({tool_name})" if is_mcp_tool else "Bash"
     output = {
         "hookSpecificOutput": {
