@@ -19,7 +19,7 @@ Detailed specifications for plugin contributors. For user documentation, see `RE
 | Architecture options | 3 approaches | Single definitive | Reduces decision fatigue |
 | Progress format | `.txt` | `.json` | Machine-readable, less prone to corruption |
 | Progress isolation | Project-level | Workspace-level | Supports git worktrees, concurrent projects |
-| Agent specialization | 3 general | 12 specialized | Domain expertise improves quality |
+| Agent specialization | 3 general | 13 specialized | Domain expertise improves quality |
 
 ### Context Management
 

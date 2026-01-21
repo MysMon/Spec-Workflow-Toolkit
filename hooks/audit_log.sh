@@ -56,13 +56,16 @@ rotate_log_if_needed() {
         return 0
     fi
 
-    # Get file size (cross-platform)
+    # Get file size (cross-platform, POSIX-compatible)
     local current_size
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        current_size=$(stat -f%z "$log_file" 2>/dev/null || echo 0)
-    else
-        current_size=$(stat -c%s "$log_file" 2>/dev/null || echo 0)
-    fi
+    case "$OSTYPE" in
+        darwin*)
+            current_size=$(stat -f%z "$log_file" 2>/dev/null || echo 0)
+            ;;
+        *)
+            current_size=$(stat -c%s "$log_file" 2>/dev/null || echo 0)
+            ;;
+    esac
 
     if [ "$current_size" -gt "$max_size" ]; then
         local timestamp
