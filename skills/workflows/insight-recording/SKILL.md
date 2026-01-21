@@ -109,6 +109,7 @@ Different roles typically emphasize different markers:
 | DevOps (devops-sre) | PATTERN, LEARNED, DECISION |
 | Frontend (frontend-specialist) | PATTERN, LEARNED, DECISION |
 | Backend (backend-specialist) | PATTERN, ANTIPATTERN, DECISION |
+| Design (ui-ux-designer) | PATTERN, DECISION, LEARNED |
 
 ### Agents Without This Skill
 
@@ -118,7 +119,6 @@ The following agents do NOT have insight-recording:
 |-------|-----------|
 | `product-manager` | Focuses on user-facing requirements, not code-level patterns. Decisions are captured in PRDs/specs. |
 | `technical-writer` | Creates documentation as output, not insights for later review. |
-| `ui-ux-designer` | Produces design specifications, not code-level insights. |
 
 ## Output Format Example
 

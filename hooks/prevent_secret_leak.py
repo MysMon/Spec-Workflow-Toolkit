@@ -14,6 +14,7 @@ import sys
 import os
 import re
 import json
+import base64
 
 # Read tool input from stdin (Claude Code passes JSON)
 input_data = sys.stdin.read().strip()
@@ -187,12 +188,68 @@ def find_secrets(text: str) -> list[tuple[str, str]]:
             found.append((pattern, description))
     return found
 
+# Base64 encoded secret detection
+def find_base64_secrets(text: str) -> list[tuple[str, str]]:
+    """
+    Detect base64-encoded secrets by finding base64 strings and checking
+    their decoded content against known secret patterns.
+
+    Returns: list of (pattern, description) tuples for found secrets
+
+    Design decisions:
+    - Minimum 24 chars: Base64 encodes 3 bytes to 4 chars, so 24 chars = 18 bytes minimum.
+      This is enough for most API key prefixes (sk-ant-, ghp_, AKIA) after decoding.
+    - Assignment context ([=:]) required to avoid matching image data, random strings.
+    - Padding ={0,3}: Base64 can have 0-2 padding chars, but we allow 3 for malformed input.
+    - High-value patterns only: We check for specific known secret formats after decoding
+      to minimize false positives (e.g., random base64 that decodes to gibberish).
+    """
+    found = []
+
+    # Pattern to find potential base64 strings in assignment context
+    # Minimum 24 chars (encodes 18 bytes) to reduce false positives
+    base64_context_pattern = r'[=:]\s*["\']?([A-Za-z0-9+/]{24,}={0,3})["\']?'
+
+    candidates = re.findall(base64_context_pattern, text)
+
+    for candidate in candidates:
+        try:
+            # Try to decode as base64
+            decoded = base64.b64decode(candidate, validate=True).decode('utf-8', errors='ignore')
+
+            # Check decoded content against secret patterns
+            # Only check specific high-value patterns to reduce false positives
+            high_value_patterns = [
+                (r"sk-ant-[a-zA-Z0-9_-]{20,}", "Anthropic API Key (base64 encoded)"),
+                (r"sk-[a-zA-Z0-9]{20,}", "OpenAI API Key (base64 encoded)"),
+                (r"AKIA[0-9A-Z]{16}", "AWS Access Key ID (base64 encoded)"),
+                (r"ghp_[0-9a-zA-Z]{36}", "GitHub Personal Access Token (base64 encoded)"),
+                (r"glpat-[0-9a-zA-Z_-]{20,}", "GitLab Personal Access Token (base64 encoded)"),
+                (r"-----BEGIN\s+(RSA|DSA|EC|OPENSSH|PGP)\s+PRIVATE\s+KEY-----", "Private Key (base64 encoded)"),
+                (r"(postgres|mysql|mongodb)://[^:]+:[^@]+@", "Database URL (base64 encoded)"),
+            ]
+
+            for pattern, description in high_value_patterns:
+                if re.search(pattern, decoded, re.IGNORECASE):
+                    found.append((pattern, description))
+                    break  # One match per candidate is enough
+        except Exception:
+            # Not valid base64 or decode error - skip
+            pass
+
+    return found
+
 # Main check
 if should_skip_file(file_path):
     # Allow template/example files without checking
     sys.exit(0)
 
+# Check for plaintext secrets first
 secrets_found = find_secrets(content)
+
+# Also check for base64-encoded secrets
+base64_secrets = find_base64_secrets(content)
+secrets_found.extend(base64_secrets)
 
 if secrets_found:
     descriptions = [s[1] for s in secrets_found]

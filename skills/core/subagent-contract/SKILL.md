@@ -425,3 +425,64 @@ Recommendations for better results.
 - Suggest recovery options for errors
 - Note trade-offs considered in design decisions
 - Reference patterns found for architectural consistency
+
+## Self-Verification Checklist
+
+Before submitting results, subagents MUST verify their output quality to prevent hallucinations and ensure accuracy.
+
+### Pre-Submission Verification (L1 - Required)
+
+All subagents must complete this checklist before returning results:
+
+```markdown
+### Verification Completed
+- [ ] **File References Valid**: All `file:line` references have been verified to exist
+- [ ] **Code Snippets Accurate**: Any quoted code matches the actual file content
+- [ ] **No Hallucinated Paths**: No file paths were assumed or invented
+- [ ] **Evidence Documented**: Each finding has supporting evidence cited
+```
+
+### Confidence Justification (L2 - Required for Confidence >= 85)
+
+When reporting high confidence (85+), provide explicit justification:
+
+```markdown
+### Confidence Justification
+**Score**: [X]
+**Evidence Count**: [N findings with direct code evidence]
+**Verification Method**: [How findings were verified]
+**Potential Blind Spots**: [What might have been missed]
+```
+
+### Cross-Verification Triggers (L2)
+
+Request additional verification when:
+
+| Condition | Action |
+|-----------|--------|
+| Single source of evidence | Flag as "needs corroboration" |
+| Conflicting findings | Escalate to orchestrator |
+| Confidence < 70 | Include "Uncertainty" section |
+| Security-related finding | Require code evidence |
+
+### Anti-Hallucination Practices
+
+1. **Never invent file paths** - If unsure, use Glob/Grep to verify
+2. **Never quote code without reading** - Always Read the file first
+3. **Never assume implementation details** - Verify with actual code
+4. **Flag uncertainty explicitly** - Use "uncertain" or "assumed" labels
+
+### Example: Verified vs Unverified Output
+
+**Unverified (BAD)**:
+```
+Found authentication in src/auth/login.ts:45
+```
+
+**Verified (GOOD)**:
+```
+Found authentication in src/auth/login.ts:45
+- Verified: Read tool confirmed file exists
+- Code match: `export async function authenticate()`
+- Confidence: 95 (direct code evidence)
+```
