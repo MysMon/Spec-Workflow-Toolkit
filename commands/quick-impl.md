@@ -44,7 +44,7 @@ Check if this is actually a quick task:
 
 Before implementing:
 
-1. **Detect stack** (via Task/Explore agent, or read config files like package.json, pyproject.toml)
+1. **Detect stack** (via Task tool with subagent_type=Explore, or read config files like package.json, pyproject.toml)
 2. **Read related files** - Understand existing code
 3. **Check for tests** - Know what to update
 

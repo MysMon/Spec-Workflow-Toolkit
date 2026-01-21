@@ -50,7 +50,7 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 
 ### Absolute Prohibitions
 
-1. **NEVER use Grep/Glob yourself** - Delegate to `code-explorer` or built-in `Explore`
+1. **Prefer delegating bulk Grep/Glob operations to `code-explorer`** - Use directly only for single targeted lookups (e.g., verifying a specific file exists)
 2. **NEVER read more than 3 files directly** - Delegate bulk reading to subagents
 3. **NEVER implement code yourself** - Delegate to `frontend-specialist` or `backend-specialist`
 4. **NEVER write tests yourself** - Delegate to `qa-engineer`
@@ -74,23 +74,86 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 |-------|-------|---------|
 | `code-explorer` | Sonnet | Deep codebase analysis (4-phase exploration) |
 | Built-in `Explore` | Haiku | Quick lookups and simple searches |
-| `product-manager` | **Opus** | Requirements gathering (deep reasoning for ambiguous requests) |
-| `system-architect` | **Opus** | System-level design (ADRs, schemas, contracts) - deep reasoning |
 | `code-architect` | Sonnet | Feature-level implementation blueprints |
 | `frontend-specialist` | **inherit** | UI implementation (uses your session's model) |
 | `backend-specialist` | **inherit** | API implementation (uses your session's model) |
 | `qa-engineer` | Sonnet | Testing and quality review |
 | `security-auditor` | Sonnet | Security review (read-only) |
+| `verification-specialist` | Sonnet | Reference validation, cross-checking findings from parallel agents |
 
 **Model Selection Strategy**:
-- **Opus**: Complex reasoning, architectural decisions, requirements elicitation (system-architect, product-manager)
-- **Sonnet**: Balanced capability for analysis and implementation
+- **Sonnet**: Balanced capability for analysis, exploration, and review
 - **Haiku**: Fast, lightweight exploration (built-in Explore)
 - **inherit**: Match parent conversation model (implementation agents)
 
 ### Phase 1: Discovery
 
 **Goal:** Understand what needs to be built and why.
+
+---
+
+#### CRITICAL: Progress File Initialization (L1 - MUST DO FIRST)
+
+**NEVER skip this step. The progress file MUST be created before ANY other Phase 1 work.**
+
+Before doing any discovery work, create the progress file:
+
+1. **Generate workspace ID**: Use format `{branch}_{path-hash}` (from SessionStart hook context)
+2. **Create directory**: `.claude/workspaces/{workspace-id}/`
+3. **Create progress file**: `.claude/workspaces/{workspace-id}/claude-progress.json`
+
+**Initial progress file structure:**
+```json
+{
+  "workspaceId": "{generated-workspace-id}",
+  "currentPhase": 1,
+  "phaseName": "Discovery",
+  "startedAt": "{ISO-8601-timestamp}",
+  "phases": {
+    "1": {"status": "in_progress", "startedAt": "{ISO-8601-timestamp}"},
+    "2": {"status": "pending"},
+    "3": {"status": "pending"},
+    "4": {"status": "pending"},
+    "5": {"status": "pending"},
+    "6": {"status": "pending"},
+    "7": {"status": "pending"}
+  }
+}
+```
+
+**Why this is L1 (Hard Rule):**
+- Enables session recovery if context is compacted or session restarts
+- Provides checkpoint for error recovery
+- Required by SessionStart hook to restore state
+- Other phases depend on this file existing
+
+**Verification:** After creating, read the file back to confirm it was written correctly.
+
+---
+
+### Session Resume Logic
+
+When resuming a session (SessionStart hook detects existing progress files):
+
+1. **Load existing progress files:**
+   - Read `claude-progress.json` for current state
+   - Read `feature-list.json` for pending features
+
+2. **Determine resume point:**
+   - Check `currentPhase` to identify where to resume
+   - Review `warnings` array for any previous issues
+
+3. **Resume workflow:**
+   - Skip completed phases (phase1-complete, phase2-complete, etc.)
+   - Start from the phase indicated by `nextAction`
+   - Inform user: "Resuming from Phase X: [description]"
+
+4. **Validate context:**
+   - Verify referenced files still exist
+   - Check if codebase has changed since last session
+   - If significant changes detected, recommend restarting affected phases
+
+---
 
 If the user provided a feature description (`$ARGUMENTS`), analyze it first:
 - What problem is being solved?
@@ -135,9 +198,22 @@ Launch these code-explorer agents in parallel:
 - Architecture insights
 - Files to read for deep understanding
 
+**Error Handling:**
+If any agent fails or times out:
+1. Check the agent's partial output for usable findings
+2. If critical agent failed (e.g., architecture explorer), retry once with reduced scope
+3. If retry fails, proceed with available results and document the gap
+4. Add to progress file: `"warnings": ["Agent X failed, results may be incomplete"]`
+
 **Read all identified key files** to build comprehensive understanding.
 
 **Present comprehensive summary of findings to user.**
+
+**Progress Update:**
+Update `claude-progress.json`:
+- currentPhase: "phase2-complete"
+- currentTask: "Codebase exploration complete"
+- nextAction: "Proceed to Phase 3: Requirements Clarification"
 
 ### Phase 3: Clarifying Questions
 
@@ -155,6 +231,12 @@ Based on discovery and exploration, identify:
 **CRITICAL: Wait for user answers before proceeding.**
 
 **Output:** Complete requirements with all ambiguities resolved.
+
+**Progress Update:**
+Update `claude-progress.json`:
+- currentPhase: "phase3-complete"
+- currentTask: "Requirements clarified"
+- nextAction: "Proceed to Phase 4: Architecture Design"
 
 ### Phase 4: Architecture Design
 
@@ -184,6 +266,15 @@ Launch these code-architect agents in parallel:
    Context: [Exploration findings], [Requirements]
    Output: Performance considerations with file:line evidence
 ```
+
+**Wait for all agents to complete.**
+
+**Error Handling:**
+If any agent fails or times out:
+1. Check the agent's partial output for usable findings
+2. If critical agent failed (e.g., reuse analysis), retry once with reduced scope
+3. If retry fails, proceed with available results and document the gap
+4. Add to progress file: `"warnings": ["Agent X failed, results may be incomplete"]`
 
 **Each agent contributes analysis from their focus area.**
 
@@ -225,6 +316,12 @@ Based on code-architect findings:
 **Ask user: "Does this approach work for you? Any concerns?"**
 
 **Output:** Approved design saved to `docs/specs/[feature-name]-design.md`
+
+**Progress Update:**
+Update `claude-progress.json`:
+- currentPhase: "phase4-complete"
+- currentTask: "Architecture design approved"
+- nextAction: "Proceed to Phase 5: TDD Implementation"
 
 ### Phase 5: Implementation
 
@@ -347,7 +444,7 @@ Load the `progress-tracking` skill for detailed schemas. Update both TodoWrite a
 
 **Goal:** Ensure code meets quality, security, and spec requirements.
 
-**LAUNCH 3 PARALLEL REVIEW AGENTS (Sonnet):**
+**LAUNCH 4 PARALLEL REVIEW AGENTS (Sonnet):**
 
 ```
 Launch these review agents in parallel:
@@ -369,7 +466,65 @@ Launch these review agents in parallel:
    Thoroughness: quick
    Compare: Implementation vs docs/specs/[feature]-design.md
    Output: Deviations, missing pieces with file:line
+
+4. verification-specialist agent
+   Focus: Validate file:line references and code quotes from other agents
+   Task: Cross-check findings from qa-engineer, security-auditor, code-explorer for accuracy
+   Output: Verification report with VERIFIED/PARTIAL/UNVERIFIED status for each finding
 ```
+
+**Wait for all agents to complete.**
+
+**Error Handling:**
+If any agent fails or times out:
+1. Check the agent's partial output for usable findings
+2. If critical agent failed (e.g., security-auditor), retry once with reduced scope
+3. If retry fails, proceed with available results and document the gap
+4. Add to progress file: `"warnings": ["Agent X failed, results may be incomplete"]`
+
+---
+
+#### Cross-Validation of File References
+
+**After parallel agents complete, review the verification-specialist's report before scoring.**
+
+The verification-specialist agent (launched in parallel above) handles all file:line reference validation. This preserves the orchestrator rule of "NEVER read more than 3 files directly."
+
+**Review the verification-specialist's output for each finding:**
+
+| Verification Status | Action |
+|---------------------|--------|
+| VERIFIED | Keep finding as-is, confidence unchanged |
+| PARTIAL | Reduce confidence by 10, note the discrepancy |
+| UNVERIFIED | Reduce confidence by 20, flag as `"verified": false` |
+
+**Example of processing verification report:**
+```
+verification-specialist output:
+- Finding #1 (security-auditor): SQL injection at src/api/users.ts:42
+  Status: UNVERIFIED
+  Note: Line 42 contains import statement, not SQL query. Actual query at line 87.
+
+Orchestrator action:
+- Original confidence: 85
+- Adjusted confidence: 65 (85 - 20)
+- Update reference to correct line if provided
+- Add flag: "verified": false, "verificationNote": "Reference corrected to line 87"
+```
+
+**Why delegate cross-validation to verification-specialist:**
+- Preserves orchestrator context (no bulk file reading)
+- Agents may hallucinate line numbers
+- File may have changed since agent read it
+- Prevents false positives from wasting user time
+- Increases trust in high-confidence findings
+
+**Include verification status in findings output:**
+```markdown
+1. **[Issue Title]** - [Category] (Score: [N], Verified: [Yes/No])
+```
+
+---
 
 **Score each issue with Haiku agents** (same pattern as /code-review):
 
@@ -446,6 +601,12 @@ See `skills/workflows/evaluator-optimizer/SKILL.md` for detailed pattern.
 #### Error Recovery During Review
 
 Load the `error-recovery` skill if review agents encounter errors. Checkpoint state, attempt recovery, and escalate to user if unrecoverable.
+
+**Progress Update:**
+Update `claude-progress.json`:
+- currentPhase: "phase6-complete"
+- currentTask: "Quality review complete"
+- nextAction: "Proceed to Phase 7: Completion"
 
 ### Phase 7: Summary
 

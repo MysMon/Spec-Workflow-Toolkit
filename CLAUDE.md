@@ -6,19 +6,19 @@ Users receive context via the `SessionStart` hook, not this file.
 ## What This Plugin Does
 
 A Claude Code plugin implementing Anthropic's 6 composable patterns for long-running autonomous work:
-7-phase SDD workflow, 12 specialized subagents, TDD integration, evaluator-optimizer loops, checkpoint-based error recovery, and progress tracking.
+7-phase SDD workflow, 13 specialized subagents, TDD integration, evaluator-optimizer loops, checkpoint-based error recovery, and progress tracking.
 
 ## Project Structure
 
 ```
 .claude-plugin/plugin.json   # Plugin metadata
 commands/                    # 14 slash commands
-agents/                      # 12 subagent definitions
+agents/                      # 13 subagent definitions
 skills/                      # 21 skill definitions
   core/                      #   5 core skills (subagent-contract, sdd-philosophy, security-fundamentals, interview, bounded-autonomy)
   detection/                 #   1 detection skill (stack-detector)
   workflows/                 #   15 workflow skills
-hooks/                       # Event handlers (7 event types, 9 handlers) + Python validators
+hooks/                       # Event handlers (7 event types, 10 handlers) + Python validators
 docs/                        # DEVELOPMENT.md (detailed specs), specs/
 ```
 
@@ -64,7 +64,7 @@ YAML frontmatter fields:
 - Exit 2 = blocking error
 - Exit 1, 3, etc. = non-blocking error (tool may still execute!)
 
-**Registered hooks (7 event types, 9 handlers):**
+**Registered hooks (7 event types, 10 handlers):**
 
 | Hook | Script | Purpose |
 |------|--------|---------|
@@ -75,6 +75,7 @@ YAML frontmatter fields:
 | PreCompact | `pre_compact_save.sh` | Save progress before context compaction |
 | SubagentStop | `subagent_summary.sh` | Summarize subagent results |
 | SubagentStop | `insight_capture.sh` | Capture marked insights from subagent output |
+| SubagentStop | `verify_references.py` | Validate file:line references in subagent output |
 | Stop | `session_summary.sh` | Record session summary on exit |
 | SessionEnd | `session_cleanup.sh` | Clean up resources on session termination |
 

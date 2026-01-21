@@ -116,10 +116,10 @@ Examples:
    Check recent changes to affected code path
 ```
 
-**Use built-in Explore agent for rapid search:**
+**Use Task tool with subagent_type=Explore for rapid search:**
 
 ```
-Launch Explore agent with "quick" thoroughness:
+Launch Task tool with subagent_type=Explore:
 - Find the specific file/function causing the issue
 - Return file:line reference
 ```

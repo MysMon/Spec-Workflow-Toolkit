@@ -171,6 +171,7 @@ SDD Toolkit は汎用ワークフローを提供します。プロジェクト�
 | | `product-manager` | 要件収集、PRD 作成 |
 | **レビュー** | `qa-engineer` | テスト戦略、カバレッジ分析 |
 | | `security-auditor` | OWASP Top 10、脆弱性レビュー |
+| **検証** | `verification-specialist` | ファクトチェック、参照検証 |
 | **その他** | `devops-sre` | インフラ、CI/CD |
 | | `ui-ux-designer` | デザインシステム |
 | | `technical-writer` | ドキュメント |
