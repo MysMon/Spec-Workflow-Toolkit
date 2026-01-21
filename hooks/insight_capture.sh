@@ -207,13 +207,16 @@ def update_pending_file_atomic(pending_file, new_insights, workspace_id):
                 data['insights'].extend(new_insights)
                 data['lastUpdated'] = datetime.now().isoformat()
 
-                # Atomic write: write to temp file, then rename
+                # Atomic write: write to temp file, fsync, then replace
+                # See: https://python.plainenglish.io/simple-safe-atomic-writes-in-python3-44b98830a013
                 dir_name = os.path.dirname(pending_file)
                 fd, temp_path = tempfile.mkstemp(dir=dir_name, suffix='.tmp')
                 try:
                     with os.fdopen(fd, 'w', encoding='utf-8') as tf:
                         json.dump(data, tf, indent=2, ensure_ascii=False)
-                    os.rename(temp_path, pending_file)
+                        tf.flush()
+                        os.fsync(tf.fileno())  # Ensure data hits disk before rename
+                    os.replace(temp_path, pending_file)  # More portable than os.rename
                 except:
                     # Clean up temp file on error
                     if os.path.exists(temp_path):

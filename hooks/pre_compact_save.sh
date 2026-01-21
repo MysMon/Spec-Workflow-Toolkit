@@ -106,13 +106,15 @@ try:
                 "Re-read key files and re-run critical analyses if needed."
             )
 
-            # Atomic write: write to temp file, then rename
+            # Atomic write: write to temp file, fsync, then replace
             dir_name = os.path.dirname(progress_file)
             fd, temp_path = tempfile.mkstemp(dir=dir_name, suffix='.tmp')
             try:
                 with os.fdopen(fd, 'w', encoding='utf-8') as tf:
                     json.dump(data, tf, indent=2, ensure_ascii=False)
-                os.rename(temp_path, progress_file)
+                    tf.flush()
+                    os.fsync(tf.fileno())  # Ensure data hits disk before rename
+                os.replace(temp_path, progress_file)  # More portable than os.rename
             except Exception:
                 if os.path.exists(temp_path):
                     os.unlink(temp_path)
