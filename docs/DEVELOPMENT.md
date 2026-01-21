@@ -409,7 +409,7 @@ This breaks if eslint is replaced by biome or another tool.
 | `PreToolUse` | Validate/block tools | `safety_check.py`, `prevent_secret_leak.py` |
 | `PostToolUse` | Post-execution actions | `audit_log.sh` |
 | `PreCompact` | Save state before compaction | `pre_compact_save.sh` |
-| `SubagentStop` | Log completion, capture insights | `subagent_summary.sh`, `insight_capture.sh` |
+| `SubagentStop` | Log completion, capture insights, validate references | `subagent_summary.sh`, `insight_capture.sh`, `verify_references.py` |
 | `Stop` | Session summary | `session_summary.sh` |
 | `SessionEnd` | Cleanup resources | `session_cleanup.sh` |
 | `PermissionRequest` | Custom permission handling | - |
