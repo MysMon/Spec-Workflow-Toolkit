@@ -278,6 +278,7 @@ get_approved_insights_file() {
 # Validate workspace ID to prevent path traversal and injection
 # Returns: 0 if valid, 1 if invalid
 # Usage: validate_workspace_id "workspace-id" || exit 1
+# Note: Uses POSIX-compatible case statements for bash/zsh portability
 validate_workspace_id() {
     local id="$1"
 
@@ -287,19 +288,20 @@ validate_workspace_id() {
     fi
 
     # Must match allowed characters only (alphanumeric, dot, underscore, hyphen)
-    if [[ ! "$id" =~ ^[a-zA-Z0-9._-]+$ ]]; then
-        return 1
-    fi
+    # Using case for POSIX compatibility (works in bash, zsh, sh)
+    case "$id" in
+        *[!a-zA-Z0-9._-]*) return 1 ;;
+    esac
 
     # Must not contain path traversal sequences
-    if [[ "$id" == *".."* ]]; then
-        return 1
-    fi
+    case "$id" in
+        *".."*) return 1 ;;
+    esac
 
     # Must not start with dot (hidden files) or hyphen (option injection)
-    if [[ "$id" == .* ]] || [[ "$id" == -* ]]; then
-        return 1
-    fi
+    case "$id" in
+        .*|-*) return 1 ;;
+    esac
 
     # Length check (reasonable limit)
     if [ ${#id} -gt 100 ]; then
