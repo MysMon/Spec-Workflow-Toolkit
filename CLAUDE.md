@@ -93,11 +93,34 @@ See `docs/DEVELOPMENT.md` for full hook specification with code examples.
 
 **Rationale**: URLs consume tokens without adding actionable value. Keep URLs in README.md and DEVELOPMENT.md only.
 
+### README Guidelines
+
+README.md is **user-facing documentation**. Keep it focused on what users need to know.
+
+**Target**: 200-250 lines maximum
+
+**Include:**
+- What the plugin does (in one sentence)
+- Quick start (install + first command)
+- Command list with brief descriptions
+- One diagram maximum (7-phase workflow)
+- Best practices (do/don't)
+- Link to DEVELOPMENT.md for details
+
+**Exclude (move to DEVELOPMENT.md if needed):**
+- Internal implementation details (file structures, why JSON, etc.)
+- Multiple Mermaid diagrams
+- Exhaustive reference lists
+- Rule hierarchy details (L1/L2/L3)
+- Marker types and agent coverage tables
+
+**Test**: Can a new user understand what this does and start using it in 30 seconds?
+
 ### Documentation Sync Rule
 
 When adding, removing, or renaming components:
 1. Update component counts in this file if they change
-2. Update `README.md` tables and directory tree
+2. Update `README.md` tables and directory tree (keep README under 250 lines)
 3. Update `docs/DEVELOPMENT.md` if templates/specs change
 
 ### Version Rule
