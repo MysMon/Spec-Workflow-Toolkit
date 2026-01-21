@@ -76,6 +76,28 @@ except json.JSONDecodeError:
     print(json.dumps(output))
     sys.exit(0)
 
+# Environment variable secret patterns - detect secret leakage via export
+# These are checked BEFORE dangerous patterns to provide more specific error messages
+#
+# Design decisions:
+# - Only block when a literal value (not $VAR reference) is being assigned
+# - Require minimum 20 chars for value to reduce false positives on test/dummy values
+# - Allow leading whitespace but anchor to line context
+# - Provider-specific patterns are more strict (any value blocked)
+ENV_SECRET_PATTERNS = [
+    # Provider-specific secrets - block regardless of value length (high confidence)
+    # These providers' API keys are always sensitive
+    (r"export\s+(?:ANTHROPIC|OPENAI)_(?:API_KEY|SECRET)[A-Z_]*\s*=\s*['\"]?(?!\$)[a-zA-Z0-9_-]{10,}", "Provider API key (Anthropic/OpenAI)"),
+    (r"export\s+AWS_(?:SECRET_ACCESS_KEY|SESSION_TOKEN)\s*=\s*['\"]?(?!\$)[a-zA-Z0-9_/+-]{20,}", "AWS secret credential"),
+    (r"export\s+(?:GITHUB|GITLAB)_(?:TOKEN|PAT|SECRET)[A-Z_]*\s*=\s*['\"]?(?!\$)[a-zA-Z0-9_-]{20,}", "GitHub/GitLab token"),
+
+    # Generic secret patterns - require longer value (20+ chars) to reduce false positives
+    # The (?!\$) negative lookahead excludes variable references like $OTHER_VAR
+    (r"export\s+[A-Z_]*(?:API_KEY|APIKEY|API_SECRET)[A-Z_]*\s*=\s*['\"]?(?!\$)[a-zA-Z0-9_-]{20,}['\"]?", "API key in environment variable"),
+    (r"export\s+[A-Z_]*(?:SECRET_KEY|PRIVATE_KEY|ACCESS_KEY)[A-Z_]*\s*=\s*['\"]?(?!\$)[a-zA-Z0-9_/+-]{20,}['\"]?", "Secret/private key in environment variable"),
+    (r"export\s+[A-Z_]*(?:PASSWORD|PASSWD)[A-Z_]*\s*=\s*['\"]?(?!\$)[^\s'\"]{12,}['\"]?", "Password in environment variable"),
+]
+
 # Dangerous command patterns (stack-agnostic)
 DANGEROUS_PATTERNS = [
     # Destructive file operations
@@ -203,6 +225,17 @@ def add_verbose_git(cmd: str) -> str:
     """Add verbose flag to git push for better debugging output."""
     return re.sub(r"^git\s+push\s+", "git push -v ", cmd)
 
+# Check for environment variable secrets (more specific, checked first)
+def check_env_secrets(cmd: str) -> tuple[bool, str]:
+    """
+    Check if command exports secrets via environment variables.
+    Returns: (is_secret_export, description)
+    """
+    for pattern, description in ENV_SECRET_PATTERNS:
+        if re.search(pattern, cmd, re.IGNORECASE | re.MULTILINE):
+            return True, description
+    return False, ""
+
 # Check command against patterns
 def is_dangerous(cmd: str) -> tuple[bool, str]:
     cmd_lower = cmd.lower()
@@ -225,7 +258,24 @@ def check_transformable(cmd: str) -> tuple[bool, str, str]:
                     return True, transformed, description
     return False, cmd, ""
 
-# Main check - first check if dangerous (block), then if transformable (modify)
+# Main check - first check env secrets, then dangerous, then transformable
+# Check for environment variable secret exports first (more specific message)
+is_env_secret, secret_desc = check_env_secrets(command)
+
+if is_env_secret:
+    # Block secret exports with specific guidance
+    tool_type = f"MCP tool ({tool_name})" if is_mcp_tool else "Bash"
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": f"Blocked {tool_type} command: {secret_desc}. Use .env files or a secrets manager instead of exporting secrets directly in shell commands."
+        }
+    }
+    print(json.dumps(output))
+    sys.exit(0)
+
+# Check dangerous patterns
 dangerous, matched_pattern = is_dangerous(command)
 
 if dangerous:
