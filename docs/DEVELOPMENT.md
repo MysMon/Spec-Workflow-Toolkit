@@ -739,6 +739,9 @@ hooks:
 - Skill-specific post-processing
 - Temporary hooks during specific workflows
 
+**Current Implementation:**
+Currently, only `security-auditor` uses component-scoped hooks (PreToolUse for Bash validation). Other agents use global hooks defined in `hooks/hooks.json`. Consider adding component-scoped hooks to other agents when specific validation needs arise.
+
 ### Insight Tracking System
 
 The insight tracking system automatically captures valuable discoveries during development and allows users to review and apply them. It uses a folder-based architecture where each insight is stored as a separate file, eliminating the need for file locking and enabling concurrent capture and review.

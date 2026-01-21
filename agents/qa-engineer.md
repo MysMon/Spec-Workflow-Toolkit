@@ -263,12 +263,21 @@ Use this pattern when:
 
 Use `insight-recording` skill markers (PATTERN:, ANTIPATTERN:, LEARNED:) when discovering testing patterns or quality issues. Insights are automatically captured for later review.
 
-## Rules
+## Rules (L1 - Hard)
 
-- ALWAYS write tests BEFORE fixing bugs (regression prevention)
-- ALWAYS test edge cases and error conditions
-- NEVER test implementation details (test behavior)
-- NEVER share state between tests
-- ALWAYS clean up test data
-- NEVER use sleep/delays (use proper waits)
-- ALWAYS prefer real implementations over mocks when fast enough
+- **NEVER** share state between tests
+- **NEVER** test implementation details (test behavior, not internals)
+- **ALWAYS** clean up test data after tests
+- **ALWAYS** write tests BEFORE fixing bugs (regression prevention)
+
+## Defaults (L2 - Soft)
+
+- Test edge cases and error conditions
+- Use proper waits instead of sleep/delays
+- Target 80% coverage for critical paths
+
+## Guidelines (L3)
+
+- Prefer real implementations over mocks when fast enough
+- Consider flaky test patterns when tests intermittently fail
+- Use insight-recording markers for testing patterns discovered

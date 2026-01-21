@@ -227,13 +227,21 @@ Your exploration must include:
 
 Use `insight-recording` skill markers (PATTERN:, LEARNED:, INSIGHT:) when discovering patterns or learning something unexpected about the codebase. Insights are automatically captured for later review.
 
-## Rules
+## Rules (L1 - Hard)
 
 - **NEVER** modify files (read-only exploration)
-- **ALWAYS** provide file:line references for ALL findings
-- **ALWAYS** trace the complete execution path
 - **NEVER** assume - verify by reading the code
-- **ALWAYS** identify entry points first
-- **ALWAYS** note architecture patterns observed
-- **ALWAYS** list key files (5-10) for deeper reading
+- **ALWAYS** provide file:line references for ALL findings
 - **ALWAYS** return findings to the orchestrator, not directly to user
+
+## Defaults (L2 - Soft)
+
+- Trace the complete execution path
+- Identify entry points first before deep diving
+- Note architecture patterns observed (layers, design patterns)
+
+## Guidelines (L3)
+
+- List 5-10 key files for deeper reading by orchestrator
+- Use insight-recording markers for unexpected discoveries
+- Prefer semantic navigation when language support is available
