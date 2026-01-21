@@ -219,28 +219,60 @@ get_session_log() {
 }
 
 # ============================================================================
-# INSIGHT MANAGEMENT
+# INSIGHT MANAGEMENT (Folder-Based Architecture)
 # ============================================================================
+#
+# Directory structure:
+#   .claude/workspaces/{id}/insights/
+#   ├── pending/    # New insights awaiting review (one JSON file per insight)
+#   ├── applied/    # Applied to CLAUDE.md or rules
+#   ├── rejected/   # Rejected by user
+#   └── archive/    # Old insights for reference
 
-# Get the insights directory for current workspace
+# Get the insights base directory for current workspace
 # Returns: .claude/workspaces/{workspace-id}/insights/
 get_insights_dir() {
     local workspace_id="${1:-$(get_workspace_id)}"
     echo "$(get_workspace_dir "$workspace_id")/insights"
 }
 
-# Get the pending insights file path for current workspace
-# Returns: .claude/workspaces/{workspace-id}/insights/pending.json
-get_pending_insights_file() {
+# Get the pending insights directory (folder-based)
+# Returns: .claude/workspaces/{workspace-id}/insights/pending/
+get_pending_insights_dir() {
     local workspace_id="${1:-$(get_workspace_id)}"
-    echo "$(get_insights_dir "$workspace_id")/pending.json"
+    echo "$(get_insights_dir "$workspace_id")/pending"
 }
 
-# Get the approved insights file path for current workspace
-# Returns: .claude/workspaces/{workspace-id}/insights/approved.json
-get_approved_insights_file() {
+# Get the applied insights directory
+# Returns: .claude/workspaces/{workspace-id}/insights/applied/
+get_applied_insights_dir() {
     local workspace_id="${1:-$(get_workspace_id)}"
-    echo "$(get_insights_dir "$workspace_id")/approved.json"
+    echo "$(get_insights_dir "$workspace_id")/applied"
+}
+
+# Get the rejected insights directory
+# Returns: .claude/workspaces/{workspace-id}/insights/rejected/
+get_rejected_insights_dir() {
+    local workspace_id="${1:-$(get_workspace_id)}"
+    echo "$(get_insights_dir "$workspace_id")/rejected"
+}
+
+# Get the archive insights directory
+# Returns: .claude/workspaces/{workspace-id}/insights/archive/
+get_archive_insights_dir() {
+    local workspace_id="${1:-$(get_workspace_id)}"
+    echo "$(get_insights_dir "$workspace_id")/archive"
+}
+
+# DEPRECATED: For backward compatibility only
+# Returns: empty string (deprecated - use get_pending_insights_dir instead)
+get_pending_insights_file() {
+    echo ""
+}
+
+# DEPRECATED: For backward compatibility only
+get_approved_insights_file() {
+    echo ""
 }
 
 # Validate workspace ID to prevent path traversal and injection
@@ -272,8 +304,8 @@ validate_workspace_id() {
     return 0
 }
 
-# Count pending insights for a workspace
-# Returns: number of pending insights (0 if none or file doesn't exist)
+# Count pending insights for a workspace (counts files in pending/)
+# Returns: number of pending insights (0 if none)
 count_pending_insights() {
     local workspace_id="${1:-$(get_workspace_id)}"
 
@@ -283,26 +315,11 @@ count_pending_insights() {
         return
     fi
 
-    local pending_file="$(get_pending_insights_file "$workspace_id")"
+    local pending_dir="$(get_pending_insights_dir "$workspace_id")"
 
-    if [ -f "$pending_file" ] && command -v python3 &> /dev/null; then
-        # Use environment variable to safely pass path (prevents injection)
-        PENDING_FILE_VAR="$pending_file" python3 << 'PYEOF'
-import json
-import os
-
-pending_file = os.environ.get('PENDING_FILE_VAR', '')
-if not pending_file:
-    print(0)
-else:
-    try:
-        with open(pending_file, 'r') as f:
-            data = json.load(f)
-        count = len([i for i in data.get('insights', []) if i.get('status') == 'pending'])
-        print(count)
-    except Exception:
-        print(0)
-PYEOF
+    if [ -d "$pending_dir" ]; then
+        # Count .json files in pending directory
+        find "$pending_dir" -maxdepth 1 -name "*.json" -type f 2>/dev/null | wc -l | tr -d ' '
     else
         echo "0"
     fi
@@ -316,11 +333,276 @@ workspace_has_pending_insights() {
     [ "$count" -gt 0 ]
 }
 
-# Ensure insights directory exists
+# Ensure insights directory structure exists
 ensure_insights_dir() {
     local workspace_id="${1:-$(get_workspace_id)}"
     local insights_dir="$(get_insights_dir "$workspace_id")"
-    mkdir -p "$insights_dir"
+
+    mkdir -p "$insights_dir/pending"
+    mkdir -p "$insights_dir/applied"
+    mkdir -p "$insights_dir/rejected"
+    mkdir -p "$insights_dir/archive"
+}
+
+# List pending insight files
+# Returns: list of insight file paths (one per line)
+list_pending_insights() {
+    local workspace_id="${1:-$(get_workspace_id)}"
+    local pending_dir="$(get_pending_insights_dir "$workspace_id")"
+
+    if [ -d "$pending_dir" ]; then
+        find "$pending_dir" -maxdepth 1 -name "*.json" -type f 2>/dev/null | sort
+    fi
+}
+
+# Move insight to a different status directory
+# Usage: move_insight "insight-file-path" "applied|rejected|archive"
+# SECURITY: Validates source path is within expected insights directory
+move_insight() {
+    local insight_file="$1"
+    local target_status="$2"
+    local workspace_id="${3:-$(get_workspace_id)}"
+
+    if [ ! -f "$insight_file" ]; then
+        echo "Error: Insight file not found: $insight_file" >&2
+        return 1
+    fi
+
+    # SECURITY: Validate source file is within insights directory
+    # Resolve to absolute path to prevent path traversal
+    local resolved_source
+    resolved_source=$(realpath "$insight_file" 2>/dev/null)
+    if [ -z "$resolved_source" ]; then
+        echo "Error: Could not resolve path: $insight_file" >&2
+        return 1
+    fi
+
+    # Verify source is within insights directory (pending, applied, rejected, or archive)
+    case "$resolved_source" in
+        */insights/pending/*.json|*/insights/applied/*.json|*/insights/rejected/*.json|*/insights/archive/*.json)
+            ;;
+        *)
+            echo "Error: Source path not in expected insights directory: $resolved_source" >&2
+            return 1
+            ;;
+    esac
+
+    local insights_dir="$(get_insights_dir "$workspace_id")"
+    local target_dir=""
+
+    case "$target_status" in
+        applied)  target_dir="$insights_dir/applied" ;;
+        rejected) target_dir="$insights_dir/rejected" ;;
+        archive)  target_dir="$insights_dir/archive" ;;
+        *)
+            echo "Error: Invalid target status: $target_status" >&2
+            return 1
+            ;;
+    esac
+
+    mkdir -p "$target_dir"
+
+    local filename
+    filename=$(basename "$insight_file")
+    mv "$resolved_source" "$target_dir/$filename"
+}
+
+# Read a single insight file and output its JSON
+# Usage: read_insight "insight-file-path"
+read_insight() {
+    local insight_file="$1"
+
+    if [ -f "$insight_file" ]; then
+        cat "$insight_file"
+    else
+        echo "{}"
+    fi
+}
+
+# ============================================================================
+# LOG MANAGEMENT
+# ============================================================================
+
+# Get the insight capture log file path
+# Returns: .claude/workspaces/{workspace-id}/insights/capture.log
+get_insight_capture_log() {
+    local workspace_id="${1:-$(get_workspace_id)}"
+    echo "$(get_insights_dir "$workspace_id")/capture.log"
+}
+
+# Rotate log file if it exceeds size limit
+# Usage: rotate_log_if_needed "/path/to/log" 1048576  # 1MB
+rotate_log_if_needed() {
+    local log_file="$1"
+    local max_size="${2:-1048576}"  # Default 1MB
+    local keep_count="${3:-5}"       # Keep last 5 rotations
+
+    if [ ! -f "$log_file" ]; then
+        return 0
+    fi
+
+    local current_size
+    current_size=$(stat -f%z "$log_file" 2>/dev/null || stat -c%s "$log_file" 2>/dev/null || echo 0)
+
+    if [ "$current_size" -gt "$max_size" ]; then
+        local timestamp
+        timestamp=$(date '+%Y%m%d_%H%M%S')
+        local rotated_file="${log_file}.${timestamp}"
+
+        # Rotate current log
+        mv "$log_file" "$rotated_file" 2>/dev/null || return 1
+
+        # Compress rotated file if gzip is available
+        if command -v gzip &> /dev/null; then
+            gzip "$rotated_file" 2>/dev/null
+        fi
+
+        # Remove old rotations beyond keep_count
+        local pattern="${log_file}.*"
+        # shellcheck disable=SC2086
+        ls -t $pattern 2>/dev/null | tail -n +$((keep_count + 1)) | xargs rm -f 2>/dev/null
+    fi
+}
+
+# Clean up temporary files in workspace
+# Removes: .tmp files, .lock files older than 1 hour, empty directories
+cleanup_workspace_temp_files() {
+    local workspace_id="${1:-$(get_workspace_id)}"
+    local workspace_dir="$(get_workspace_dir "$workspace_id")"
+
+    if [ ! -d "$workspace_dir" ]; then
+        return 0
+    fi
+
+    # Remove .tmp files (leftover from interrupted atomic writes)
+    find "$workspace_dir" -name "*.tmp" -type f -delete 2>/dev/null
+
+    # Remove stale .lock files (older than 1 hour)
+    find "$workspace_dir" -name "*.lock" -type f -mmin +60 -delete 2>/dev/null
+
+    # Remove empty directories (but not the main workspace dir)
+    find "$workspace_dir" -mindepth 1 -type d -empty -delete 2>/dev/null
+}
+
+# Archive old insights that have been processed
+# Moves insights from applied/ and rejected/ to archive/ directory
+# Folder-based: simply moves files between directories
+archive_processed_insights() {
+    local workspace_id="${1:-$(get_workspace_id)}"
+    local insights_dir="$(get_insights_dir "$workspace_id")"
+    local applied_dir="$insights_dir/applied"
+    local rejected_dir="$insights_dir/rejected"
+    local archive_dir="$insights_dir/archive"
+    local archived_count=0
+
+    # Ensure archive directory exists
+    mkdir -p "$archive_dir"
+
+    # Move applied insights to archive
+    if [ -d "$applied_dir" ]; then
+        for file in "$applied_dir"/*.json 2>/dev/null; do
+            [ -f "$file" ] || continue
+            mv "$file" "$archive_dir/"
+            archived_count=$((archived_count + 1))
+        done
+    fi
+
+    # Move rejected insights to archive
+    if [ -d "$rejected_dir" ]; then
+        for file in "$rejected_dir"/*.json 2>/dev/null; do
+            [ -f "$file" ] || continue
+            mv "$file" "$archive_dir/"
+            archived_count=$((archived_count + 1))
+        done
+    fi
+
+    if [ "$archived_count" -gt 0 ]; then
+        echo "Archived $archived_count processed insights"
+    fi
+}
+
+# Get workspace statistics
+# Returns: JSON with counts of insights by directory, logs, etc.
+# Folder-based: counts files in pending/, applied/, rejected/, archive/ directories
+get_workspace_stats() {
+    local workspace_id="${1:-$(get_workspace_id)}"
+
+    if ! command -v python3 &> /dev/null; then
+        echo '{"error": "python3 not available"}'
+        return
+    fi
+
+    WORKSPACE_ID_VAR="$workspace_id" \
+    WORKSPACE_DIR_VAR="$(get_workspace_dir "$workspace_id")" \
+    INSIGHTS_DIR_VAR="$(get_insights_dir "$workspace_id")" \
+    python3 << 'PYEOF'
+import json
+import os
+import glob
+
+workspace_id = os.environ.get('WORKSPACE_ID_VAR', '')
+workspace_dir = os.environ.get('WORKSPACE_DIR_VAR', '')
+insights_dir = os.environ.get('INSIGHTS_DIR_VAR', '')
+
+def count_json_files(directory):
+    """Count .json files in a directory."""
+    if not directory or not os.path.isdir(directory):
+        return 0
+    return len(glob.glob(os.path.join(directory, '*.json')))
+
+def get_dir_size(directory):
+    """Get total size of files in a directory."""
+    if not directory or not os.path.isdir(directory):
+        return 0
+    total = 0
+    for f in glob.glob(os.path.join(directory, '*')):
+        try:
+            total += os.path.getsize(f)
+        except OSError:
+            pass
+    return total
+
+# Count insights in each directory (folder-based architecture)
+pending_count = count_json_files(os.path.join(insights_dir, 'pending')) if insights_dir else 0
+applied_count = count_json_files(os.path.join(insights_dir, 'applied')) if insights_dir else 0
+rejected_count = count_json_files(os.path.join(insights_dir, 'rejected')) if insights_dir else 0
+archived_count = count_json_files(os.path.join(insights_dir, 'archive')) if insights_dir else 0
+
+stats = {
+    'workspaceId': workspace_id,
+    'exists': os.path.isdir(workspace_dir) if workspace_dir else False,
+    'insights': {
+        'pending': pending_count,
+        'applied': applied_count,
+        'rejected': rejected_count,
+        'archived': archived_count,
+        'total': pending_count + applied_count + rejected_count + archived_count
+    },
+    'storage': {
+        'insightsSize': get_dir_size(insights_dir) if insights_dir else 0,
+        'logFiles': 0,
+        'totalSize': 0
+    }
+}
+
+if workspace_dir and os.path.isdir(workspace_dir):
+    # Count storage
+    total_size = 0
+    log_count = 0
+    for root, dirs, files in os.walk(workspace_dir):
+        for f in files:
+            fpath = os.path.join(root, f)
+            try:
+                total_size += os.path.getsize(fpath)
+                if f.endswith('.log') or f.endswith('.jsonl'):
+                    log_count += 1
+            except OSError:
+                pass
+    stats['storage']['totalSize'] = total_size
+    stats['storage']['logFiles'] = log_count
+
+print(json.dumps(stats, indent=2))
+PYEOF
 }
 
 # ============================================================================
@@ -341,5 +623,12 @@ print_workspace_info() {
         echo "Status: Has progress files"
     else
         echo "Status: No progress files"
+    fi
+
+    # Show insight stats if available
+    if workspace_has_pending_insights "$workspace_id"; then
+        local count
+        count=$(count_pending_insights "$workspace_id")
+        echo "Pending Insights: $count"
     fi
 }

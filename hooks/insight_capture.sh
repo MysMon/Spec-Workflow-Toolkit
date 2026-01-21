@@ -2,6 +2,8 @@
 # Insight Capture Hook: Extract and store insights from subagent output
 # Runs on SubagentStop to capture marked insights
 #
+# Folder-based architecture (no file locking needed)
+#
 # SubagentStop hook input format (from Claude Code):
 #   {
 #     "session_id": "...",
@@ -11,7 +13,24 @@
 #     "stop_hook_active": true/false
 #   }
 #
-# The actual subagent output is in the JSONL file at transcript_path.
+# Architecture:
+#   Each insight is stored as a separate file in pending/ directory.
+#   This eliminates the need for file locking and makes operations atomic.
+#
+#   .claude/workspaces/{id}/insights/
+#   ├── pending/          # New insights awaiting review
+#   │   ├── INS-xxx.json
+#   │   └── INS-yyy.json
+#   ├── applied/          # Applied to CLAUDE.md or rules
+#   ├── rejected/         # Rejected by user
+#   └── archive/          # Old insights for reference
+#
+# Benefits:
+#   - No file locking required (each file is unique)
+#   - Atomic writes (single file creation)
+#   - Partial failure resilience (one corrupt file doesn't affect others)
+#   - Easy cleanup (just delete files)
+#   - Concurrent capture and review without conflicts
 #
 # Insight Markers (case-insensitive):
 #   INSIGHT: <text>      - General learning or discovery
@@ -19,23 +38,20 @@
 #   DECISION: <text>     - Important decision made
 #   PATTERN: <text>      - Reusable pattern discovered
 #   ANTIPATTERN: <text>  - Pattern to avoid
-#
-# Multiline support: Use backslash continuation or indent continuation lines.
-#   INSIGHT: This is a multiline insight \
-#   that continues on the next line.
-#
-#   PATTERN: First line
-#     Continuation with indent (2+ spaces)
-#
-# Only content with explicit markers is captured to avoid noise.
 
 set -euo pipefail
+
+# Configuration
+readonly MAX_INSIGHT_LENGTH=10000
+readonly MAX_TRANSCRIPT_SIZE=$((100 * 1024 * 1024))  # 100MB
+readonly MAX_INSIGHTS_PER_CAPTURE=100  # Rate limit: max insights per capture
 
 # Source workspace utilities
 SCRIPT_DIR="$(dirname "$0")"
 if [ -f "$SCRIPT_DIR/workspace_utils.sh" ]; then
     source "$SCRIPT_DIR/workspace_utils.sh"
 else
+    echo "insight_capture: workspace_utils.sh not found, skipping" >&2
     echo '{"continue": true}'
     exit 0
 fi
@@ -51,244 +67,364 @@ fi
 
 # Get workspace-specific paths
 WORKSPACE_ID=$(get_workspace_id)
-INSIGHTS_DIR=".claude/workspaces/$WORKSPACE_ID/insights"
-PENDING_FILE="$INSIGHTS_DIR/pending.json"
+INSIGHTS_BASE=".claude/workspaces/$WORKSPACE_ID/insights"
+PENDING_DIR="$INSIGHTS_BASE/pending"
 
-# Ensure directory exists
-mkdir -p "$INSIGHTS_DIR"
+# Ensure directories exist
+mkdir -p "$PENDING_DIR"
+mkdir -p "$INSIGHTS_BASE/applied"
+mkdir -p "$INSIGHTS_BASE/rejected"
+mkdir -p "$INSIGHTS_BASE/archive"
 
-# Initialize pending.json if it doesn't exist (using Python for safe JSON creation)
-if [ ! -f "$PENDING_FILE" ]; then
-    WORKSPACE_ID_VAR="$WORKSPACE_ID" \
-    PENDING_FILE_VAR="$PENDING_FILE" \
-    python3 << 'PYINIT'
-import json
-import os
-from datetime import datetime
-
-pending_file = os.environ.get('PENDING_FILE_VAR', '')
-workspace_id = os.environ.get('WORKSPACE_ID_VAR', '')
-
-if pending_file:
-    data = {
-        "workspaceId": workspace_id,
-        "created": datetime.now().isoformat(),
-        "insights": []
-    }
-    with open(pending_file, 'w') as f:
-        json.dump(data, f, indent=2)
-PYINIT
-fi
-
-# Extract insights using Python
-# Pass metadata JSON via environment variable for safety
+# Main processing via Python
 WORKSPACE_ID_VAR="$WORKSPACE_ID" \
-PENDING_FILE_VAR="$PENDING_FILE" \
+PENDING_DIR_VAR="$PENDING_DIR" \
 AGENT_NAME_VAR="${CLAUDE_AGENT_NAME:-unknown}" \
 HOOK_INPUT_VAR="$INPUT" \
+MAX_INSIGHT_LENGTH_VAR="$MAX_INSIGHT_LENGTH" \
+MAX_TRANSCRIPT_SIZE_VAR="$MAX_TRANSCRIPT_SIZE" \
+MAX_INSIGHTS_PER_CAPTURE_VAR="$MAX_INSIGHTS_PER_CAPTURE" \
 python3 << 'PYEOF'
+"""
+Insight Capture Engine - Folder-Based Architecture
+
+Key Design Principles:
+- Each insight is a separate file (no locking needed)
+- File creation is inherently atomic
+- Parallel capture and review without conflicts
+- Simpler, more robust implementation
+"""
+
 import json
 import sys
 import re
 import os
-import fcntl
-import tempfile
 import uuid
+import hashlib
 from datetime import datetime
+from typing import List, Dict, Optional, Tuple, Any
 
-def extract_insights_from_text(text, agent_name):
-    """Extract insights from text using marker patterns."""
-    # Multiline pattern: marker followed by content until next marker or end
-    # Supports:
-    #   1. Single line: INSIGHT: text here
-    #   2. Backslash continuation: INSIGHT: text \
-    #                              more text
-    #   3. Indent continuation: INSIGHT: text
-    #                             continued with 2+ spaces
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
 
-    markers = ['INSIGHT', 'LEARNED', 'DECISION', 'PATTERN', 'ANTIPATTERN']
-    marker_pattern = '|'.join(markers)
+class Config:
+    def __init__(self):
+        self.workspace_id = os.environ.get('WORKSPACE_ID_VAR', '')
+        self.pending_dir = os.environ.get('PENDING_DIR_VAR', '')
+        self.agent_name = os.environ.get('AGENT_NAME_VAR', 'unknown')
+        self.hook_input = os.environ.get('HOOK_INPUT_VAR', '')
+        self.max_insight_length = int(os.environ.get('MAX_INSIGHT_LENGTH_VAR', '10000'))
+        self.max_transcript_size = int(os.environ.get('MAX_TRANSCRIPT_SIZE_VAR', str(100 * 1024 * 1024)))
+        self.max_insights_per_capture = int(os.environ.get('MAX_INSIGHTS_PER_CAPTURE_VAR', '100'))
+        self.markers = ['INSIGHT', 'LEARNED', 'DECISION', 'PATTERN', 'ANTIPATTERN']
+        self.min_content_length = 11
 
-    # Pattern to match marker and its content (including multiline)
-    # Captures: marker name and content (until next marker or end)
-    pattern = rf'(?:^|\n)\s*({marker_pattern}):\s*(.+?)(?=\n\s*(?:{marker_pattern}):|$)'
+# =============================================================================
+# PATH VALIDATION
+# =============================================================================
 
-    insights = []
-    timestamp = datetime.now().isoformat()
+def validate_transcript_path(path: str) -> Tuple[bool, str, str]:
+    """
+    Validate transcript_path for security.
 
-    matches = re.findall(pattern, text, re.IGNORECASE | re.DOTALL)
+    Returns: (is_valid, error_message, resolved_path)
+    The resolved_path should be used for reading to prevent TOCTOU attacks.
+    """
+    if not path:
+        return False, "Empty path", ""
 
-    for marker, content in matches:
-        # Clean up content: normalize whitespace, handle continuations
-        # Remove backslash continuations
-        content = re.sub(r'\\\n\s*', ' ', content)
-        # Normalize internal whitespace (preserve single newlines for readability)
-        content = re.sub(r'[ \t]+', ' ', content)
-        content = content.strip()
+    expanded = os.path.expanduser(path)
 
-        # Skip very short or empty content
-        if not content or len(content) <= 10:
-            continue
+    try:
+        resolved = os.path.realpath(expanded)
+    except (OSError, ValueError) as e:
+        return False, f"Path resolution failed: {e}", ""
 
-        # Generate unique ID using UUID to prevent collisions
-        insight_id = f"INS-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:8]}"
+    # Check for path traversal in original input
+    if '..' in path:
+        return False, "Path traversal detected", ""
 
-        insights.append({
-            "id": insight_id,
-            "timestamp": timestamp,
-            "category": marker.lower(),
-            "content": content,
-            "source": agent_name,
-            "status": "pending"
-        })
+    # Check for expected Claude directory patterns
+    # SECURITY: Always reject paths not matching valid patterns, regardless of existence
+    valid_patterns = ['/.claude/', '/claude-code/', '/tmp/claude']
+    path_lower = resolved.lower()
 
-    return insights
+    if not any(pattern in path_lower for pattern in valid_patterns):
+        return False, "Path not in expected Claude directory", ""
 
-def extract_assistant_content_from_jsonl(transcript_path):
-    """Extract assistant message content from JSONL transcript file."""
+    # Return the resolved path to prevent TOCTOU between validation and read
+    return True, "", resolved
+
+# =============================================================================
+# JSONL PARSING
+# =============================================================================
+
+def extract_assistant_content(resolved_path: str, max_size: int) -> str:
+    """
+    Extract assistant message content from JSONL transcript.
+
+    Args:
+        resolved_path: The already-resolved absolute path (from validate_transcript_path)
+        max_size: Maximum file size to process
+    """
     content_parts = []
 
     try:
-        expanded_path = os.path.expanduser(transcript_path)
-        with open(expanded_path, 'r', encoding='utf-8') as f:
+        # Check file size - use resolved path directly (already validated)
+        try:
+            if os.path.getsize(resolved_path) > max_size:
+                sys.stderr.write(f"insight_capture: Transcript too large, skipping\n")
+                return ''
+        except OSError:
+            pass
+
+        with open(resolved_path, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
                 if not line:
                     continue
+
                 try:
                     entry = json.loads(line)
-                    # Look for assistant messages in various formats
-                    role = entry.get('role', '')
-                    if role == 'assistant':
-                        content = entry.get('content', '')
-                        if isinstance(content, str):
+                    if entry.get('role') != 'assistant':
+                        continue
+
+                    content = entry.get('content', '')
+                    if isinstance(content, str):
+                        if content:
                             content_parts.append(content)
-                        elif isinstance(content, list):
-                            # Handle content blocks (text, tool_use, etc.)
-                            for block in content:
-                                if isinstance(block, dict):
-                                    if block.get('type') == 'text':
-                                        content_parts.append(block.get('text', ''))
-                                elif isinstance(block, str):
-                                    content_parts.append(block)
+                    elif isinstance(content, list):
+                        for block in content:
+                            if isinstance(block, dict) and block.get('type') == 'text':
+                                text = block.get('text', '')
+                                if text:
+                                    content_parts.append(text)
+                            elif isinstance(block, str):
+                                content_parts.append(block)
                 except json.JSONDecodeError:
                     continue
+
     except (FileNotFoundError, PermissionError, IOError):
         pass
 
     return '\n'.join(content_parts)
 
-def update_pending_file_atomic(pending_file, new_insights, workspace_id):
-    """Update pending.json with file locking and atomic write."""
-    if not new_insights:
-        return 0
+# =============================================================================
+# INSIGHT EXTRACTION (STATE MACHINE)
+# =============================================================================
 
-    # Open file for locking (create if not exists)
-    lock_file = pending_file + '.lock'
+def extract_insights(text: str, agent_name: str, config: Config) -> List[Dict[str, Any]]:
+    """Extract insights using state machine approach with code block filtering."""
+    if not text:
+        return []
 
-    try:
-        # Create lock file and acquire exclusive lock
-        with open(lock_file, 'w') as lf:
-            fcntl.flock(lf.fileno(), fcntl.LOCK_EX)
+    # Pre-process: Remove code blocks and inline code
+    text_filtered = re.sub(r'```[\s\S]*?```', '\n', text)
+    text_filtered = re.sub(r'`[^`\n]+`', '', text_filtered)
 
+    # Build marker regex
+    marker_re = re.compile(
+        r'^[ \t]*(' + '|'.join(config.markers) + r'):[ \t]*(.*)$',
+        re.IGNORECASE
+    )
+
+    insights = []
+    seen_hashes = set()
+    timestamp = datetime.now().isoformat()
+
+    current_marker = None
+    current_content_lines = []
+    rate_limit_reached = False
+
+    for line in text_filtered.split('\n'):
+        # Rate limit: stop processing if max insights reached
+        if len(insights) >= config.max_insights_per_capture:
+            if not rate_limit_reached:
+                sys.stderr.write(
+                    f"insight_capture: Rate limit reached ({config.max_insights_per_capture} insights)\n"
+                )
+                rate_limit_reached = True
+            break
+
+        match = marker_re.match(line)
+
+        if match:
+            # Save previous insight
+            if current_marker and current_content_lines:
+                insight = create_insight(
+                    current_marker, current_content_lines, timestamp,
+                    agent_name, config, seen_hashes
+                )
+                if insight:
+                    insights.append(insight)
+
+            # Start new insight
+            current_marker = match.group(1).upper()
+            initial = match.group(2).strip()
+            current_content_lines = [initial] if initial else []
+
+        elif current_marker:
+            stripped = line.strip()
+            if stripped:
+                current_content_lines.append(stripped)
+
+    # Don't forget last insight (if within rate limit)
+    if current_marker and current_content_lines and len(insights) < config.max_insights_per_capture:
+        insight = create_insight(
+            current_marker, current_content_lines, timestamp,
+            agent_name, config, seen_hashes
+        )
+        if insight:
+            insights.append(insight)
+
+    return insights
+
+
+def create_insight(
+    marker: str,
+    content_lines: List[str],
+    timestamp: str,
+    agent_name: str,
+    config: Config,
+    seen_hashes: set
+) -> Optional[Dict[str, Any]]:
+    """Create insight object with validation and deduplication."""
+    content = ' '.join(content_lines)
+    content = re.sub(r'\\\s*', ' ', content)
+    content = re.sub(r'\s+', ' ', content).strip()
+
+    if len(content) < config.min_content_length:
+        return None
+
+    if len(content) > config.max_insight_length:
+        content = content[:config.max_insight_length] + '... [truncated]'
+
+    # Deduplication
+    content_hash = hashlib.sha256(content.lower().encode()).hexdigest()[:16]
+    if content_hash in seen_hashes:
+        return None
+    seen_hashes.add(content_hash)
+
+    # Generate unique ID
+    insight_id = f"INS-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:8]}"
+
+    return {
+        "id": insight_id,
+        "timestamp": timestamp,
+        "category": marker.lower(),
+        "content": content,
+        "source": agent_name,
+        "status": "pending",
+        "contentHash": content_hash,
+        "workspaceId": config.workspace_id
+    }
+
+# =============================================================================
+# FILE OPERATIONS (NO LOCKING NEEDED!)
+# =============================================================================
+
+def save_insights_to_files(insights: List[Dict], pending_dir: str) -> int:
+    """
+    Save each insight as a separate file.
+
+    No locking needed because:
+    1. Each file has a unique name (UUID-based)
+    2. File creation with O_EXCL is atomic
+    3. We write to temp file then rename (atomic on POSIX)
+    """
+    saved_count = 0
+
+    for insight in insights:
+        insight_id = insight['id']
+        file_path = os.path.join(pending_dir, f"{insight_id}.json")
+
+        try:
+            # Atomic write: temp file in same directory, then rename
+            temp_path = file_path + '.tmp'
+
+            with open(temp_path, 'w', encoding='utf-8') as f:
+                json.dump(insight, f, indent=2, ensure_ascii=False)
+                f.flush()
+                os.fsync(f.fileno())
+
+            os.replace(temp_path, file_path)
+            saved_count += 1
+
+        except Exception as e:
+            sys.stderr.write(f"insight_capture: Failed to save {insight_id}: {e}\n")
+            # Clean up temp file if it exists
             try:
-                # Read existing data
-                try:
-                    with open(pending_file, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                except (json.JSONDecodeError, FileNotFoundError):
-                    data = {
-                        "workspaceId": workspace_id,
-                        "created": datetime.now().isoformat(),
-                        "insights": []
-                    }
-
-                # Add new insights
-                data['insights'].extend(new_insights)
-                data['lastUpdated'] = datetime.now().isoformat()
-
-                # Atomic write: write to temp file, fsync, then replace
-                # See: https://python.plainenglish.io/simple-safe-atomic-writes-in-python3-44b98830a013
-                dir_name = os.path.dirname(pending_file)
-                fd, temp_path = tempfile.mkstemp(dir=dir_name, suffix='.tmp')
-                try:
-                    with os.fdopen(fd, 'w', encoding='utf-8') as tf:
-                        json.dump(data, tf, indent=2, ensure_ascii=False)
-                        tf.flush()
-                        os.fsync(tf.fileno())  # Ensure data hits disk before rename
-                    os.replace(temp_path, pending_file)  # More portable than os.rename
-                except:
-                    # Clean up temp file on error
-                    if os.path.exists(temp_path):
-                        os.unlink(temp_path)
-                    raise
-
-                return len(new_insights)
-            finally:
-                # Lock is released when file is closed
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
+            except Exception:
                 pass
-    except Exception as e:
-        # Log error but don't fail the hook
-        sys.stderr.write(f"Warning: Failed to update insights: {e}\n")
-        return 0
 
-# Main execution
-try:
-    # Get environment variables
-    hook_input = os.environ.get('HOOK_INPUT_VAR', '')
-    pending_file = os.environ.get('PENDING_FILE_VAR', '')
-    workspace_id = os.environ.get('WORKSPACE_ID_VAR', '')
-    agent_name = os.environ.get('AGENT_NAME_VAR', 'unknown')
+    return saved_count
 
-    if not hook_input or not pending_file:
+# =============================================================================
+# MAIN
+# =============================================================================
+
+def main():
+    config = Config()
+
+    if not config.hook_input or not config.pending_dir:
         print(json.dumps({"continue": True}))
-        sys.exit(0)
+        return
 
-    # Parse hook input (metadata JSON)
+    # Parse hook input
     try:
-        metadata = json.loads(hook_input)
+        metadata = json.loads(config.hook_input)
     except json.JSONDecodeError:
-        # Not valid JSON, nothing to process
         print(json.dumps({"continue": True}))
-        sys.exit(0)
+        return
 
-    # Check for infinite loop prevention
+    # Infinite loop prevention
     if metadata.get('stop_hook_active', False):
         print(json.dumps({"continue": True}))
-        sys.exit(0)
+        return
 
-    # Get transcript path from metadata
+    # Get and validate transcript path
     transcript_path = metadata.get('transcript_path', '')
     if not transcript_path:
         print(json.dumps({"continue": True}))
-        sys.exit(0)
+        return
 
-    # Extract assistant content from JSONL transcript
-    assistant_content = extract_assistant_content_from_jsonl(transcript_path)
-
-    if not assistant_content:
+    is_valid, error_msg, resolved_path = validate_transcript_path(transcript_path)
+    if not is_valid:
+        sys.stderr.write(f"insight_capture: Invalid path - {error_msg}\n")
         print(json.dumps({"continue": True}))
-        sys.exit(0)
+        return
 
-    # Extract insights from content
-    new_insights = extract_insights_from_text(assistant_content, agent_name)
+    # Extract content using the resolved path (prevents TOCTOU attacks)
+    content = extract_assistant_content(resolved_path, config.max_transcript_size)
+    if not content:
+        print(json.dumps({"continue": True}))
+        return
 
-    # Update pending file with locking and atomic write
-    count = update_pending_file_atomic(pending_file, new_insights, workspace_id)
+    # Extract insights
+    insights = extract_insights(content, config.agent_name, config)
+
+    # Save each insight as separate file (NO LOCKING!)
+    count = save_insights_to_files(insights, config.pending_dir)
 
     # Output result
     if count > 0:
         print(json.dumps({
             "continue": True,
-            "systemMessage": f"Captured {count} insight(s). Run /review-insights to evaluate."
+            "systemMessage": f"📝 Captured {count} insight(s). Run /review-insights to evaluate."
         }))
     else:
         print(json.dumps({"continue": True}))
 
-except Exception as e:
-    # Don't fail the hook on errors, just log and continue
-    sys.stderr.write(f"insight_capture.sh warning: {e}\n")
-    print(json.dumps({"continue": True}))
+
+if __name__ == '__main__':
+    try:
+        main()
+    except Exception as e:
+        sys.stderr.write(f"insight_capture FATAL: {e}\n")
+        print(json.dumps({"continue": True}))
 PYEOF
 
 exit 0

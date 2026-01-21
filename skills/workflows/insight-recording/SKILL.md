@@ -25,13 +25,13 @@ A standardized protocol for recording development insights during autonomous wor
 Subagent Output       transcript.jsonl      insight_capture.sh      /review-insights
       │                     │                       │                       │
       ├─ PATTERN: ... ─────►│                       │                       │
-      ├─ LEARNED: ... ─────►├──────────────────────►├─► pending.json ─────►│
+      ├─ LEARNED: ... ─────►├──────────────────────►├─► pending/INS-*.json ►│
       └─ Other text         │                       │                       ├─► CLAUDE.md
-                            │                       │                       ├─► .claude/rules/
-                            │                       │                       └─► Workspace only
+                            │  (code blocks         │  (atomic writes,      ├─► .claude/rules/
+                            │   filtered out)       │   deduplication)      └─► Workspace only
 ```
 
-The hook reads from the transcript JSONL file (via `transcript_path` in SubagentStop metadata), extracts assistant messages, and searches for insight markers.
+The hook reads from the transcript JSONL file (via `transcript_path` in SubagentStop metadata), extracts assistant messages, filters code blocks, and searches for insight markers.
 
 ## Insight Markers
 
@@ -68,9 +68,32 @@ no documentation exists, discovered through characterization testing
 
 ## Constraints
 
-- **Minimum length**: Content must be > 10 characters to be captured (filters noise)
-- **File locking**: Concurrent writes are safe (uses fcntl.flock)
-- **Atomic writes**: Partial writes cannot corrupt pending.json
+| Constraint | Value | Rationale |
+|------------|-------|-----------|
+| **Minimum length** | 11 characters | Filters noise and placeholder markers |
+| **Maximum length** | 10,000 characters | Prevents storage bloat; truncated with `... [truncated]` |
+| **Max per capture** | 100 insights | Rate limiting to prevent DoS |
+| **Code block filtering** | Enabled | Markers inside \`\`\`...\`\`\` are ignored |
+| **Inline code filtering** | Enabled | Markers inside \`...\` are ignored |
+| **Deduplication** | By content hash | Identical insights captured only once |
+| **Atomic writes** | temp + fsync + rename | No partial writes or corruption |
+
+## Code Block Handling
+
+**Markers inside code blocks are ignored** to prevent false matches:
+
+```markdown
+Here's an example of documenting patterns:
+```python
+# PATTERN: This is NOT captured (inside code block)
+def example():
+    pass
+```
+
+PATTERN: This IS captured (outside code block)
+```
+
+This allows you to document patterns without accidentally capturing examples.
 
 ## Marker Selection by Role
 
@@ -110,19 +133,55 @@ DECISION: Chose Strangler Fig pattern for migration due to existing
 /api/v1/ that can coexist with new /api/v2/ endpoints
 ```
 
+## Observability
+
+The insight capture system provides:
+
+- **Statistics**: Use `get_workspace_stats` function to count insights by status
+- **Folder structure**: Insights organized by status in separate directories
+- **Archive**: Processed insights can be moved to `archive/` directory
+
+**Directory structure:**
+```
+.claude/workspaces/{id}/insights/
+├── pending/       # Awaiting review
+│   ├── INS-20250121143000-a1b2c3d4.json
+│   └── INS-20250121143500-e5f6g7h8.json
+├── applied/       # Applied to CLAUDE.md or rules
+├── rejected/      # Rejected by user
+└── archive/       # Old insights for reference
+```
+
+**Individual insight file format:**
+```json
+{
+  "id": "INS-20250121143000-a1b2c3d4",
+  "timestamp": "2025-01-21T14:30:00Z",
+  "category": "pattern",
+  "content": "Error handling uses AppError class...",
+  "source": "code-explorer",
+  "status": "pending",
+  "contentHash": "a1b2c3d4e5f6",
+  "workspaceId": "main_a1b2c3d4"
+}
+```
+
 ## Rules
 
 ### L1 (Hard Rules)
 - ALWAYS include file:line references when applicable
 - NEVER record trivial or obvious findings
 - NEVER record secrets, credentials, or sensitive data
+- NEVER place markers inside code blocks if you want them captured
 
 ### L2 (Soft Rules)
 - Insights should be actionable or educational
 - Keep each insight concise (1-3 sentences, or multiline for complex topics)
 - Focus on project-specific learnings, not general knowledge
+- Place markers at the start of a line (after optional whitespace)
 
 ### L3 (Guidelines)
 - Include context about why the insight matters
 - Reference specific code locations for verification
 - Consider if the insight would help future developers
+- Use the most specific marker category (PATTERN over INSIGHT when applicable)
