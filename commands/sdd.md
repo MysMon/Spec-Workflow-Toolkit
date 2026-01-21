@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoW
 
 Launch a guided 7-phase development workflow that ensures disciplined, spec-first development with context-preserving subagent delegation.
 
-## References
+## Attribution
 
 Based on official feature-dev plugin, Claude Code Best Practices, Effective Harnesses for Long-Running Agents, Building Effective Agents (6 Composable Patterns), and Subagent Documentation.
 
@@ -33,7 +33,7 @@ This command orchestrates 7 phases:
 1. **Discovery** - Understand what needs to be built
 2. **Codebase Exploration** - Understand existing code and patterns (parallel agents)
 3. **Clarifying Questions** - Fill gaps and resolve ambiguities
-4. **Architecture Design** - Design multiple approaches (parallel agents)
+4. **Architecture Design** - Analyze in parallel, synthesize one approach
 5. **Implementation** - Build the feature
 6. **Quality Review** - Ensure code meets standards (parallel agents)
 7. **Summary** - Document what was accomplished
@@ -238,11 +238,24 @@ Based on discovery and exploration, identify:
 
 **Output:** Complete requirements with all ambiguities resolved.
 
+**Draft the specification (required before Phase 4):**
+If a spec already exists, review/update it. Otherwise, draft a new spec using `product-manager`.
+
+```
+Launch product-manager agent to draft the spec:
+Specification target: docs/specs/[feature-name].md
+Template: docs/specs/SPEC-TEMPLATE.md
+Inputs: Clarified requirements + exploration findings
+Output: Draft spec for user review
+```
+
+**Ask user to approve the spec** before moving to Phase 4.
+
 **Progress Update:**
 Update `claude-progress.json`:
 - status: "in_progress"
 - currentPhase: "phase3-complete"
-- currentTask: "Requirements clarified"
+- currentTask: "Requirements clarified and spec approved"
 - resumptionContext.position: "Phase 3 complete"
 - resumptionContext.nextAction: "Proceed to Phase 4: Architecture Design"
 
@@ -690,7 +703,7 @@ Create summary including:
 
 1. **Be patient with exploration** - Phase 2 prevents misunderstanding the codebase
 2. **Answer clarifying questions thoughtfully** - Phase 3 prevents future confusion
-3. **Choose architecture deliberately** - Phase 4 options exist for a reason
+3. **Choose architecture deliberately** - Phase 4 synthesizes one approach from multiple analyses
 4. **Don't skip security review** - Phase 6 catches issues before production
 5. **Read agent outputs carefully** - They contain important file:line references
 
@@ -707,6 +720,6 @@ Create summary including:
 |--------|------|-------------|
 | Phases | 7 | 1 |
 | Exploration | Parallel agents | None |
-| Design options | Multiple | Single |
+| Design options | Single (synthesized) | Single |
 | Review | Parallel agents | Basic |
 | Best for | Complex features | Small tasks |
