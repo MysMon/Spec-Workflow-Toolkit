@@ -311,7 +311,7 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task
 | `PreToolUse` | Validate/block tools | `safety_check.py`, `prevent_secret_leak.py` |
 | `PostToolUse` | Post-execution actions | `audit_log.sh` |
 | `PreCompact` | Save state before compaction | `pre_compact_save.sh` |
-| `SubagentStop` | Log completion | `subagent_summary.sh` |
+| `SubagentStop` | Log completion, capture insights | `subagent_summary.sh`, `insight_capture.sh` |
 | `Stop` | Session summary | `session_summary.sh` |
 | `SessionEnd` | Cleanup resources | `session_cleanup.sh` |
 | `PermissionRequest` | Custom permission handling | - |
@@ -500,6 +500,106 @@ exit 0
 - Resource deallocation
 
 **Note:** SessionEnd runs after Stop hook. Use Stop for session summary, SessionEnd for cleanup.
+
+### Insight Tracking System
+
+The insight tracking system automatically captures valuable discoveries during development and allows users to review and apply them.
+
+**Architecture:**
+
+```
+SubagentStop
+    ↓ (marker detection)
+insight_capture.sh
+    ↓ (JSON append)
+.claude/workspaces/{id}/insights/pending.json
+    ↓ (/review-insights command)
+User Decision
+    ↓ (apply)
+CLAUDE.md / .claude/rules/ / workspace
+```
+
+**Insight Markers:**
+
+Subagents output these markers when they discover something worth recording:
+
+| Marker | Purpose | Example |
+|--------|---------|---------|
+| `INSIGHT:` | General learning | `INSIGHT: This codebase uses Repository pattern for all DB access` |
+| `LEARNED:` | Experience-based learning | `LEARNED: PreToolUse exit 1 is non-blocking - use JSON decision control` |
+| `DECISION:` | Important decision with rationale | `DECISION: Using event-driven architecture due to existing async patterns` |
+| `PATTERN:` | Reusable pattern discovered | `PATTERN: Error handling always uses AppError class - see src/errors/` |
+| `ANTIPATTERN:` | Approach to avoid | `ANTIPATTERN: Direct database queries in controllers - use services` |
+
+**insight_capture.sh Implementation:**
+
+```bash
+#!/bin/bash
+# Extracts markers from subagent output and appends to pending.json
+# See hooks/insight_capture.sh for full implementation
+
+INPUT=$(cat)
+WORKSPACE_ID=$(get_workspace_id)
+PENDING_FILE=".claude/workspaces/$WORKSPACE_ID/insights/pending.json"
+
+# Python script extracts markers and appends to JSON
+# Only markers are captured - no automatic inference
+```
+
+**pending.json Schema:**
+
+```json
+{
+  "workspaceId": "main_a1b2c3d4",
+  "created": "2025-01-21T10:00:00Z",
+  "lastUpdated": "2025-01-21T14:30:00Z",
+  "insights": [
+    {
+      "id": "INS-20250121143000123",
+      "timestamp": "2025-01-21T14:30:00Z",
+      "category": "pattern",
+      "content": "Error handling uses AppError class with error codes",
+      "source": "code-explorer",
+      "status": "pending"
+    }
+  ]
+}
+```
+
+**Status Values:**
+
+| Status | Meaning |
+|--------|---------|
+| `pending` | Awaiting user review |
+| `applied` | Applied to CLAUDE.md or .claude/rules/ |
+| `workspace-approved` | Kept in workspace only |
+| `rejected` | Rejected by user |
+
+**Design Principles:**
+
+1. **Explicit markers only**: No automatic inference - subagents must explicitly mark insights
+2. **Workspace isolation**: Each workspace has its own pending.json
+3. **User-driven evaluation**: `/review-insights` processes one insight at a time with AskUserQuestion
+4. **Graduated destinations**: workspace → .claude/rules/ → CLAUDE.md
+
+**Adding Insight Markers to Agents:**
+
+When creating or updating agents, add the "Recording Insights" section:
+
+```markdown
+## Recording Insights (Optional)
+
+When you discover something valuable for future reference, output it with a marker:
+
+| Marker | Use When |
+|--------|----------|
+| `PATTERN:` | Discovered a reusable pattern |
+| `ANTIPATTERN:` | Found an approach to avoid |
+| `DECISION:` | Made an important decision with rationale |
+| `INSIGHT:` | General learning about the codebase |
+
+Only use markers for insights genuinely valuable for future work.
+```
 
 ### Hook Scripting Security
 

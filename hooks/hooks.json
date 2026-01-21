@@ -56,6 +56,11 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent_summary.sh",
             "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/insight_capture.sh",
+            "timeout": 3000
           }
         ]
       }
