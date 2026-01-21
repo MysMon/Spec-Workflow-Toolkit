@@ -59,6 +59,25 @@ For each finding to verify, check:
 - [ ] Version recommendations are current
 - [ ] Best practice advice is up-to-date
 
+### 5. Command-Agent Consistency Verification
+
+When verifying SDD workflow artifacts or plugin components:
+
+- [ ] Agent names referenced in commands match actual files in `agents/`
+- [ ] Model specifications (inherit, sonnet, opus, haiku) in documentation match agent frontmatter
+- [ ] Tool lists referenced are consistent with agent `tools:` field
+- [ ] Skill dependencies referenced exist in `skills/` and are correctly named
+- [ ] Hook handlers referenced in documentation exist in `hooks/`
+
+**Critical Inconsistency Detection:**
+
+| Finding | Severity | Action |
+|---------|----------|--------|
+| Document says `model: X` but agent file says `model: Y` | CRITICAL | Flag immediately |
+| Command references non-existent agent | CRITICAL | Flag immediately |
+| Skill referenced but not in agent's `skills:` field | HIGH | Report discrepancy |
+| Tool mentioned but not in agent's `tools:` field | HIGH | Report discrepancy |
+
 ## Verification Workflow
 
 ### Phase 1: Collect Findings

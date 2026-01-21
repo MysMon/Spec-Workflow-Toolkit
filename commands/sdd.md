@@ -469,8 +469,10 @@ Launch these review agents in parallel:
 
 4. verification-specialist agent
    Focus: Validate file:line references and code quotes from other agents
-   Task: Cross-check findings from qa-engineer, security-auditor, code-explorer for accuracy
+   Task: Cross-check findings from qa-engineer, security-auditor, code-explorer for accuracy.
+         Also verify any command/agent/skill references against actual definitions.
    Output: Verification report with VERIFIED/PARTIAL/UNVERIFIED status for each finding
+   Critical: Flag documentation-implementation mismatches (e.g., model settings, tool lists)
 ```
 
 **Wait for all agents to complete.**
