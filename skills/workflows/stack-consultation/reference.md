@@ -73,7 +73,7 @@ For each technology candidate discovered:
 - Constraint compatibility: [analysis]
 - Risk factors: [analysis]
 
-### Sources
+### Attribution
 - [URL 1] (date accessed)
 - [URL 2] (date accessed)
 ```

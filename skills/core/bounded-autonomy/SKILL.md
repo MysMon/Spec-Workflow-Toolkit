@@ -22,7 +22,7 @@ A decision-making framework for balancing strict rule compliance with creative p
 
 ## Core Principle
 
-From Claude 4.5 Best Practices:
+From Claude Code Best Practices:
 
 > "Claude often performs better with high level instructions to just think deeply about a task rather than step-by-step prescriptive guidance. The model's creativity in approaching problems may exceed a human's ability to prescribe the optimal thinking process."
 

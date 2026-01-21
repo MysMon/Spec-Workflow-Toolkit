@@ -40,7 +40,7 @@ Based on Anthropic's research and community best practices for balancing accurac
 
 ### The Bounded Autonomy Principle
 
-From Claude 4.5 Best Practices:
+From Claude Code Best Practices:
 
 > "Claude often performs better with high level instructions to just think deeply about a task rather than step-by-step prescriptive guidance. The model's creativity in approaching problems may exceed a human's ability to prescribe the optimal thinking process."
 
@@ -97,7 +97,7 @@ Not all rules are equal. Classify instructions by enforcement level:
 
 ### Avoiding Over-Specification
 
-From System Dynamics Review research:
+Research note:
 
 > "Explicit constraints may lead to over-control problems that suppress emergent behaviors."
 

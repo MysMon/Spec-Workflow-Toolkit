@@ -254,7 +254,7 @@ Compile findings into structured format:
 - **Weaknesses**: [from research]
 - **Fit for your requirements**: [analysis]
 
-### Sources
+### Attribution
 - [Title] (date) - [url]
 ```
 

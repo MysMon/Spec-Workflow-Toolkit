@@ -135,7 +135,7 @@ For each finding:
 ### Remediation
 [How to fix it]
 
-### References
+### Attribution
 [OWASP, CWE, etc.]
 ```
 
@@ -213,7 +213,8 @@ Use `insight-recording` skill markers (PATTERN:, ANTIPATTERN:, LEARNED:) when di
 Bash is permitted **only** for these read-only audit commands:
 - **Dependency audits**: `npm audit`, `yarn audit`, `pip-audit`, `safety check`, `govulncheck`, `cargo audit`, `bundle audit`
 - **Git history**: `git log`, `git blame`, `git show` (for reviewing commit history)
-- **File inspection**: `file`, `cat` (when Read tool is insufficient)
+- **File inspection**: `file`, `cat`, `head`, `tail`, `less`, `wc`, `ls` (when Read tool is insufficient)
+- **Search**: `find`, `grep`, `rg`
 - **Package inspection**: `npm list`, `pip list`, `go list`
 
 **NEVER use Bash for:**
