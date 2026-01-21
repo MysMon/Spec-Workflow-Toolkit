@@ -42,6 +42,61 @@ mkdir -p "$LOG_DIR" 2>/dev/null || true
 # Log file with date rotation
 LOG_FILE="$LOG_DIR/tool-audit-$(date +%Y-%m-%d).jsonl"
 
+# Configuration for log rotation
+MAX_LOG_SIZE_BYTES=$((10 * 1024 * 1024))  # 10MB max per log file
+MAX_LOG_FILES=7  # Keep 7 days of logs
+
+# --- Log Rotation ---
+# Rotate log file if it exceeds size limit
+rotate_log_if_needed() {
+    local log_file="$1"
+    local max_size="$2"
+
+    if [ ! -f "$log_file" ]; then
+        return 0
+    fi
+
+    # Get file size (cross-platform)
+    local current_size
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        current_size=$(stat -f%z "$log_file" 2>/dev/null || echo 0)
+    else
+        current_size=$(stat -c%s "$log_file" 2>/dev/null || echo 0)
+    fi
+
+    if [ "$current_size" -gt "$max_size" ]; then
+        local timestamp
+        timestamp=$(date '+%H%M%S')
+        local rotated_file="${log_file}.${timestamp}"
+
+        # Rotate current log
+        mv "$log_file" "$rotated_file" 2>/dev/null || return 1
+
+        # Compress rotated file if gzip is available
+        if command -v gzip &> /dev/null; then
+            gzip "$rotated_file" 2>/dev/null &
+        fi
+    fi
+}
+
+# Clean up old audit logs (older than MAX_LOG_FILES days)
+cleanup_old_logs() {
+    local log_dir="$1"
+    if [ -d "$log_dir" ]; then
+        find "$log_dir" -name "tool-audit-*.jsonl*" -mtime +$MAX_LOG_FILES -delete 2>/dev/null || true
+    fi
+}
+
+# Rotate if needed before writing
+rotate_log_if_needed "$LOG_FILE" "$MAX_LOG_SIZE_BYTES"
+
+# Periodic cleanup (only run occasionally to avoid overhead)
+CLEANUP_MARKER="$LOG_DIR/.last_audit_cleanup"
+if [ ! -f "$CLEANUP_MARKER" ] || [ "$(find "$CLEANUP_MARKER" -mtime +1 2>/dev/null)" ]; then
+    cleanup_old_logs "$LOG_DIR"
+    touch "$CLEANUP_MARKER" 2>/dev/null || true
+fi
+
 # Read input from stdin
 INPUT=$(cat)
 

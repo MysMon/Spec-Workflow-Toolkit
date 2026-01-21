@@ -160,22 +160,30 @@ def validate_transcript_path(path: str) -> Tuple[bool, str, str]:
 # JSONL PARSING
 # =============================================================================
 
-def extract_assistant_content(resolved_path: str, max_size: int) -> str:
+def extract_assistant_content(resolved_path: str, max_size: int) -> Tuple[str, bool]:
     """
     Extract assistant message content from JSONL transcript.
 
     Args:
         resolved_path: The already-resolved absolute path (from validate_transcript_path)
         max_size: Maximum file size to process
+
+    Returns:
+        Tuple of (content, was_skipped_due_to_size)
     """
     content_parts = []
 
     try:
         # Check file size - use resolved path directly (already validated)
         try:
-            if os.path.getsize(resolved_path) > max_size:
-                sys.stderr.write(f"insight_capture: Transcript too large, skipping\n")
-                return ''
+            file_size = os.path.getsize(resolved_path)
+            if file_size > max_size:
+                size_mb = file_size / (1024 * 1024)
+                max_mb = max_size / (1024 * 1024)
+                sys.stderr.write(
+                    f"insight_capture: Transcript too large ({size_mb:.1f}MB > {max_mb:.1f}MB limit), skipping\n"
+                )
+                return '', True  # Return flag indicating size skip
         except OSError:
             pass
 
@@ -208,7 +216,7 @@ def extract_assistant_content(resolved_path: str, max_size: int) -> str:
     except (FileNotFoundError, PermissionError, IOError):
         pass
 
-    return '\n'.join(content_parts)
+    return '\n'.join(content_parts), False
 
 # =============================================================================
 # INSIGHT EXTRACTION (STATE MACHINE)
@@ -398,7 +406,15 @@ def main():
         return
 
     # Extract content using the resolved path (prevents TOCTOU attacks)
-    content = extract_assistant_content(resolved_path, config.max_transcript_size)
+    content, was_size_skipped = extract_assistant_content(resolved_path, config.max_transcript_size)
+    if was_size_skipped:
+        # Notify user that transcript was too large
+        max_mb = config.max_transcript_size / (1024 * 1024)
+        print(json.dumps({
+            "continue": True,
+            "systemMessage": f"Transcript too large (>{max_mb:.0f}MB) - insights not captured. Consider splitting into smaller sessions."
+        }))
+        return
     if not content:
         print(json.dumps({"continue": True}))
         return
