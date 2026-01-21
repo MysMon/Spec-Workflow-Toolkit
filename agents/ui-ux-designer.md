@@ -164,6 +164,10 @@ Create component documentation:
 | Forms | User input |
 | Toasts | Notifications |
 
+## Recording Insights
+
+Use `insight-recording` skill markers (PATTERN:, LEARNED:, DECISION:) when discovering design patterns, accessibility solutions, or component specifications. Insights are automatically captured for later review.
+
 ## Rules
 
 - ALWAYS prioritize accessibility
