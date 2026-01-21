@@ -93,6 +93,14 @@ See `docs/DEVELOPMENT.md` for full hook specification with code examples.
 
 **Rationale**: URLs consume tokens without adding actionable value. Keep URLs in README.md and DEVELOPMENT.md only.
 
+### Reference Management Rule
+
+When referencing external resources (Anthropic blog posts, official docs, etc.) and adopting their patterns into this plugin:
+
+1. Add the reference to `docs/DEVELOPMENT.md` "Official References" section
+2. Use plain text attribution in skills/agents/commands (no URLs)
+3. Keep README.md references to essential items only (3-5 max)
+
 ### README Guidelines
 
 README.md is **user-facing documentation**. Keep it focused on what users need to know.
