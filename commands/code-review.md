@@ -1,5 +1,5 @@
 ---
-description: "Review code changes using 5 parallel specialized agents with confidence-based scoring and filtering"
+description: "Review code changes using 5 parallel specialized agents with confidence-based scoring and filtering (Requires: GitHub CLI 'gh' for PR reviews)"
 argument-hint: "[file path, directory, PR #, or 'staged' for git staged changes]"
 allowed-tools: Read, Glob, Grep, Bash, Task, AskUserQuestion
 ---

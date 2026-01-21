@@ -1,5 +1,5 @@
 ---
-description: "Respond to PR review comments - analyze feedback, implement changes, and reply systematically"
+description: "Respond to PR review comments - analyze feedback, implement changes, and reply systematically (Requires: GitHub CLI 'gh')"
 argument-hint: "<PR number or URL>"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
 ---

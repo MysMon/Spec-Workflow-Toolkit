@@ -1,5 +1,5 @@
 ---
-description: "Diagnose and fix CI/CD pipeline failures with systematic log analysis and targeted fixes"
+description: "Diagnose and fix CI/CD pipeline failures with systematic log analysis and targeted fixes (Requires: GitHub CLI 'gh' for GitHub Actions)"
 argument-hint: "[optional: CI URL, job name, or error message]"
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite, WebFetch
 ---
