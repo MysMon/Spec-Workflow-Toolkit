@@ -170,15 +170,15 @@ info = {
 
 if progress_file and os.path.exists(progress_file):
     try:
-        with open(progress_file, 'r') as f:
+        with open(progress_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         info["project"] = data.get("project", "unknown")
         info["status"] = data.get("status", "unknown")
         info["lastUpdated"] = data.get("lastUpdated", "unknown")
         ctx = data.get("resumptionContext", {})
         info["position"] = ctx.get("position", "unknown")
-    except:
-        pass
+    except Exception:
+        pass  # Return partial info on read failure
 
 print(json.dumps(info, indent=2))
 PYEOF

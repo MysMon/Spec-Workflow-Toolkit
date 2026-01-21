@@ -50,6 +50,8 @@ if [ -n "$PROGRESS_FILE" ] && command -v python3 &> /dev/null; then
 import json
 import os
 import sys
+import fcntl
+import tempfile
 from datetime import datetime
 
 try:
@@ -61,45 +63,62 @@ try:
     if not progress_file:
         sys.exit(0)
 
-    with open(progress_file, "r") as f:
-        data = json.load(f)
+    # Use file locking for safe concurrent access
+    lock_file = progress_file + '.lock'
+    with open(lock_file, 'w') as lf:
+        fcntl.flock(lf.fileno(), fcntl.LOCK_EX)
 
-    # Add compaction event to history with more context
-    if "compactionHistory" not in data:
-        data["compactionHistory"] = []
+        try:
+            with open(progress_file, "r", encoding='utf-8') as f:
+                data = json.load(f)
 
-    # Capture current state snapshot before compaction
-    current_task = data.get("currentTask", "unknown")
-    resumption_ctx = data.get("resumptionContext", {})
+            # Add compaction event to history with more context
+            if "compactionHistory" not in data:
+                data["compactionHistory"] = []
 
-    data["compactionHistory"].append({
-        "timestamp": datetime.now().isoformat(),
-        "trigger": trigger,
-        "customInstructions": custom if custom else None,
-        "workspaceId": workspace_id if workspace_id else None,
-        "stateSnapshot": {
-            "currentTask": current_task,
-            "position": resumption_ctx.get("position", "unknown"),
-            "nextAction": resumption_ctx.get("nextAction", "unknown")
-        }
-    })
+            # Capture current state snapshot before compaction
+            current_task = data.get("currentTask", "unknown")
+            resumption_ctx = data.get("resumptionContext", {})
 
-    # Keep only last 10 compaction events
-    data["compactionHistory"] = data["compactionHistory"][-10:]
+            data["compactionHistory"].append({
+                "timestamp": datetime.now().isoformat(),
+                "trigger": trigger,
+                "customInstructions": custom if custom else None,
+                "workspaceId": workspace_id if workspace_id else None,
+                "stateSnapshot": {
+                    "currentTask": current_task,
+                    "position": resumption_ctx.get("position", "unknown"),
+                    "nextAction": resumption_ctx.get("nextAction", "unknown")
+                }
+            })
 
-    # Update last compaction timestamp
-    data["lastCompaction"] = datetime.now().isoformat()
+            # Keep only last 10 compaction events
+            data["compactionHistory"] = data["compactionHistory"][-10:]
 
-    # Add compaction warning to resumption context
-    if "resumptionContext" not in data:
-        data["resumptionContext"] = {}
-    data["resumptionContext"]["lastCompactionWarning"] = (
-        "Context was compacted. Subagent results and intermediate findings may have been lost. "
-        "Re-read key files and re-run critical analyses if needed."
-    )
+            # Update last compaction timestamp
+            data["lastCompaction"] = datetime.now().isoformat()
 
-    with open(progress_file, "w") as f:
-        json.dump(data, f, indent=2)
+            # Add compaction warning to resumption context
+            if "resumptionContext" not in data:
+                data["resumptionContext"] = {}
+            data["resumptionContext"]["lastCompactionWarning"] = (
+                "Context was compacted. Subagent results and intermediate findings may have been lost. "
+                "Re-read key files and re-run critical analyses if needed."
+            )
+
+            # Atomic write: write to temp file, then rename
+            dir_name = os.path.dirname(progress_file)
+            fd, temp_path = tempfile.mkstemp(dir=dir_name, suffix='.tmp')
+            try:
+                with os.fdopen(fd, 'w', encoding='utf-8') as tf:
+                    json.dump(data, tf, indent=2, ensure_ascii=False)
+                os.rename(temp_path, progress_file)
+            except Exception:
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
+                raise
+        finally:
+            pass  # Lock released when lf closes
 
 except Exception as e:
     # Don't block compaction on errors

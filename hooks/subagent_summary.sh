@@ -94,15 +94,14 @@ if command -v get_session_log &> /dev/null; then
 fi
 
 # Output summary (this will be shown in the conversation)
-cat << EOF
----
-**Subagent Complete:** \`$AGENT_NAME\` (Status: $AGENT_STATUS)
-
-Review the output above and decide:
-- Accept and continue with next phase
-- Request clarification or changes
-- Delegate follow-up to another agent
----
-EOF
+# Use printf for safe variable output
+printf '%s\n' "---"
+printf '**Subagent Complete:** `%s` (Status: %s)\n' "$AGENT_NAME" "$AGENT_STATUS"
+printf '%s\n' ""
+printf '%s\n' "Review the output above and decide:"
+printf '%s\n' "- Accept and continue with next phase"
+printf '%s\n' "- Request clarification or changes"
+printf '%s\n' "- Delegate follow-up to another agent"
+printf '%s\n' "---"
 
 exit 0

@@ -47,13 +47,17 @@ A structured workflow to efficiently address PR review comments. Analyzes review
 
 **Fetch PR comments:**
 
+**IMPORTANT: Validate PR number format before use:**
+- PR number must be a positive integer (e.g., `123`, `4567`)
+- Use `gh pr view` without number to get current branch's PR if unsure
+
 ```bash
-# Using GitHub CLI
-gh pr view $PR_NUMBER --comments
-gh pr view $PR_NUMBER --json reviews,comments
+# Using GitHub CLI (PR_NUMBER must be validated as numeric)
+gh pr view "$PR_NUMBER" --comments
+gh pr view "$PR_NUMBER" --json reviews,comments
 
 # Get review comments on specific files
-gh api repos/{owner}/{repo}/pulls/{pr_number}/comments
+gh api "repos/{owner}/{repo}/pulls/${PR_NUMBER}/comments"
 ```
 
 **If no PR number provided:**

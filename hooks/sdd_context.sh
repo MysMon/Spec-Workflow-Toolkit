@@ -395,7 +395,7 @@ if not pending_file:
     exit(0)
 
 try:
-    with open(pending_file, 'r') as f:
+    with open(pending_file, 'r', encoding='utf-8') as f:
         data = json.load(f)
     insights = [i for i in data.get('insights', []) if i.get('status') == 'pending'][:3]
     for i, ins in enumerate(insights, 1):
@@ -404,8 +404,8 @@ try:
             content += '...'
         category = ins.get('category', 'insight')
         print(f"  {i}. [{category}] {content}")
-except:
-    pass
+except Exception:
+    pass  # Silent fail for preview display is acceptable
 PYEOF
 )
             if [ -n "$PREVIEW" ]; then
