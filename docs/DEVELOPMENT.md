@@ -4,43 +4,6 @@ Detailed specifications for plugin contributors. For user documentation, see `RE
 
 ---
 
-## Official References
-
-All URLs are centralized here. Skill and agent files should use plain text attribution only.
-
-### Anthropic Engineering Blog
-
-| Article | Key Concepts |
-|---------|--------------|
-| [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) | 6 Composable Patterns |
-| [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) | Initializer + Coding pattern |
-| [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices) | Subagent context management |
-| [Effective Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) | Context rot, compaction |
-| [Building Agents with Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk) | Verification approaches |
-| [Multi-Agent Research System](https://www.anthropic.com/engineering/multi-agent-research-system) | Orchestrator-worker patterns |
-| [Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills) | Skill patterns |
-| [The "think" tool](https://www.anthropic.com/engineering/claude-think-tool) | Structured reasoning |
-| [Demystifying evals](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) | pass@k metrics |
-
-### Claude Code Documentation
-
-| Page | Content |
-|------|---------|
-| [Subagents](https://code.claude.com/docs/en/sub-agents) | Agent definition format |
-| [Skills](https://code.claude.com/docs/en/skills) | Skill format, Progressive Disclosure |
-| [Hooks](https://code.claude.com/docs/en/hooks) | Event handlers |
-| [Plugins](https://code.claude.com/docs/en/plugins-reference) | plugin.json schema |
-| [Memory](https://code.claude.com/docs/en/memory) | .claude/rules/ |
-
-### Official Examples
-
-| Repository | Content |
-|------------|---------|
-| [anthropics/claude-code/plugins](https://github.com/anthropics/claude-code/tree/main/plugins) | feature-dev, code-review |
-| [anthropics/skills](https://github.com/anthropics/skills) | Skill examples |
-
----
-
 ## Design Philosophy
 
 ### Why This Plugin Exists
@@ -68,6 +31,141 @@ From Claude Code Best Practices:
 |----------|-------------|--------|
 | Direct exploration | 10,000+ tokens | Context exhaustion |
 | Subagent exploration | ~500 token summary | Clean main context |
+
+---
+
+## Instruction Design Guidelines
+
+Based on Anthropic's research and community best practices for balancing accuracy with creative problem-solving.
+
+### The Bounded Autonomy Principle
+
+From Claude 4.5 Best Practices:
+
+> "Claude often performs better with high level instructions to just think deeply about a task rather than step-by-step prescriptive guidance. The model's creativity in approaching problems may exceed a human's ability to prescribe the optimal thinking process."
+
+**Key insight**: Be prescriptive about goals, constraints, and verification—but allow flexibility in execution.
+
+### Rule Hierarchy
+
+Not all rules are equal. Classify instructions by enforcement level:
+
+| Level | Name | Enforcement | Examples |
+|-------|------|-------------|----------|
+| **L1** | Hard Rules | Absolute, no exceptions | Security constraints, secret protection, safety |
+| **L2** | Soft Rules | Default behavior, override with reasoning | Code style, commit format, review thresholds |
+| **L3** | Guidelines | Recommendations, adapt to context | Implementation approach, tool selection |
+
+**Syntax convention for this plugin:**
+
+```markdown
+## Rules (L1 - Hard)
+- NEVER commit secrets
+- ALWAYS validate user input
+
+## Defaults (L2 - Soft)
+- Use conventional commit format (unless project specifies otherwise)
+- Confidence threshold >= 80% (adjust based on task criticality)
+
+## Guidelines (L3)
+- Consider using subagents for exploration
+- Prefer JSON for state files
+```
+
+### Goal-Oriented vs Step-by-Step Instructions
+
+| Approach | When to Use | Example |
+|----------|-------------|---------|
+| **Goal-Oriented** | Creative tasks, problem-solving, design | "Design a solution that handles X while respecting constraints Y and Z" |
+| **Step-by-Step** | Safety-critical, compliance, verification | "1. Check X, 2. Validate Y, 3. Confirm Z before proceeding" |
+
+**Pattern for commands and skills:**
+
+```markdown
+## Goal
+[What success looks like - end state description]
+
+## Constraints (L1/L2)
+[Non-negotiable requirements]
+
+## Approach (L3)
+[Recommended strategy - Claude may adapt based on situation]
+
+## Verification
+[How to confirm success]
+```
+
+### Avoiding Over-Specification
+
+From System Dynamics Review research:
+
+> "Explicit constraints may lead to over-control problems that suppress emergent behaviors."
+
+**Signs of over-specification:**
+- Every step is numbered and prescribed
+- No room for judgment or adaptation
+- Instructions longer than 500 lines
+- Same outcome regardless of context
+
+**Remedies:**
+- Replace prescriptive steps with success criteria
+- Add "Claude may adapt this approach based on the specific situation"
+- Use thinking prompts: "Before implementing, consider alternatives"
+
+### Encouraging Appropriate Initiative
+
+From Claude Code Best Practices:
+
+Claude 4.x follows instructions precisely. To encourage creative problem-solving:
+
+```markdown
+## Flexibility Clause
+
+These guidelines are starting points, not rigid rules.
+If you identify a better approach that achieves the same goals:
+1. Explain your reasoning
+2. Confirm the approach still meets all L1 (Hard) constraints
+3. Proceed with the improved approach
+```
+
+### Thinking Prompts for Complex Decisions
+
+For tasks requiring judgment, add thinking prompts:
+
+```markdown
+## Before Implementation
+
+Think deeply about:
+- What are the tradeoffs of different approaches?
+- What would a senior engineer consider?
+- Are there better solutions I haven't explored?
+- Does this approach satisfy all constraints?
+
+Use your judgment rather than following steps mechanically.
+```
+
+### Progressive Disclosure for Instructions
+
+Keep main instructions concise; put details in reference files:
+
+```
+my-skill/
+├── SKILL.md           # Core instructions (<300 lines)
+│   └── [Goal + Constraints + High-level approach]
+├── reference.md       # Detailed patterns (loaded on demand)
+│   └── [Step-by-step procedures for specific scenarios]
+└── examples.md        # Concrete examples
+    └── [Show, don't tell]
+```
+
+### Measuring Instruction Effectiveness
+
+When iterating on instructions:
+
+1. **Test with varied contexts** - Same instruction, different situations
+2. **Check for brittleness** - Does minor rephrasing break behavior?
+3. **Verify creative latitude** - Can Claude find better solutions?
+4. **Confirm constraint adherence** - Are L1 rules always followed?
 
 ---
 
@@ -223,6 +321,42 @@ Skills should define **processes and frameworks**, not static knowledge that can
 
 ---
 
+### Command Template
+
+Create `commands/[name].md`:
+
+```yaml
+---
+description: "Command description for /help"
+argument-hint: "[arg]"
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task
+---
+
+# /command-name
+
+## Purpose
+[What this command does]
+
+## Workflow
+[Step-by-step phases]
+
+## Output
+[Expected deliverables]
+
+## Rules
+[Command-specific constraints]
+```
+
+#### Command Field Reference
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `description` | Yes | Shown in `/help` |
+| `argument-hint` | No | e.g., `[file]`, `[PR number]` |
+| `allowed-tools` | No | Tools during execution |
+
+---
+
 ### Command and Agent Content Guidelines
 
 Commands and agents may include concrete examples for clarity, but should be resilient to change.
@@ -265,42 +399,6 @@ This breaks if eslint is replaced by biome or another tool.
 
 ---
 
-### Command Template
-
-Create `commands/[name].md`:
-
-```yaml
----
-description: "Command description for /help"
-argument-hint: "[arg]"
-allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task
----
-
-# /command-name
-
-## Purpose
-[What this command does]
-
-## Workflow
-[Step-by-step phases]
-
-## Output
-[Expected deliverables]
-
-## Rules
-[Command-specific constraints]
-```
-
-#### Command Field Reference
-
-| Field | Required | Description |
-|-------|----------|-------------|
-| `description` | Yes | Shown in `/help` |
-| `argument-hint` | No | e.g., `[file]`, `[PR number]` |
-| `allowed-tools` | No | Tools during execution |
-
----
-
 ## Hook Specification
 
 ### Supported Events
@@ -317,6 +415,52 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task
 | `PermissionRequest` | Custom permission handling | - |
 | `Notification` | External notifications | - |
 | `UserPromptSubmit` | Input preprocessing | - |
+
+### Hook Scripting Security
+
+**Shell Variable Injection Risk:**
+
+Never interpolate shell variables directly into Python code:
+
+```bash
+# DANGEROUS - shell variable injection vulnerability
+python3 -c "
+with open('$FILE_PATH', 'r') as f:  # If FILE_PATH contains quotes, breaks/injects
+    data = json.load(f)
+"
+
+# SAFE - use environment variables
+FILE_PATH="$FILE_PATH" python3 -c "
+import os
+file_path = os.environ.get('FILE_PATH', '')
+with open(file_path, 'r') as f:
+    data = json.load(f)
+"
+```
+
+**Fail-Safe Error Handling:**
+
+Hooks that validate commands should fail-safe (deny on error):
+
+```python
+try:
+    data = json.loads(sys.stdin.read())
+    # ... validation logic
+except Exception as e:
+    # WRONG: exit 1 is non-blocking, command may still execute
+    # sys.exit(1)
+
+    # CORRECT: Use JSON decision control to deny
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": f"Validation error: {e}"
+        }
+    }
+    print(json.dumps(output))
+    sys.exit(0)
+```
 
 ### PreToolUse Hook Implementation
 
@@ -501,6 +645,100 @@ exit 0
 
 **Note:** SessionEnd runs after Stop hook. Use Stop for session summary, SessionEnd for cleanup.
 
+### Prompt-Based Hooks
+
+Instead of shell commands, hooks can use LLM evaluation for context-aware decisions:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Evaluate if this command is safe to run in a production environment. Command: $ARGUMENTS. Return JSON: {\"ok\": true/false, \"reason\": \"explanation\"}",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Supported Events for Prompt Hooks:**
+- `PreToolUse` - Evaluate tool calls
+- `PermissionRequest` - Custom permission logic
+- `UserPromptSubmit` - Input validation
+- `Stop` / `SubagentStop` - Output verification
+
+**When to Use Prompt vs Command Hooks:**
+
+| Scenario | Recommended |
+|----------|-------------|
+| Pattern matching (regex, keywords) | Command |
+| Context-aware evaluation | Prompt |
+| Complex business logic | Command |
+| Natural language assessment | Prompt |
+| Performance-critical | Command |
+
+### Component-Scoped Hooks
+
+Hooks can be defined in agent/skill frontmatter for component-specific behavior:
+
+**Agent Frontmatter Example:**
+
+```yaml
+---
+name: security-auditor
+description: Security review specialist
+model: sonnet
+tools: Read, Glob, Grep, Bash
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: "./hooks/security_audit_bash_validator.py"
+  Stop:
+    - hooks:
+        - type: command
+          command: "./hooks/audit_report_generator.sh"
+---
+```
+
+**Skill Frontmatter Example:**
+
+```yaml
+---
+name: code-quality
+description: Code quality analysis
+hooks:
+  PreToolUse:
+    - matcher: "Edit|Write"
+      hooks:
+        - type: command
+          command: "./scripts/lint-check.sh"
+          once: true
+---
+```
+
+**Key Differences from Global Hooks:**
+
+| Aspect | Global Hooks | Component-Scoped |
+|--------|--------------|------------------|
+| Scope | All sessions | While component is active |
+| Location | `hooks/hooks.json` | Agent/Skill frontmatter |
+| Events | All | PreToolUse, PostToolUse, Stop |
+| `once` flag | Not applicable | Supported for skills |
+
+**Use Cases:**
+- Agent-specific validation (security-auditor Bash validation)
+- Skill-specific post-processing
+- Temporary hooks during specific workflows
+
 ### Insight Tracking System
 
 The insight tracking system automatically captures valuable discoveries during development and allows users to review and apply them. It uses a folder-based architecture where each insight is stored as a separate file, eliminating the need for file locking and enabling concurrent capture and review.
@@ -618,8 +856,8 @@ Subagents output these markers when they discover something worth recording:
 3. **Folder-based storage**: Each insight is a separate file (no locking needed)
 4. **User-driven evaluation**: `/review-insights` processes one insight at a time with AskUserQuestion
 5. **Graduated destinations**: workspace → .claude/rules/ → CLAUDE.md
-5. **Code block safety**: Markers inside code blocks are ignored
-6. **Defense in depth**: Path validation, size limits, timeout protection
+6. **Code block safety**: Markers inside code blocks are ignored
+7. **Defense in depth**: Path validation, size limits, timeout protection
 
 **Adding Insight Recording to Agents:**
 
@@ -661,149 +899,19 @@ Use `insight-recording` skill markers (PATTERN:, LEARNED:, INSIGHT:) when discov
 
 Non-technical agents (technical-writer, ui-ux-designer, product-manager) operate at a different abstraction level and don't typically produce insights about code patterns.
 
-### Hook Scripting Security
-
-**Shell Variable Injection Risk:**
-
-Never interpolate shell variables directly into Python code:
-
-```bash
-# DANGEROUS - shell variable injection vulnerability
-python3 -c "
-with open('$FILE_PATH', 'r') as f:  # If FILE_PATH contains quotes, breaks/injects
-    data = json.load(f)
-"
-
-# SAFE - use environment variables
-FILE_PATH="$FILE_PATH" python3 -c "
-import os
-file_path = os.environ.get('FILE_PATH', '')
-with open(file_path, 'r') as f:
-    data = json.load(f)
-"
-```
-
-**Fail-Safe Error Handling:**
-
-Hooks that validate commands should fail-safe (deny on error):
-
-```python
-try:
-    data = json.loads(sys.stdin.read())
-    # ... validation logic
-except Exception as e:
-    # WRONG: exit 1 is non-blocking, command may still execute
-    # sys.exit(1)
-
-    # CORRECT: Use JSON decision control to deny
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "deny",
-            "permissionDecisionReason": f"Validation error: {e}"
-        }
-    }
-    print(json.dumps(output))
-    sys.exit(0)
-```
-
-### Prompt-Based Hooks
-
-Instead of shell commands, hooks can use LLM evaluation for context-aware decisions:
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Evaluate if this command is safe to run in a production environment. Command: $ARGUMENTS. Return JSON: {\"ok\": true/false, \"reason\": \"explanation\"}",
-            "timeout": 30
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-**Supported Events for Prompt Hooks:**
-- `PreToolUse` - Evaluate tool calls
-- `PermissionRequest` - Custom permission logic
-- `UserPromptSubmit` - Input validation
-- `Stop` / `SubagentStop` - Output verification
-
-**When to Use Prompt vs Command Hooks:**
-
-| Scenario | Recommended |
-|----------|-------------|
-| Pattern matching (regex, keywords) | Command |
-| Context-aware evaluation | Prompt |
-| Complex business logic | Command |
-| Natural language assessment | Prompt |
-| Performance-critical | Command |
-
-### Component-Scoped Hooks
-
-Hooks can be defined in agent/skill frontmatter for component-specific behavior:
-
-**Agent Frontmatter Example:**
-
-```yaml
----
-name: security-auditor
-description: Security review specialist
-model: sonnet
-tools: Read, Glob, Grep, Bash
-hooks:
-  PreToolUse:
-    - matcher: "Bash"
-      hooks:
-        - type: command
-          command: "./hooks/security_audit_bash_validator.py"
-  Stop:
-    - hooks:
-        - type: command
-          command: "./hooks/audit_report_generator.sh"
----
-```
-
-**Skill Frontmatter Example:**
-
-```yaml
----
-name: code-quality
-description: Code quality analysis
-hooks:
-  PreToolUse:
-    - matcher: "Edit|Write"
-      hooks:
-        - type: command
-          command: "./scripts/lint-check.sh"
-          once: true
----
-```
-
-**Key Differences from Global Hooks:**
-
-| Aspect | Global Hooks | Component-Scoped |
-|--------|--------------|------------------|
-| Scope | All sessions | While component is active |
-| Location | `hooks/hooks.json` | Agent/Skill frontmatter |
-| Events | All | PreToolUse, PostToolUse, Stop |
-| `once` flag | Not applicable | Supported for skills |
-
-**Use Cases:**
-- Agent-specific validation (security-auditor Bash validation)
-- Skill-specific post-processing
-- Temporary hooks during specific workflows
-
 ---
 
-## Confidence Scoring
+## Agent Configuration
+
+### Tool Configuration
+
+| Agent | Tools | Notes |
+|-------|-------|-------|
+| `code-explorer` | Glob, Grep, Read, WebFetch, WebSearch, TodoWrite | Read supports .ipynb |
+| `code-architect` | Glob, Grep, Read, WebFetch, WebSearch, TodoWrite | Design-only |
+| `security-auditor` | Read, Glob, Grep, Bash (validated) | Bash via PreToolUse hook |
+
+### Confidence Scoring
 
 Used in `/code-review` and agent outputs:
 
@@ -819,21 +927,13 @@ Used in `/code-review` and agent outputs:
 
 ---
 
-## Tool Configuration
+## Integration & Environment
 
-| Agent | Tools | Notes |
-|-------|-------|-------|
-| `code-explorer` | Glob, Grep, Read, WebFetch, WebSearch, TodoWrite | Read supports .ipynb |
-| `code-architect` | Glob, Grep, Read, WebFetch, WebSearch, TodoWrite | Design-only |
-| `security-auditor` | Read, Glob, Grep, Bash (validated) | Bash via PreToolUse hook |
-
----
-
-## MCP Integration
+### MCP Integration
 
 Model Context Protocol (MCP) servers extend Claude Code's capabilities. This plugin can work alongside MCP servers.
 
-### MCP Tool Naming Convention
+#### MCP Tool Naming Convention
 
 MCP tools follow the pattern: `mcp__<server>__<tool>`
 
@@ -842,7 +942,7 @@ Examples:
 - `mcp__filesystem__read_file`
 - `mcp__github__search_repositories`
 
-### Hook Considerations for MCP Tools
+#### Hook Considerations for MCP Tools
 
 When writing PreToolUse hooks, consider MCP tools:
 
@@ -902,7 +1002,7 @@ def extract_command_from_mcp_input(tool_input: dict) -> str:
 | **Audit logging** | Log all MCP tool invocations for security review |
 | **Input extraction** | Try multiple common field names for command extraction |
 
-### Recommended MCP Servers for SDD Workflows
+#### Recommended MCP Servers for SDD Workflows
 
 | MCP Server | Use Case | SDD Integration |
 |------------|----------|-----------------|
@@ -911,7 +1011,7 @@ def extract_command_from_mcp_input(tool_input: dict) -> str:
 | `@anthropic/mcp-server-puppeteer` | Browser automation | E2E testing in qa-engineer |
 | `@anthropic/mcp-server-filesystem` | File operations | Alternative to built-in tools |
 
-### Configuration Example
+#### Configuration Example
 
 ```json
 {
@@ -931,7 +1031,7 @@ def extract_command_from_mcp_input(tool_input: dict) -> str:
 }
 ```
 
-### SDD Toolkit + MCP Best Practices
+#### SDD Toolkit + MCP Best Practices
 
 | Pattern | Recommendation |
 |---------|----------------|
@@ -940,13 +1040,11 @@ def extract_command_from_mcp_input(tool_input: dict) -> str:
 | **GitHub operations** | MCP GitHub server for PR/Issue operations; `/code-review` for review workflow |
 | **E2E testing** | MCP Puppeteer + `qa-engineer` agent for comprehensive testing |
 
----
-
-## Web Environment (Claude Code on Web)
+### Web Environment (Claude Code on Web)
 
 When running Claude Code on the web (`CLAUDE_CODE_REMOTE=true`), some capabilities differ from CLI usage.
 
-### Environment Detection
+#### Environment Detection
 
 Hooks can detect the web environment:
 
@@ -958,7 +1056,7 @@ if [ "$CLAUDE_CODE_REMOTE" = "true" ]; then
 fi
 ```
 
-### Known Differences
+#### Known Differences
 
 | Feature | CLI | Web | Notes |
 |---------|-----|-----|-------|
@@ -969,7 +1067,7 @@ fi
 | **Long-running processes** | Supported | May timeout | Use timeouts, checkpointing |
 | **MCP servers** | Configurable | Pre-configured | Limited customization |
 
-### Best Practices for Web Compatibility
+#### Best Practices for Web Compatibility
 
 | Practice | Recommendation |
 |----------|----------------|
@@ -979,7 +1077,7 @@ fi
 | **Use progress files** | Essential for session resumption in web |
 | **Set explicit timeouts** | Web sessions may have shorter limits |
 
-### Hook Compatibility
+#### Hook Compatibility
 
 Hooks in this plugin are designed to work in both environments:
 
@@ -987,7 +1085,7 @@ Hooks in this plugin are designed to work in both environments:
 - Fallback behaviors when commands unavailable
 - Progress files use relative paths within `.claude/`
 
-### Testing for Web Compatibility
+#### Testing for Web Compatibility
 
 When modifying hooks or scripts:
 
@@ -995,141 +1093,6 @@ When modifying hooks or scripts:
 2. Verify behavior when typical CLI commands are unavailable
 3. Ensure progress files are written to `.claude/workspaces/`
 4. Test with restricted filesystem access
-
----
-
-## Instruction Design Guidelines
-
-Based on Anthropic's research and community best practices for balancing accuracy with creative problem-solving.
-
-### The Bounded Autonomy Principle
-
-From [Claude 4.5 Best Practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-4-best-practices):
-
-> "Claude often performs better with high level instructions to just think deeply about a task rather than step-by-step prescriptive guidance. The model's creativity in approaching problems may exceed a human's ability to prescribe the optimal thinking process."
-
-**Key insight**: Be prescriptive about goals, constraints, and verification—but allow flexibility in execution.
-
-### Rule Hierarchy
-
-Not all rules are equal. Classify instructions by enforcement level:
-
-| Level | Name | Enforcement | Examples |
-|-------|------|-------------|----------|
-| **L1** | Hard Rules | Absolute, no exceptions | Security constraints, secret protection, safety |
-| **L2** | Soft Rules | Default behavior, override with reasoning | Code style, commit format, review thresholds |
-| **L3** | Guidelines | Recommendations, adapt to context | Implementation approach, tool selection |
-
-**Syntax convention for this plugin:**
-
-```markdown
-## Rules (L1 - Hard)
-- NEVER commit secrets
-- ALWAYS validate user input
-
-## Defaults (L2 - Soft)
-- Use conventional commit format (unless project specifies otherwise)
-- Confidence threshold >= 80% (adjust based on task criticality)
-
-## Guidelines (L3)
-- Consider using subagents for exploration
-- Prefer JSON for state files
-```
-
-### Goal-Oriented vs Step-by-Step Instructions
-
-| Approach | When to Use | Example |
-|----------|-------------|---------|
-| **Goal-Oriented** | Creative tasks, problem-solving, design | "Design a solution that handles X while respecting constraints Y and Z" |
-| **Step-by-Step** | Safety-critical, compliance, verification | "1. Check X, 2. Validate Y, 3. Confirm Z before proceeding" |
-
-**Pattern for commands and skills:**
-
-```markdown
-## Goal
-[What success looks like - end state description]
-
-## Constraints (L1/L2)
-[Non-negotiable requirements]
-
-## Approach (L3)
-[Recommended strategy - Claude may adapt based on situation]
-
-## Verification
-[How to confirm success]
-```
-
-### Avoiding Over-Specification
-
-From [System Dynamics Review research](https://onlinelibrary.wiley.com/doi/10.1002/sdr.70008):
-
-> "Explicit constraints may lead to over-control problems that suppress emergent behaviors."
-
-**Signs of over-specification:**
-- Every step is numbered and prescribed
-- No room for judgment or adaptation
-- Instructions longer than 500 lines
-- Same outcome regardless of context
-
-**Remedies:**
-- Replace prescriptive steps with success criteria
-- Add "Claude may adapt this approach based on the specific situation"
-- Use thinking prompts: "Before implementing, consider alternatives"
-
-### Encouraging Appropriate Initiative
-
-From [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices):
-
-Claude 4.x follows instructions precisely. To encourage creative problem-solving:
-
-```markdown
-## Flexibility Clause
-
-These guidelines are starting points, not rigid rules.
-If you identify a better approach that achieves the same goals:
-1. Explain your reasoning
-2. Confirm the approach still meets all L1 (Hard) constraints
-3. Proceed with the improved approach
-```
-
-### Thinking Prompts for Complex Decisions
-
-For tasks requiring judgment, add thinking prompts:
-
-```markdown
-## Before Implementation
-
-Think deeply about:
-- What are the tradeoffs of different approaches?
-- What would a senior engineer consider?
-- Are there better solutions I haven't explored?
-- Does this approach satisfy all constraints?
-
-Use your judgment rather than following steps mechanically.
-```
-
-### Progressive Disclosure for Instructions
-
-Keep main instructions concise; put details in reference files:
-
-```
-my-skill/
-├── SKILL.md           # Core instructions (<300 lines)
-│   └── [Goal + Constraints + High-level approach]
-├── reference.md       # Detailed patterns (loaded on demand)
-│   └── [Step-by-step procedures for specific scenarios]
-└── examples.md        # Concrete examples
-    └── [Show, don't tell]
-```
-
-### Measuring Instruction Effectiveness
-
-When iterating on instructions:
-
-1. **Test with varied contexts** - Same instruction, different situations
-2. **Check for brittleness** - Does minor rephrasing break behavior?
-3. **Verify creative latitude** - Can Claude find better solutions?
-4. **Confirm constraint adherence** - Are L1 rules always followed?
 
 ---
 
@@ -1147,3 +1110,40 @@ When iterating on instructions:
 - Test SessionStart hook output
 - Run `/plugin validate`
 - Ensure documentation counts match actual files
+
+---
+
+## Official References
+
+All URLs are centralized here. Skill and agent files should use plain text attribution only.
+
+### Anthropic Engineering Blog
+
+| Article | Key Concepts |
+|---------|--------------|
+| [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) | 6 Composable Patterns |
+| [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) | Initializer + Coding pattern |
+| [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices) | Subagent context management |
+| [Effective Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) | Context rot, compaction |
+| [Building Agents with Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk) | Verification approaches |
+| [Multi-Agent Research System](https://www.anthropic.com/engineering/multi-agent-research-system) | Orchestrator-worker patterns |
+| [Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills) | Skill patterns |
+| [The "think" tool](https://www.anthropic.com/engineering/claude-think-tool) | Structured reasoning |
+| [Demystifying evals](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) | pass@k metrics |
+
+### Claude Code Documentation
+
+| Page | Content |
+|------|---------|
+| [Subagents](https://code.claude.com/docs/en/sub-agents) | Agent definition format |
+| [Skills](https://code.claude.com/docs/en/skills) | Skill format, Progressive Disclosure |
+| [Hooks](https://code.claude.com/docs/en/hooks) | Event handlers |
+| [Plugins](https://code.claude.com/docs/en/plugins-reference) | plugin.json schema |
+| [Memory](https://code.claude.com/docs/en/memory) | .claude/rules/ |
+
+### Official Examples
+
+| Repository | Content |
+|------------|---------|
+| [anthropics/claude-code/plugins](https://github.com/anthropics/claude-code/tree/main/plugins) | feature-dev, code-review |
+| [anthropics/skills](https://github.com/anthropics/skills) | Skill examples |
