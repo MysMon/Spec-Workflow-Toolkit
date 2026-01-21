@@ -220,7 +220,7 @@ Your exploration must include:
 3. **Component Responsibility Map**: What each component does
 4. **Architecture Insights**: Patterns, layers, design decisions
 5. **Dependency Inventory**: Internal and external dependencies
-6. **Key Files List**: 5-10 files the orchestrator should read for deep understanding
+6. **Key Files List**: Top 3 critical files the orchestrator must read, plus 2-7 additional files for verification-specialist to validate
 7. **Observations**: Strengths and improvement opportunities
 
 ## Recording Insights

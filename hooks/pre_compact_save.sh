@@ -23,6 +23,15 @@ WORKSPACE_ID=""
 
 if command -v get_workspace_id &> /dev/null; then
     WORKSPACE_ID=$(get_workspace_id)
+
+    # Defense-in-depth: Validate workspace ID before use
+    if command -v validate_workspace_id &> /dev/null; then
+        if ! validate_workspace_id "$WORKSPACE_ID"; then
+            echo "Warning: Invalid workspace ID, skipping progress save" >&2
+            exit 0
+        fi
+    fi
+
     WORKSPACE_PROGRESS=$(get_progress_file "$WORKSPACE_ID")
 
     if [ -f "$WORKSPACE_PROGRESS" ]; then
