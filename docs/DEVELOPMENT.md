@@ -895,13 +895,13 @@ Use `insight-recording` skill markers (PATTERN:, LEARNED:, INSIGHT:) when discov
 | frontend-specialist | Yes | Component patterns, a11y solutions, framework conventions |
 | backend-specialist | Yes | Service patterns, API conventions, performance optimizations |
 | **Non-Technical** |||
-| technical-writer | No | Produces documentation, not code insights |
+| technical-writer | Yes | Documentation patterns, API doc conventions, diagram choices |
 | ui-ux-designer | Yes | Design patterns, accessibility solutions, component specifications |
 | product-manager | No | Requirements focus, not code-level |
 
 **Why Some Agents Don't Have Insight Recording:**
 
-Non-technical agents (technical-writer, product-manager) operate at a different abstraction level and don't typically produce insights about code patterns. Note: ui-ux-designer is an exception as it discovers reusable design patterns and accessibility solutions.
+Non-technical agents (product-manager) operate at a different abstraction level and don't typically produce insights about code patterns. Note: ui-ux-designer and technical-writer are exceptions as they discover reusable design patterns, accessibility solutions, and documentation conventions.
 
 ---
 
