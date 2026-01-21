@@ -152,6 +152,8 @@ Avoid content that becomes outdated when external tools/APIs change.
 
 **Commands/Agents**: Concrete examples OK if framed as examples, not requirements.
 
+**Time-sensitive queries**: When a year is needed, derive it from the system clock (e.g., `date +%Y`). If results are thin (early in the year), add the previous year and a yearless "latest/recent" query.
+
 See `docs/DEVELOPMENT.md` "Command and Agent Content Guidelines" for details.
 
 ## Validation
