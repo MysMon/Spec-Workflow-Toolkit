@@ -551,16 +551,9 @@ Orchestrator action:
 
 ---
 
-**Score each issue using parallel Task agents** (Haiku model for efficiency):
+**Use confidence scores from review agents:**
 
-```
-For each issue requiring scoring, launch parallel Task:
-- subagent_type: Explore
-- model: haiku
-- Task: Score this issue 0-100 based on severity rubric
-- Input: Issue description, context, affected file:line
-- Output: Score with brief justification
-```
+Each review agent (qa-engineer, security-auditor) returns findings with confidence scores (0-100) based on their expertise. The orchestrator synthesizes these scores rather than re-scoring separately.
 
 **Consolidate findings with confidence weighting:**
 
