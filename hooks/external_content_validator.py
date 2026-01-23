@@ -144,14 +144,16 @@ def is_private_or_reserved_ip(ip_str: str) -> tuple[bool, str]:
             return True, f"Private network address blocked: {ip_str}"
         if ip.is_reserved:
             return True, f"Reserved address blocked: {ip_str}"
+
+        # Check for cloud metadata endpoint BEFORE link-local check
+        # (169.254.169.254 is link-local but deserves a specific message)
+        if ip_str == "169.254.169.254":
+            return True, f"Cloud metadata endpoint blocked: {ip_str}"
+
         if ip.is_link_local:
             return True, f"Link-local address blocked: {ip_str}"
         if ip.is_multicast:
             return True, f"Multicast address blocked: {ip_str}"
-
-        # Check for cloud metadata endpoint (169.254.169.254)
-        if ip_str == "169.254.169.254":
-            return True, f"Cloud metadata endpoint blocked: {ip_str}"
 
         # Check for unspecified address (0.0.0.0 or ::)
         if ip.is_unspecified:
