@@ -92,7 +92,47 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 
 ---
 
-#### CRITICAL: Progress File Initialization (L1 - MUST DO FIRST)
+#### CRITICAL: Check for Existing Progress (L1 - MUST DO FIRST)
+
+**Before creating new progress files, check if work already exists for this project.**
+
+1. **Check for existing progress file:**
+   - Generate workspace ID: `{branch}_{path-hash}` (from SessionStart hook context)
+   - Look for `.claude/workspaces/{workspace-id}/claude-progress.json`
+
+2. **If progress file exists and status is NOT "completed":**
+   ```
+   ⚠️ EXISTING PROGRESS DETECTED
+
+   Project: [project name from progress file]
+   Current Phase: [currentPhase from progress file]
+   Last Activity: [lastUpdated from progress file]
+   Status: [status from progress file]
+
+   Options:
+   1. Continue existing work → Use /resume command
+   2. Start fresh → Existing progress will be archived to .claude/workspaces/{id}/archived/
+   3. Cancel → Do nothing
+
+   What would you like to do?
+   ```
+
+3. **If user chooses "Start fresh":**
+   - Archive existing progress: Move `claude-progress.json` to `archived/claude-progress-{timestamp}.json`
+   - Archive feature list if exists: Move `feature-list.json` to `archived/feature-list-{timestamp}.json`
+   - Proceed to create new progress files
+
+4. **If progress file doesn't exist or status is "completed":**
+   - Proceed directly to Progress File Initialization
+
+**Why this check is L1 (Hard Rule):**
+- Prevents accidental overwrite of long-running work
+- Protects hours of exploration and implementation progress
+- Ensures user makes intentional decision about existing state
+
+---
+
+#### CRITICAL: Progress File Initialization (L1 - MUST DO AFTER CHECK)
 
 **NEVER skip this step. The progress file MUST be created before ANY other Phase 1 work.**
 
