@@ -25,6 +25,8 @@ Uses JSON decision control (exit 0 + hookSpecificOutput) for blocking.
 import sys
 import re
 import json
+import socket
+import ipaddress
 from urllib.parse import urlparse, parse_qs
 
 # Read tool input from stdin (Claude Code passes JSON)
@@ -101,12 +103,91 @@ def extract_url_from_input(tool_name: str, tool_input: dict) -> str:
     return ""
 
 
+def normalize_ip_address(host: str) -> str | None:
+    """
+    Normalize IP address to standard dotted-decimal format.
+    Handles decimal (2130706433), octal (0177.0.0.1), hex (0x7f.0.0.1) formats.
+    Returns None if host is not an IP address.
+    """
+    try:
+        # Try to resolve as IP address (handles decimal, octal, hex formats)
+        # socket.inet_aton handles various IP formats and normalizes them
+        packed = socket.inet_aton(host)
+        return socket.inet_ntoa(packed)
+    except (socket.error, OSError):
+        pass
+
+    # Try IPv6
+    try:
+        ip = ipaddress.ip_address(host.strip("[]"))
+        # Convert IPv4-mapped IPv6 to IPv4 for consistent checking
+        if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped:
+            return str(ip.ipv4_mapped)
+        return str(ip)
+    except ValueError:
+        pass
+
+    return None
+
+
+def is_private_or_reserved_ip(ip_str: str) -> tuple[bool, str]:
+    """
+    Check if IP address is private, reserved, loopback, or link-local.
+    Uses ipaddress module for robust checking.
+    """
+    try:
+        ip = ipaddress.ip_address(ip_str)
+
+        if ip.is_loopback:
+            return True, f"Loopback address blocked: {ip_str}"
+        if ip.is_private:
+            return True, f"Private network address blocked: {ip_str}"
+        if ip.is_reserved:
+            return True, f"Reserved address blocked: {ip_str}"
+        if ip.is_link_local:
+            return True, f"Link-local address blocked: {ip_str}"
+        if ip.is_multicast:
+            return True, f"Multicast address blocked: {ip_str}"
+
+        # Check for cloud metadata endpoint (169.254.169.254)
+        if ip_str == "169.254.169.254":
+            return True, f"Cloud metadata endpoint blocked: {ip_str}"
+
+        # Check for unspecified address (0.0.0.0 or ::)
+        if ip.is_unspecified:
+            return True, f"Unspecified address blocked: {ip_str}"
+
+    except ValueError:
+        pass
+
+    return False, ""
+
+
 def is_blocked_host(host: str) -> tuple[bool, str]:
-    """Check if host matches blocked patterns (SSRF prevention)."""
+    """
+    Check if host matches blocked patterns (SSRF prevention).
+    Handles alternative IP formats (decimal, octal, hex) via normalization.
+    """
     host_lower = host.lower()
+
+    # First, try to normalize as IP address (handles decimal/octal/hex bypass attempts)
+    normalized_ip = normalize_ip_address(host)
+    if normalized_ip:
+        # Check normalized IP against private/reserved ranges
+        is_private, reason = is_private_or_reserved_ip(normalized_ip)
+        if is_private:
+            if normalized_ip != host:
+                return True, f"{reason} (normalized from: {host})"
+            return True, reason
+
+    # Check against regex patterns for domain-based blocks
     for pattern in BLOCKED_HOST_PATTERNS:
         if re.match(pattern, host_lower):
             return True, f"Internal/private network host blocked: {host}"
+        # Also check normalized IP against patterns
+        if normalized_ip and re.match(pattern, normalized_ip):
+            return True, f"Internal/private network host blocked: {host} (resolved to {normalized_ip})"
+
     return False, ""
 
 
