@@ -239,31 +239,45 @@ def find_base64_secrets(text: str) -> list[tuple[str, str]]:
 
     return found
 
-# Main check
-if should_skip_file(file_path):
-    # Allow template/example files without checking
-    sys.exit(0)
+# Main check - wrapped in try/except for fail-closed behavior
+try:
+    if should_skip_file(file_path):
+        # Allow template/example files without checking
+        sys.exit(0)
 
-# Check for plaintext secrets first
-secrets_found = find_secrets(content)
+    # Check for plaintext secrets first
+    secrets_found = find_secrets(content)
 
-# Also check for base64-encoded secrets
-base64_secrets = find_base64_secrets(content)
-secrets_found.extend(base64_secrets)
+    # Also check for base64-encoded secrets
+    base64_secrets = find_base64_secrets(content)
+    secrets_found.extend(base64_secrets)
 
-if secrets_found:
-    descriptions = [s[1] for s in secrets_found]
-    # Use JSON decision control to properly block the operation
-    # Based on: https://code.claude.com/docs/en/hooks
+    if secrets_found:
+        descriptions = [s[1] for s in secrets_found]
+        # Use JSON decision control to properly block the operation
+        # Based on: https://code.claude.com/docs/en/hooks
+        output = {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": f"Potential secrets detected: {', '.join(descriptions)}. Use environment variables or a secrets manager instead."
+            }
+        }
+        print(json.dumps(output))
+        sys.exit(0)  # Exit 0 with JSON decision control
+    else:
+        # Allow the operation to proceed
+        sys.exit(0)
+
+except Exception as e:
+    # Fail-safe: deny on unexpected error to prevent secret leakage
+    # This ensures fail-closed behavior consistent with external_content_validator.py
     output = {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
-            "permissionDecisionReason": f"Potential secrets detected: {', '.join(descriptions)}. Use environment variables or a secrets manager instead."
+            "permissionDecisionReason": f"Secret leak check failed: {str(e)}"
         }
     }
     print(json.dumps(output))
-    sys.exit(0)  # Exit 0 with JSON decision control
-else:
-    # Allow the operation to proceed
     sys.exit(0)

@@ -47,6 +47,12 @@ BLOCKED_HOST_PATTERNS = [
     r"^\[?fe80:",                  # IPv6 link-local
     r"^\[?fc00:",                  # IPv6 unique local
     r"^\[?fd00:",                  # IPv6 unique local
+    # IPv4-mapped IPv6 addresses (::ffff:x.x.x.x)
+    r"^\[?::ffff:127\.",           # IPv4-mapped loopback
+    r"^\[?::ffff:10\.",            # IPv4-mapped private Class A
+    r"^\[?::ffff:172\.(1[6-9]|2\d|3[01])\.",  # IPv4-mapped private Class B
+    r"^\[?::ffff:192\.168\.",      # IPv4-mapped private Class C
+    r"^\[?::ffff:169\.254\.",      # IPv4-mapped link-local
     r"^0\.0\.0\.0$",               # All interfaces
     r"^metadata\.google\.internal$",  # GCP metadata
     r"^169\.254\.169\.254$",       # Cloud metadata (AWS, Azure, GCP)
