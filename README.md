@@ -1,4 +1,4 @@
-# SDD Toolkit
+# Spec-Workflow Toolkit
 
 **Claude Code 向け仕様駆動開発ツールキット**
 
@@ -12,17 +12,17 @@
 
 ```bash
 # プラグインディレクトリからインストール
-/plugin install sdd-toolkit@claude-plugin-directory
+/plugin install spec-workflow-toolkit@claude-plugin-directory
 
 # または開発用にローカルロード
-claude --plugin-dir /path/to/sdd-toolkit
+claude --plugin-dir /path/to/spec-workflow-toolkit
 ```
 
 ### 基本的な使い方
 
 ```bash
 # 複雑な機能開発（7フェーズワークフロー）
-/sdd ユーザー認証機能を OAuth 対応で実装
+/spec-workflow ユーザー認証機能を OAuth 対応で実装
 
 # 小規模タスクの高速実装
 /quick-impl README のタイポを修正
@@ -40,7 +40,7 @@ claude --plugin-dir /path/to/sdd-toolkit
 
 | コマンド | 用途 | 使用場面 |
 |----------|------|----------|
-| `/sdd` | 7フェーズワークフロー | 新機能、複雑な変更 |
+| `/spec-workflow` | 7フェーズワークフロー | 新機能、複雑な変更 |
 | `/quick-impl` | 高速実装 | 明確な小規模タスク |
 | `/spec-review` | 仕様検証 | 実装前の仕様確認 |
 | `/code-review` | コードレビュー | コミット前 |
@@ -57,9 +57,9 @@ claude --plugin-dir /path/to/sdd-toolkit
 
 ---
 
-## 7フェーズ SDD ワークフロー
+## 7フェーズ Spec-Workflow
 
-`/sdd` コマンドは段階的な開発ワークフローを実行します。
+`/spec-workflow` コマンドは段階的な開発ワークフローを実行します。
 
 ```mermaid
 flowchart LR
@@ -98,7 +98,7 @@ Claude Code には 2 つの再開方法があります。
 | 方法 | コマンド | 用途 |
 |------|----------|------|
 | **Claude Code 標準** | `claude --continue` | 直前のセッションをそのまま継続 |
-| **SDD Toolkit** | `/resume` | 進捗ファイルから状態を復元 |
+| **Spec-Workflow Toolkit** | `/resume` | 進捗ファイルから状態を復元 |
 
 | シナリオ | 推奨 |
 |----------|------|
@@ -123,7 +123,7 @@ Claude Code には 2 つの再開方法があります。
 
 ### 推奨
 
-- 複雑な作業は `/sdd` で開始
+- 複雑な作業は `/spec-workflow` で開始
 - 探索作業はサブエージェント（`code-explorer`）に移譲
 - 主要タスク間で `/clear` を使用
 - コードより先に仕様を書く
@@ -148,7 +148,7 @@ Claude Code には 2 つの再開方法があります。
 
 ## プロジェクト固有ルール
 
-SDD Toolkit は汎用ワークフローを提供します。プロジェクト固有のルールは `.claude/rules/` で管理できます。
+Spec-Workflow Toolkit は汎用ワークフローを提供します。プロジェクト固有のルールは `.claude/rules/` で管理できます。
 
 ```bash
 # プロジェクト固有ルールを自動生成

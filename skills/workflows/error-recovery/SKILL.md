@@ -217,7 +217,7 @@ Complete what's possible, report what's not.
 ### Next Steps
 1. Provide OAuth client_id in .env
 2. Configure SMS provider in settings
-3. Re-run /sdd for remaining features
+3. Re-run /spec-workflow for remaining features
 ```
 
 ### Pattern 3: Safe Mode

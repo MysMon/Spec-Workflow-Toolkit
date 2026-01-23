@@ -1,4 +1,4 @@
-# SDD Toolkit - Development Guide
+# Spec-Workflow Toolkit - Development Guide
 
 Detailed specifications for plugin contributors. For user documentation, see `README.md`.
 
@@ -405,7 +405,7 @@ This breaks if eslint is replaced by biome or another tool.
 
 | Event | Purpose | This Plugin Uses |
 |-------|---------|------------------|
-| `SessionStart` | Inject context | `sdd_context.sh` |
+| `SessionStart` | Inject context | `spec_context.sh` |
 | `PreToolUse` | Validate/block tools | `safety_check.py`, `prevent_secret_leak.py` |
 | `PostToolUse` | Post-execution actions | `audit_log.sh` |
 | `PreCompact` | Save state before compaction | `pre_compact_save.sh` |
@@ -1002,9 +1002,9 @@ def extract_command_from_mcp_input(tool_input: dict) -> str:
 | **Audit logging** | Log all MCP tool invocations for security review |
 | **Input extraction** | Try multiple common field names for command extraction |
 
-#### Recommended MCP Servers for SDD Workflows
+#### Recommended MCP Servers for Spec-Workflows
 
-| MCP Server | Use Case | SDD Integration |
+| MCP Server | Use Case | Spec-Workflow Integration |
 |------------|----------|-----------------|
 | `@anthropic/mcp-server-memory` | Persistent memory | Complements progress-tracking |
 | `@anthropic/mcp-server-github` | GitHub operations | PRレビュー対応フロー |
@@ -1031,7 +1031,7 @@ def extract_command_from_mcp_input(tool_input: dict) -> str:
 }
 ```
 
-#### SDD Toolkit + MCP Best Practices
+#### Spec-Workflow Toolkit + MCP Best Practices
 
 | Pattern | Recommendation |
 |---------|----------------|
@@ -1081,7 +1081,7 @@ fi
 
 Hooks in this plugin are designed to work in both environments:
 
-- `CLAUDE_CODE_REMOTE` check in `sdd_context.sh`
+- `CLAUDE_CODE_REMOTE` check in `spec_context.sh`
 - Fallback behaviors when commands unavailable
 - Progress files use relative paths within `.claude/`
 

@@ -1,5 +1,5 @@
 ---
-name: sdd-philosophy
+name: spec-philosophy
 description: |
   Specification-Driven Development methodology and workflow. Use when:
   - Starting new features or projects ("new feature", "implement", "build")
@@ -58,11 +58,11 @@ The spec defines:
 | 4 | Execution | Implement per spec | Working code |
 | 5 | Verification | Validate against spec | Passing tests |
 
-### Relationship to 7-Phase `/sdd` Workflow
+### Relationship to 7-Phase `/spec-workflow`
 
-The 5-phase model above is the **logical abstraction**. The `/sdd` command expands this into a **7-phase operational workflow**:
+The 5-phase model above is the **logical abstraction**. The `/spec-workflow` command expands this into a **7-phase operational workflow**:
 
-| Logical Phase | `/sdd` Phases | Details |
+| Logical Phase | `/spec-workflow` Phases | Details |
 |---------------|---------------|---------|
 | 1. Ambiguity | Phase 1: Discovery | Initial requirements gathering |
 | 2. Clarification | Phase 2-3: Exploration + Clarifying Questions | Codebase analysis and user interview |
@@ -154,7 +154,7 @@ If you identify that a situation warrants deviation:
 ## Defaults (L2 - Soft)
 
 - Create formal spec for features > 1 day effort
-- Use `/sdd` for new features (can use `/quick-impl` for obvious small tasks)
+- Use `/spec-workflow` for new features (can use `/quick-impl` for obvious small tasks)
 - Acceptance criteria should be testable
 
 ## Guidelines (L3)
