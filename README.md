@@ -1,71 +1,60 @@
 # Spec-Workflow Toolkit
 
-**Claude Code 向け仕様駆動開発ツールキット**
-
-複雑な機能開発を、専門AIエージェントの支援を受けながら段階的に進めるプラグインです。
-各段階で確認・判断でき、中断した作業も途中から再開できます。
+AIに「認証機能を作って」と依頼すると、いきなりコードを書き始めて方向がずれることがある。
+このツールは「探索→設計→実装」の順序を強制し、各段階で確認してから次に進む。
 
 ---
 
-## クイックスタート
-
-### インストール
+## インストール
 
 ```bash
-# プラグインディレクトリからインストール
 /plugin install spec-workflow-toolkit@claude-plugin-directory
-
-# または開発用にローカルロード
-claude --plugin-dir /path/to/spec-workflow-toolkit
 ```
 
-### 基本的な使い方
+開発用: `claude --plugin-dir /path/to/spec-workflow-toolkit`
+
+---
+
+## 最初に試すこと
 
 ```bash
-# 複雑な機能開発（段階的に進行、中断・再開可能）
 /spec-workflow ユーザー認証機能を OAuth 対応で実装
-
-# 小規模タスクの高速実装
-/quick-impl README のタイポを修正
-
-# コードレビュー
-/code-review staged
-
-# セッション再開
-/resume
 ```
 
----
-
-## コマンド一覧
-
-| コマンド | 用途 | 使用場面 |
-|----------|------|----------|
-| `/spec-workflow` | 段階的な開発ワークフロー | 新機能、複雑な変更 |
-| `/quick-impl` | 高速実装 | 明確な小規模タスク |
-| `/spec-review` | 仕様検証 | 実装前の仕様確認 |
-| `/code-review` | コードレビュー | コミット前 |
-| `/review-response` | レビュー対応 | PRレビューコメントへの対応 |
-| `/review-insights` | インサイトレビュー | 蓄積されたインサイトを評価・反映 |
-| `/project-setup` | ルール生成 | プロジェクト固有ルールの自動生成 |
-| `/stack-consult` | スタック相談 | 新規プロジェクトの技術選定 |
-| `/resume` | セッション再開 | 進捗ファイルから作業を再開 |
-| `/debug` | 体系的デバッグ | エラー分析・根本原因特定 |
-| `/merge-conflict` | コンフリクト解決 | マージコンフリクトの体系的解決 |
-| `/doc-audit` | ドキュメント監査 | コードとドキュメントの整合性検証 |
-| `/ci-fix` | CI失敗対応 | CI/CDパイプライン失敗の診断 |
-| `/hotfix` | 緊急修正 | 本番障害の迅速な対応 |
+7段階で進行し、各段階で確認を求められる。承認するか、修正を指示する。
 
 ---
 
-## 7フェーズ Spec-Workflow
+## よく使うコマンド
 
-`/spec-workflow` は、大きな機能開発を7段階に分けて進めるコマンドです。
+| やりたいこと | コマンド |
+|-------------|----------|
+| 新機能を実装する | `/spec-workflow 〇〇を実装` |
+| 小さな修正をする | `/quick-impl 〇〇を修正` |
+| コミット前にレビューする | `/code-review staged` |
+| 中断した作業を再開する | `/resume` |
 
-**7段階に分ける理由**
-- 各段階で確認できるため、誤った方向に進み続けることを防ぐ
-- 探索→設計→実装の順序で、手戻りコストを最小化
-- 長時間作業でも途中で中断・再開が可能
+全コマンドは `/help` で確認できる。
+
+---
+
+## いつ何を使うか
+
+| 状況 | コマンド | 理由 |
+|------|----------|------|
+| 「どう実装すればいい？」と迷う | `/spec-workflow` | 探索→設計→実装の順で進み、手戻りを防ぐ |
+| やることが明確（typo修正など） | `/quick-impl` | 仕様検討不要、すぐ実装 |
+| コミット前 | `/code-review staged` | QA・セキュリティ観点でチェック |
+| PRレビューで指摘を受けた | `/review-response` | 指摘を分析し対応を提案 |
+| CIが落ちた | `/ci-fix` | ログを分析し原因を特定 |
+| 本番障害 | `/hotfix` | 影響範囲を最小化しつつ迅速に修正 |
+| マージコンフリクト | `/merge-conflict` | 両方の意図を理解して解決 |
+
+---
+
+## 7フェーズの流れ
+
+`/spec-workflow` は以下の順序で進行する。
 
 ```mermaid
 flowchart LR
@@ -85,119 +74,46 @@ flowchart LR
     style S fill:#f3e5f5
 ```
 
-| フェーズ | ユーザー操作 | システムの処理 |
-|----------|--------------|----------------|
-| 1. Discovery | 機能要件を説明 | 問題定義・制約を整理 |
-| 2. Exploration | 分析結果を確認 | 既存コードを並列分析 |
-| 3. Clarification | 質問に回答、仕様を承認 | 曖昧さを解消し仕様を作成 |
-| 4. Architecture | 設計案を確認・承認 | 複数角度から設計を分析 |
-| 5. Implementation | 進捗を確認 | 1機能ずつ実装 |
-| 6. Review | 指摘事項に対応 | QA・セキュリティ検証 |
-| 7. Summary | 結果を確認 | 変更内容を文書化 |
+| フェーズ | あなたがやること |
+|----------|-----------------|
+| 1. Discovery | 作りたい機能を説明する |
+| 2. Exploration | 既存コードの分析結果を確認する |
+| 3. Clarification | 質問に答え、仕様を承認する |
+| 4. Architecture | 設計案を確認・承認する |
+| 5. Implementation | 実装の進捗を確認する |
+| 6. Review | 指摘があれば対応を指示する |
+| 7. Summary | 変更内容を確認する |
+
+**なぜ7段階か**: 各段階で確認できるため、誤った方向に進み続けることを防げる。途中で中断しても `/resume` で再開できる。
 
 ---
 
-## セッション再開
+## 中断と再開
 
-Claude Code では 2 つの再開方法があります。
+| 状況 | 使うコマンド |
+|------|-------------|
+| 今日の作業を中断し、明日再開する | `/resume` |
+| 別のターミナルで続きをやる | `/resume` |
+| ネットワーク切断後すぐに再接続 | `claude --continue` |
 
-| 方法 | コマンド | 用途 |
-|------|----------|------|
-| **Claude Code 標準** | `claude --continue` | 直前のセッションをそのまま継続 |
-| **Spec-Workflow Toolkit** | `/resume` | 進捗ファイルから状態を復元 |
+---
 
-| シナリオ | 推奨 |
+## その他のコマンド
+
+| コマンド | 用途 |
 |----------|------|
-| ネットワーク切断後すぐに再接続 | `--continue` |
-| 翌日に作業を再開 | `/resume` |
-| 別のターミナルで作業継続 | `/resume` |
-| コンテキスト肥大化時 | `/resume` |
-
----
-
-## 開発インサイトの記録
-
-開発中に発見したパターンや決定事項を自動記録し、プロジェクトルールに反映できます。
-
-- サブエージェントが発見した内容を自動キャプチャ
-- `/review-insights` で一つずつ評価し、CLAUDE.md や `.claude/rules/` に反映
-- セッション開始時に未評価のインサイトがあれば通知
-
----
-
-## ベストプラクティス
-
-### 推奨
-
-- 複雑な作業は `/spec-workflow` で開始
-- 探索作業はサブエージェント（`code-explorer`）に移譲
-- 主要タスク間で `/clear` を使用
-- コードより先に仕様を書く
-- コミット前に `/code-review` を実行
-
-### 非推奨
-
-- 探索フェーズのスキップ
-- メインスレッドでのコンテキスト蓄積
-- 秘密情報のハードコード
-- security-auditor の指摘を無視
-
-### よくある失敗パターン
-
-| パターン | 問題 | 対策 |
-|----------|------|------|
-| 一括実装 | 全機能を一度に実装しようとする | 1機能ずつ実装・テスト |
-| 探索なしでコーディング | コードベース理解なしに実装 | `code-explorer` で事前分析 |
-| 曖昧な仕様での実装 | 不明確な要件で進行 | Phase 3 で質問 |
-
----
-
-## プロジェクト固有ルール
-
-Spec-Workflow Toolkit は汎用ワークフローを提供します。プロジェクト固有のルールは `.claude/rules/` で管理できます。
-
-```bash
-# プロジェクト固有ルールを自動生成
-/project-setup
-```
-
-詳細: [Manage Claude's memory](https://code.claude.com/docs/en/memory)
-
----
-
-## エージェント一覧
-
-| カテゴリ | エージェント | 用途 |
-|----------|--------------|------|
-| **分析** | `code-explorer` | コードベース分析（読み取り専用） |
-| | `code-architect` | 機能設計ブループリント |
-| | `system-architect` | システムレベル設計、ADR |
-| **実装** | `frontend-specialist` | UI 実装 |
-| | `backend-specialist` | API 実装 |
-| | `product-manager` | 要件収集、PRD 作成 |
-| **レビュー** | `qa-engineer` | テスト戦略、カバレッジ分析 |
-| | `security-auditor` | OWASP Top 10、脆弱性レビュー |
-| **検証** | `verification-specialist` | ファクトチェック、参照検証 |
-| **その他** | `devops-sre` | インフラ、CI/CD |
-| | `ui-ux-designer` | デザインシステム |
-| | `technical-writer` | ドキュメント |
-| | `legacy-modernizer` | 安全なリファクタリング |
-
----
-
-## 参照資料
-
-| 記事 | 内容 |
-|------|------|
-| [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) | エージェント設計パターン |
-| [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) | 長時間作業のハーネス設計 |
-| [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices) | コンテキスト管理 |
+| `/spec-review` | 仕様を検証してから実装に進む |
+| `/review-insights` | 開発中に発見したパターンをルール化する |
+| `/project-setup` | プロジェクト固有ルールを生成する |
+| `/stack-consult` | 新規プロジェクトの技術選定を相談する |
+| `/debug` | エラーの根本原因を特定する |
+| `/doc-audit` | コードとドキュメントの整合性を検証する |
 
 ---
 
 ## 開発者向け
 
-このプラグインを拡張・修正する場合は `docs/DEVELOPMENT.md` を参照してください。
+このプラグインを拡張・修正する場合は `docs/DEVELOPMENT.md` を参照。
 
 ---
 
