@@ -312,67 +312,84 @@ def check_transformable(cmd: str) -> tuple[bool, str, str]:
                     return True, transformed, description
     return False, cmd, ""
 
-# Main check - first check env secrets, then dangerous, then transformable
-# Check for environment variable secret exports first (more specific message)
-is_env_secret, secret_desc = check_env_secrets(command)
+# Main check - wrapped in try/except for fail-closed behavior
+# This ensures any unexpected exception (regex backtracking, memory error, etc.)
+# results in denial rather than allowing potentially dangerous commands through
+try:
+    # Check for environment variable secret exports first (more specific message)
+    is_env_secret, secret_desc = check_env_secrets(command)
 
-if is_env_secret:
-    # Block secret exports with specific guidance
-    tool_type = f"MCP tool ({tool_name})" if is_mcp_tool else "Bash"
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "deny",
-            "permissionDecisionReason": f"Blocked {tool_type} command: {secret_desc}. Use .env files or a secrets manager instead of exporting secrets directly in shell commands."
-        }
-    }
-    print(json.dumps(output))
-    sys.exit(0)
-
-# Check dangerous patterns
-dangerous, matched_pattern = is_dangerous(command)
-
-if dangerous:
-    # Use JSON decision control to properly block the command
-    # Based on: https://code.claude.com/docs/en/hooks
-    tool_type = f"MCP tool ({tool_name})" if is_mcp_tool else "Bash"
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "deny",
-            "permissionDecisionReason": f"Blocked dangerous {tool_type} command matching pattern: {matched_pattern}"
-        }
-    }
-    print(json.dumps(output))
-    sys.exit(0)  # Exit 0 with JSON decision control
-
-# Check if command can be transformed to a safer version
-# Note: Transformations only apply to Bash tool (we know its schema)
-# MCP tools have varying schemas, so we only block dangerous commands
-transformable, transformed_cmd, transform_desc = check_transformable(command)
-
-if transformable and not is_mcp_tool:
-    # Use input modification to transform command (v2.0.10+ feature)
-    # Include permissionDecisionReason for audit trail and transparency
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "allow",
-            "permissionDecisionReason": f"Transformed for safety: {transform_desc}. Original: {command[:50]}{'...' if len(command) > 50 else ''}",
-            "updatedInput": {
-                "command": transformed_cmd
+    if is_env_secret:
+        # Block secret exports with specific guidance
+        tool_type = f"MCP tool ({tool_name})" if is_mcp_tool else "Bash"
+        output = {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": f"Blocked {tool_type} command: {secret_desc}. Use .env files or a secrets manager instead of exporting secrets directly in shell commands."
             }
         }
+        print(json.dumps(output))
+        sys.exit(0)
+
+    # Check dangerous patterns
+    dangerous, matched_pattern = is_dangerous(command)
+
+    if dangerous:
+        # Use JSON decision control to properly block the command
+        # Based on: https://code.claude.com/docs/en/hooks
+        tool_type = f"MCP tool ({tool_name})" if is_mcp_tool else "Bash"
+        output = {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": f"Blocked dangerous {tool_type} command matching pattern: {matched_pattern}"
+            }
+        }
+        print(json.dumps(output))
+        sys.exit(0)  # Exit 0 with JSON decision control
+
+    # Check if command can be transformed to a safer version
+    # Note: Transformations only apply to Bash tool (we know its schema)
+    # MCP tools have varying schemas, so we only block dangerous commands
+    transformable, transformed_cmd, transform_desc = check_transformable(command)
+
+    if transformable and not is_mcp_tool:
+        # Use input modification to transform command (v2.0.10+ feature)
+        # Include permissionDecisionReason for audit trail and transparency
+        output = {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "allow",
+                "permissionDecisionReason": f"Transformed for safety: {transform_desc}. Original: {command[:50]}{'...' if len(command) > 50 else ''}",
+                "updatedInput": {
+                    "command": transformed_cmd
+                }
+            }
+        }
+        print(json.dumps(output))
+        sys.exit(0)
+
+    # Allow the command to proceed unchanged - explicit allow for audit consistency
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "allow"
+        }
     }
     print(json.dumps(output))
     sys.exit(0)
 
-# Allow the command to proceed unchanged - explicit allow for audit consistency
-output = {
-    "hookSpecificOutput": {
-        "hookEventName": "PreToolUse",
-        "permissionDecision": "allow"
+except Exception as e:
+    # Fail-safe: deny on unexpected error to prevent dangerous commands from executing
+    # This ensures fail-closed behavior consistent with prevent_secret_leak.py
+    # and external_content_validator.py
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": f"Safety check failed: {str(e)}"
+        }
     }
-}
-print(json.dumps(output))
-sys.exit(0)
+    print(json.dumps(output))
+    sys.exit(0)
