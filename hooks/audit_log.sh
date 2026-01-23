@@ -117,19 +117,60 @@ import os
 import sys
 from datetime import datetime
 
+import re
+
+# Patterns for secrets that might appear in command arguments
+SECRET_PATTERNS = [
+    # Provider API keys with prefixes
+    (r'sk-ant-[a-zA-Z0-9_-]{20,}', '[ANTHROPIC_KEY_REDACTED]'),
+    (r'sk-[a-zA-Z0-9]{20,}', '[OPENAI_KEY_REDACTED]'),
+    (r'AKIA[0-9A-Z]{16}', '[AWS_ACCESS_KEY_REDACTED]'),
+    (r'ghp_[a-zA-Z0-9]{36,}', '[GITHUB_TOKEN_REDACTED]'),
+    (r'gho_[a-zA-Z0-9]{36,}', '[GITHUB_OAUTH_REDACTED]'),
+    (r'glpat-[a-zA-Z0-9_-]{20,}', '[GITLAB_TOKEN_REDACTED]'),
+    (r'xox[baprs]-[a-zA-Z0-9-]{10,}', '[SLACK_TOKEN_REDACTED]'),
+    # Bearer/Authorization tokens
+    (r'Bearer\s+[a-zA-Z0-9._-]{20,}', 'Bearer [TOKEN_REDACTED]'),
+    (r'Authorization:\s*[^\s]{20,}', 'Authorization: [REDACTED]'),
+    # Generic patterns for passwords/secrets in arguments
+    (r'(-[pP]|--password[=\s])[^\s]{8,}', r'\g<1>[PASSWORD_REDACTED]'),
+    (r'(ANTHROPIC_API_KEY|OPENAI_API_KEY|AWS_SECRET_ACCESS_KEY|GITHUB_TOKEN)=[^\s]{10,}', r'\g<1>=[REDACTED]'),
+    # Database connection strings with passwords
+    (r'(postgres|mysql|mongodb)://[^:]+:[^@]{8,}@', r'\g<1>://[USER]:[PASSWORD_REDACTED]@'),
+    # Generic high-entropy strings that look like secrets (64+ hex chars)
+    (r'["\'][a-fA-F0-9]{64,}["\']', '"[POSSIBLE_SECRET_REDACTED]"'),
+]
+
+def redact_secrets_in_string(text):
+    '''Redact known secret patterns from a string'''
+    if not isinstance(text, str):
+        return text
+    result = text
+    for pattern, replacement in SECRET_PATTERNS:
+        result = re.sub(pattern, replacement, result)
+    return result
+
 def truncate_input(data, max_len=200):
     '''Truncate input for logging without exposing sensitive data'''
     if isinstance(data, dict):
         result = {}
         for k, v in data.items():
-            # Skip potentially sensitive fields
+            # Skip potentially sensitive fields by name
             if k.lower() in ('password', 'secret', 'token', 'key', 'credential', 'api_key'):
                 result[k] = '[REDACTED]'
-            elif isinstance(v, str) and len(v) > max_len:
-                result[k] = v[:max_len] + '...[truncated]'
+            elif isinstance(v, str):
+                # First redact secrets in string content
+                redacted = redact_secrets_in_string(v)
+                # Then truncate if needed
+                if len(redacted) > max_len:
+                    result[k] = redacted[:max_len] + '...[truncated]'
+                else:
+                    result[k] = redacted
             else:
                 result[k] = v
         return result
+    elif isinstance(data, str):
+        return redact_secrets_in_string(data)
     return data
 
 try:
