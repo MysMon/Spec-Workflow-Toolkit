@@ -268,7 +268,7 @@ Based on detected stack, recommend loading these task-oriented skills:
 | With Docker/K8s | (use `devops-sre` agent) |
 | API Development | `api-design` |
 | Production Systems | `observability` |
-| New features | `sdd-philosophy`, `interview` |
+| New features | `spec-philosophy`, `interview` |
 | Security-sensitive | `security-fundamentals` |
 
 ## Usage

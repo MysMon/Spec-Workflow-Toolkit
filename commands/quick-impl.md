@@ -1,12 +1,12 @@
 ---
-description: "Quick implementation for well-defined, small tasks that don't need full SDD workflow"
+description: "Quick implementation for well-defined, small tasks that don't need the full spec-workflow"
 argument-hint: "<task description>"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite
 ---
 
 # /quick-impl - Quick Implementation
 
-For small, well-defined tasks that don't require the full SDD workflow. Use when:
+For small, well-defined tasks that don't require the full spec-workflow. Use when:
 - Task is clearly defined (not vague)
 - Scope is small (1-3 files)
 - No architectural decisions needed
@@ -34,7 +34,7 @@ Check if this is actually a quick task:
 - [ ] No API contract changes
 - [ ] No security-sensitive code
 
-**Escalate to /sdd if:**
+**Escalate to /spec-workflow if:**
 - Task is vague or ambiguous
 - Multiple components affected
 - Architectural decisions needed
@@ -131,18 +131,18 @@ If during implementation you discover:
 ```
 This task is more complex than initially expected because [reason].
 
-Recommend switching to /sdd workflow for proper specification.
+Recommend switching to /spec-workflow for proper specification.
 
 Would you like to:
-1. Continue with /sdd workflow
+1. Continue with /spec-workflow
 2. Proceed anyway (at your own risk)
 3. Abandon and reassess
 ```
 
-## Comparison with /sdd
+## Comparison with /spec-workflow
 
-| Aspect | /quick-impl | /sdd |
-|--------|-------------|------|
+| Aspect | /quick-impl | /spec-workflow |
+|--------|-------------|----------------|
 | When | Clear, small tasks | Vague or complex features |
 | Phases | 1 (implement) | 6 (full workflow) |
 | Spec | Not required | Required |

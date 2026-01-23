@@ -1,5 +1,5 @@
 {
-  "description": "SDD Toolkit global hooks for session management, security validation, and progress tracking. Implements PreToolUse validation for dangerous commands, secret detection, and external content (WebFetch/WebSearch) validation. PreCompact for state preservation, and session lifecycle hooks for context management.",
+  "description": "Spec-Workflow Toolkit global hooks for session management, security validation, and progress tracking. Implements PreToolUse validation for dangerous commands, secret detection, and external content (WebFetch/WebSearch) validation. PreCompact for state preservation, and session lifecycle hooks for context management.",
   "hooks": {
     "SessionStart": [
       {
@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/sdd_context.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/spec_context.sh",
             "timeout": 5000,
             "once": true
           }

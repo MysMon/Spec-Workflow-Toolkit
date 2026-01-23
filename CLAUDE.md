@@ -1,4 +1,4 @@
-# SDD Toolkit Plugin - Developer Guide
+# Spec-Workflow Toolkit Plugin - Developer Guide
 
 This file is for **Claude working on this plugin repository**.
 Users receive context via the `SessionStart` hook, not this file.
@@ -6,7 +6,7 @@ Users receive context via the `SessionStart` hook, not this file.
 ## What This Plugin Does
 
 A Claude Code plugin implementing Anthropic's 6 composable patterns for long-running autonomous work:
-7-phase SDD workflow, 13 specialized subagents, TDD integration, evaluator-optimizer loops, checkpoint-based error recovery, and progress tracking.
+7-phase spec-workflow, 13 specialized subagents, TDD integration, evaluator-optimizer loops, checkpoint-based error recovery, and progress tracking.
 
 ## Project Structure
 
@@ -15,7 +15,7 @@ A Claude Code plugin implementing Anthropic's 6 composable patterns for long-run
 commands/                    # 14 slash commands
 agents/                      # 13 subagent definitions
 skills/                      # 21 skill definitions
-  core/                      #   5 core skills (subagent-contract, sdd-philosophy, security-fundamentals, interview, bounded-autonomy)
+  core/                      #   5 core skills (subagent-contract, spec-philosophy, security-fundamentals, interview, bounded-autonomy)
   detection/                 #   1 detection skill (stack-detector)
   workflows/                 #   15 workflow skills
 hooks/                       # Event handlers (7 event types, 11 handlers) + Python validators
@@ -26,10 +26,10 @@ docs/                        # DEVELOPMENT.md (detailed specs), specs/
 
 | Task | Start Here |
 |------|------------|
-| Understand main workflow | `commands/sdd.md` |
+| Understand main workflow | `commands/spec-workflow.md` |
 | See how agents work | `agents/code-explorer.md`, `agents/code-architect.md` |
 | Understand skill pattern | `skills/core/subagent-contract/SKILL.md` |
-| Check hook implementation | `hooks/hooks.json`, `hooks/sdd_context.sh` |
+| Check hook implementation | `hooks/hooks.json`, `hooks/spec_context.sh` |
 | Understand insight tracking | `commands/review-insights.md`, `hooks/insight_capture.sh` |
 
 ## Development Rules
@@ -68,7 +68,7 @@ YAML frontmatter fields:
 
 | Hook | Script | Purpose |
 |------|--------|---------|
-| SessionStart | `sdd_context.sh` | Load progress files and notify pending insights |
+| SessionStart | `spec_context.sh` | Load progress files and notify pending insights |
 | PreToolUse (Bash) | `safety_check.py` | Block dangerous commands |
 | PreToolUse (Write\|Edit) | `prevent_secret_leak.py` | Prevent secret leakage |
 | PreToolUse (WebFetch\|WebSearch) | `external_content_validator.py` | Validate external URLs (SSRF prevention) |

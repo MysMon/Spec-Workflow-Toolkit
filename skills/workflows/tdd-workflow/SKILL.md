@@ -292,9 +292,9 @@ Expected output:
    - Original test now passes
    - No regressions introduced
 
-## Integration with SDD Workflow
+## Integration with Spec-Workflow
 
-In Phase 5 (Implementation) of `/sdd`:
+In Phase 5 (Implementation) of `/spec-workflow`:
 
 ```
 1. Read specification and design

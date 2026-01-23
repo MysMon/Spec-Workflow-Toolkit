@@ -1,10 +1,10 @@
 ---
-description: "Launch the SDD (Specification-Driven Development) workflow - a guided 7-phase process from discovery to implementation with parallel agent execution"
+description: "Launch the spec-first 7-phase development workflow - from discovery to implementation with parallel agent execution"
 argument-hint: "[optional: feature description]"
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite, Skill
 ---
 
-# /sdd - Specification-Driven Development Workflow
+# /spec-workflow - Specification-First Development Workflow
 
 Launch a guided 7-phase development workflow that ensures disciplined, spec-first development with context-preserving subagent delegation.
 
@@ -16,7 +16,7 @@ Based on official feature-dev plugin, Claude Code Best Practices, Effective Harn
 
 This workflow implements all 6 of Anthropic's composable patterns:
 
-| Pattern | Application in /sdd |
+| Pattern | Application in /spec-workflow |
 |---------|---------------------|
 | **Prompt Chaining** | 7 phases executed sequentially with gates |
 | **Routing** | Model selection (Opus/Sonnet/Haiku), agent selection by task type |
@@ -730,13 +730,13 @@ Create summary including:
 
 ```bash
 # Start with a feature idea
-/sdd Add user authentication with OAuth support
+/spec-workflow Add user authentication with OAuth support
 
 # Start from scratch (interactive)
-/sdd
+/spec-workflow
 
 # Start with existing requirements
-/sdd Implement the feature specified in docs/specs/user-dashboard.md
+/spec-workflow Implement the feature specified in docs/specs/user-dashboard.md
 ```
 
 ## Tips for Best Results
@@ -756,8 +756,8 @@ Create summary including:
 
 ## Comparison with /quick-impl
 
-| Aspect | /sdd | /quick-impl |
-|--------|------|-------------|
+| Aspect | /spec-workflow | /quick-impl |
+|--------|----------------|-------------|
 | Phases | 7 | 1 |
 | Exploration | Parallel agents | None |
 | Design options | Single (synthesized) | Single |

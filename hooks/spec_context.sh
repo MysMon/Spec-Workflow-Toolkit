@@ -1,5 +1,5 @@
 #!/bin/bash
-# SessionStart Hook: Inject SDD context, detect progress files, and support resumable workflows
+# SessionStart Hook: Inject spec-workflow context, detect progress files, and support resumable workflows
 # This hook runs once at session start to provide plugin context to the user's project
 # Based on:
 # - https://www.anthropic.com/engineering/claude-code-best-practices
@@ -123,7 +123,7 @@ fi
 
 # --- Output Context ---
 cat << 'EOF'
-## SDD Toolkit - Session Initialized
+## Spec-Workflow Toolkit - Session Initialized
 
 **Official References:**
 - Claude Code Best Practices
@@ -280,7 +280,7 @@ Based on Effective Harnesses for Long-Running Agents:
 
 | Command | Use When |
 |---------|----------|
-| `/sdd` | New features, complex changes (7-phase workflow) |
+| `/spec-workflow` | New features, complex changes (7-phase workflow) |
 | `/spec-review` | Validate specifications before implementation |
 | `/code-review` | Review code before committing (parallel agents) |
 | `/quick-impl` | Small, clear tasks with obvious scope |
@@ -300,7 +300,7 @@ Launch these agents in parallel:
 ### Composable Patterns Applied
 
 This toolkit implements Anthropic's 6 composable patterns:
-- **Prompt Chaining**: 7-phase SDD workflow
+- **Prompt Chaining**: 7-phase spec-workflow
 - **Routing**: Model/agent selection by task type
 - **Parallelization**: Multiple explorers/reviewers simultaneously
 - **Orchestrator-Workers**: You coordinate, subagents execute
