@@ -100,12 +100,10 @@ Check the progress file for review status:
 
 | Progress Phase | Meaning | Action |
 |----------------|---------|--------|
-| `plan-complete` | Review was skipped | Warn: "No review was run. Consider /spec-review first." Proceed if user confirms. |
-| `review-complete` + APPROVED | Reviewed and approved | Proceed normally |
-| `review-complete` + NEEDS REVISION | Reviewed with unresolved issues | Show unresolved issues. Ask: "Address these first, or proceed anyway?" |
-| `review-complete` + REJECTED | Review rejected the spec | Strongly recommend: "The spec was rejected in review. Run /spec-plan to revise." |
+| `plan-complete` | User review was skipped | Warn: "No user review was run. Consider `/spec-review` first." Proceed if user confirms. |
+| `review-complete` + APPROVED | User reviewed and approved | Proceed normally. Note any changes applied during review. |
 
-If a review report file exists, read it and note any unresolved critical issues.
+If a review log file exists (`docs/specs/[feature-name]-review.md`), read it and note changes made during review.
 
 #### Initialize or Resume Progress
 

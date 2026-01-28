@@ -31,9 +31,6 @@ claude --plugin-dir /path/to/spec-workflow-toolkit
 # 承認済み仕様から実装
 /spec-implement docs/specs/user-authentication.md
 
-# ワークフロー全体の案内
-/spec-workflow
-
 # 小規模タスクの高速実装
 /quick-impl README のタイポを修正
 
@@ -48,9 +45,8 @@ claude --plugin-dir /path/to/spec-workflow-toolkit
 | コマンド | 用途 | 使用場面 |
 |----------|------|----------|
 | `/spec-plan` | 計画（探索・仕様・設計、対話的に改善） | 新機能の計画フェーズ |
-| `/spec-review` | 仕様・設計の検証（整合性チェック含む） | 計画後、実装前の検証 |
+| `/spec-review` | 対話的に計画をレビュー・修正（`--auto`で機械レビュー付き） | 計画後、実装前のユーザー確認 |
 | `/spec-implement` | 仕様に基づく実装 | 承認済み仕様からの実装 |
-| `/spec-workflow` | ワークフロー全体の案内 | 3コマンドの使い方を確認 |
 | `/quick-impl` | 高速実装 | 明確な小規模タスク |
 | `/code-review` | コードレビュー | コミット前 |
 | `/review-response` | レビュー対応 | PRレビューコメントへの対応 |

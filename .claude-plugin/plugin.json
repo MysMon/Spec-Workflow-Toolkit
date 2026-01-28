@@ -2,7 +2,7 @@
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "spec-workflow-toolkit",
   "version": "9.1.0",
-  "description": "Specification-First Development Toolkit - Implements all 6 Anthropic composable patterns for long-running autonomous work. Features: aggressive subagent delegation, 7-phase spec-workflow, TDD integration, Evaluator-Optimizer feedback loops, checkpoint-based error recovery, standardized subagent contracts, Opus-powered architecture decisions, Initializer+Coding pattern for resumable tasks, and confidence-based review scoring.",
+  "description": "Specification-First Development Toolkit - Implements all 6 Anthropic composable patterns for long-running autonomous work. Features: Plan→Review→Implement workflow with iterative refinement, aggressive subagent delegation, TDD integration, Evaluator-Optimizer feedback loops, checkpoint-based error recovery, standardized subagent contracts, Initializer+Coding pattern for resumable tasks, and confidence-based review scoring.",
   "author": {
     "name": "MysMon",
     "email": "contact@github.com/MysMon",

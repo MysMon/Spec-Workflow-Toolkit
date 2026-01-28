@@ -1,35 +1,25 @@
 ---
-description: "Review a specification and its design document using multiple specialized agents in parallel"
+description: "Interactively review and refine a spec and design with the user - feedback loop until approved"
 argument-hint: "[path to spec file or feature name]"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite
 ---
 
-# /spec-review - Parallel Specification & Design Review
+# /spec-review - Interactive Plan Review
 
-Launch multiple specialized agents in parallel to comprehensively review both the specification and its corresponding design document before implementation begins.
+Review a specification and design document interactively with the user. This is a **user-driven feedback loop** — the user reads the plan, gives feedback, and the plan is revised until approved.
 
-## Overview
+For automated machine review, use `--auto` to run parallel review agents before the feedback loop.
 
-This command reviews **both spec and design** from 5 perspectives:
-1. **Completeness Agent** - Checks for missing requirements in the spec
-2. **Technical Feasibility Agent** - Validates implementation viability of the design
-3. **Security Agent** - Identifies security concerns across spec and design
-4. **Quality Agent** - Reviews testability and acceptance criteria
-5. **Consistency Agent** - Validates spec↔design alignment
+## Two Review Modes
 
-## Confidence Scoring
-
-Each issue is scored 0-100:
-- **0-24**: Likely false positive, ignore
-- **25-49**: Minor concern, consider addressing
-- **50-74**: Moderate issue, should address
-- **75-100**: Critical issue, must address
-
-**Default Threshold:** 80 (unified with `/code-review` for consistency)
+| Mode | Command | What Happens |
+|------|---------|--------------|
+| **Interactive** (default) | `/spec-review feature.md` | User reads plan, gives feedback, iterate |
+| **Auto + Interactive** | `/spec-review feature.md --auto` | 5 agents review first, then user feedback loop |
 
 ## Execution Instructions
 
-### Step 1: Locate Specification and Design
+### Step 1: Locate Spec and Design
 
 If `$ARGUMENTS` is provided:
 - If it's a file path, read that file
@@ -37,245 +27,177 @@ If `$ARGUMENTS` is provided:
 
 **Also locate the corresponding design document:**
 - If spec is `docs/specs/user-auth.md`, look for `docs/specs/user-auth-design.md`
-- If design file is not found, note it but proceed with spec-only review
 
 If no arguments:
 - List available specs in `docs/specs/`
 - Ask user which one to review
 
-**Check progress file:**
-- Look for `.claude/workspaces/{workspace-id}/claude-progress.json`
-- If found, note current phase for context
+### Step 2: Auto Review (only if `--auto` flag is present)
 
-### Step 2: Launch Parallel Review Agents
+**If `--auto` is specified**, launch 5 parallel review agents before the user feedback loop:
 
-**CRITICAL: Launch all agents in a single message with separate Task tool calls.**
+**CRITICAL: Launch all agents in a single message.**
 
-**Agent 1: Completeness Review**
 ```
-Launch product-manager agent to review specification completeness.
-
-Specification: [spec content]
-
-Check for:
-- Missing user stories
-- Undefined edge cases
-- Unclear acceptance criteria
-- Missing non-functional requirements
-- Ambiguous language ("should", "might", "could")
-- Missing out-of-scope section
-- Undefined error scenarios
-
-For each issue, provide:
-- Issue description
-- Location in spec
-- Confidence score (0-100)
-- Suggested fix
+1. product-manager: Completeness review
+2. system-architect: Technical feasibility review (spec + design)
+3. security-auditor: Security review (spec + design)
+4. qa-engineer: Quality/testability review
+5. verification-specialist: Spec↔design consistency check (if design exists)
 ```
 
-**Agent 2: Technical Feasibility Review**
-```
-Launch system-architect agent to review technical feasibility.
+**Consolidate results:**
+- Filter by confidence (>= 80)
+- De-duplicate across agents (boost confidence by 10 when multiple agents agree)
+- Categorize: spec-only / design-only / both
+- Sort by severity
 
-Specification: [spec content]
-Design document: [design content, if available]
-Project context: [detected stack]
-
-Check for:
-- Unrealistic performance requirements
-- Missing technical constraints
-- Incompatible technology choices
-- Scalability concerns
-- Integration complexity underestimated
-- Missing dependency considerations
-- Design patterns inconsistent with codebase
-
-For each issue, provide:
-- Issue description
-- Technical concern
-- Confidence score (0-100)
-- Alternative approach
-- Whether this affects spec, design, or both
-```
-
-**Agent 3: Security Review**
-```
-Launch security-auditor agent to review security aspects.
-
-Specification: [spec content]
-Design document: [design content, if available]
-
-Check for:
-- Missing authentication requirements
-- Undefined authorization rules
-- Data sensitivity not classified
-- Missing encryption requirements
-- Compliance gaps (GDPR, HIPAA, etc.)
-- Input validation not specified
-- Audit logging requirements missing
-
-For each issue, provide:
-- Issue description
-- Security impact
-- Confidence score (0-100)
-- Recommended requirement
-- Whether this affects spec, design, or both
-```
-
-**Agent 4: Quality & Testability Review**
-```
-Launch qa-engineer agent to review testability.
-
-Specification: [spec content]
-
-Check for:
-- Unmeasurable acceptance criteria
-- Missing test scenarios
-- Undefined success metrics
-- Untestable requirements
-- Missing boundary conditions
-- Performance targets not quantified
-
-For each issue, provide:
-- Issue description
-- Testability concern
-- Confidence score (0-100)
-- Improved criteria
-```
-
-**Agent 5: Spec↔Design Consistency Review** (only if design document exists)
-```
-Launch verification-specialist agent to check spec-design consistency.
-
-Specification: [spec content]
-Design document: [design content]
-
-Check for:
-- Requirements in spec not addressed by design
-- Design decisions that contradict spec requirements
-- Spec changes not reflected in design (check timestamps if available)
-- Build sequence gaps (design references components not in spec)
-- Trade-offs in design that violate spec constraints
-
-For each issue, provide:
-- Issue description
-- Spec section vs design section
-- Confidence score (0-100)
-- Which document needs updating
-```
-
-### Step 3: Consolidate Results
-
-After all agents complete:
-
-1. **Collect all issues** from all agents
-2. **Filter by confidence** (>= 80 by default)
-3. **Categorize by target:** spec-only, design-only, or both
-4. **De-duplicate findings** using these rules:
-   - **Same location + same type** → Keep highest confidence, merge descriptions
-   - **Same location + different types** → Keep both (e.g., security AND completeness)
-   - **Similar description + different locations** → Keep both as separate issues
-   - **Multiple agents flag same issue** → Boost confidence by 10 (max 100)
-5. **Sort by severity** (highest confidence first)
-
-### Step 4: Present Review Report
-
+**Present auto-review results to user:**
 ```markdown
-## Specification & Design Review: [Feature Name]
+## Auto-Review Results
 
-### Summary
-- Total issues found: [N]
-- Critical (90-100): [N]
-- Important (80-89): [N]
-- Filtered (below 80): [N]
-- Spec↔Design consistency: [ALIGNED / MISMATCHED]
+Found [N] issues ([X] critical, [Y] important).
 
-### Critical Issues (Must Address)
+### Critical Issues (>= 90)
+1. **[Title]** ([Category], affects [Spec/Design/Both])
+   [Description]
+   Suggested fix: [fix]
 
-#### Issue 1: [Title] (Confidence: 95)
-**Category:** [Completeness/Feasibility/Security/Quality/Consistency]
-**Affects:** [Spec / Design / Both]
-**Location:** [Section in spec or design]
-**Description:** [What's wrong]
-**Recommendation:** [How to fix]
-
+### Important Issues (80-89)
 ...
 
-### Important Issues (Should Address)
-
-...
-
-### Consistency Check Results
-[Results from Agent 5, or "No design document found - skipped"]
-
-### Review Verdict
-
-[ ] APPROVED - Ready for implementation
-[ ] NEEDS REVISION - Address critical issues first
-[ ] REJECTED - Major rework required
+These will be incorporated into the feedback loop below.
 ```
 
-### Step 5: User Decision and Revision
+**Apply auto-fixes for issues where:**
+- Confidence >= 90
+- Fix is a simple addition (e.g., adding a missing "Out of Scope" section)
+- Fix does NOT change architecture decisions or user-approved requirements
+- Always inform the user what was auto-fixed
 
-Ask user:
+**Escalate to user** any issue that:
+- Changes architecture or core design decisions
+- Contradicts user-approved spec requirements
+- Has confidence 80-89 (ambiguous)
+
+### Step 3: Present Plan for User Review
+
+Display both spec and design (or summaries for long documents), then provide **guided review questions** to help the user focus:
+
 ```
-Review complete. Found [N] issues ([X] critical, [Y] spec-only, [Z] design-only, [W] both).
+Here is your plan. I'll walk you through key areas to check.
 
-What would you like to do?
-1. Fix all issues → I'll update spec and design files
-2. Fix critical only → address high-confidence issues
-3. Discuss specific issues → get more details before deciding
-4. Proceed anyway → document exceptions and continue
-5. Go back to planning → re-run /spec-plan to revise
-```
+## Guided Review
 
-**If user chooses to fix (option 1 or 2):**
+1. **Requirements**: Do these capture what you want to build?
+   [List key requirements from spec]
 
-#### Spec/Design Revision Loop (max 2 iterations)
+2. **Architecture**: Does this approach fit your codebase and team?
+   [Summary of approach from design]
 
-1. Apply fixes to the spec file for spec-related issues
-2. Apply fixes to the design file for design-related issues
-3. For issues affecting both:
-   - Update the spec first (source of truth)
-   - Then update the design to match
-4. Present the changes summary to the user
-5. Ask: "Would you like to re-run review on the updated documents, or approve?"
+3. **Build Sequence**: Is this order realistic?
+   [Build sequence from design]
 
-**If re-run requested:**
-- Re-launch only the agents relevant to the changed areas (not all 5)
-- Present delta report (new issues, resolved issues)
+4. **Security & Edge Cases**: Anything missing?
+   [Key security items and edge cases from spec]
 
-**If user chooses to go back to planning (option 5):**
-- Inform user to run `/spec-plan` to revise
-- Update progress file to indicate review-requested-replanning
+5. **Trade-offs**: Do you agree with these choices?
+   [Trade-offs from design]
 
-### Step 6: Save Results and Update Progress
-
-**Save review report:**
-```
-docs/specs/[feature-name]-review.md
+What would you like to change? (Or "approve" if it looks good)
 ```
 
-**Update progress file** (if `.claude/workspaces/{workspace-id}/claude-progress.json` exists):
-```json
-{
-  "currentPhase": "review-complete",
-  "currentTask": "Review complete - [APPROVED/NEEDS REVISION]",
-  "resumptionContext": {
-    "nextAction": "Run /spec-implement to begin implementation",
-    "reviewVerdict": "[APPROVED/NEEDS REVISION/REJECTED]",
-    "unresolvedIssues": [N]
-  }
-}
+### Step 4: User Feedback Loop
+
+**Loop until the user approves or exits.**
+
+After each user message, determine the feedback type:
+
+| User Says | Action |
+|-----------|--------|
+| "approve" / "looks good" / "LGTM" | Exit loop → Step 5 |
+| Specific change request (e.g., "use sessions instead of JWT") | Apply change → re-present affected section |
+| Question (e.g., "why did you choose PostgreSQL?") | Answer from design rationale, ask if they want to change it |
+| "add X" (new requirement) | Add to spec, check if design needs updating |
+| "remove X" | Remove from spec, check if design needs updating |
+| "I'm not sure about X" | Discuss trade-offs, present alternatives if relevant |
+| "start over" / "re-plan" | Suggest re-running `/spec-plan` |
+
+#### Handling Changes That Affect Architecture
+
+**If a change is small** (wording, adding an edge case, clarifying a requirement):
+- Edit the spec/design files directly
+- Re-present the changed section
+
+**If a change requires re-architecture** (e.g., "use a different database", "change the auth approach"):
+1. Inform the user: "This change affects the architecture design. I have two options:"
+   - **Option A**: I'll revise the design based on my current understanding of the codebase (best-effort, no re-exploration)
+   - **Option B**: Re-run `/spec-plan` with this new constraint for a thorough re-analysis
+2. If Option A: revise the design document, re-present, continue loop
+3. If Option B: update progress file, exit, suggest `/spec-plan` command
+
+#### After Each Change
+
+After applying a change:
+```
+Updated [spec/design/both]. Here's what changed:
+
+[Summary of change]
+
+Anything else to change? (Or "approve" to finalize)
 ```
 
-This ensures `/spec-implement` can detect whether a review was completed and its outcome.
+### Step 5: Approval and Handoff
+
+When the user approves:
+
+1. **Save final versions** of spec and design files
+2. **Save review log** to `docs/specs/[feature-name]-review.md`:
+   ```markdown
+   ## Review Log: [Feature Name]
+
+   ### Review Mode
+   [Interactive / Auto + Interactive]
+
+   ### Changes Made
+   1. [Change description] (user requested)
+   2. [Change description] (auto-review fix)
+   ...
+
+   ### Auto-Review Issues (if --auto was used)
+   - Resolved: [N]
+   - Deferred: [N]
+
+   ### Verdict
+   APPROVED by user
+   ```
+
+3. **Update progress file**:
+   ```json
+   {
+     "currentPhase": "review-complete",
+     "currentTask": "Review complete - approved by user",
+     "resumptionContext": {
+       "nextAction": "Run /spec-implement to begin implementation",
+       "reviewVerdict": "APPROVED",
+       "changesApplied": [N]
+     }
+   }
+   ```
+
+4. **Present next step:**
+   ```
+   Plan approved. Run `/spec-implement docs/specs/[feature-name].md` to start building.
+   ```
 
 ## Usage Examples
 
 ```bash
-# Review specific spec file (also reviews matching design file)
+# Interactive review (user feedback only)
 /spec-review docs/specs/user-authentication.md
+
+# Auto review first, then user feedback
+/spec-review docs/specs/user-authentication.md --auto
 
 # Review by feature name
 /spec-review user-authentication
@@ -284,41 +206,25 @@ This ensures `/spec-implement` can detect whether a review was completed and its
 /spec-review
 ```
 
-## Customization
-
-### Adjust Confidence Threshold
-
-```
-/spec-review docs/specs/my-feature.md --threshold 50
-```
-
-### Focus on Specific Aspects
-
-```
-/spec-review docs/specs/my-feature.md --focus security
-```
-
 ---
 
 ## Rules (L1 - Hard)
 
-- ALWAYS use parallel agent execution (all agents in single message)
-- ALWAYS apply confidence filtering before reporting (default >= 80)
-- NEVER proceed to implementation with unaddressed critical issues (>= 90 confidence)
-- ALWAYS de-duplicate findings across agents
-- ALWAYS update progress file if one exists
-- ALWAYS check for design document alongside spec
+- ALWAYS present guided review questions (don't just say "any feedback?")
+- ALWAYS loop until user explicitly approves or exits
+- NEVER auto-fix changes that affect architecture or user-approved requirements
+- ALWAYS update progress file on completion
+- ALWAYS save review log
 
 ## Defaults (L2 - Soft)
 
-- Use 80% confidence threshold (adjustable with --threshold)
-- Save review results to docs/specs/[feature-name]-review.md
-- Boost confidence by 10 when multiple agents flag same issue
-- Ask user before proceeding when critical issues found
-- Run consistency check when design document exists
+- Present full guided review on first pass; show only changed sections on subsequent passes
+- For `--auto` mode, apply fixes with confidence >= 90 that don't change architecture
+- Save review log to docs/specs/[feature-name]-review.md
+- Boost auto-review confidence by 10 when multiple agents agree
 
 ## Guidelines (L3)
 
-- Consider re-running review after spec/design updates
-- Prefer addressing critical issues before important ones
-- Consider domain-specific reviewers for specialized specs
+- Prefer asking clarifying questions when user feedback is ambiguous
+- Consider presenting alternatives when user is unsure
+- For large spec/design documents, summarize sections rather than displaying everything

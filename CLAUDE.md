@@ -12,12 +12,12 @@ Plan→Review→Implement workflow (3 commands with iterative refinement), 13 sp
 
 ```
 .claude-plugin/plugin.json   # Plugin metadata
-commands/                    # 16 slash commands
+commands/                    # 15 slash commands
 agents/                      # 13 subagent definitions
-skills/                      # 21 skill definitions
+skills/                      # 22 skill definitions
   core/                      #   5 core skills (subagent-contract, spec-philosophy, security-fundamentals, interview, bounded-autonomy)
   detection/                 #   1 detection skill (stack-detector)
-  workflows/                 #   15 workflow skills
+  workflows/                 #   16 workflow skills
 hooks/                       # Event handlers (7 event types, 11 handlers) + Python validators
 docs/                        # DEVELOPMENT.md (detailed specs), specs/
 ```
@@ -27,9 +27,8 @@ docs/                        # DEVELOPMENT.md (detailed specs), specs/
 | Task | Start Here |
 |------|------------|
 | Understand planning (with refinement loops) | `commands/spec-plan.md` |
-| Understand spec/design review | `commands/spec-review.md` |
+| Understand interactive plan review | `commands/spec-review.md` |
 | Understand implementation phase | `commands/spec-implement.md` |
-| Understand overall workflow guide | `commands/spec-workflow.md` |
 | See how agents work | `agents/code-explorer.md`, `agents/code-architect.md` |
 | Understand skill pattern | `skills/core/subagent-contract/SKILL.md` |
 | Check hook implementation | `hooks/hooks.json`, `hooks/spec_context.sh` |

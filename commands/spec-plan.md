@@ -358,17 +358,35 @@ Options:
 
 **Output:** Approved design saved to `docs/specs/[feature-name]-design.md`
 
-**Progress Update:**
-Update `claude-progress.json`:
-- currentPhase: "plan-complete"
-- currentTask: "Planning complete - ready for review and implementation"
-- resumptionContext.nextAction: "Run /spec-review, then /spec-implement"
+---
+
+### Self-Review Gate
+
+**After Phase 4 design is approved, run the self-review gate before presenting the final output.**
+
+Load the `plan-self-review` skill. Run the 13-item checklist against the spec and design files. This is a lightweight direct-read check, NOT a subagent invocation.
+
+**Based on self-review results:**
+
+| Result | Action |
+|--------|--------|
+| ALL CLEAR (0 flags) | Present plan to user as-is |
+| MINOR FLAGS (1-2 flags) | Present plan with flags noted |
+| NEEDS ATTENTION (3+ flags) | Fix flagged items, re-run checklist once, then present |
+
+Include self-review results in the final output so the user sees what was checked.
 
 ---
 
+**Progress Update:**
+Update `claude-progress.json`:
+- currentPhase: "plan-complete"
+- currentTask: "Planning complete - ready for user review"
+- resumptionContext.nextAction: "Run /spec-review for user feedback, then /spec-implement"
+
 ## Planning Complete - Next Steps
 
-After Phase 4 approval, present:
+After self-review gate, present:
 
 ```markdown
 ## Planning Complete
@@ -378,14 +396,13 @@ After Phase 4 approval, present:
 - Design: `docs/specs/[feature-name]-design.md`
 - Progress: `.claude/workspaces/{id}/claude-progress.json`
 
-### Recommended Next Steps
-1. `/spec-review docs/specs/[feature-name].md` - Validate spec and design
-2. `/spec-implement` - Start implementation from the approved plan
+### Self-Review
+[ALL CLEAR / MINOR FLAGS / results summary]
 
-### Why Review Before Implementation?
-Running /spec-review catches completeness, feasibility, security, and
-testability issues BEFORE implementation effort begins. It also validates
-that the design document is consistent with the specification.
+### Next Step
+Run `/spec-review docs/specs/[feature-name].md` to review the plan
+interactively — give feedback, request changes, or approve.
+Then run `/spec-implement` to build it.
 ```
 
 ## Usage Examples

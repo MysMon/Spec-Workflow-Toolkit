@@ -43,7 +43,7 @@ Progress files are now isolated per workspace to support concurrent projects and
 
 ## When to Use
 
-- Starting a new session after `/spec-workflow` was interrupted
+- Starting a new session after `/spec-plan` or `/spec-implement` was interrupted
 - Continuing multi-day development work
 - Recovering after context compaction
 - Resuming after explicit `/clear`
@@ -97,7 +97,7 @@ Example output:
 **If no progress files found:**
 - Report: "No progress files found for this workspace."
 - List available workspaces if any exist
-- Suggest: "Use `/spec-plan` to start planning, or `/spec-workflow` for the full workflow."
+- Suggest: "Use `/spec-plan` to start planning."
 - Exit
 
 ### Phase 2: State Analysis
@@ -239,7 +239,7 @@ Options:
 **If "Start fresh":**
 - Confirm: "This will archive current progress. Are you sure?"
 - If confirmed: Move progress files to `.claude/workspaces/{id}/archive/[timestamp]/`
-- Exit with suggestion to run `/spec-workflow`
+- Exit with suggestion to run `/spec-plan`
 
 **If "Just checking status":**
 - Exit cleanly
@@ -426,8 +426,8 @@ If status is "completed":
 | After | Use /resume when |
 |-------|------------------|
 | `/spec-plan` | Planning was interrupted mid-workflow |
+| `/spec-review` | Review was interrupted mid-workflow |
 | `/spec-implement` | Implementation was interrupted mid-workflow |
-| `/spec-workflow` | Full workflow was interrupted |
 | `/clear` | Cleared context but want to continue |
 | Compaction | Context was automatically compacted |
 | Session end | Starting new session next day |
