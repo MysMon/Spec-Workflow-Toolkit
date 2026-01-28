@@ -1,765 +1,162 @@
 ---
-description: "Launch the spec-first 7-phase development workflow - from discovery to implementation with parallel agent execution"
+description: "Full spec-first development workflow - plans, reviews, and implements a feature end-to-end"
 argument-hint: "[optional: feature description]"
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite, Skill
 ---
 
-# /spec-workflow - Specification-First Development Workflow
+# /spec-workflow - Full Spec-First Development Workflow
 
-Launch a guided 7-phase development workflow that ensures disciplined, spec-first development with context-preserving subagent delegation.
+Orchestrates the complete spec-first development lifecycle by guiding you through planning, review, and implementation as separate phases.
 
 ## Attribution
 
-Based on official feature-dev plugin, Claude Code Best Practices, Effective Harnesses for Long-Running Agents, Building Effective Agents (6 Composable Patterns), and Subagent Documentation.
+Based on official feature-dev plugin, Claude Code Best Practices, Effective Harnesses for Long-Running Agents, and Building Effective Agents (6 Composable Patterns).
+
+## Architecture: Plan → Review → Implement
+
+This command orchestrates three separate commands, each with its own focused context:
+
+```
+/spec-plan          /spec-review         /spec-implement
+Phase 1: Discovery    Completeness         Phase 1: Preparation
+Phase 2: Exploration  Feasibility          Phase 2: Implementation
+Phase 3: Clarification Security            Phase 3: Quality Review
+Phase 4: Architecture  Testability         Phase 4: Summary
+        ↓                    ↓                      ↓
+   spec + design        review report         working code
+```
+
+**Why this separation?**
+- Anthropic's "Effective Harnesses" found agents fail when trying to do too much at once
+- Each phase gets a full context window instead of competing for tokens
+- Natural checkpoints for human review between phases
+- Claude Code creator's approach: "Plan Mode → refine → Auto-Accept for implementation"
 
 ## Composable Patterns Applied
 
-This workflow implements all 6 of Anthropic's composable patterns:
-
-| Pattern | Application in /spec-workflow |
-|---------|---------------------|
-| **Prompt Chaining** | 7 phases executed sequentially with gates |
-| **Routing** | Model selection (Opus/Sonnet/Haiku), agent selection by task type |
-| **Parallelization** | Multiple code-explorers, parallel reviewers in Phase 2, 4, 6 |
-| **Orchestrator-Workers** | You (orchestrator) delegate to all subagents |
+| Pattern | Application |
+|---------|-------------|
+| **Prompt Chaining** | 3 commands executed sequentially with gates |
+| **Routing** | Model selection, agent selection by task type |
+| **Parallelization** | Multiple explorers/architects/reviewers within each phase |
+| **Orchestrator-Workers** | Each command orchestrates its own subagents |
 | **Evaluator-Optimizer** | Quality review with confidence scoring and iteration |
 | **Augmented LLM** | Tools, progress files, retrieval for all agents |
 
-See Building Effective Agents for detailed pattern documentation.
-
-## Phase Overview
-
-This command orchestrates 7 phases:
-1. **Discovery** - Understand what needs to be built
-2. **Codebase Exploration** - Understand existing code and patterns (parallel agents)
-3. **Clarifying Questions** - Fill gaps and resolve ambiguities
-4. **Architecture Design** - Analyze in parallel, synthesize one approach
-5. **Implementation** - Build the feature
-6. **Quality Review** - Ensure code meets standards (parallel agents)
-7. **Summary** - Document what was accomplished
-
 ## Execution Instructions
 
----
+### Step 1: Planning Phase
 
-## ⚠️ ORCHESTRATOR-ONLY RULES (NON-NEGOTIABLE)
-
-**YOU ARE THE ORCHESTRATOR. YOU DO NOT DO THE WORK YOURSELF.**
-
-Load the `subagent-contract` skill for detailed orchestration protocols.
-
-### Absolute Prohibitions
-
-1. **Prefer delegating bulk Grep/Glob operations to `code-explorer`** - Use directly only for single targeted lookups (e.g., verifying a specific file exists)
-2. **NEVER read more than 3 files directly** - Delegate bulk reading to subagents
-3. **NEVER implement code yourself** - Delegate to `frontend-specialist` or `backend-specialist`
-4. **NEVER write tests yourself** - Delegate to `qa-engineer`
-5. **NEVER do security analysis yourself** - Delegate to `security-auditor`
-
-### Your ONLY Responsibilities
-
-1. **Orchestrate** - Launch and coordinate subagents
-2. **Synthesize** - Combine subagent outputs into coherent summaries
-3. **Communicate** - Present findings and ask user questions
-4. **Track Progress** - Update TodoWrite and progress files
-5. **Read Specific Files** - Only files identified by subagents (max 3 at a time)
-
-**Context Protection**: Subagent exploration returns ~500 tokens vs 10,000+ for direct exploration.
-
----
-
-### Agent Selection
-
-| Agent | Model | Use For |
-|-------|-------|---------|
-| `code-explorer` | Sonnet | Deep codebase analysis (4-phase exploration) |
-| Built-in `Explore` | Haiku | Quick lookups and simple searches |
-| `code-architect` | Sonnet | Feature-level implementation blueprints |
-| `frontend-specialist` | **inherit** | UI implementation (uses your session's model) |
-| `backend-specialist` | **inherit** | API implementation (uses your session's model) |
-| `qa-engineer` | Sonnet | Testing and quality review |
-| `security-auditor` | Sonnet | Security review (read-only) |
-| `verification-specialist` | Sonnet | Reference validation, cross-checking findings from parallel agents |
-
-**Model Selection Strategy**:
-- **Sonnet**: Balanced capability for analysis, exploration, and review
-- **Haiku**: Fast, lightweight exploration (built-in Explore)
-- **inherit**: Match parent conversation model (implementation agents)
-
-### Phase 1: Discovery
-
-**Goal:** Understand what needs to be built and why.
-
----
-
-#### CRITICAL: Check for Existing Progress (L1 - MUST DO FIRST)
-
-**Before creating new progress files, check if work already exists for this project.**
-
-1. **Check for existing progress file:**
-   - Generate workspace ID: `{branch}_{path-hash}` (from SessionStart hook context)
-   - Look for `.claude/workspaces/{workspace-id}/claude-progress.json`
-
-2. **If progress file exists and status is NOT "completed":**
-   ```
-   ⚠️ EXISTING PROGRESS DETECTED
-
-   Project: [project name from progress file]
-   Current Phase: [currentPhase from progress file]
-   Last Activity: [lastUpdated from progress file]
-   Status: [status from progress file]
-
-   Options:
-   1. Continue existing work → Use /resume command
-   2. Start fresh → Existing progress will be archived to .claude/workspaces/{id}/archived/
-   3. Cancel → Do nothing
-
-   What would you like to do?
-   ```
-
-3. **If user chooses "Start fresh":**
-   - Archive existing progress: Move `claude-progress.json` to `archived/claude-progress-{timestamp}.json`
-   - Archive feature list if exists: Move `feature-list.json` to `archived/feature-list-{timestamp}.json`
-   - Proceed to create new progress files
-
-4. **If progress file doesn't exist or status is "completed":**
-   - Proceed directly to Progress File Initialization
-
-**Why this check is L1 (Hard Rule):**
-- Prevents accidental overwrite of long-running work
-- Protects hours of exploration and implementation progress
-- Ensures user makes intentional decision about existing state
-
----
-
-#### CRITICAL: Progress File Initialization (L1 - MUST DO AFTER CHECK)
-
-**NEVER skip this step. The progress file MUST be created before ANY other Phase 1 work.**
-
-Before doing any discovery work, create the progress file:
-
-1. **Generate workspace ID**: Use format `{branch}_{path-hash}` (from SessionStart hook context)
-2. **Create directory**: `.claude/workspaces/{workspace-id}/`
-3. **Create progress file**: `.claude/workspaces/{workspace-id}/claude-progress.json`
-
-**Initial progress file structure:**
-```json
-{
-  "workspaceId": "{generated-workspace-id}",
-  "project": "{project-name}",
-  "started": "{ISO-8601-timestamp}",
-  "lastUpdated": "{ISO-8601-timestamp}",
-  "status": "in_progress",
-  "currentPhase": "phase1-in_progress",
-  "currentTask": "Discovery - gathering requirements",
-  "sessions": [],
-  "log": [],
-  "resumptionContext": {
-    "position": "Phase 1: Discovery",
-    "nextAction": "Complete requirements gathering and user interview",
-    "dependencies": [],
-    "blockers": []
-  }
-}
-```
-
-**Note:** This schema aligns with `progress-tracking` skill and SessionStart hook expectations.
-
-**Why this is L1 (Hard Rule):**
-- Enables session recovery if context is compacted or session restarts
-- Provides checkpoint for error recovery
-- Required by SessionStart hook to restore state
-- Other phases depend on this file existing
-
-**Verification:** After creating, read the file back to confirm it was written correctly.
-
----
-
-### Session Resume Logic
-
-When resuming a session (SessionStart hook detects existing progress files):
-
-1. **Load existing progress files:**
-   - Read `claude-progress.json` for current state
-   - Read `feature-list.json` for pending features
-
-2. **Determine resume point:**
-   - Check `currentPhase` to identify where to resume
-   - Review `warnings` array for any previous issues
-
-3. **Resume workflow:**
-   - Skip completed phases (phase1-complete, phase2-complete, etc.)
-   - Start from the phase indicated by `nextAction`
-   - Inform user: "Resuming from Phase X: [description]"
-
-4. **Validate context:**
-   - Verify referenced files still exist
-   - Check if codebase has changed since last session
-   - If significant changes detected, recommend restarting affected phases
-
----
-
-If the user provided a feature description (`$ARGUMENTS`), analyze it first:
-- What problem is being solved?
-- Who are the target users?
-- What are potential constraints?
-
-If the request is vague or missing:
-1. Ask clarifying questions using AskUserQuestion
-2. Identify stakeholders and use cases
-3. Document initial understanding
-
-**Output:** Summary of understanding and confirmation from user.
-
-### Phase 2: Codebase Exploration
-
-**Goal:** Understand relevant existing code and patterns.
-
-**LAUNCH 2-3 `code-explorer` AGENTS IN PARALLEL:**
+Run the planning workflow:
 
 ```
-Launch these code-explorer agents in parallel:
+Execute /spec-plan with the user's feature description ($ARGUMENTS).
 
-1. code-explorer (similar features)
-   Task: Explore existing implementations of similar features
-   Thoroughness: medium
-   Output: Entry points, execution flow, key files
-
-2. code-explorer (architecture)
-   Task: Map the overall architecture and patterns used
-   Thoroughness: medium
-   Output: Layers, boundaries, conventions
-
-3. code-explorer (UI patterns) - if frontend work
-   Task: Trace UI component patterns and state management
-   Thoroughness: medium
-   Output: Component hierarchy, data flow
+This produces:
+- docs/specs/[feature-name].md (specification)
+- docs/specs/[feature-name]-design.md (architecture design)
+- .claude/workspaces/{id}/claude-progress.json (progress state)
 ```
 
-**Wait for all agents to complete.** Each returns:
-- Entry points with file:line references
-- Key components and responsibilities
-- Architecture insights
-- Files to read for deep understanding
+**Wait for /spec-plan to complete all 4 phases.**
 
-**Error Handling:**
-If any agent fails or times out:
-1. Check the agent's partial output for usable findings
-2. If critical agent failed (e.g., architecture explorer), retry once with reduced scope
-3. If retry fails, proceed with available results and document the gap
-4. Add to progress file: `"warnings": ["Agent X failed, results may be incomplete"]`
+### Step 2: Review Phase
 
-**Read up to 3 of the most critical files** identified by explorers. For remaining files, use `verification-specialist` to validate key findings if needed.
-
-**Present comprehensive summary of findings to user.**
-
-**Progress Update:**
-Update `claude-progress.json`:
-- status: "in_progress"
-- currentPhase: "phase2-complete"
-- currentTask: "Codebase exploration complete"
-- resumptionContext.position: "Phase 2 complete"
-- resumptionContext.nextAction: "Proceed to Phase 3: Clarifying Questions"
-
-### Phase 3: Clarifying Questions
-
-**Goal:** Fill in gaps and resolve all ambiguities.
-
-Based on discovery and exploration, identify:
-- Edge cases
-- Error handling requirements
-- Integration points
-- Backward compatibility needs
-- Performance requirements
-
-**Ask clarifying questions using AskUserQuestion.**
-
-**CRITICAL: Wait for user answers before proceeding.**
-
-**Output:** Complete requirements with all ambiguities resolved.
-
-**Draft the specification (required before Phase 4):**
-If a spec already exists, review/update it. Otherwise, draft a new spec using `product-manager`.
+After planning completes, recommend a spec review:
 
 ```
-Launch product-manager agent to draft the spec:
-Specification target: docs/specs/[feature-name].md
-Template: docs/specs/SPEC-TEMPLATE.md
-Inputs: Clarified requirements + exploration findings
-Output: Draft spec for user review
+Planning is complete. Before implementation, it's recommended to review the spec.
+
+Would you like to:
+1. Run /spec-review now (recommended)
+2. Skip review and proceed to implementation
+3. Review the spec manually first
 ```
 
-**Ask user to approve the spec** before moving to Phase 4.
+**If user chooses review:**
+Run `/spec-review docs/specs/[feature-name].md`
 
-**Progress Update:**
-Update `claude-progress.json`:
-- status: "in_progress"
-- currentPhase: "phase3-complete"
-- currentTask: "Requirements clarified and spec approved"
-- resumptionContext.position: "Phase 3 complete"
-- resumptionContext.nextAction: "Proceed to Phase 4: Architecture Design"
+**If review finds critical issues:**
+Address them before proceeding. Update the spec and design files.
 
-### Phase 4: Architecture Design
+### Step 3: Implementation Phase
 
-**Goal:** Design the implementation approach based on codebase patterns.
-
-**Design Philosophy (Intentional Difference from Official Pattern):**
-
-The official `feature-dev` plugin presents 3 distinct approaches for user selection. This plugin instead uses multiple code-architect agents to **analyze from different angles, then synthesize into a single definitive recommendation**. This reduces decision fatigue while ensuring comprehensive analysis.
-
-**LAUNCH 2-3 `code-architect` AGENTS IN PARALLEL with different analysis focuses:**
+After review (or if skipped), proceed to implementation:
 
 ```
-Launch these code-architect agents in parallel:
+Execute /spec-implement with the spec file path.
 
-1. code-architect (reuse analysis)
-   Analyze: How existing patterns and code can be reused
-   Context: [Exploration findings], [Requirements]
-   Output: Reuse opportunities with file:line evidence
-
-2. code-architect (extensibility analysis)
-   Analyze: Clean abstraction opportunities for future growth
-   Context: [Exploration findings], [Requirements]
-   Output: Abstraction recommendations with file:line evidence
-
-3. code-architect (performance analysis) - if relevant
-   Analyze: Performance implications and optimizations
-   Context: [Exploration findings], [Requirements]
-   Output: Performance considerations with file:line evidence
+This produces:
+- Working implementation with tests
+- Quality review results
+- Summary of changes
 ```
 
-**Wait for all agents to complete.**
+**Wait for /spec-implement to complete.**
 
-**Error Handling:**
-If any agent fails or times out:
-1. Check the agent's partial output for usable findings
-2. If critical agent failed (e.g., reuse analysis), retry once with reduced scope
-3. If retry fails, proceed with available results and document the gap
-4. Add to progress file: `"warnings": ["Agent X failed, results may be incomplete"]`
+### Step 4: Completion
 
-**Each agent contributes analysis from their focus area.**
-
-**Synthesize all agent outputs into ONE definitive recommendation:**
-```markdown
-## Architecture Analysis
-
-### Pattern Analysis from Codebase
-Based on code-architect findings:
-- Service pattern: [Pattern] (see `file:line`)
-- Data access: [Pattern] (see `file:line`)
-- API structure: [Pattern] (see `file:line`)
-
-### Recommended Approach
-
-**Architecture**: [Summary of recommended approach]
-
-**Rationale**:
-- Aligns with existing pattern at `file:line`
-- Follows convention in `file:line`
-- [Other evidence-based reasons]
-
-**Implementation Map**:
-| Component | File | Action |
-|-----------|------|--------|
-| [Name] | `src/...` | Create |
-| [Name] | `src/...` | Modify |
-
-**Build Sequence**:
-- [ ] Step 1: [Task]
-- [ ] Step 2: [Task]
-- [ ] Step 3: [Task]
-
-**Trade-offs Considered**:
-- [Trade-off 1]: [Why this choice is best]
-- [Trade-off 2]: [Why this choice is best]
-```
-
-**Ask user: "Does this approach work for you? Any concerns?"**
-
-**Output:** Approved design saved to `docs/specs/[feature-name]-design.md`
-
-**Progress Update:**
-Update `claude-progress.json`:
-- status: "in_progress"
-- currentPhase: "phase4-complete"
-- currentTask: "Architecture design approved"
-- resumptionContext.position: "Phase 4 complete"
-- resumptionContext.nextAction: "Proceed to Phase 5: Implementation"
-
-### Phase 5: Implementation
-
-**Goal:** Build the feature according to spec and design.
-
-**IMPORTANT:** Wait for explicit user approval before starting implementation.
-
-Ask user: "Ready to start implementation? This will modify files in your codebase."
-
----
-
-#### Long-Running Autonomous Work Pattern
-
-Load the `long-running-tasks` skill for the Initializer + Coding pattern and progress file details.
-
-**Key Principles:**
-- **INITIALIZER** (first session): Create progress files, break down work
-- **CODING** (each session): Read state, implement ONE feature, update state, commit
-- Use workspace ID from SessionStart hook: `{branch}_{path-hash}`
-- Progress files: `.claude/workspaces/{workspace-id}/claude-progress.json` and `feature-list.json`
-
----
-
-#### CRITICAL: One Feature at a Time
-
-**Solution**: Focus on ONE feature/component per iteration:
-1. Identify next incomplete feature from `feature-list.json`
-2. Delegate implementation to specialist agent
-3. Wait for completion
-4. Run tests (delegate to `qa-engineer`)
-5. Update progress files (`claude-progress.json`, `feature-list.json`)
-6. Commit working code with descriptive message
-7. Move to next feature
-
-**NEVER proceed to next feature until current one is:**
-- Implemented
-- Tested
-- Committed
-- Progress files updated
-
----
-
-#### Implementation Pattern Selection
-
-Choose ONE pattern based on feature characteristics:
-
-| Condition | Pattern | Workflow |
-|-----------|---------|----------|
-| Clear acceptance criteria, well-defined behavior | **TDD** | qa-engineer writes failing tests → Specialist implements → Refactor |
-| Exploratory, UI-heavy, or unclear requirements | **Standard** | Specialist implements → qa-engineer validates → Iterate |
-| Bug fix with reproduction steps | **TDD** | qa-engineer writes failing test from repro → Specialist fixes |
-
-**TDD Pattern** (Load `tdd-workflow` skill):
-- RED: `qa-engineer` writes failing tests based on acceptance criteria
-- GREEN: Specialist implements minimal code to pass
-- REFACTOR: Review and clean up
-
-**Standard Pattern**:
-- Specialist implements feature
-- `qa-engineer` validates and writes tests
-- Iterate on feedback
-
----
-
-#### Delegation to Specialist Agents
-
-**REMEMBER: You are the orchestrator. You do NOT implement code yourself.**
-
-Note: `frontend-specialist` and `backend-specialist` use `model: inherit`, so they will use whatever model the user's session is running (Opus for highest quality, Sonnet for balance).
-
-For frontend work:
-```
-Launch the frontend-specialist agent to implement: [component/feature]
-Following specification: docs/specs/[feature-name].md
-Following design: docs/specs/[feature-name]-design.md
-Key files from exploration: [list]
-TDD mode: [yes/no] - If yes, reference test file
-Expected output: Working component with tests
-```
-
-For backend work:
-```
-Launch the backend-specialist agent to implement: [service/API]
-Following specification: docs/specs/[feature-name].md
-Following design: docs/specs/[feature-name]-design.md
-Key files from exploration: [list]
-TDD mode: [yes/no] - If yes, reference test file
-Expected output: Working service with tests
-```
-
-**After each specialist agent completes:**
-1. Verify the agent's output summary
-2. Note the agent ID for potential resume (if partial completion)
-3. Update `feature-list.json` (mark feature as completed)
-4. Update `claude-progress.json` (update currentTask, nextAction)
-5. Run TodoWrite to update visible progress
-6. Ask user if they want to review before committing
-
----
-
-#### Subagent Resume for Iterative Work
-
-When a specialist agent needs additional work or hit an error:
-
-```
-# Agent completed but needs follow-up
-"Resume agent-abc123 to also handle edge case X"
-[Agent continues with full prior context]
-
-# Agent hit permission error in background
-"Resume agent-abc123 in foreground to retry failed operations"
-[Interactive prompts now available]
-```
-
-**When to Resume vs New Agent:**
-
-| Scenario | Action |
-|----------|--------|
-| Expanding scope of same feature | Resume |
-| Permission error recovery | Resume in foreground |
-| Completely different feature | New agent |
-| Agent hit context limit | New agent with summary |
-
-See `long-running-tasks` skill for detailed resume patterns.
-
----
-
-#### Progress Tracking Integration
-
-Load the `progress-tracking` skill for detailed schemas. Update both TodoWrite and JSON files after each milestone.
-
-### Phase 6: Quality Review
-
-**Goal:** Ensure code meets quality, security, and spec requirements.
-
-**LAUNCH 4 PARALLEL REVIEW AGENTS (Sonnet):**
-
-```
-Launch these review agents in parallel:
-
-1. qa-engineer agent
-   Focus: Test coverage, edge cases, acceptance criteria
-   Confidence threshold: 80
-   Check: Tests exist, edge cases handled, acceptance criteria met
-   Output: Test gaps, quality issues with file:line
-
-2. security-auditor agent
-   Focus: OWASP Top 10, auth/authz, data validation
-   Confidence threshold: 80
-   Check: Input validation, auth checks, sensitive data handling
-   Output: Vulnerabilities with file:line and remediation
-
-3. code-explorer agent (verification)
-   Focus: Verify implementation matches design spec
-   Thoroughness: quick
-   Compare: Implementation vs docs/specs/[feature]-design.md
-   Output: Deviations, missing pieces with file:line
-
-4. verification-specialist agent
-   Focus: Validate file:line references and code quotes from other agents
-   Task: Cross-check findings from qa-engineer, security-auditor, code-explorer for accuracy.
-         Also verify any command/agent/skill references against actual definitions.
-   Output: Verification report with VERIFIED/PARTIAL/UNVERIFIED status for each finding
-   Critical: Flag documentation-implementation mismatches (e.g., model settings, tool lists)
-```
-
-**Wait for all agents to complete.**
-
-**Error Handling:**
-If any agent fails or times out:
-1. Check the agent's partial output for usable findings
-2. If critical agent failed (e.g., security-auditor), retry once with reduced scope
-3. If retry fails, proceed with available results and document the gap
-4. Add to progress file: `"warnings": ["Agent X failed, results may be incomplete"]`
-
----
-
-#### Cross-Validation of File References
-
-**After parallel agents complete, review the verification-specialist's report before scoring.**
-
-The verification-specialist agent (launched in parallel above) handles all file:line reference validation. This preserves the orchestrator rule of "NEVER read more than 3 files directly."
-
-**Review the verification-specialist's output for each finding:**
-
-| Verification Status | Action |
-|---------------------|--------|
-| VERIFIED | Keep finding as-is, confidence unchanged |
-| PARTIAL | Reduce confidence by 10, note the discrepancy |
-| UNVERIFIED | Reduce confidence by 20, flag as `"verified": false` |
-
-**Example of processing verification report:**
-```
-verification-specialist output:
-- Finding #1 (security-auditor): SQL injection at src/api/users.ts:42
-  Status: UNVERIFIED
-  Note: Line 42 contains import statement, not SQL query. Actual query at line 87.
-
-Orchestrator action:
-- Original confidence: 85
-- Adjusted confidence: 65 (85 - 20)
-- Update reference to correct line if provided
-- Add flag: "verified": false, "verificationNote": "Reference corrected to line 87"
-```
-
-**Why delegate cross-validation to verification-specialist:**
-- Preserves orchestrator context (no bulk file reading)
-- Agents may hallucinate line numbers
-- File may have changed since agent read it
-- Prevents false positives from wasting user time
-- Increases trust in high-confidence findings
-
-**Include verification status in findings output:**
-```markdown
-1. **[Issue Title]** - [Category] (Score: [N], Verified: [Yes/No])
-```
-
----
-
-**Use confidence scores from review agents:**
-
-Each review agent (qa-engineer, security-auditor) returns findings with confidence scores (0-100) based on their expertise. The orchestrator synthesizes these scores rather than re-scoring separately.
-
-**Consolidate findings with confidence weighting:**
-
-| Scenario | Action |
-|----------|--------|
-| Score < 80 | Filter out |
-| 1 agent reports (80+) | Report as-is |
-| 2 agents agree | Boost confidence |
-| 3 agents agree | Treat as confirmed |
-
-**Present findings to user:**
-```markdown
-## Quality Review Results
-
-### Critical Issues (Confidence >= 90)
-1. **[Issue Title]** - [Category] (Score: [N])
-   File: `file:line`
-   [Description]
-   **Fix:** [Remediation]
-
-### Important Issues (Confidence 80-89)
-1. **[Issue Title]** - [Category] (Score: [N])
-   File: `file:line`
-   [Description]
-   **Fix:** [Remediation]
-
-### Summary
-- Critical: [N]
-- Important: [N]
-- Filtered (below 80): [N]
-
-**Verdict:** [APPROVED / NEEDS CHANGES]
-```
-
-**Ask user:** "Found [N] issues. What would you like to do?"
-1. Fix critical issues now
-2. Fix all issues now
-3. Proceed without changes
-4. Get more details on specific issues
-
-**Address issues based on user decision.**
-
-#### Evaluator-Optimizer Loop (For Critical Issues)
-
-If critical issues are found and user chooses to fix:
-
-```
-Iteration Loop (max 3):
-
-1. GENERATOR: Delegate fix to specialist agent
-   "Fix [issue] at [file:line]"
-   Output: Modified code
-
-2. EVALUATOR: Delegate re-check to original reviewer
-   "Verify fix for [issue] at [file:line]"
-   Output: Score 0-100
-
-3. If score >= 80: Accept and move to next issue
-   If score < 80: Provide feedback, loop back to GENERATOR
-   If max iterations reached: Escalate to user
-```
-
-See `skills/workflows/evaluator-optimizer/SKILL.md` for detailed pattern.
-
-#### Error Recovery During Review
-
-Load the `error-recovery` skill if review agents encounter errors. Checkpoint state, attempt recovery, and escalate to user if unrecoverable.
-
-**Progress Update:**
-Update `claude-progress.json`:
-- status: "in_progress"
-- currentPhase: "phase6-complete"
-- currentTask: "Quality review complete"
-- resumptionContext.position: "Phase 6 complete"
-- resumptionContext.nextAction: "Proceed to Phase 7: Summary"
-
-### Phase 7: Summary
-
-**Goal:** Document what was accomplished.
-
-**Update progress file to completed status.**
-
-Create summary including:
-- What was built
-- Key decisions made
-- Files modified/created
-- Test coverage achieved
-- Security review status
-- Suggested next steps
-
-**Mark all todos complete.**
-
-**Output:** Summary displayed to user.
+After implementation:
 
 ```markdown
-## Implementation Complete
+## Workflow Complete
 
-### What Was Built
-- [Feature description]
-
-### Key Decisions
-- [Decision 1]: [Rationale]
-- [Decision 2]: [Rationale]
-
-### Files Modified
-| File | Changes |
-|------|---------|
-| `path/to/file.ts` | [Summary] |
+### Artifacts Produced
+- Specification: `docs/specs/[feature-name].md`
+- Design: `docs/specs/[feature-name]-design.md`
+- Review: `docs/specs/[feature-name]-review.md` (if reviewed)
+- Implementation: [list of modified files]
 
 ### Quality Status
-- Tests: [Passing/Failing]
-- Security: [Approved/Issues]
-- Coverage: [Percentage]
-
-### Next Steps
-1. [Suggested follow-up 1]
-2. [Suggested follow-up 2]
+- Spec Review: [Passed/Skipped/Issues addressed]
+- Code Review: [Results from /spec-implement Phase 3]
+- Tests: [Status]
 ```
+
+## Individual Commands
+
+You can also run each phase independently:
+
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `/spec-plan` | Planning only (Phase 1-4) | When you want to plan without implementing |
+| `/spec-review` | Review a spec | Between planning and implementation |
+| `/spec-implement` | Implementation only (Phase 5-7) | When you already have an approved spec |
+| `/spec-workflow` | Full lifecycle | When you want the complete flow |
 
 ## Usage Examples
 
 ```bash
-# Start with a feature idea
+# Full workflow (plan → review → implement)
 /spec-workflow Add user authentication with OAuth support
 
-# Start from scratch (interactive)
+# Full workflow interactively
 /spec-workflow
 
-# Start with existing requirements
-/spec-workflow Implement the feature specified in docs/specs/user-dashboard.md
+# Or run phases separately:
+/spec-plan Add user authentication with OAuth support
+/spec-review docs/specs/user-authentication.md
+/spec-implement docs/specs/user-authentication.md
 ```
 
 ## Tips for Best Results
 
 1. **Be patient with exploration** - Phase 2 prevents misunderstanding the codebase
 2. **Answer clarifying questions thoughtfully** - Phase 3 prevents future confusion
-3. **Choose architecture deliberately** - Phase 4 synthesizes one approach from multiple analyses
-4. **Don't skip security review** - Phase 6 catches issues before production
-5. **Read agent outputs carefully** - They contain important file:line references
+3. **Review the spec** - Running `/spec-review` catches issues before implementation
+4. **Don't skip security review** - Quality review catches issues before production
 
 ## When NOT to Use
 
 - Single-line bug fixes (just fix it directly)
-- Trivial changes with clear scope
-- Urgent hotfixes requiring immediate deployment
-- Use `/quick-impl` for small, well-defined tasks
+- Trivial changes with clear scope (use `/quick-impl`)
+- Urgent hotfixes (use `/hotfix`)
 
-## Comparison with /quick-impl
+## Comparison
 
-| Aspect | /spec-workflow | /quick-impl |
-|--------|----------------|-------------|
-| Phases | 7 | 1 |
-| Exploration | Parallel agents | None |
-| Design options | Single (synthesized) | Single |
-| Review | Parallel agents | Basic |
-| Best for | Complex features | Small tasks |
+| Aspect | /spec-workflow | /spec-plan | /spec-implement | /quick-impl |
+|--------|----------------|------------|-----------------|-------------|
+| Phases | All | 1-4 (plan) | 5-7 (build) | 1 |
+| Output | Working code | Spec + design | Working code | Working code |
+| Review | Included | Separate | Included | Basic |
+| Best for | Complex features | Planning only | Approved specs | Small tasks |

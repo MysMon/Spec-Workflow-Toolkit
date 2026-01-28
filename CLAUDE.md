@@ -12,7 +12,7 @@ A Claude Code plugin implementing Anthropic's 6 composable patterns for long-run
 
 ```
 .claude-plugin/plugin.json   # Plugin metadata
-commands/                    # 14 slash commands
+commands/                    # 16 slash commands
 agents/                      # 13 subagent definitions
 skills/                      # 21 skill definitions
   core/                      #   5 core skills (subagent-contract, spec-philosophy, security-fundamentals, interview, bounded-autonomy)
@@ -26,7 +26,9 @@ docs/                        # DEVELOPMENT.md (detailed specs), specs/
 
 | Task | Start Here |
 |------|------------|
-| Understand main workflow | `commands/spec-workflow.md` |
+| Understand planning phase | `commands/spec-plan.md` |
+| Understand implementation phase | `commands/spec-implement.md` |
+| Understand full workflow orchestration | `commands/spec-workflow.md` |
 | See how agents work | `agents/code-explorer.md`, `agents/code-architect.md` |
 | Understand skill pattern | `skills/core/subagent-contract/SKILL.md` |
 | Check hook implementation | `hooks/hooks.json`, `hooks/spec_context.sh` |

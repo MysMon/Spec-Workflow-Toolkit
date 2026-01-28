@@ -97,7 +97,7 @@ Example output:
 **If no progress files found:**
 - Report: "No progress files found for this workspace."
 - List available workspaces if any exist
-- Suggest: "Use `/spec-workflow` to start a new tracked workflow."
+- Suggest: "Use `/spec-plan` to start planning, or `/spec-workflow` for the full workflow."
 - Exit
 
 ### Phase 2: State Analysis
@@ -425,7 +425,9 @@ If status is "completed":
 
 | After | Use /resume when |
 |-------|------------------|
-| `/spec-workflow` | Work was interrupted mid-workflow |
+| `/spec-plan` | Planning was interrupted mid-workflow |
+| `/spec-implement` | Implementation was interrupted mid-workflow |
+| `/spec-workflow` | Full workflow was interrupted |
 | `/clear` | Cleared context but want to continue |
 | Compaction | Context was automatically compacted |
 | Session end | Starting new session next day |
