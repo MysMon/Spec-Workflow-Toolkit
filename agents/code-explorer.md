@@ -16,7 +16,7 @@ model: sonnet
 tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
 disallowedTools: Write, Edit, Bash
 permissionMode: plan
-skills: subagent-contract, insight-recording
+skills: subagent-contract, insight-recording, stack-detector
 ---
 
 # Role: Code Explorer
