@@ -6,18 +6,18 @@ Users receive context via the `SessionStart` hook, not this file.
 ## What This Plugin Does
 
 A Claude Code plugin implementing Anthropic's 6 composable patterns for long-running autonomous work:
-7-phase spec-workflow, 13 specialized subagents, TDD integration, evaluator-optimizer loops, checkpoint-based error recovery, and progress tracking.
+Plan→Review→Implement workflow (3 commands with iterative refinement), 13 specialized subagents, TDD integration, evaluator-optimizer loops, checkpoint-based error recovery, and progress tracking.
 
 ## Project Structure
 
 ```
 .claude-plugin/plugin.json   # Plugin metadata
-commands/                    # 14 slash commands
+commands/                    # 15 slash commands
 agents/                      # 13 subagent definitions
-skills/                      # 21 skill definitions
+skills/                      # 22 skill definitions
   core/                      #   5 core skills (subagent-contract, spec-philosophy, security-fundamentals, interview, bounded-autonomy)
   detection/                 #   1 detection skill (stack-detector)
-  workflows/                 #   15 workflow skills
+  workflows/                 #   16 workflow skills
 hooks/                       # Event handlers (7 event types, 11 handlers) + Python validators
 docs/                        # DEVELOPMENT.md (detailed specs), specs/
 ```
@@ -26,7 +26,9 @@ docs/                        # DEVELOPMENT.md (detailed specs), specs/
 
 | Task | Start Here |
 |------|------------|
-| Understand main workflow | `commands/spec-workflow.md` |
+| Understand planning (with refinement loops) | `commands/spec-plan.md` |
+| Understand interactive plan review | `commands/spec-review.md` |
+| Understand implementation phase | `commands/spec-implement.md` |
 | See how agents work | `agents/code-explorer.md`, `agents/code-architect.md` |
 | Understand skill pattern | `skills/core/subagent-contract/SKILL.md` |
 | Check hook implementation | `hooks/hooks.json`, `hooks/spec_context.sh` |
@@ -115,7 +117,7 @@ README.md is **user-facing documentation**. Keep it focused on what users need t
 - What the plugin does (in one sentence)
 - Quick start (install + first command)
 - Command list with brief descriptions
-- One diagram maximum (7-phase workflow)
+- One diagram maximum (plan→review→implement workflow)
 - Best practices (do/don't)
 - Link to DEVELOPMENT.md for details
 

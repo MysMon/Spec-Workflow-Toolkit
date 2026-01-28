@@ -43,7 +43,7 @@ Progress files are now isolated per workspace to support concurrent projects and
 
 ## When to Use
 
-- Starting a new session after `/spec-workflow` was interrupted
+- Starting a new session after `/spec-plan`, `/spec-review`, or `/spec-implement` was interrupted
 - Continuing multi-day development work
 - Recovering after context compaction
 - Resuming after explicit `/clear`
@@ -78,7 +78,7 @@ Example output:
 
 | Workspace ID | Project | Status | Last Updated | Position |
 |--------------|---------|--------|--------------|----------|
-| main_a1b2c3d4 | auth-feature | in_progress | 2025-01-16 | Phase 5 - Implementation |
+| main_a1b2c3d4 | auth-feature | in_progress | 2025-01-16 | impl-in-progress |
 | feature-api_e5f6g7h8 | api-refactor | completed | 2025-01-15 | Done |
 ```
 
@@ -97,7 +97,7 @@ Example output:
 **If no progress files found:**
 - Report: "No progress files found for this workspace."
 - List available workspaces if any exist
-- Suggest: "Use `/spec-workflow` to start a new tracked workflow."
+- Suggest: "Use `/spec-plan` to start planning."
 - Exit
 
 ### Phase 2: State Analysis
@@ -239,7 +239,7 @@ Options:
 **If "Start fresh":**
 - Confirm: "This will archive current progress. Are you sure?"
 - If confirmed: Move progress files to `.claude/workspaces/{id}/archive/[timestamp]/`
-- Exit with suggestion to run `/spec-workflow`
+- Exit with suggestion to run `/spec-plan`
 
 **If "Just checking status":**
 - Exit cleanly
@@ -266,11 +266,13 @@ Sync TodoWrite with feature-list.json:
 
 | Current Phase | Action |
 |---------------|--------|
-| Discovery | Resume requirements gathering |
-| Exploration | Re-delegate to code-explorer |
-| Design | Resume architecture discussion |
-| Implementation | Delegate to specialist agent |
-| Review | Re-run quality review |
+| `plan-discovery` / `plan-discovery-complete` | Resume requirements gathering via `/spec-plan` |
+| `plan-exploration-complete` | Resume spec drafting via `/spec-plan` |
+| `plan-spec-approved` | Resume architecture design via `/spec-plan` |
+| `plan-complete` | Proceed to `/spec-review` |
+| `review-complete` | Proceed to `/spec-implement` |
+| `impl-starting` / `impl-in-progress` | Resume implementation via `/spec-implement` |
+| `impl-review-complete` | Finalize implementation |
 | Blocked | Address blocker first |
 
 **Delegate to appropriate agent based on context:**
@@ -425,7 +427,9 @@ If status is "completed":
 
 | After | Use /resume when |
 |-------|------------------|
-| `/spec-workflow` | Work was interrupted mid-workflow |
+| `/spec-plan` | Planning was interrupted mid-workflow |
+| `/spec-review` | Review was interrupted mid-workflow |
+| `/spec-implement` | Implementation was interrupted mid-workflow |
 | `/clear` | Cleared context but want to continue |
 | Compaction | Context was automatically compacted |
 | Session end | Starting new session next day |

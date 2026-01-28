@@ -29,7 +29,7 @@ CI failures are a common interruption in development workflows. This command pro
 ## When NOT to Use
 
 - For local-only issues (use `/debug` instead)
-- For complex feature implementation (use `/spec-workflow`)
+- For complex feature implementation (use `/spec-plan`)
 - For urgent production issues (use `/hotfix`)
 
 ---
@@ -403,5 +403,5 @@ glab ci trace [job-id]
 | Scenario | Command |
 |----------|---------|
 | CI failure needs deeper debugging | Start with `/ci-fix`, escalate to `/debug` |
-| CI failure reveals code issue | `/ci-fix` diagnoses, then `/quick-impl` or `/spec-workflow` to fix |
+| CI failure reveals code issue | `/ci-fix` diagnoses, then `/quick-impl` or `/spec-plan` to fix |
 | CI fix needs review | After `/ci-fix`, run `/code-review staged` |

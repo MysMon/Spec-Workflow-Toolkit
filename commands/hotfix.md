@@ -6,7 +6,7 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoW
 
 # /hotfix - Emergency Production Fix
 
-A streamlined workflow for urgent production issues that balances speed with safety. Bypasses the full spec-workflow while maintaining critical safety checks.
+A streamlined workflow for urgent production issues that balances speed with safety. Bypasses the full planning workflow while maintaining critical safety checks.
 
 ## Purpose
 
@@ -26,9 +26,9 @@ Production issues require immediate attention. This command provides:
 
 ## When NOT to Use
 
-- Non-urgent bugs (use `/quick-impl` or `/spec-workflow`)
-- Feature development (use `/spec-workflow`)
-- Refactoring (use `/spec-workflow`)
+- Non-urgent bugs (use `/quick-impl` or `/spec-plan`)
+- Feature development (use `/spec-plan`)
+- Refactoring (use `/spec-plan`)
 - CI failures (use `/ci-fix`)
 
 ---
@@ -277,7 +277,7 @@ Options:
 ```
 The hotfix is deployed. Recommended follow-up:
 1. Monitor for recurrence
-2. Create proper regression test (use /spec-workflow if substantial)
+2. Create proper regression test (use /spec-plan if substantial)
 3. Root cause analysis if pattern issue
 ```
 
@@ -336,16 +336,16 @@ Target total time: **15-20 minutes**
 
 **If exceeding 30 minutes:** The issue may be more complex than a hotfix. Consider:
 - Temporary mitigation (feature flag, rollback)
-- Escalate to `/spec-workflow` for proper fix
+- Escalate to `/spec-plan` for proper fix
 
 ---
 
 ## Comparison with Other Commands
 
-| Aspect | /hotfix | /quick-impl | /spec-workflow |
-|--------|---------|-------------|----------------|
+| Aspect | /hotfix | /quick-impl | /spec-plan |
+|--------|---------|-------------|------------|
 | **Speed** | Fastest | Fast | Thorough |
-| **Process** | Minimal | Light | Full 7-phase |
+| **Process** | Minimal | Light | Plan→Review→Implement |
 | **Exploration** | Quick only | Light | Parallel agents |
 | **Testing** | Required | Expected | Comprehensive |
 | **Documentation** | Commit message | Light | Full spec |
