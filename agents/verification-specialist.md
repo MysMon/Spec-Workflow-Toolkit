@@ -61,7 +61,7 @@ For each finding to verify, check:
 
 ### 5. Command-Agent Consistency Verification
 
-When verifying SDD workflow artifacts or plugin components:
+When verifying plan/review/implement workflow artifacts or plugin components:
 
 - [ ] Agent names referenced in commands match actual files in `agents/`
 - [ ] Model specifications (inherit, sonnet, opus, haiku) in documentation match agent frontmatter

@@ -274,11 +274,11 @@ Strengths:
 - Clean, readable implementation
 ```
 
-## Integration with SDD Workflow
+## Integration with Plan/Review/Implement Workflow
 
-In Phase 4 (Architecture Design) and Phase 6 (Quality Review):
+During `/spec-plan` (Architecture Design) and `/spec-implement` (Quality Review):
 
-### Architecture Design Optimization
+### Architecture Design Optimization (`/spec-plan`)
 
 ```
 1. code-architect generates initial design
@@ -289,10 +289,10 @@ In Phase 4 (Architecture Design) and Phase 6 (Quality Review):
 3. Iterate until design scores >= 85
 ```
 
-### Quality Review Optimization
+### Quality Review Optimization (`/spec-implement`)
 
 ```
-1. Implementation complete (Phase 5)
+1. Implementation complete
 2. qa-engineer evaluates test coverage
 3. If coverage < 80%, iterate:
    - Identify gaps
