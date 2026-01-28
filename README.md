@@ -22,17 +22,17 @@ claude --plugin-dir /path/to/spec-workflow-toolkit
 ### 基本的な使い方
 
 ```bash
-# 計画のみ（仕様 + 設計を出力）
+# 計画（仕様と設計をユーザーと対話しながら作成）
 /spec-plan ユーザー認証機能を OAuth 対応で実装
 
-# 仕様レビュー → 修正
+# 仕様・設計レビュー → 修正
 /spec-review docs/specs/user-authentication.md
 
 # 承認済み仕様から実装
 /spec-implement docs/specs/user-authentication.md
 
-# 計画→レビュー→実装を一括実行
-/spec-workflow ユーザー認証機能を OAuth 対応で実装
+# ワークフロー全体の案内
+/spec-workflow
 
 # 小規模タスクの高速実装
 /quick-impl README のタイポを修正
@@ -47,10 +47,10 @@ claude --plugin-dir /path/to/spec-workflow-toolkit
 
 | コマンド | 用途 | 使用場面 |
 |----------|------|----------|
-| `/spec-plan` | 計画（探索・仕様・設計） | 新機能の計画フェーズ |
-| `/spec-review` | 仕様検証 | 計画後、実装前の仕様確認 |
+| `/spec-plan` | 計画（探索・仕様・設計、対話的に改善） | 新機能の計画フェーズ |
+| `/spec-review` | 仕様・設計の検証（整合性チェック含む） | 計画後、実装前の検証 |
 | `/spec-implement` | 仕様に基づく実装 | 承認済み仕様からの実装 |
-| `/spec-workflow` | 計画→レビュー→実装の一括実行 | 新機能、複雑な変更 |
+| `/spec-workflow` | ワークフロー全体の案内 | 3コマンドの使い方を確認 |
 | `/quick-impl` | 高速実装 | 明確な小規模タスク |
 | `/code-review` | コードレビュー | コミット前 |
 | `/review-response` | レビュー対応 | PRレビューコメントへの対応 |
@@ -73,20 +73,25 @@ claude --plugin-dir /path/to/spec-workflow-toolkit
 **分離する理由**
 - 各フェーズでコンテキストを最大限使える（Anthropic公式推奨パターン）
 - 計画後にレビューを挟め、手戻りコストを最小化
+- 各フェーズ内でユーザーと対話的に改善できる
 - 長時間作業でも途中で中断・再開が可能
 
 ```mermaid
 flowchart LR
     subgraph plan["/spec-plan"]
         D[1. Discovery] --> E[2. Exploration]
-        E --> C[3. Clarification]
+        E --> C[3. Spec Drafting]
+        C -->|"refinement ←→ user"| C
         C --> A[4. Architecture]
+        A -->|"refinement ←→ user"| A
+        A -->|"back to spec"| C
     end
     subgraph review["/spec-review"]
-        R1[Completeness] & R2[Feasibility] & R3[Security] & R4[Testability]
+        R1[Completeness] & R2[Feasibility] & R3[Security] & R4[Testability] & R5[Consistency]
     end
     subgraph impl["/spec-implement"]
-        I[Implementation] --> QR[Quality Review] --> S[Summary]
+        I[Implementation] -->|"divergence → user"| I
+        I --> QR[Quality Review] --> S[Summary]
     end
     plan --> review --> impl
 
@@ -95,11 +100,11 @@ flowchart LR
     style impl fill:#e8f5e9
 ```
 
-| フェーズ | コマンド | ユーザー操作 | 出力 |
-|----------|----------|--------------|------|
-| 計画 | `/spec-plan` | 要件説明、質問回答、設計承認 | 仕様書 + 設計書 |
-| レビュー | `/spec-review` | 指摘事項を確認・修正 | レビューレポート |
-| 実装 | `/spec-implement` | 進捗確認、品質レビュー対応 | 動作するコード |
+| フェーズ | コマンド | ユーザーの関わり方 | 出力 |
+|----------|----------|---------------------|------|
+| 計画 | `/spec-plan` | 要件説明、仕様の修正依頼、設計の変更・代替案探索 | 仕様書 + 設計書 |
+| レビュー | `/spec-review` | 指摘事項を確認、仕様・設計の修正（整合性チェック付き） | レビューレポート |
+| 実装 | `/spec-implement` | 進捗確認、仕様乖離時の判断、品質レビュー対応 | 動作するコード |
 
 ---
 
@@ -135,7 +140,7 @@ Claude Code では 2 つの再開方法があります。
 
 ### 推奨
 
-- 複雑な作業は `/spec-workflow` で開始
+- 複雑な作業は `/spec-plan` で計画から開始
 - 探索作業はサブエージェント（`code-explorer`）に移譲
 - 主要タスク間で `/clear` を使用
 - コードより先に仕様を書く
@@ -154,7 +159,7 @@ Claude Code では 2 つの再開方法があります。
 |----------|------|------|
 | 一括実装 | 全機能を一度に実装しようとする | 1機能ずつ実装・テスト |
 | 探索なしでコーディング | コードベース理解なしに実装 | `code-explorer` で事前分析 |
-| 曖昧な仕様での実装 | 不明確な要件で進行 | Phase 3 で質問 |
+| 曖昧な仕様での実装 | 不明確な要件で進行 | `/spec-plan` で仕様を対話的に改善 |
 
 ---
 

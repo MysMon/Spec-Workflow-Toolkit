@@ -1,162 +1,128 @@
 ---
-description: "Full spec-first development workflow - plans, reviews, and implements a feature end-to-end"
+description: "Guide for the full spec-first development lifecycle - explains the plan → review → implement flow"
 argument-hint: "[optional: feature description]"
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite, Skill
 ---
 
-# /spec-workflow - Full Spec-First Development Workflow
+# /spec-workflow - Spec-First Development Guide
 
-Orchestrates the complete spec-first development lifecycle by guiding you through planning, review, and implementation as separate phases.
+Guides you through the complete spec-first development lifecycle. This command explains the workflow and helps you start the right phase.
 
-## Attribution
+## Why Three Separate Commands?
 
-Based on official feature-dev plugin, Claude Code Best Practices, Effective Harnesses for Long-Running Agents, and Building Effective Agents (6 Composable Patterns).
-
-## Architecture: Plan → Review → Implement
-
-This command orchestrates three separate commands, each with its own focused context:
+Anthropic's "Effective Harnesses for Long-Running Agents" found agents fail when trying to do too much at once. Each phase runs as a **separate command with its own fresh context window**:
 
 ```
-/spec-plan          /spec-review         /spec-implement
-Phase 1: Discovery    Completeness         Phase 1: Preparation
-Phase 2: Exploration  Feasibility          Phase 2: Implementation
-Phase 3: Clarification Security            Phase 3: Quality Review
-Phase 4: Architecture  Testability         Phase 4: Summary
-        ↓                    ↓                      ↓
-   spec + design        review report         working code
+/spec-plan               /spec-review              /spec-implement
+ Discovery                Completeness              Preparation
+ Exploration              Feasibility               Implementation
+ Spec Drafting ←→ user    Security                  Quality Review
+ Architecture ←→ user     Testability               Summary
+        ↓                 Spec↔Design consistency ←→ user
+   spec + design                ↓                         ↓
+                          review report              working code
+        ←→ = iterative refinement with user feedback
 ```
 
-**Why this separation?**
-- Anthropic's "Effective Harnesses" found agents fail when trying to do too much at once
-- Each phase gets a full context window instead of competing for tokens
-- Natural checkpoints for human review between phases
-- Claude Code creator's approach: "Plan Mode → refine → Auto-Accept for implementation"
+**Key design principle:** Each command has built-in feedback loops. Users can revise specs, explore alternative architectures, and address review findings — not just approve or reject.
 
 ## Composable Patterns Applied
 
 | Pattern | Application |
 |---------|-------------|
-| **Prompt Chaining** | 3 commands executed sequentially with gates |
+| **Prompt Chaining** | 3 commands executed sequentially with user-controlled gates |
 | **Routing** | Model selection, agent selection by task type |
 | **Parallelization** | Multiple explorers/architects/reviewers within each phase |
 | **Orchestrator-Workers** | Each command orchestrates its own subagents |
-| **Evaluator-Optimizer** | Quality review with confidence scoring and iteration |
+| **Evaluator-Optimizer** | Refinement loops in spec-plan, revision loops in spec-review, quality fix loops in spec-implement |
 | **Augmented LLM** | Tools, progress files, retrieval for all agents |
 
-## Execution Instructions
+## How to Use
 
-### Step 1: Planning Phase
+### Starting a New Feature
 
-Run the planning workflow:
-
-```
-Execute /spec-plan with the user's feature description ($ARGUMENTS).
-
-This produces:
-- docs/specs/[feature-name].md (specification)
-- docs/specs/[feature-name]-design.md (architecture design)
-- .claude/workspaces/{id}/claude-progress.json (progress state)
-```
-
-**Wait for /spec-plan to complete all 4 phases.**
-
-### Step 2: Review Phase
-
-After planning completes, recommend a spec review:
-
-```
-Planning is complete. Before implementation, it's recommended to review the spec.
-
-Would you like to:
-1. Run /spec-review now (recommended)
-2. Skip review and proceed to implementation
-3. Review the spec manually first
-```
-
-**If user chooses review:**
-Run `/spec-review docs/specs/[feature-name].md`
-
-**If review finds critical issues:**
-Address them before proceeding. Update the spec and design files.
-
-### Step 3: Implementation Phase
-
-After review (or if skipped), proceed to implementation:
-
-```
-Execute /spec-implement with the spec file path.
-
-This produces:
-- Working implementation with tests
-- Quality review results
-- Summary of changes
-```
-
-**Wait for /spec-implement to complete.**
-
-### Step 4: Completion
-
-After implementation:
-
-```markdown
-## Workflow Complete
-
-### Artifacts Produced
-- Specification: `docs/specs/[feature-name].md`
-- Design: `docs/specs/[feature-name]-design.md`
-- Review: `docs/specs/[feature-name]-review.md` (if reviewed)
-- Implementation: [list of modified files]
-
-### Quality Status
-- Spec Review: [Passed/Skipped/Issues addressed]
-- Code Review: [Results from /spec-implement Phase 3]
-- Tests: [Status]
-```
-
-## Individual Commands
-
-You can also run each phase independently:
-
-| Command | Purpose | When to Use |
-|---------|---------|-------------|
-| `/spec-plan` | Planning only (Phase 1-4) | When you want to plan without implementing |
-| `/spec-review` | Review a spec | Between planning and implementation |
-| `/spec-implement` | Implementation only (Phase 5-7) | When you already have an approved spec |
-| `/spec-workflow` | Full lifecycle | When you want the complete flow |
-
-## Usage Examples
-
+Run `/spec-plan` to begin:
 ```bash
-# Full workflow (plan → review → implement)
-/spec-workflow Add user authentication with OAuth support
-
-# Full workflow interactively
-/spec-workflow
-
-# Or run phases separately:
 /spec-plan Add user authentication with OAuth support
+```
+
+This guides you through discovery, exploration, spec drafting (with iterative refinement), and architecture design (with alternative exploration). It produces:
+- `docs/specs/[feature-name].md` — the specification
+- `docs/specs/[feature-name]-design.md` — the architecture design
+
+### Reviewing Before Implementation (Recommended)
+
+Run `/spec-review` to validate both spec and design:
+```bash
 /spec-review docs/specs/user-authentication.md
+```
+
+This launches 5 parallel agents (including a spec↔design consistency checker). It can fix issues in both files and updates the progress file so `/spec-implement` knows the review status.
+
+### Implementing the Plan
+
+Run `/spec-implement` to build from the approved plan:
+```bash
 /spec-implement docs/specs/user-authentication.md
 ```
 
-## Tips for Best Results
+This checks review status before starting, implements features one at a time, and runs quality review with an evaluator-optimizer loop.
 
-1. **Be patient with exploration** - Phase 2 prevents misunderstanding the codebase
-2. **Answer clarifying questions thoughtfully** - Phase 3 prevents future confusion
-3. **Review the spec** - Running `/spec-review` catches issues before implementation
-4. **Don't skip security review** - Quality review catches issues before production
+### Resuming Interrupted Work
 
-## When NOT to Use
+```bash
+/resume
+```
 
-- Single-line bug fixes (just fix it directly)
-- Trivial changes with clear scope (use `/quick-impl`)
-- Urgent hotfixes (use `/hotfix`)
+Progress files track state across all three commands using consistent phase naming (`plan-*`, `review-*`, `impl-*`).
+
+## When to Use Each Command
+
+| Scenario | Command |
+|----------|---------|
+| New complex feature | Start with `/spec-plan` |
+| Have a spec, want validation | `/spec-review` |
+| Have an approved spec, ready to build | `/spec-implement` |
+| Small, well-defined task | `/quick-impl` instead |
+| Urgent fix | `/hotfix` instead |
+| Want the full guided flow | Start with `/spec-plan`, then `/spec-review`, then `/spec-implement` |
+
+## What If Requirements Change?
+
+| When | What to Do |
+|------|------------|
+| During planning | Use the refinement loops built into `/spec-plan` |
+| After review finds issues | `/spec-review` can fix both spec and design files |
+| During implementation (minor) | `/spec-implement` adapts and logs deviations |
+| During implementation (major) | `/spec-implement` pauses and offers to return to planning |
+| After implementation | Start a new `/spec-plan` for the change |
+
+## Progress File Flow
+
+All three commands share a progress file at `.claude/workspaces/{id}/claude-progress.json`:
+
+```
+/spec-plan sets:     plan-discovery → plan-exploration-complete → plan-spec-approved → plan-complete
+/spec-review sets:   review-complete (with verdict: APPROVED/NEEDS REVISION/REJECTED)
+/spec-implement sets: impl-starting → impl-in-progress → impl-review-complete → completed
+```
+
+The `/resume` command reads this file to determine where to continue.
 
 ## Comparison
 
-| Aspect | /spec-workflow | /spec-plan | /spec-implement | /quick-impl |
-|--------|----------------|------------|-----------------|-------------|
-| Phases | All | 1-4 (plan) | 5-7 (build) | 1 |
-| Output | Working code | Spec + design | Working code | Working code |
-| Review | Included | Separate | Included | Basic |
-| Best for | Complex features | Planning only | Approved specs | Small tasks |
+| Aspect | /spec-plan | /spec-review | /spec-implement | /quick-impl |
+|--------|------------|--------------|-----------------|-------------|
+| Purpose | Plan | Validate | Build | Small tasks |
+| Output | Spec + design | Review report | Working code | Working code |
+| Feedback loops | Spec refinement, architecture alternatives | Issue fixing, re-review | Spec-reality divergence handling, evaluator-optimizer | None |
+| Agents | Explorer, Architect, PM | PM, Architect, Security, QA, Verifier | Explorer, Specialist, QA, Security, Verifier | Specialist |
+| Best for | Complex features | Pre-implementation validation | Approved plans | Trivial changes |
+
+## Tips for Best Results
+
+1. **Be patient with exploration** - Phase 2 in `/spec-plan` prevents misunderstanding the codebase
+2. **Use the refinement loops** - Don't just approve; request changes when something feels off
+3. **Run `/spec-review`** - It catches issues humans miss, including spec↔design inconsistencies
+4. **Don't skip security review** - Quality review in `/spec-implement` catches issues before production
+5. **Inject domain knowledge early** - Share conventions and constraints in Phase 1 of `/spec-plan`

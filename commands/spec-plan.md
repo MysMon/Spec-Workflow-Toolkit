@@ -1,12 +1,12 @@
 ---
-description: "Plan a feature with spec-first methodology - discovery, exploration, clarification, and architecture design"
+description: "Plan a feature with spec-first methodology - discovery, exploration, clarification, and architecture design with iterative refinement"
 argument-hint: "[optional: feature description]"
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite, Skill
 ---
 
 # /spec-plan - Specification-First Planning
 
-Plan a feature through 4 phases: Discovery, Exploration, Clarification, and Architecture Design. Produces a reviewed specification and design document ready for `/spec-implement`.
+Plan a feature through 4 phases with iterative refinement at each gate. Produces a specification and design document ready for `/spec-review` and `/spec-implement`.
 
 ## Attribution
 
@@ -19,15 +19,17 @@ Anthropic's "Effective Harnesses for Long-Running Agents" found that agents "fal
 Benefits:
 - Full context window available for planning (no implementation artifacts consuming tokens)
 - Natural checkpoint for human review before costly implementation
-- `/spec-review` can be run between planning and implementation
+- `/spec-review` can validate the plan between planning and implementation
 - Claude Code creator's workflow: "Plan Mode → refine plan → Auto-Accept for implementation"
 
 ## Phase Overview
 
 1. **Discovery** - Understand what needs to be built
 2. **Codebase Exploration** - Understand existing code and patterns (parallel agents)
-3. **Clarifying Questions** - Fill gaps, resolve ambiguities, draft spec
-4. **Architecture Design** - Analyze from multiple angles, synthesize one approach
+3. **Specification Drafting** - Fill gaps, resolve ambiguities, draft and refine spec
+4. **Architecture Design** - Analyze from multiple angles, synthesize and refine one approach
+
+Each phase with user interaction includes a **refinement loop** — not just approve/reject, but iterative revision based on user feedback.
 
 ## Execution Instructions
 
@@ -66,11 +68,11 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 | `product-manager` | Sonnet | Specification drafting |
 | `verification-specialist` | Sonnet | Reference validation |
 
+---
+
 ### Phase 1: Discovery
 
 **Goal:** Understand what needs to be built and why.
-
----
 
 #### CRITICAL: Check for Existing Progress (L1 - MUST DO FIRST)
 
@@ -105,8 +107,6 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 4. **If progress file doesn't exist or status is "completed":**
    - Proceed directly to Progress File Initialization
 
----
-
 #### CRITICAL: Progress File Initialization (L1 - MUST DO AFTER CHECK)
 
 **NEVER skip this step. The progress file MUST be created before ANY other Phase 1 work.**
@@ -123,7 +123,7 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
   "started": "{ISO-8601-timestamp}",
   "lastUpdated": "{ISO-8601-timestamp}",
   "status": "in_progress",
-  "currentPhase": "phase1-in_progress",
+  "currentPhase": "plan-discovery",
   "currentTask": "Discovery - gathering requirements",
   "sessions": [],
   "log": [],
@@ -138,8 +138,6 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 
 **Verification:** After creating, read the file back to confirm it was written correctly.
 
----
-
 #### Discovery Work
 
 If the user provided a feature description (`$ARGUMENTS`), analyze it first:
@@ -152,7 +150,21 @@ If the request is vague or missing:
 2. Identify stakeholders and use cases
 3. Document initial understanding
 
+**Domain Knowledge Injection:** Ask the user:
+```
+Before I explore the codebase, is there any context I should know?
+- Internal design guidelines or conventions?
+- Reference implementations to follow?
+- Constraints not visible in the code?
+
+(Skip if none)
+```
+
 **Output:** Summary of understanding and confirmation from user.
+
+**Progress Update:** currentPhase: "plan-discovery-complete"
+
+---
 
 ### Phase 2: Codebase Exploration
 
@@ -192,14 +204,13 @@ If any agent fails or times out:
 
 **Present comprehensive summary of findings to user.**
 
-**Progress Update:**
-Update `claude-progress.json`:
-- currentPhase: "phase2-complete"
-- resumptionContext.nextAction: "Proceed to Phase 3: Clarifying Questions"
+**Progress Update:** currentPhase: "plan-exploration-complete"
 
-### Phase 3: Clarifying Questions
+---
 
-**Goal:** Fill in gaps and resolve all ambiguities.
+### Phase 3: Specification Drafting
+
+**Goal:** Fill in gaps, resolve ambiguities, draft and refine the specification.
 
 Based on discovery and exploration, identify:
 - Edge cases
@@ -212,29 +223,49 @@ Based on discovery and exploration, identify:
 
 **CRITICAL: Wait for user answers before proceeding.**
 
-**Output:** Complete requirements with all ambiguities resolved.
-
-**Draft the specification (required before Phase 4):**
+**Draft the specification:**
 If a spec already exists, review/update it. Otherwise, draft a new spec using `product-manager`.
 
 ```
 Launch product-manager agent to draft the spec:
 Specification target: docs/specs/[feature-name].md
 Template: docs/specs/SPEC-TEMPLATE.md
-Inputs: Clarified requirements + exploration findings
+Inputs: Clarified requirements + exploration findings + user domain knowledge
 Output: Draft spec for user review
 ```
 
-**Ask user to approve the spec** before moving to Phase 4.
+#### Specification Refinement Loop (max 3 iterations)
 
-**Progress Update:**
-Update `claude-progress.json`:
-- currentPhase: "phase3-complete"
-- resumptionContext.nextAction: "Proceed to Phase 4: Architecture Design"
+Present the draft spec to the user and ask:
+
+```
+Here is the draft specification. Please review it.
+
+Options:
+1. Approve as-is → proceed to Architecture Design
+2. Request changes → tell me what to modify (I'll revise and re-present)
+3. Add requirements → provide additional context or constraints
+4. Reject and restart → re-gather requirements
+```
+
+**If the user requests changes (option 2 or 3):**
+1. Incorporate the user's feedback
+2. Re-launch `product-manager` with updated inputs, OR apply targeted edits directly to the spec file
+3. Present the revised spec
+4. Repeat until approved or max 3 iterations reached
+
+**If max iterations reached without approval:**
+Ask user: "We've iterated 3 times. Would you like to approve the current version, continue refining manually, or start over?"
+
+**Output:** Approved specification at `docs/specs/[feature-name].md`
+
+**Progress Update:** currentPhase: "plan-spec-approved"
+
+---
 
 ### Phase 4: Architecture Design
 
-**Goal:** Design the implementation approach based on codebase patterns.
+**Goal:** Design the implementation approach based on codebase patterns and approved spec.
 
 **LAUNCH 2-3 `code-architect` AGENTS IN PARALLEL with different analysis focuses:**
 
@@ -243,17 +274,17 @@ Launch these code-architect agents in parallel:
 
 1. code-architect (reuse analysis)
    Analyze: How existing patterns and code can be reused
-   Context: [Exploration findings], [Requirements]
+   Context: [Exploration findings], [Approved spec]
    Output: Reuse opportunities with file:line evidence
 
 2. code-architect (extensibility analysis)
    Analyze: Clean abstraction opportunities for future growth
-   Context: [Exploration findings], [Requirements]
+   Context: [Exploration findings], [Approved spec]
    Output: Abstraction recommendations with file:line evidence
 
 3. code-architect (performance analysis) - if relevant
    Analyze: Performance implications and optimizations
-   Context: [Exploration findings], [Requirements]
+   Context: [Exploration findings], [Approved spec]
    Output: Performance considerations with file:line evidence
 ```
 
@@ -261,7 +292,7 @@ Launch these code-architect agents in parallel:
 
 **Synthesize all agent outputs into ONE definitive recommendation:**
 ```markdown
-## Architecture Analysis
+## Architecture Design
 
 ### Pattern Analysis from Codebase
 Based on code-architect findings:
@@ -289,17 +320,47 @@ Based on code-architect findings:
 - [ ] Step 3: [Task]
 
 **Trade-offs Considered**:
-- [Trade-off 1]: [Why this choice is best]
-- [Trade-off 2]: [Why this choice is best]
+- [Alternative A]: [Why not chosen]
+- [Alternative B]: [Why not chosen]
+
+**Rejected Approaches** (for future reference):
+- [Approach]: [Reason for rejection]
 ```
 
-**Ask user: "Does this approach work for you? Any concerns?"**
+#### Architecture Refinement Loop (max 3 iterations)
+
+Present the design to the user and ask:
+
+```
+Here is the proposed architecture. Please review it.
+
+Options:
+1. Approve → save design and complete planning
+2. Request changes → tell me what to modify (e.g., "use session-based auth instead of JWT")
+3. Explore alternative → re-analyze with different constraints
+4. Go back to spec → revise the specification first
+```
+
+**If the user requests changes (option 2):**
+1. Re-launch relevant `code-architect` agent(s) with updated constraints
+2. Revise the design document
+3. Present the revised design
+4. Repeat until approved or max 3 iterations
+
+**If the user wants to explore an alternative (option 3):**
+1. Launch `code-architect` with the alternative approach
+2. Present comparison: original vs alternative with trade-offs
+3. Let user choose
+
+**If the user wants to go back to spec (option 4):**
+1. Return to Phase 3 Specification Refinement Loop
+2. After spec is re-approved, re-run Phase 4
 
 **Output:** Approved design saved to `docs/specs/[feature-name]-design.md`
 
 **Progress Update:**
 Update `claude-progress.json`:
-- currentPhase: "phase4-complete"
+- currentPhase: "plan-complete"
 - currentTask: "Planning complete - ready for review and implementation"
 - resumptionContext.nextAction: "Run /spec-review, then /spec-implement"
 
@@ -307,7 +368,7 @@ Update `claude-progress.json`:
 
 ## Planning Complete - Next Steps
 
-After Phase 4, present:
+After Phase 4 approval, present:
 
 ```markdown
 ## Planning Complete
@@ -318,13 +379,13 @@ After Phase 4, present:
 - Progress: `.claude/workspaces/{id}/claude-progress.json`
 
 ### Recommended Next Steps
-1. `/spec-review docs/specs/[feature-name].md` - Review the spec for gaps
+1. `/spec-review docs/specs/[feature-name].md` - Validate spec and design
 2. `/spec-implement` - Start implementation from the approved plan
 
 ### Why Review Before Implementation?
 Running /spec-review catches completeness, feasibility, security, and
-testability issues BEFORE implementation effort begins. Fixing a spec
-is cheaper than fixing code.
+testability issues BEFORE implementation effort begins. It also validates
+that the design document is consistent with the specification.
 ```
 
 ## Usage Examples

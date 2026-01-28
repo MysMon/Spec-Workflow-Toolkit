@@ -6,7 +6,7 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoW
 
 # /spec-implement - Specification-Based Implementation
 
-Implement a feature from an approved specification and design document. This command handles the build phase: implementation, quality review, and summary.
+Implement a feature from an approved specification and design document. This command handles the build phase: preparation, implementation, quality review, and summary.
 
 ## Prerequisites
 
@@ -23,7 +23,7 @@ Based on Anthropic's Initializer + Coding Agent pattern from Effective Harnesses
 
 ## Phase Overview
 
-1. **Preparation** - Load spec, design, and progress state
+1. **Preparation** - Load spec, design, review state; validate consistency
 2. **Implementation** - Build features one at a time with specialist agents
 3. **Quality Review** - Parallel review agents validate the implementation
 4. **Summary** - Document what was accomplished
@@ -60,9 +60,11 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 | `security-auditor` | Sonnet | Security review (read-only) |
 | `verification-specialist` | Sonnet | Reference validation |
 
+---
+
 ### Phase 1: Preparation
 
-**Goal:** Load context and validate readiness for implementation.
+**Goal:** Load context, validate readiness, and check for consistency.
 
 #### Locate Spec and Design
 
@@ -79,7 +81,7 @@ If no arguments:
 
 1. **Read the spec file** - Understand what to build
 2. **Read the design file** - Understand how to build it
-3. **Check for review report** - Note any unresolved issues from `/spec-review`
+3. **Check for review report** - Note review verdict and unresolved issues
 4. **Check progress file** - Determine if resuming or starting fresh
 
 If spec or design is missing:
@@ -92,20 +94,36 @@ Design: [found/missing]
 Recommended: Run /spec-plan first to create these files.
 ```
 
+#### Review-Aware Handoff
+
+Check the progress file for review status:
+
+| Progress Phase | Meaning | Action |
+|----------------|---------|--------|
+| `plan-complete` | Review was skipped | Warn: "No review was run. Consider /spec-review first." Proceed if user confirms. |
+| `review-complete` + APPROVED | Reviewed and approved | Proceed normally |
+| `review-complete` + NEEDS REVISION | Reviewed with unresolved issues | Show unresolved issues. Ask: "Address these first, or proceed anyway?" |
+| `review-complete` + REJECTED | Review rejected the spec | Strongly recommend: "The spec was rejected in review. Run /spec-plan to revise." |
+
+If a review report file exists, read it and note any unresolved critical issues.
+
 #### Initialize or Resume Progress
 
-**If no progress file exists:**
-Create `.claude/workspaces/{workspace-id}/claude-progress.json` and `feature-list.json` from the design document's Build Sequence.
+**If starting fresh (no implementation progress):**
+Create `feature-list.json` from the design document's Build Sequence.
 
-**If progress file exists with phase4-complete:**
-Continue to implementation.
+Update progress file:
+- currentPhase: "impl-starting"
+- currentTask: "Beginning implementation"
 
-**If progress file exists with implementation in progress:**
+**If progress file shows implementation in progress:**
 Resume from the last incomplete feature.
 
 **IMPORTANT:** Wait for explicit user approval before starting implementation.
 
 Ask user: "Ready to start implementation? This will modify files in your codebase."
+
+---
 
 ### Phase 2: Implementation
 
@@ -156,7 +174,7 @@ For frontend work:
 Launch the frontend-specialist agent to implement: [component/feature]
 Following specification: docs/specs/[feature-name].md
 Following design: docs/specs/[feature-name]-design.md
-Key files from exploration: [list]
+Key files from design: [Implementation Map entries]
 TDD mode: [yes/no] - If yes, reference test file
 Expected output: Working component with tests
 ```
@@ -166,7 +184,7 @@ For backend work:
 Launch the backend-specialist agent to implement: [service/API]
 Following specification: docs/specs/[feature-name].md
 Following design: docs/specs/[feature-name]-design.md
-Key files from exploration: [list]
+Key files from design: [Implementation Map entries]
 TDD mode: [yes/no] - If yes, reference test file
 Expected output: Working service with tests
 ```
@@ -187,6 +205,33 @@ Expected output: Working service with tests
 | Permission error recovery | Resume in foreground |
 | Completely different feature | New agent |
 | Agent hit context limit | New agent with summary |
+
+#### Handling Spec-Reality Divergence
+
+During implementation, the specialist agent or you may discover that the spec/design doesn't match reality (e.g., an API doesn't exist as assumed, a pattern works differently than expected).
+
+**If divergence is minor** (implementation detail, not spec-level):
+- Adapt implementation and note the deviation
+- Add to progress log: `"deviation": "Adapted X because Y"`
+
+**If divergence is significant** (contradicts spec requirements):
+1. Stop implementation of the current feature
+2. Present the issue to the user:
+   ```
+   Implementation discovered a spec-reality mismatch:
+
+   Spec says: [what the spec assumes]
+   Reality: [what was actually found]
+   Impact: [how this affects the plan]
+
+   Options:
+   1. Adapt the design → I'll adjust the approach for this feature only
+   2. Update spec and design → Pause implementation, update documents
+   3. Go back to planning → Re-run /spec-plan with new knowledge
+   ```
+3. Proceed based on user's choice
+
+---
 
 ### Phase 3: Quality Review
 
@@ -220,6 +265,13 @@ Launch these review agents in parallel:
 ```
 
 **Wait for all agents to complete.**
+
+**Error Handling:**
+If any agent fails or times out:
+1. Check the agent's partial output for usable findings
+2. If critical agent failed (e.g., security-auditor), retry once with reduced scope
+3. If retry fails, proceed with available results and document the gap
+4. Add to progress file: `"warnings": ["Agent X failed, results may be incomplete"]`
 
 #### Cross-Validation of File References
 
@@ -275,15 +327,17 @@ Iteration Loop (max 3):
 
 1. GENERATOR: Delegate fix to specialist agent
 2. EVALUATOR: Delegate re-check to original reviewer
-3. If score >= 80: Accept. If < 80: Loop. If max reached: Escalate.
+3. If score >= 80: Accept. If < 80: Loop. If max reached: Escalate to user.
 ```
 
 See `skills/workflows/evaluator-optimizer/SKILL.md` for detailed pattern.
 
 **Progress Update:**
 Update `claude-progress.json`:
-- currentPhase: "review-complete"
+- currentPhase: "impl-review-complete"
 - resumptionContext.nextAction: "Proceed to Summary"
+
+---
 
 ### Phase 4: Summary
 
@@ -299,6 +353,9 @@ Update `claude-progress.json`:
 
 ### Key Decisions
 - [Decision 1]: [Rationale]
+
+### Deviations from Design
+- [Deviation 1]: [Why and what was adapted]
 
 ### Files Modified
 | File | Changes |
