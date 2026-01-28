@@ -117,7 +117,7 @@ README.md is **user-facing documentation**. Keep it focused on what users need t
 - What the plugin does (in one sentence)
 - Quick start (install + first command)
 - Command list with brief descriptions
-- One diagram maximum (7-phase workflow)
+- One diagram maximum (plan→review→implement workflow)
 - Best practices (do/don't)
 - Link to DEVELOPMENT.md for details
 

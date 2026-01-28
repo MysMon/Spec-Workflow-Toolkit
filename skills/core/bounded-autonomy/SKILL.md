@@ -156,24 +156,20 @@ I'll do Y instead of X.
 
 ## Integration with SDD Workflow
 
-The SDD 7-phase workflow provides structure. Within each phase:
+The SDD plan→review→implement workflow provides structure. Within each phase:
 
 | Phase | Fixed (L1/L2) | Flexible (L3) |
 |-------|---------------|---------------|
-| Discovery | Must understand requirements | How to gather information |
-| Exploration | Must use read-only approach | Which files to examine |
-| Clarification | Must resolve ambiguity | What questions to ask |
-| Architecture | Must consider tradeoffs | Design approach |
-| Implementation | Must follow spec | Coding patterns |
-| Review | Must check quality | Review depth |
-| Summary | Must document changes | Summary format |
+| Planning (`/spec-plan`) | Must understand requirements, explore codebase | How to gather information, which files to examine |
+| Review (`/spec-review`) | Must get user approval | Review depth, question focus |
+| Implementation (`/spec-implement`) | Must follow spec, check quality | Coding patterns, agent selection |
 
 ## Anti-Patterns to Avoid
 
 ### Over-Compliance
 Following steps mechanically when context suggests a better approach.
 
-**Example**: Running all 7 SDD phases for a one-line typo fix.
+**Example**: Running full plan→review→implement for a one-line typo fix.
 **Better**: Use `/quick-impl` and judgment.
 
 ### Under-Compliance

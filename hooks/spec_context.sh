@@ -1,5 +1,5 @@
 #!/bin/bash
-# SessionStart Hook: Inject spec-workflow context, detect progress files, and support resumable workflows
+# SessionStart Hook: Inject plugin context, detect progress files, and support resumable workflows
 # This hook runs once at session start to provide plugin context to the user's project
 # Based on:
 # - https://www.anthropic.com/engineering/claude-code-best-practices
@@ -280,8 +280,9 @@ Based on Effective Harnesses for Long-Running Agents:
 
 | Command | Use When |
 |---------|----------|
-| `/spec-workflow` | New features, complex changes (7-phase workflow) |
-| `/spec-review` | Validate specifications before implementation |
+| `/spec-plan` | New features, complex changes (planning phase) |
+| `/spec-review` | Interactive plan review and refinement with user feedback |
+| `/spec-implement` | Implement approved plan with TDD and subagent delegation |
 | `/code-review` | Review code before committing (parallel agents) |
 | `/quick-impl` | Small, clear tasks with obvious scope |
 | `/resume` | Resume work from progress files |
@@ -300,7 +301,7 @@ Launch these agents in parallel:
 ### Composable Patterns Applied
 
 This toolkit implements Anthropic's 6 composable patterns:
-- **Prompt Chaining**: 7-phase spec-workflow
+- **Prompt Chaining**: Plan→Review→Implement workflow
 - **Routing**: Model/agent selection by task type
 - **Parallelization**: Multiple explorers/reviewers simultaneously
 - **Orchestrator-Workers**: You coordinate, subagents execute

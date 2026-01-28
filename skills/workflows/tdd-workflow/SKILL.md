@@ -292,9 +292,9 @@ Expected output:
    - Original test now passes
    - No regressions introduced
 
-## Integration with Spec-Workflow
+## Integration with /spec-implement
 
-In Phase 5 (Implementation) of `/spec-workflow`:
+During the implementation phase of `/spec-implement`:
 
 ```
 1. Read specification and design

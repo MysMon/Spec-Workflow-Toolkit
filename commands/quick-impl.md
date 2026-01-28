@@ -1,12 +1,12 @@
 ---
-description: "Quick implementation for well-defined, small tasks that don't need the full spec-workflow"
+description: "Quick implementation for well-defined, small tasks that don't need the full plan→review→implement flow"
 argument-hint: "<task description>"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite
 ---
 
 # /quick-impl - Quick Implementation
 
-For small, well-defined tasks that don't require the full spec-workflow. Use when:
+For small, well-defined tasks that don't require the full plan→review→implement flow. Use when:
 - Task is clearly defined (not vague)
 - Scope is small (1-3 files)
 - No architectural decisions needed
@@ -34,7 +34,7 @@ Check if this is actually a quick task:
 - [ ] No API contract changes
 - [ ] No security-sensitive code
 
-**Escalate to /spec-workflow if:**
+**Escalate to /spec-plan if:**
 - Task is vague or ambiguous
 - Multiple components affected
 - Architectural decisions needed
@@ -131,21 +131,21 @@ If during implementation you discover:
 ```
 This task is more complex than initially expected because [reason].
 
-Recommend switching to /spec-workflow for proper specification.
+Recommend switching to /spec-plan for proper specification.
 
 Would you like to:
-1. Continue with /spec-workflow
+1. Continue with /spec-plan
 2. Proceed anyway (at your own risk)
 3. Abandon and reassess
 ```
 
-## Comparison with /spec-workflow
+## Comparison with /spec-plan
 
-| Aspect | /quick-impl | /spec-workflow |
-|--------|-------------|----------------|
+| Aspect | /quick-impl | /spec-plan |
+|--------|-------------|------------|
 | When | Clear, small tasks | Vague or complex features |
-| Phases | 1 (implement) | 6 (full workflow) |
+| Phases | 1 (implement) | Plan→Review→Implement |
 | Spec | Not required | Required |
-| Review | Basic checks | Full parallel review |
+| Review | Basic checks | Interactive + optional auto review |
 | Time | Minutes | Hours to days |
 | Risk | Low scope only | Any complexity |

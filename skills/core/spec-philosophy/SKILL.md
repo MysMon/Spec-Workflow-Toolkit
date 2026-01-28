@@ -58,17 +58,17 @@ The spec defines:
 | 4 | Execution | Implement per spec | Working code |
 | 5 | Verification | Validate against spec | Passing tests |
 
-### Relationship to 7-Phase `/spec-workflow`
+### Relationship to Plan→Review→Implement Commands
 
-The 5-phase model above is the **logical abstraction**. The `/spec-workflow` command expands this into a **7-phase operational workflow**:
+The 5-phase model above is the **logical abstraction**. The plan→review→implement commands expand this into an **operational workflow**:
 
-| Logical Phase | `/spec-workflow` Phases | Details |
-|---------------|---------------|---------|
-| 1. Ambiguity | Phase 1: Discovery | Initial requirements gathering |
-| 2. Clarification | Phase 2-3: Exploration + Clarifying Questions | Codebase analysis and user interview |
-| 3. Definition | Phase 4: Architecture Design | Design document creation |
-| 4. Execution | Phase 5: Implementation | TDD-driven development |
-| 5. Verification | Phase 6-7: Quality Review + Summary | Multi-agent review and documentation |
+| Logical Phase | Command / Phase | Details |
+|---------------|----------------|---------|
+| 1. Ambiguity | `/spec-plan`: Discovery | Initial requirements gathering |
+| 2. Clarification | `/spec-plan`: Exploration + Clarifying Questions | Codebase analysis and user interview |
+| 3. Definition | `/spec-plan`: Spec Drafting + Architecture Design | Specification and design with self-review |
+| 4. Review | `/spec-review`: Interactive Feedback | User-driven plan review and refinement |
+| 5. Execution | `/spec-implement`: Implementation | TDD-driven development |
 
 ## Quick Reference
 
@@ -116,7 +116,7 @@ From Claude Code Best Practices:
 
 ### When to Apply Full SDD
 
-| Scenario | Full 7-Phase | Abbreviated |
+| Scenario | Full Plan→Implement | Abbreviated |
 |----------|--------------|-------------|
 | New feature | ✅ | |
 | Complex change | ✅ | |
@@ -154,7 +154,7 @@ If you identify that a situation warrants deviation:
 ## Defaults (L2 - Soft)
 
 - Create formal spec for features > 1 day effort
-- Use `/spec-workflow` for new features (can use `/quick-impl` for obvious small tasks)
+- Use `/spec-plan` for new features (can use `/quick-impl` for obvious small tasks)
 - Acceptance criteria should be testable
 
 ## Guidelines (L3)
