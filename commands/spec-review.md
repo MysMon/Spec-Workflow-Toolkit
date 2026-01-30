@@ -111,6 +111,23 @@ What would you like to change? (Or "approve" if it looks good)
 
 **Loop until the user approves or exits.**
 
+#### Handling Ambiguous Feedback
+
+**CRITICAL:** When user feedback is unclear or contains multiple possible interpretations:
+
+1. **MUST use AskUserQuestion** to present structured options
+2. **Do NOT guess** the user's intent
+3. Frame questions with concrete trade-offs
+
+Example scenarios requiring AskUserQuestion:
+
+| User Says | Use AskUserQuestion To |
+|-----------|----------------------|
+| "Make it faster" | Ask: Faster load time? Faster response? Faster build? |
+| "Add better error handling" | Ask: Which errors? User-facing messages? Logging? Recovery? |
+| "This feels too complex" | Ask: Simplify API? Reduce features? Split into phases? |
+| "I'm not sure about this" | Ask: What concerns them? Present alternatives with trade-offs |
+
 After each user message, determine the feedback type:
 
 | User Says | Action |
@@ -215,6 +232,11 @@ When the user approves:
 - NEVER auto-fix changes that affect architecture or user-approved requirements
 - ALWAYS update progress file on completion
 - ALWAYS save review log
+- ALWAYS use AskUserQuestion when:
+  - User feedback contains multiple possible interpretations
+  - A decision requires choosing between trade-offs (e.g., "should we prioritize X or Y?")
+  - Clarification is needed before making changes to spec or design
+- NEVER guess user intent when feedback is ambiguous — ask first
 
 ## Defaults (L2 - Soft)
 
@@ -225,6 +247,5 @@ When the user approves:
 
 ## Guidelines (L3)
 
-- Prefer asking clarifying questions when user feedback is ambiguous
 - Consider presenting alternatives when user is unsure
 - For large spec/design documents, summarize sections rather than displaying everything
