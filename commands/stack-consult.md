@@ -6,6 +6,12 @@ allowed-tools: AskUserQuestion, WebSearch, WebFetch, Read, Write, Bash, Glob, Gr
 
 # /stack-consult - Interactive Stack Consultation
 
+## Language Mode
+
+すべての出力は日本語で行う。詳細は `language-enforcement` スキルを参照。
+
+---
+
 A domain-agnostic consultation system that guides users from "I have an idea" to "I have a working project structure" through requirements-based interviews and dynamic technology research.
 
 ## Design Principles

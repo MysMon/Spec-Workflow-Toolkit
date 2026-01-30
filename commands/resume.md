@@ -6,6 +6,12 @@ allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
 
 # /resume - Session Resumption Command
 
+## Language Mode
+
+すべての出力は日本語で行う。詳細は `language-enforcement` スキルを参照。
+
+---
+
 Resume long-running autonomous work from progress files, restoring context and continuing from the last checkpoint.
 
 ## Purpose

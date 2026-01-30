@@ -6,6 +6,12 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoW
 
 # /spec-implement - Specification-Based Implementation
 
+## Language Mode
+
+すべての出力は日本語で行う。詳細は `language-enforcement` スキルを参照。
+
+---
+
 Implement a feature from an approved specification and design document. This command handles the build phase: preparation, implementation, quality review, and summary.
 
 ## Prerequisites

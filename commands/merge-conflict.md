@@ -6,6 +6,12 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion, Task, TodoW
 
 # /merge-conflict - Systematic Merge Conflict Resolution
 
+## Language Mode
+
+すべての出力は日本語で行う。詳細は `language-enforcement` スキルを参照。
+
+---
+
 A structured workflow to analyze, resolve, and verify git merge conflicts using subagent delegation.
 
 ## Design Principles

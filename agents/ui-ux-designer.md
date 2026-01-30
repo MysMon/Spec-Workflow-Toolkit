@@ -14,7 +14,7 @@ model: sonnet
 tools: Read, Glob, Grep, Write
 disallowedTools: Bash, Edit
 permissionMode: plan
-skills: stack-detector, subagent-contract, insight-recording
+skills: stack-detector, subagent-contract, insight-recording, language-enforcement
 ---
 
 # Role: UI/UX Designer

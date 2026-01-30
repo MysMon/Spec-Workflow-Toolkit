@@ -6,6 +6,12 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoW
 
 # /ci-fix - CI/CD Failure Resolution
 
+## Language Mode
+
+すべての出力は日本語で行う。詳細は `language-enforcement` スキルを参照。
+
+---
+
 Systematically diagnose and fix CI/CD pipeline failures by analyzing logs, identifying root causes, and implementing targeted fixes.
 
 ## Purpose

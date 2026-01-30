@@ -6,6 +6,12 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoW
 
 # /spec-plan - Specification-First Planning
 
+## Language Mode
+
+すべての出力は日本語で行う。詳細は `language-enforcement` スキルを参照。
+
+---
+
 Plan a feature through 4 phases with iterative refinement at each gate. Produces a specification and design document ready for `/spec-review` and `/spec-implement`.
 
 ## Attribution

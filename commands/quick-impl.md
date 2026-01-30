@@ -6,6 +6,12 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoW
 
 # /quick-impl - Quick Implementation
 
+## Language Mode
+
+すべての出力は日本語で行う。詳細は `language-enforcement` スキルを参照。
+
+---
+
 For small, well-defined tasks that don't require the full plan→review→implement flow. Use when:
 - Task is clearly defined (not vague)
 - Scope is small (1-3 files)

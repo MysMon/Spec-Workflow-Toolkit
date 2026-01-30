@@ -6,6 +6,12 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoW
 
 # /spec-review - Interactive Plan Review
 
+## Language Mode
+
+すべての出力は日本語で行う。詳細は `language-enforcement` スキルを参照。
+
+---
+
 Review a specification and design document interactively with the user. This is a **user-driven feedback loop** — the user reads the plan, gives feedback, and the plan is revised until approved.
 
 For automated machine review, use `--auto` to run parallel review agents before the feedback loop.
