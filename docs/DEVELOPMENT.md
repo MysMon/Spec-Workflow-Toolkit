@@ -55,6 +55,23 @@ Commands should delegate to subagents to preserve the orchestrator's context win
 | File existence checks | Glob returns paths only, not content |
 | Presenting summaries from agent output | Already summarized |
 
+**Metadata Files Exception (progress files, feature-list.json):**
+
+Progress files and other orchestrator metadata are exceptions to the delegation rule. When reading these files directly, include a justification block:
+
+```markdown
+**Why progress file reading is acceptable (not delegated):**
+- Progress files are orchestrator state metadata (not project content)
+- Status checking is quick validation (typically <20 lines of JSON)
+- Essential to [specific purpose: avoid duplicate work / determine review status / etc.]
+- Minimal context consumption compared to spec/design content analysis
+- Consistent with resume.md Phase 3 pattern
+```
+
+**Key distinction:**
+- **Spec/design files** → MUST delegate (content analysis)
+- **Progress/metadata files** → Direct read OK with justification (state validation)
+
 **Anti-pattern: Over-delegation**
 
 Delegating trivial tasks wastes subagent resources and adds latency:
@@ -67,6 +84,39 @@ Task: Edit spec to change "1 hour" to "24 hours"
 # GOOD: Direct edit for minor changes
 Use Edit tool to change "1 hour" to "24 hours" in spec file
 ```
+
+### Phase Consistency Rule
+
+Commands with multiple phases must ensure routing instructions and execution instructions are consistent. This is a common source of contradictions.
+
+**Anti-pattern: Phase Contradiction**
+
+```markdown
+# Phase 4: Routing (what user sees)
+TRIVIAL changes: "I can apply this directly."
+If yes: Apply fix directly using Edit tool.
+
+# Phase 5: Execution (what orchestrator does)
+CRITICAL: Even for TRIVIAL changes, delegate to product-manager agent.
+```
+
+The user message promises "direct" action, but execution delegates. This confuses both the user and the orchestrator.
+
+**Correct Pattern:**
+
+```markdown
+# Phase 4: Routing (aligned with execution)
+TRIVIAL changes: "I'll delegate to product-manager to apply it."
+If yes: Proceed to Phase 5 (via product-manager delegation).
+
+# Phase 5: Execution (consistent with routing)
+Delegate to product-manager agent...
+```
+
+**Verification checklist:**
+1. User-facing messages in routing phase match actual execution behavior
+2. "Direct" vs "delegate" language is consistent across phases
+3. If delegation is required in execution, routing should mention delegation
 
 ### Agent Failure Handling Pattern
 
@@ -82,6 +132,52 @@ If [agent-name] fails or times out:
 3. Proceed with available results (if non-critical), documenting the gap
 4. Escalate to user if critical agent fails after retry
 ```
+
+**Multiple Parallel Agents Pattern:**
+
+When launching multiple agents in parallel (e.g., 5 review agents in spec-review), handle failures individually and collectively:
+
+```markdown
+**Error Handling for parallel agents:**
+
+For each agent individually:
+If [agent] fails or times out:
+1. Check partial output for usable findings
+2. Retry once with reduced scope
+3. If retry fails, proceed with available results and note gap
+4. Add warning: "[Agent] review incomplete"
+
+**CRITICAL: [critical-agent] failure handling:**
+If [critical-agent] fails after retry:
+1. Warn user prominently
+2. Require explicit acknowledgment before proceeding
+
+If ALL agents fail:
+1. Inform user: "Cannot proceed without any successful results."
+2. Offer options: Retry / Skip / Cancel
+3. Do NOT auto-proceed without user decision
+```
+
+**User-Choice Fallback Pattern:**
+
+When the orchestrator cannot make a classification or decision due to agent failure, delegate the decision to the user instead of attempting manual classification:
+
+```markdown
+**Error Handling for consolidation failure:**
+If verification-specialist fails or times out:
+1. Present raw findings from available agents
+2. Warn user about consolidation failure
+3. Present classification options to user:
+   "Based on available analysis, please help me classify:"
+   1. Option A
+   2. Option B
+   3. Option C
+4. Proceed with user-selected option
+
+**CRITICAL:** Do NOT attempt manual classification. Let the user decide.
+```
+
+**Why this matters:** If the orchestrator is prohibited from reading spec/design files directly, it cannot perform "manual classification" or "best-effort analysis" when consolidation agents fail. The user must make the decision.
 
 **Implementation by Command Type:**
 
