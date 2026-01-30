@@ -54,15 +54,15 @@ Process user change requests after `/spec-implement` completion. This command re
    - List files in `docs/specs/`
    - Ask user which project to revise
 
-3. **Read essential files (max 2):**
-   - Specification: `docs/specs/[feature-name].md`
-   - Design: `docs/specs/[feature-name]-design.md`
+3. **Check existence only (do not read full content):**
+   - Specification: Use Glob to check if `docs/specs/[feature-name].md` exists
+   - Design: Use Glob to check if `docs/specs/[feature-name]-design.md` exists
+   - Review log: Use Glob to check if `docs/specs/[feature-name]-review.md` exists
+   - Progress file: Use Glob to check if `.claude/workspaces/{id}/claude-progress.json` exists
 
-4. **Check existence only (do not read full content):**
-   - Review log: `docs/specs/[feature-name]-review.md`
-   - Progress file: `.claude/workspaces/{id}/claude-progress.json`
+**CRITICAL: Do NOT read spec/design files directly. Delegate to subagent.**
 
-**Delegate summary generation to `product-manager` agent:**
+**Delegate context loading to `product-manager` agent:**
 
 ```
 Launch product-manager agent:
@@ -70,6 +70,8 @@ Task: Summarize current project state for revision context
 Inputs: Spec file path + Design file path
 Output: Key requirements list + Architecture summary (concise)
 ```
+
+Use the agent's summary output for context. Do NOT read spec/design files directly.
 
 **Present current state to user (using agent output):**
 ```
@@ -428,7 +430,7 @@ If "Undo": Revert changes using git, return to Phase 2.
 
 ## Rules (L1 - Hard)
 
-- ALWAYS read spec and design files before analyzing changes
+- ALWAYS delegate spec/design reading to `product-manager` agent — do NOT read directly
 - ALWAYS use AskUserQuestion when change request is ambiguous
 - NEVER auto-route to other commands without user confirmation
 - NEVER skip impact analysis - always run both agents

@@ -85,11 +85,11 @@ If no arguments:
 
 #### Validate Prerequisites
 
-**Read essential files (max 2):**
-1. **Read the spec file** - Understand what to build
-2. **Read the design file** - Understand how to build it
+**CRITICAL: Do NOT read spec/design files directly. Delegate to subagent.**
 
 **Check existence only (do not read full content):**
+1. **Locate spec file** - Use Glob to check if `docs/specs/[feature-name].md` exists
+2. **Locate design file** - Use Glob to check if `docs/specs/[feature-name]-design.md` exists
 3. **Locate review report** - Use Glob to check if `docs/specs/[feature-name]-review.md` exists
 4. **Locate progress file** - Use Glob to check if `.claude/workspaces/{id}/claude-progress.json` exists
 
@@ -102,6 +102,21 @@ Design: [found/missing]
 
 Recommended: Run /spec-plan first to create these files.
 ```
+
+**Delegate context loading to `product-manager` agent:**
+
+```
+Launch product-manager agent:
+Task: Summarize spec and design for implementation context
+Inputs: Spec file path + Design file path
+Output:
+- Key requirements summary (what to build)
+- Architecture summary (how to build it)
+- Build sequence from design
+- Acceptance criteria for each feature
+```
+
+Use the agent's summary output for implementation context. Do NOT read spec/design files directly.
 
 #### Review-Aware Handoff
 

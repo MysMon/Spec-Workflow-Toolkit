@@ -142,7 +142,7 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 }
 ```
 
-**Verification:** After creating, read the file back to confirm it was written correctly.
+**Note:** Write tool success confirms file creation. No additional verification needed.
 
 #### Discovery Work
 
@@ -218,9 +218,13 @@ If any agent fails or times out:
 3. If retry fails, proceed with available results and document the gap
 4. Add to progress file: `"warnings": ["Agent X failed, results may be incomplete"]`
 
-**Read up to 3 of the most critical files** identified by explorers.
+**CRITICAL: Do NOT read files directly after exploration. Use agent output.**
 
-**Present comprehensive summary of findings to user.**
+The `code-explorer` agents already read and summarize the files. Use their output directly.
+
+If specific file details are needed for clarification, delegate to `code-explorer` with a focused query.
+
+**Present comprehensive summary of findings to user (using agent outputs).**
 
 **Progress Update:** currentPhase: "plan-exploration-complete"
 
@@ -268,9 +272,11 @@ Options:
 
 **If the user requests changes (option 2 or 3):**
 1. Incorporate the user's feedback
-2. Re-launch `product-manager` with updated inputs, OR apply targeted edits directly to the spec file
-3. Present the revised spec
+2. Re-launch `product-manager` with updated inputs to revise the spec
+3. Present the revised spec (using agent output)
 4. Repeat until approved or max 3 iterations reached
+
+**CRITICAL:** Always delegate spec revision to `product-manager`. Do NOT edit spec files directly.
 
 **If max iterations reached without approval:**
 Ask user: "We've iterated 3 times. Would you like to approve the current version, continue refining manually, or start over?"

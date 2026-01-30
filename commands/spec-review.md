@@ -27,16 +27,33 @@ For automated machine review, use `--auto` to run parallel review agents before 
 
 ### Step 1: Locate Spec and Design
 
+**CRITICAL: Do NOT read spec/design files directly. Delegate to subagent.**
+
 If `$ARGUMENTS` is provided:
-- If it's a file path, read that file
-- If it's a feature name, search in `docs/specs/` directory
+- If it's a file path, use Glob to verify the file exists (do NOT read it directly)
+- If it's a feature name, search in `docs/specs/` directory using Glob
 
 **Also locate the corresponding design document:**
-- If spec is `docs/specs/user-auth.md`, look for `docs/specs/user-auth-design.md`
+- If spec is `docs/specs/user-auth.md`, look for `docs/specs/user-auth-design.md` using Glob
 
 If no arguments:
-- List available specs in `docs/specs/`
+- List available specs in `docs/specs/` using Glob
 - Ask user which one to review
+
+**Delegate content loading to `product-manager` agent:**
+
+```
+Launch product-manager agent:
+Task: Summarize spec and design for review presentation
+Inputs: Spec file path + Design file path (if exists)
+Output:
+- Key requirements list
+- Architecture summary
+- Build sequence
+- Trade-offs and decisions
+```
+
+Use the agent's summary output for presenting to user. Do NOT read spec/design files directly.
 
 ### Step 2: Auto Review (only if `--auto` flag is present)
 
