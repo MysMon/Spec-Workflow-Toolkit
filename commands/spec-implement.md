@@ -120,6 +120,13 @@ Use the agent's summary output for implementation context. Do NOT read spec/desi
 
 #### Review-Aware Handoff
 
+**Why progress file reading is acceptable (not delegated):**
+- Progress files are orchestrator state metadata (not project content)
+- Review status checking is quick validation (typically <20 lines of JSON)
+- Essential to determine if user review was completed
+- Minimal context consumption compared to spec/design content analysis
+- Consistent with resume.md Phase 3 pattern
+
 Check the progress file for review status:
 
 | Progress Phase | Meaning | Action |

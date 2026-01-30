@@ -46,6 +46,13 @@ Process user change requests after `/spec-implement` completion. This command re
 
 #### Locate Project Files
 
+**Why progress file reading is acceptable (not delegated):**
+- Progress files are orchestrator state metadata (not project content)
+- Status checking is quick validation (typically <20 lines of JSON)
+- Essential to locate spec/design file paths for this project
+- Minimal context consumption compared to spec/design content analysis
+- Consistent with resume.md Phase 3 pattern
+
 1. **Check progress file** for current project:
    - Look for `.claude/workspaces/{workspace-id}/claude-progress.json`
    - Extract spec and design file paths
@@ -72,6 +79,14 @@ Task: Summarize current project state for revision context
 Inputs: Spec file path + Design file path
 Output: Key requirements list + Architecture summary (concise)
 ```
+
+**Error Handling for product-manager (context loading):**
+If product-manager fails or times out:
+1. Retry once with reduced scope (focus on key requirements only)
+2. If retry fails, inform user and offer options:
+   - "Retry with simplified request"
+   - "Cancel and investigate the failure"
+3. Do NOT proceed without context — context loading is required for impact analysis
 
 Use the agent's summary output for context. Do NOT read spec/design files directly.
 
@@ -163,6 +178,27 @@ Examples:
 
 **Wait for both agents to complete.**
 
+**Error Handling for Impact Analysis agents:**
+
+If product-manager fails or times out:
+1. Retry once with reduced scope (focus on requirement impact only)
+2. If retry fails, proceed with code-architect output only
+3. Warn user: "Spec impact analysis unavailable. Classification will rely on design impact only."
+4. Mark analysis as partial in progress file
+
+If code-architect fails or times out:
+1. Retry once with reduced scope (focus on component mapping only)
+2. If retry fails, proceed with product-manager output only
+3. Warn user: "Design impact analysis unavailable. Classification will rely on spec impact only."
+4. Mark analysis as partial in progress file
+
+If BOTH agents fail:
+1. Inform user: "Impact analysis failed. Cannot proceed with classification."
+2. Offer options:
+   - "Retry both agents"
+   - "Cancel and investigate"
+3. Do NOT proceed to Phase 4 without at least one successful analysis
+
 **CRITICAL: Delegate result consolidation to verification-specialist agent:**
 
 ```
@@ -185,8 +221,22 @@ Do NOT consolidate results manually. Use the agent's consolidated output for Pha
 If verification-specialist fails or times out:
 1. Present findings from product-manager and code-architect separately (without consolidation)
 2. Warn user: "Impact analysis consolidation failed. Showing raw agent findings."
-3. Proceed with Phase 4 using best-effort manual classification based on available outputs
-4. Require user confirmation before classification decision
+3. Present classification options to user based on agent findings:
+   ```
+   Based on the available analysis:
+   - Product-manager found: [summary of spec impact]
+   - Code-architect found: [summary of design impact]
+
+   Without consolidated analysis, please help me classify this change:
+   1. TRIVIAL - No spec/design impact
+   2. SMALL - Minor spec/design updates only
+   3. MEDIUM - Design revision needed
+   4. LARGE - Re-planning needed
+   5. NEW - Out of scope, new feature
+   ```
+4. Proceed with user-selected classification
+
+**CRITICAL:** Do NOT attempt manual classification. Let the user decide based on presented agent findings.
 
 **Present consolidated analysis to user (using verification-specialist output):**
 ```markdown
@@ -252,28 +302,29 @@ Options:
 **TRIVIAL (Direct Fix):**
 ```
 This is a minor change that doesn't affect the spec or design.
-I can apply this directly.
+I'll delegate to product-manager to apply it.
 
 Proceed with the fix?
 1. Yes, apply the change
 2. No, let me reconsider
 ```
 
-If yes: Apply fix directly using Edit tool, then verify.
+If yes: Proceed to Phase 5 (TRIVIAL execution via product-manager delegation).
 
 **SMALL (Spec/Design Edit + Quick Implementation):**
 ```
 This requires updating the spec/design documents before implementation.
 
-I'll:
+I'll delegate to product-manager to:
 1. Update the spec with [changes]
 2. Update the design with [changes]
-3. You can then run /quick-impl for the implementation
+
+Then you can run /quick-impl for the implementation.
 
 Proceed?
 ```
 
-If yes: Edit spec and design files, present changes, suggest `/quick-impl`.
+If yes: Proceed to Phase 5 (SMALL execution via product-manager delegation).
 
 **MEDIUM (Design Revision Needed):**
 ```

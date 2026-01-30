@@ -71,6 +71,28 @@ Use the agent's summary output for presenting to user. Do NOT read spec/design f
 5. verification-specialist: Spec↔design consistency check (if design exists)
 ```
 
+**Error Handling for Auto-Review agents:**
+
+For each review agent (product-manager, system-architect, security-auditor, qa-engineer):
+If agent fails or times out:
+1. Check partial output for usable findings
+2. Retry once with reduced scope
+3. If retry fails, proceed with available results and note gap
+4. Add warning to auto-review results: "[Agent] review incomplete"
+
+**CRITICAL: security-auditor failure handling:**
+If security-auditor fails after retry:
+1. Warn user prominently: "Security review failed. Proceeding without security validation."
+2. Add to findings: "MANUAL SECURITY REVIEW RECOMMENDED"
+3. Proceed with user acknowledgment
+
+If ALL 5 agents fail:
+1. Inform user: "Auto-review failed. Cannot provide automated findings."
+2. Offer options:
+   - "Retry auto-review"
+   - "Skip auto-review and proceed to manual feedback loop"
+   - "Cancel and investigate"
+
 **Delegate result consolidation to verification-specialist agent:**
 ```
 Launch verification-specialist agent:
