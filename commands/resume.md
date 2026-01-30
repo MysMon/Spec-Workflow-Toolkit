@@ -153,6 +153,12 @@ Example output:
 
 **Goal:** Verify git state matches expectations.
 
+**Why this is acceptable (not delegated):**
+- Git metadata commands (`status`, `branch`, `log --oneline`) return minimal output
+- This is state validation, not content analysis
+- Quick execution is critical for resumption workflow
+- Minimal context consumption (typically <50 lines)
+
 ```bash
 # Check for uncommitted changes
 git status --porcelain
@@ -284,6 +290,21 @@ Output: Concise summary of each file's role and current state
 ```
 
 Use the agent's summary output for context restoration. Do NOT read key files directly.
+
+**Error Handling for code-explorer:**
+If code-explorer fails or times out:
+1. Display available resumption context from progress file (position, nextAction, decisions)
+2. Show key file list with file:line references (without summaries)
+3. Warn user: "Key file context could not be loaded. Using progress file data only."
+4. Ask user:
+   ```
+   Question: "Context restoration partially failed. How would you like to proceed?"
+   Header: "Proceed"
+   Options:
+   - "Continue with limited context (progress file only)"
+   - "Review key files manually first"
+   - "Retry context restoration"
+   ```
 
 **Determine appropriate workflow:**
 

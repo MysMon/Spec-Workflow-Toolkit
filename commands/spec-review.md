@@ -85,6 +85,13 @@ Output: Consolidated findings list with confidence scores
 
 Use the agent's consolidated output for presentation. Do NOT consolidate results manually.
 
+**Error Handling for verification-specialist:**
+If verification-specialist fails or times out:
+1. Present raw findings from the 5 review agents without consolidation
+2. Warn user: "Auto-review consolidation failed. Showing raw agent findings (duplicates not merged)."
+3. Proceed with user feedback loop using unfiltered findings
+4. Consider duplicates as potential high-confidence issues
+
 **Present auto-review results to user:**
 ```markdown
 ## Auto-Review Results

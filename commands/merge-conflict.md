@@ -192,26 +192,39 @@ Requirements:
 
 **Goal:** Ensure resolution doesn't break functionality.
 
-**Run verification checks:**
+**DELEGATE verification to verification-specialist agent:**
 
-```bash
-# Check no conflict markers remain
-grep -r "^<<<<<<< \|^=======$\|^>>>>>>> " <resolved-files>
-
-# Discover and run linter
-npm run lint  # or equivalent
-
-# Discover and run type check
-npm run typecheck  # or tsc
-
-# Discover and run tests
-npm test  # or equivalent
+```
+Launch verification-specialist agent:
+Task: Verify conflict resolution completeness
+Inputs:
+  - Resolved files: [list from Phase 4]
+  - Original conflict info: [from Phase 2 agents]
+Check:
+  1. No conflict markers remain (<<<<<<< / ======= / >>>>>>>)
+  2. Syntax is valid (run linter)
+  3. Type check passes (if applicable)
+  4. Tests pass
+Output:
+  - Verification status for each check (PASS/FAIL)
+  - If FAIL: specific error details with file:line
+  - Overall verdict (VERIFIED / ISSUES_FOUND)
+Thoroughness: quick
 ```
 
-**If verification fails:**
-- Report which check failed
-- Ask user how to proceed
-- Consider reverting to re-resolve
+Use the agent's output for verification results. Do NOT run grep/lint/test commands directly in the parent context.
+
+**If verification-specialist reports issues:**
+- Present which check(s) failed
+- Ask user how to proceed:
+  ```
+  Question: "Verification found issues. How should I proceed?"
+  Header: "Issues"
+  Options:
+  - "Fix the issues and re-verify"
+  - "Show me the details first"
+  - "Revert and re-resolve conflicts"
+  ```
 
 ### Phase 6: Completion
 

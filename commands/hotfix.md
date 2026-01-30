@@ -94,13 +94,28 @@ Do NOT run git commands directly in the parent context. Use the agent's output f
 
 **Goal:** Isolate changes for safe deployment and easy rollback.
 
+**CRITICAL: Use production branch from Phase 1 code-explorer output**
+
 ```bash
-# Ensure we're on the production branch
+# Use production branch identified by code-explorer (do NOT assume 'main')
+PROD_BRANCH=[production branch from Phase 1 agent output]
+
 git fetch origin
-git checkout main  # or master/production
+git checkout "$PROD_BRANCH"
 
 # Create hotfix branch
 git checkout -b hotfix/[brief-description]-$(date +%Y%m%d)
+```
+
+**If code-explorer did not identify production branch**, ask user:
+```
+Question: "Which branch is your production branch?"
+Header: "Branch"
+Options:
+- "main"
+- "master"
+- "production"
+- "Let me specify..."
 ```
 
 **Branch naming:** `hotfix/[issue-id]-[brief-description]`
@@ -114,26 +129,27 @@ Examples:
 
 **Goal:** Find the issue and implement minimal fix.
 
-**Quick search strategy:**
+**Quick search strategy (DELEGATE to Explore agent):**
 
-```
-1. If error message known:
-   Grep for error message in codebase
-
-2. If feature broken:
-   Trace from entry point (API route, UI component)
-
-3. If performance issue:
-   Check recent changes to affected code path
-```
-
-**Use Task tool with subagent_type=Explore for rapid search:**
+Do NOT run Grep/Glob directly. Delegate ALL search to Explore agent:
 
 ```
 Launch Task tool with subagent_type=Explore:
-- Find the specific file/function causing the issue
-- Return file:line reference
+Task: Rapid production issue localization
+
+Search approach based on issue type:
+1. If error message known → Search for error message in codebase
+2. If feature broken → Trace from entry point (API route, UI component)
+3. If performance issue → Check recent changes to affected code path
+
+Issue type: [from Phase 1]
+Issue details: [error message / feature name / symptom]
+
+Output: Specific file:line reference for the issue
+Thoroughness: quick
 ```
+
+Use the agent's file:line output for Phase 3 implementation. Do NOT search codebase manually.
 
 **Implement MINIMAL fix:**
 

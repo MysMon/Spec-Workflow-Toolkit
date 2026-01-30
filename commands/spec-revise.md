@@ -181,6 +181,13 @@ Output:
 
 Do NOT consolidate results manually. Use the agent's consolidated output for Phase 4 presentation.
 
+**Error Handling for verification-specialist:**
+If verification-specialist fails or times out:
+1. Present findings from product-manager and code-architect separately (without consolidation)
+2. Warn user: "Impact analysis consolidation failed. Showing raw agent findings."
+3. Proceed with Phase 4 using best-effort manual classification based on available outputs
+4. Require user confirmation before classification decision
+
 **Present consolidated analysis to user (using verification-specialist output):**
 ```markdown
 ## Impact Analysis
@@ -343,6 +350,11 @@ SMALL changes are minor edits that meet ALL of these criteria:
 - **File limit:** Affects 1-2 files only
 - **No architecture impact:** Does not change design decisions, data models, or API contracts
 - **Low risk:** Typos, wording improvements, adding clarifications, minor requirement additions
+
+**CRITICAL: Verify "No architecture impact" before classifying as SMALL:**
+- Use verification-specialist's confidence score from Phase 3
+- If confidence for "no architecture impact" < 90: escalate to MEDIUM
+- If verification-specialist did not provide confidence: ask user for confirmation
 
 If ANY criterion is not met, escalate to MEDIUM and recommend `/spec-review`.
 
