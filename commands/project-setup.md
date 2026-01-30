@@ -6,6 +6,12 @@ allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
 
 # /project-setup - Project Rules Generator
 
+## Language Mode
+
+すべての出力は日本語で行う。詳細は `language-enforcement` スキルを参照。
+
+---
+
 Generate project-specific `.claude/rules/` files by analyzing the codebase and interviewing the user about conventions and preferences.
 
 ## Design Principles

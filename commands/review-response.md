@@ -6,6 +6,12 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion, Task, TodoW
 
 # /review-response - PR Review Response Workflow
 
+## Language Mode
+
+すべての出力は日本語で行う。詳細は `language-enforcement` スキルを参照。
+
+---
+
 A structured workflow to efficiently address PR review comments. Analyzes reviewer feedback, implements requested changes, and prepares responses.
 
 ## Design Principles

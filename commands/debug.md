@@ -6,6 +6,12 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion, Task, TodoW
 
 # /debug - Systematic Debugging Command
 
+## Language Mode
+
+すべての出力は日本語で行う。詳細は `language-enforcement` スキルを参照。
+
+---
+
 A structured debugging workflow that leverages subagent delegation to analyze errors, trace root causes, and implement verified fixes.
 
 ## Design Principles

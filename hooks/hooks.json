@@ -10,6 +10,12 @@
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/spec_context.sh",
             "timeout": 5000,
             "once": true
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/enforce_japanese_mode.sh",
+            "timeout": 3000,
+            "once": true
           }
         ]
       }

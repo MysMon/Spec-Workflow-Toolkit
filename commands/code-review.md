@@ -6,6 +6,12 @@ allowed-tools: Read, Glob, Grep, Bash, Task, AskUserQuestion
 
 # /code-review - Parallel Code Review
 
+## Language Mode
+
+すべての出力は日本語で行う。詳細は `language-enforcement` スキルを参照。
+
+---
+
 Launch 5 specialized agents in parallel (CLAUDE.md Compliance, Bug Scan, Git History, PR Comments, Code Comments) to comprehensively review code changes, then score each issue with Haiku agents for confidence-based filtering.
 
 Based on the official code-review plugin pattern.

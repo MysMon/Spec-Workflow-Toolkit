@@ -6,6 +6,12 @@ allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
 
 # /doc-audit - Documentation Drift Detection
 
+## Language Mode
+
+すべての出力は日本語で行う。詳細は `language-enforcement` スキルを参照。
+
+---
+
 Systematically audit documentation against code to detect outdated content, missing sections, and inconsistencies.
 
 ## Design Principles

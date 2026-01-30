@@ -17,7 +17,7 @@ model: opus
 tools: Read, Glob, Grep, Write
 disallowedTools: Bash, Edit
 permissionMode: default
-skills: spec-philosophy, security-fundamentals, stack-detector, api-design, parallel-execution, long-running-tasks, subagent-contract, insight-recording
+skills: spec-philosophy, security-fundamentals, stack-detector, api-design, parallel-execution, long-running-tasks, subagent-contract, insight-recording, language-enforcement
 ---
 
 # Role: System Architect

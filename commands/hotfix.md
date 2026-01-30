@@ -6,6 +6,12 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoW
 
 # /hotfix - Emergency Production Fix
 
+## Language Mode
+
+すべての出力は日本語で行う。詳細は `language-enforcement` スキルを参照。
+
+---
+
 A streamlined workflow for urgent production issues that balances speed with safety. Bypasses the full planning workflow while maintaining critical safety checks.
 
 ## Purpose

@@ -6,6 +6,12 @@ allowed-tools: Read, Write, Edit, AskUserQuestion, Bash, Glob
 
 # /review-insights - Insight Review Workflow
 
+## Language Mode
+
+すべての出力は日本語で行う。詳細は `language-enforcement` スキルを参照。
+
+---
+
 Review insights captured during development and decide where to apply them. Each insight is processed interactively, one by one, with user confirmation.
 
 ## Architecture (Folder-Based)
