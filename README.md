@@ -12,11 +12,20 @@
 ### インストール
 
 ```bash
-# プラグインディレクトリからインストール
-/plugin install spec-workflow-toolkit@claude-plugin-directory
+# 1. リポジトリをクローン
+git clone https://github.com/MysMon/cc-web-dev.git spec-workflow-toolkit
 
-# または開発用にローカルロード
-claude --plugin-dir /path/to/spec-workflow-toolkit
+# 2. プラグインをロードしてClaude Codeを起動
+claude --plugin-dir ./spec-workflow-toolkit
+```
+
+**既存プロジェクトで使う場合:**
+```bash
+# 作業ディレクトリにクローン
+git clone https://github.com/MysMon/cc-web-dev.git .plugins/spec-workflow-toolkit
+
+# Claude Code起動
+claude --plugin-dir .plugins/spec-workflow-toolkit
 ```
 
 ### 基本的な使い方
