@@ -1,7 +1,7 @@
 ---
 description: "Process user change requests after implementation - analyze impact against spec/design and route appropriately"
 argument-hint: "[change request description or 'interactive']"
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite, Skill
 ---
 
 # /spec-revise - Post-Implementation Change Request Handler

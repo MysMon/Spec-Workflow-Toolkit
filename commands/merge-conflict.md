@@ -51,7 +51,7 @@ A structured workflow to analyze, resolve, and verify git merge conflicts using 
 
 **Goal:** Identify all files with conflicts and their scope.
 
-**CRITICAL: Delegate conflict detection to code-explorer agent (do NOT run git commands directly):**
+**CRITICAL: Delegate conflict detection to code-explorer agent (do NOT run git analysis commands directly):**
 
 ```
 Launch code-explorer agent:
@@ -67,7 +67,7 @@ Thoroughness: quick
 Output: Structured list of [file_path, conflict_status]
 ```
 
-Use the agent's output for conflict information. Do NOT run git commands directly in the parent context.
+Use the agent's output for conflict information. Do NOT run git analysis commands (diff, status, log, show) directly in the parent context during detection and analysis phases.
 
 **If agent reports no conflicts:**
 - Inform user no conflicts exist
@@ -150,6 +150,8 @@ Options:
 ### Phase 4: Resolution Implementation
 
 **Goal:** Apply the chosen resolution strategy.
+
+**Note:** Simple git state commands (checkout --ours/--theirs, add) are allowed directly in the parent context during resolution. These are lightweight operations that don't consume context. The delegation requirement in Phases 1-2 applies only to analysis commands (diff, status, log).
 
 **For "Keep ours":**
 ```bash
