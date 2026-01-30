@@ -401,6 +401,11 @@ Critical for providing accurate, current recommendations.
 - NEVER assume features or setup commands from training data
 - NEVER use technology-specific options in Phase 1 questions (requirements first)
 - ALWAYS confirm decisions before scaffolding (user must approve)
+- MUST use system clock to generate current year for all searches (`CURRENT_YEAR=$(date +%Y)`)
+- NEVER use training data for years, versions, or command syntax — always verify via WebSearch
+- MUST use year-aware search queries and add previous-year fallbacks if results are sparse
+- MUST use AskUserQuestion for all Phase 1-2 requirement gathering
+- NEVER guess user requirements — always ask explicitly
 
 ## Defaults (L2 - Soft)
 

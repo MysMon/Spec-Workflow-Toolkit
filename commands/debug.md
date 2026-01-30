@@ -139,7 +139,7 @@ Based on the agent's output, identify:
 2. **Root Cause**: Why that situation occurred
 3. **Contributing Factors**: Other conditions that enabled the bug
 
-**Ask clarifying questions if needed:**
+**CRITICAL (L1): MUST use AskUserQuestion when multiple root causes are possible:**
 
 ```
 Question: "I found potential causes. Which scenario matches your situation?"
@@ -150,6 +150,8 @@ Options:
 - "[Cause C]: [Description]"
 - "None of these / Need more investigation"
 ```
+
+**NEVER guess which root cause is correct — always confirm with user.**
 
 **Document root cause:**
 
@@ -384,6 +386,13 @@ Critical for effective debugging and avoiding damage.
 - NEVER commit without verification (may introduce more bugs)
 - NEVER ignore regressions (compounds problems)
 - NEVER assume specific framework commands (discover them)
+- MUST use AskUserQuestion when:
+  - Root cause has multiple possible interpretations
+  - Multiple fix approaches are available
+  - Clarification is needed on expected behavior
+  - User needs to choose between fix strategies (TDD vs direct)
+- NEVER guess which root cause is correct — ask user to confirm
+- MUST delegate to code-explorer first to determine code domain before choosing specialist
 
 ## Defaults (L2 - Soft)
 
