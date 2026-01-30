@@ -60,6 +60,20 @@ Output: Stack profile summary with detected technologies
 
 Use the agent's output for stack summary. Do NOT run discovery commands manually.
 
+**Error Handling:**
+If code-explorer fails or times out:
+1. Retry once with reduced scope (focus on primary language and build system only)
+2. If retry fails, inform user:
+   ```
+   Stack detection failed. Cannot determine project technologies.
+
+   Options:
+   1. Retry stack detection
+   2. Manually describe your stack (I'll skip auto-detection)
+   3. Cancel setup
+   ```
+3. If user chooses option 2: Use AskUserQuestion to gather stack information manually
+
 **Output:** Stack summary for user confirmation (don't assume specific frameworks).
 
 ### Phase 2: Pattern Analysis
@@ -89,6 +103,20 @@ The code-explorer agent above already includes configuration file discovery in i
 - Editor configs (`.editorconfig`, `.vscode/`, `.idea/`)
 
 Use the agent's output directly. Do NOT duplicate with separate Glob commands.
+
+**Error Handling:**
+If code-explorer fails or times out:
+1. Retry once with reduced scope (focus on directory structure and testing patterns only)
+2. If retry fails, inform user:
+   ```
+   Pattern analysis failed.
+
+   Options:
+   1. Retry pattern analysis
+   2. Skip pattern analysis and proceed with interview only
+   3. Cancel setup
+   ```
+3. If user chooses option 2: Proceed to Phase 3 without pattern data (interview responses will guide rule generation)
 
 **Output:** Discovered patterns with specific examples from the codebase (from agent output).
 

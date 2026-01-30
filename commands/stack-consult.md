@@ -226,6 +226,26 @@ For each technology category:
    - Recent comparison articles (< 1 year)
    - Production experience reports
 
+**Error Handling for WebSearch/WebFetch:**
+
+If WebSearch returns no results or fails:
+1. Retry with broader query (remove year, add "latest" or "recent")
+2. Try alternative search terms (synonyms, related concepts)
+3. If still no results, inform user:
+   ```
+   Research for [category] returned limited results.
+
+   Options:
+   1. Try different search terms (I'll suggest alternatives)
+   2. Skip this category and proceed with available information
+   3. You provide candidate technologies to research
+   ```
+
+If WebFetch fails (timeout, blocked, or unavailable):
+1. Try alternative sources from search results
+2. Fall back to search snippets for basic information
+3. Document limitations: `"Note: Could not verify from official source"`
+
 #### 3.3 Extract Key Information
 
 For each candidate:
