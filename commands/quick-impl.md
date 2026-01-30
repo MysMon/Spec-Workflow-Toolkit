@@ -78,6 +78,13 @@ Output: Stack info, related files, patterns to follow, test file paths
 
 Use the agent's output for context. Do NOT read config files or related files directly.
 
+**Error Handling for Explore agent:**
+If Explore agent fails or times out:
+1. Check the agent's partial output for usable context
+2. Fall back to minimal manual context: run `Glob` for 1-2 directly relevant files
+3. Proceed with implementation using available context
+4. Document the gap in the summary
+
 ### Step 3: Implementation
 
 **IMPORTANT:** ALWAYS delegate implementation to appropriate specialist agent.
@@ -100,6 +107,15 @@ Constraints:
 - Follow existing code patterns
 - Minimal change scope
 ```
+
+**Error Handling for specialist agent:**
+If specialist agent fails or times out:
+1. Check the agent's partial output for usable code
+2. Retry once with simplified scope (single file focus)
+3. If retry fails, inform user with specific error and offer options:
+   - "Try again with different approach"
+   - "Switch to /spec-plan for proper planning"
+   - "I'll handle manually (understanding the risks)"
 
 **Direct modification allowed ONLY for:**
 - Single-line typo fixes in comments or strings

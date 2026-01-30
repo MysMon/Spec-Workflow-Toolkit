@@ -90,6 +90,12 @@ Output: Recent commits + production branch name
 
 Do NOT run git analysis commands (git log, git diff, git show) directly in the parent context. Use the agent's output for context.
 
+**Error Handling (Time-Critical):**
+If code-explorer fails or takes more than 60 seconds:
+1. Skip agent and proceed with manual minimal check: `git branch -a | grep -E "(main|master|prod)"` (single command, allowed for emergency)
+2. Ask user to confirm production branch if unclear
+3. Continue with Phase 2 immediately
+
 ### Phase 2: Create Hotfix Branch (30 seconds)
 
 **Goal:** Isolate changes for safe deployment and easy rollback.
@@ -153,6 +159,13 @@ Thoroughness: quick
 
 Use the agent's file:line output for Phase 3 implementation. Do NOT search codebase manually.
 
+**Error Handling (Emergency Override):**
+If Explore agent fails or takes more than 90 seconds:
+1. Use emergency direct search (allowed only for hotfix): single Grep for exact error message
+2. If error message not found, ask user for specific file path hint
+3. Proceed with manual fix using user-provided or best-guess location
+4. Document "agent timeout - manual localization" in commit message
+
 **Implement MINIMAL fix:**
 
 | Principle | Explanation |
@@ -181,6 +194,21 @@ Constraints:
 - No refactoring
 - Match existing patterns
 ```
+
+**Error Handling (Emergency Override):**
+If specialist agent fails or takes more than 2 minutes:
+1. Check agent's partial output for usable fix
+2. Retry once with explicit single-file focus
+3. If retry fails: inform user and offer emergency manual fix option:
+   ```
+   Question: "Agent timed out. This is an emergency - can I apply the fix manually?"
+   Header: "Emergency Override"
+   Options:
+   - "Yes, apply minimal fix directly" (understand the risks)
+   - "No, wait and retry with agent"
+   - "Abort hotfix and try /debug instead"
+   ```
+4. If user approves manual fix: apply minimal change, document "emergency manual fix" in commit
 
 **Direct modification allowed ONLY for:**
 - Single-line config value changes
