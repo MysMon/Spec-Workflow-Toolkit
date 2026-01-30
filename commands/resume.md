@@ -263,10 +263,19 @@ Sync TodoWrite with feature-list.json:
 - Add pending features as pending
 ```
 
-**Read key files identified in resumption context:**
+**Context Restoration via Subagent:**
 
-- Read up to 3 key files mentioned in `keyFiles`
-- This provides necessary context for continuation
+**CRITICAL: Do NOT read key files directly. Delegate to subagent.**
+
+```
+Launch code-explorer agent:
+Task: Summarize key files for resumption context
+Inputs: List of file:line references from `keyFiles`
+Thoroughness: quick
+Output: Concise summary of each file's role and current state
+```
+
+Use the agent's summary output for context restoration. Do NOT read key files directly.
 
 **Determine appropriate workflow:**
 
@@ -483,7 +492,7 @@ Critical for safe and accurate session resumption.
 Important for quality resumption. Override with reasoning when appropriate.
 
 - Sync TodoWrite with feature-list.json on resume
-- Read up to 3 key files from resumption context
+- Delegate key file reading to `code-explorer` agent for context summary
 - Display progress bar with feature completion percentage
 - Show last session summary for context
 
