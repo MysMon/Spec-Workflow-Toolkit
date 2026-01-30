@@ -236,6 +236,30 @@ Expected output: Working service with tests
 5. Run TodoWrite to update visible progress
 6. Ask user if they want to review before committing
 
+**Error Handling for specialist agents (frontend-specialist, backend-specialist):**
+
+If specialist agent fails or times out:
+1. Check the agent's partial output for usable code/progress
+2. Retry once with reduced scope (focus on single component/function)
+3. If retry fails:
+   - **CRITICAL: Do NOT mark feature as complete if implementation is partial**
+   - Update `feature-list.json` status: `"blocked"` with reason
+   - Present to user:
+     ```
+     Implementation of [feature] encountered an issue.
+
+     Agent output: [summary of what was done, if any]
+     Error: [failure reason]
+
+     Options:
+     1. Retry with simplified scope (single component focus)
+     2. Review partial implementation and complete manually
+     3. Skip this feature and proceed to next
+     4. Escalate to /debug for investigation
+     ```
+   - Document failure in progress file: `"warnings": ["Feature X implementation failed: [reason]"]`
+4. Proceed only after user selects an option
+
 #### Subagent Resume for Iterative Work
 
 | Scenario | Action |
