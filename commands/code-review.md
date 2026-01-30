@@ -114,6 +114,13 @@ Thoroughness: quick
 
 Use the code-explorer's output (including diff content) in Step 3 agent prompts. Do NOT read diff content directly in the parent context.
 
+**Error Handling for code-explorer:**
+If code-explorer fails or times out:
+1. Check partial output for usable context
+2. Fall back to minimal context: read only CLAUDE.md (if exists) and run `git diff --staged` for diff content
+3. Proceed with Step 3 using available context
+4. Note "limited context" in final report
+
 ### Step 3: Launch 5 Parallel Review Agents (Sonnet)
 
 **CRITICAL: Launch all 5 agents in a single message with 5 separate Task tool calls.**
@@ -216,6 +223,13 @@ For each misalignment:
 - Code location (file:line)
 ```
 
+**Error Handling for parallel agents:**
+If any review agent fails or times out:
+1. Check partial output from the failed agent(s) for usable findings
+2. Continue with successful agents' results
+3. Note which agent(s) failed in the final report under "Coverage Limitations"
+4. If 3+ agents fail: warn user and offer to retry or proceed with partial results
+
 ### Step 4: Score Each Issue with Haiku Agents
 
 **For each issue found in Step 3, launch a parallel Haiku agent** to score confidence.
@@ -231,6 +245,12 @@ For each issue:
 Score this issue 0-100 based on the rubric.
 For CLAUDE.md issues, verify the guideline explicitly mentions this.
 ```
+
+**Error Handling for scoring agents:**
+If scoring agents fail:
+1. Assign default confidence of 70 to unscored issues
+2. Mark these issues as "unscored" in the report
+3. Continue with filtering (unscored issues will be filtered out at default 80 threshold unless user lowers threshold)
 
 ### Step 5: Filter and De-duplicate Issues
 

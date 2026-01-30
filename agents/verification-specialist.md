@@ -53,11 +53,15 @@ For each finding to verify, check:
 - [ ] Dependency claims match actual imports/requires
 - [ ] Architecture descriptions align across agents
 
-### 4. External Resource Verification (when WebSearch available)
+### 4. External Resource Verification
 
-- [ ] Recommended tools/libraries still exist
-- [ ] Version recommendations are current
-- [ ] Best practice advice is up-to-date
+When external resources are mentioned in findings, verify what you can:
+
+- [ ] Check if referenced file paths in documentation exist
+- [ ] Verify version numbers against package.json/requirements.txt/go.mod
+- [ ] Cross-reference best practice claims against actual code patterns
+
+**Note:** This agent is read-only and cannot perform web searches. Flag external claims that cannot be verified locally for orchestrator to check.
 
 ### 5. Command-Agent Consistency Verification
 

@@ -27,9 +27,9 @@ For automated machine review, use `--auto` to run parallel review agents before 
 
 ### Step 1: Locate Spec and Design
 
-**CRITICAL: For initial context loading, do NOT read spec/design files directly. Delegate to subagent.**
+**CRITICAL: Do NOT read spec/design files directly. ALWAYS delegate to subagent.**
 
-(Exception: During the feedback loop in Step 4, you may read specific sections when needed for direct editing.)
+This applies to ALL steps including the feedback loop in Step 4. The orchestrator never edits spec/design files directly - delegate to product-manager.
 
 If `$ARGUMENTS` is provided:
 - If it's a file path, use Glob to verify the file exists (do NOT read it directly)
@@ -182,16 +182,31 @@ After each user message, determine the feedback type:
 
 #### Handling Changes That Affect Architecture
 
+**CRITICAL: The orchestrator does NOT edit spec/design files directly. ALWAYS delegate.**
+
 **If a change is small** (wording, adding an edge case, clarifying a requirement):
-- You may read the specific section needed for editing (this is the exception to the initial "do not read" rule)
-- Edit the spec/design files directly using Edit tool
-- Re-present the changed section
+
+Delegate to product-manager:
+```
+Launch product-manager agent:
+Task: Apply small change to spec/design during review
+Change request: [user's feedback]
+Spec file: [spec file path]
+Design file: [design file path] (if applicable)
+Constraint: Wording/clarification only, no architecture changes
+Output: Summary of changes with before/after
+```
+
+Re-present the changed section using agent output.
 
 **If a change requires re-architecture** (e.g., "use a different database", "change the auth approach"):
 1. Inform the user: "This change affects the architecture design. I have two options:"
-   - **Option A**: I'll delegate to code-architect to revise the design based on codebase context (best-effort, no re-exploration)
+   - **Option A**: I'll delegate to code-architect for design analysis, then product-manager for edits (best-effort, no re-exploration)
    - **Option B**: Re-run `/spec-plan` with this new constraint for a thorough re-analysis
-2. If Option A: delegate design revision to code-architect agent, re-present the agent's output, continue loop
+2. If Option A:
+   - Delegate design revision analysis to code-architect agent
+   - Delegate actual edits to product-manager agent using code-architect's output
+   - Re-present the updated design, continue loop
 3. If Option B: update progress file, exit, suggest `/spec-plan` command
 
 #### After Each Change

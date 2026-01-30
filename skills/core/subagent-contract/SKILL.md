@@ -1,18 +1,19 @@
 ---
 name: subagent-contract
 description: |
-  Standardized result format and communication protocol for all subagents.
-  Ensures consistent, aggregatable outputs across the SDD Toolkit.
+  Standardized communication protocol for orchestrators AND subagents.
+  Defines rules, responsibilities, and result formats for the delegation system.
 
   Use when:
-  - Defining new subagent behaviors
+  - Writing or maintaining command files (orchestrator rules)
+  - Defining new subagent behaviors (subagent rules)
   - Aggregating results from multiple agents
-  - Understanding subagent output expectations
-  - Designing inter-agent communication
+  - Understanding delegation constraints
+  - Handling agent failures (error handling section)
 
-  Trigger phrases: subagent format, agent output, result format, agent communication, orchestrator protocol
+  Trigger phrases: subagent format, agent output, result format, orchestrator rules, delegation protocol
 
-  This skill defines the CONTRACT between orchestrator and subagents.
+  This skill defines the CONTRACT between orchestrator and subagents - both sides.
 allowed-tools: Read
 model: sonnet
 user-invocable: false
@@ -397,6 +398,66 @@ Example:
 - qa-engineer also flags (conf: 78)
 - Combined: (95 + 78) / 2 + 10 (agreement bonus) = 96.5
 ```
+
+## Rules for Orchestrators
+
+The orchestrator (command executor) has specific responsibilities and constraints to maintain efficient context usage and delegation consistency.
+
+### Rules (L1 - Hard)
+
+Critical for context protection and delegation consistency.
+
+- **MUST delegate bulk Grep/Glob operations to `code-explorer`** - Use directly only for single targeted lookups (≤3 files)
+- **NEVER read more than 3 files directly** - Delegate bulk reading to subagents
+- **NEVER implement code yourself** - Delegate to specialist agents (frontend-specialist, backend-specialist, qa-engineer)
+- **NEVER write tests yourself** - Delegate to `qa-engineer`
+- **NEVER do security analysis yourself** - Delegate to `security-auditor`
+- **NEVER edit spec/design files directly** - Delegate to `product-manager`
+- **ALWAYS wait for subagent completion** before synthesizing results
+- **ALWAYS use subagent output** for context - do not re-read files the subagent already analyzed
+
+### Defaults (L2 - Soft)
+
+Important for orchestration quality. Override with reasoning when appropriate.
+
+- Launch parallel agents when tasks are independent
+- Use appropriate model for agent tasks (haiku for simple lookups, sonnet for analysis, opus for complex PRD)
+- Present subagent results to user before proceeding to next phase
+- Update progress files at each phase completion
+
+### Guidelines (L3)
+
+Recommendations for effective orchestration.
+
+- Consider splitting large tasks across multiple agents
+- Prefer asking user questions over guessing intent
+- Document agent failures in progress files for debugging
+
+### Orchestrator Responsibilities
+
+The orchestrator's ONLY responsibilities are:
+
+1. **Orchestrate** - Launch and coordinate subagents
+2. **Synthesize** - Combine subagent outputs into coherent summaries
+3. **Communicate** - Present findings and ask user questions
+4. **Track Progress** - Update TodoWrite and progress files
+5. **Verify Minimally** - Read specific files identified by subagents (max 3 at a time) only when necessary
+
+### Error Handling for Orchestrators
+
+When a subagent fails or times out:
+
+1. **Check partial output** for usable findings
+2. **Retry once** with reduced scope if critical
+3. **Proceed with available results** if non-critical, documenting the gap
+4. **Escalate to user** if critical agent fails after retry
+
+Add to progress file when agents fail:
+```json
+"warnings": ["Agent X failed, results may be incomplete"]
+```
+
+---
 
 ## Rules for Subagents
 

@@ -167,10 +167,13 @@ git add <file>
 
 **For "Combine both":**
 
-```
-DELEGATE to code-architect:
+**CRITICAL: code-architect is READ-ONLY (no Write/Edit tools). Delegate implementation to appropriate specialist.**
 
-Merge these two versions preserving both intents:
+```
+DELEGATE to appropriate specialist agent (frontend-specialist or backend-specialist):
+
+Task: Merge conflict resolution - combine both versions
+File: [conflicted file path]
 
 Ours version:
 [code from ours]
@@ -182,10 +185,13 @@ Requirements:
 - Preserve functionality from both changes
 - Resolve any logical conflicts
 - Maintain code style consistency
-- Remove conflict markers
+- Remove ALL conflict markers (<<<<<<< / ======= / >>>>>>>)
+- Stage the file after editing (git add)
+
+Output: Confirmation of merged file with conflict markers removed
 ```
 
-**After resolution:**
+**After specialist agent completes:**
 - Remove conflict markers
 - Stage the resolved file: `git add <file>`
 - Mark TodoWrite item as completed
@@ -194,27 +200,44 @@ Requirements:
 
 **Goal:** Ensure resolution doesn't break functionality.
 
-**DELEGATE verification to verification-specialist agent:**
+**CRITICAL: Split verification between agents based on their capabilities.**
+
+**Step 1: Launch verification-specialist for marker check (Read-only):**
 
 ```
 Launch verification-specialist agent:
-Task: Verify conflict resolution completeness
+Task: Verify conflict markers removed
 Inputs:
   - Resolved files: [list from Phase 4]
-  - Original conflict info: [from Phase 2 agents]
 Check:
   1. No conflict markers remain (<<<<<<< / ======= / >>>>>>>)
-  2. Syntax is valid (run linter)
-  3. Type check passes (if applicable)
-  4. Tests pass
+  2. File syntax appears valid (structural analysis)
 Output:
-  - Verification status for each check (PASS/FAIL)
-  - If FAIL: specific error details with file:line
-  - Overall verdict (VERIFIED / ISSUES_FOUND)
+  - Marker check status (PASS/FAIL)
+  - If FAIL: file:line locations of remaining markers
 Thoroughness: quick
 ```
 
-Use the agent's output for verification results. Do NOT run grep/lint/test commands directly in the parent context.
+**Step 2: Launch qa-engineer for execution-based verification (has Bash):**
+
+```
+Launch qa-engineer agent:
+Task: Run verification commands for resolved files
+Inputs:
+  - Resolved files: [list from Phase 4]
+Execute:
+  1. Linter (npm run lint / eslint / etc.)
+  2. Type check (tsc --noEmit / etc.) if applicable
+  3. Tests (npm test / pytest / etc.)
+Output:
+  - Execution status for each check (PASS/FAIL)
+  - If FAIL: specific error details with file:line
+  - Overall verdict (VERIFIED / ISSUES_FOUND)
+```
+
+**Note:** verification-specialist cannot run Bash commands. Use qa-engineer for lint/type/test execution.
+
+Use the agents' output for verification results. Do NOT run lint/test commands directly in the parent context.
 
 **If verification-specialist reports issues:**
 - Present which check(s) failed
