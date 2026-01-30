@@ -127,11 +127,10 @@ If product-manager fails or times out:
 
    Options:
    1. Retry context loading
-   2. Proceed with minimal context (higher risk of missing requirements)
-   3. Cancel and investigate the failure
+   2. Cancel and investigate the failure
    ```
-3. If user chooses option 2: Extract only build sequence from design file (minimal read)
-4. Add to progress file: `"warnings": ["Context loading failed, using minimal context"]`
+3. **CRITICAL: Do NOT proceed without context.** Implementation without spec/design understanding causes fundamental misalignment.
+4. Add to progress file: `"warnings": ["Context loading failed"]`
 
 #### Review-Aware Handoff
 

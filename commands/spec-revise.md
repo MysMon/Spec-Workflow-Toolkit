@@ -221,22 +221,19 @@ Do NOT consolidate results manually. Use the agent's consolidated output for Pha
 If verification-specialist fails or times out:
 1. Present findings from product-manager and code-architect separately (without consolidation)
 2. Warn user: "Impact analysis consolidation failed. Showing raw agent findings."
-3. Present classification options to user based on agent findings:
+3. Offer options to user:
    ```
    Based on the available analysis:
    - Product-manager found: [summary of spec impact]
    - Code-architect found: [summary of design impact]
 
-   Without consolidated analysis, please help me classify this change:
-   1. TRIVIAL - No spec/design impact
-   2. SMALL - Minor spec/design updates only
-   3. MEDIUM - Design revision needed
-   4. LARGE - Re-planning needed
-   5. NEW - Out of scope, new feature
+   Options:
+   1. Retry consolidation with verification-specialist
+   2. Cancel and investigate the failure
    ```
-4. Proceed with user-selected classification
+4. **CRITICAL: Do NOT proceed without consolidated classification.** Inaccurate classification leads to incorrect routing.
 
-**CRITICAL:** Do NOT attempt manual classification. Let the user decide based on presented agent findings.
+**Note:** Manual classification by orchestrator or user is prohibited. Always use verification-specialist for classification.
 
 **Present consolidated analysis to user (using verification-specialist output):**
 ```markdown

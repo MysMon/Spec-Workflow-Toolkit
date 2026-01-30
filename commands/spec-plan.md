@@ -244,6 +244,33 @@ The `code-explorer` agents already read and summarize the files. Use their outpu
 
 If specific file details are needed for clarification, delegate to `code-explorer` with a focused query.
 
+#### Consolidating Multiple Agent Outputs
+
+When all code-explorer agents complete, consolidate their findings as follows:
+
+1. **Combine by category:**
+   - Entry points and execution flows (from similar features agent)
+   - Architecture patterns and conventions (from architecture agent)
+   - UI patterns and data flow (from UI patterns agent, if applicable)
+
+2. **Identify overlaps:** If multiple agents mention the same file or pattern, note it as high-relevance
+
+3. **Create structured summary:**
+   ```markdown
+   ## Codebase Exploration Summary
+
+   ### Key Files
+   - [file path]: [relevance] (reported by: [agent(s)])
+
+   ### Patterns Identified
+   - [pattern]: [description]
+
+   ### Constraints Discovered
+   - [constraint]: [impact on design]
+   ```
+
+4. **Pass to Phase 3:** Use this consolidated summary as input for product-manager spec drafting
+
 **Present comprehensive summary of findings to user (using agent outputs).**
 
 **Progress Update:** currentPhase: "plan-exploration-complete"
