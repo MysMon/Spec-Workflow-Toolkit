@@ -88,13 +88,15 @@ Thoroughness: quick
 Output: Recent commits + production branch name
 ```
 
-Do NOT run git commands directly in the parent context. Use the agent's output for context.
+Do NOT run git analysis commands (git log, git diff, git show) directly in the parent context. Use the agent's output for context.
 
 ### Phase 2: Create Hotfix Branch (30 seconds)
 
 **Goal:** Isolate changes for safe deployment and easy rollback.
 
 **CRITICAL: Use production branch from Phase 1 code-explorer output**
+
+**Note:** Simple git state commands (fetch, checkout, branch creation) are allowed directly in the parent context. These are lightweight operations that don't consume context. The restriction in Phase 1 applies only to analysis commands.
 
 ```bash
 # Use production branch identified by code-explorer (do NOT assume 'main')
