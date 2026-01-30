@@ -63,16 +63,20 @@ Check if this is actually a quick task:
 
 Before implementing:
 
-1. **Detect stack** (via Task tool with subagent_type=Explore, or read config files like package.json, pyproject.toml)
-2. **Read related files** - Understand existing code
-3. **Check for tests** - Know what to update
+**CRITICAL: Delegate context gathering to Explore agent (do NOT read files directly):**
 
 ```
-Launch Task tool with subagent_type=Explore (quick mode) to find:
+Launch Task tool with subagent_type=Explore (quick mode):
+Task: Gather context for quick implementation
+Find:
+- Project stack detection (from config files)
 - Files related to [task]
 - Existing patterns for similar functionality
 - Test files to update
+Output: Stack info, related files, patterns to follow, test file paths
 ```
+
+Use the agent's output for context. Do NOT read config files or related files directly.
 
 ### Step 3: Implementation
 

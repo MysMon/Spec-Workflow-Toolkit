@@ -109,29 +109,23 @@ Output:
 
 **For test failures:**
 
-First, discover the project's test command:
+Include test command discovery in the code-explorer task above. The agent should identify the project's test framework and commands.
 
-```bash
-# Check for test scripts
-grep -E '"test"' package.json 2>/dev/null
-grep -E '^test:' Makefile 2>/dev/null
-ls pytest.ini setup.cfg pyproject.toml 2>/dev/null
+**Delegate environmental context collection to code-explorer:**
+
+```
+Launch code-explorer agent (if not already included above):
+Task: Collect environmental context for debugging
+Analyze:
+- Recent git changes (last 10 commits)
+- Uncommitted changes (git diff --stat)
+- Package manager and lock files
+- Dependency issues
+Thoroughness: quick
+Output: Environmental context summary
 ```
 
-Then run with verbose output using the discovered command.
-
-**Collect environmental context:**
-
-```bash
-# Check recent changes
-git log --oneline -10
-
-# Check if issue is in uncommitted changes
-git diff --stat
-
-# Check for dependency issues (discover package manager first)
-ls package-lock.json yarn.lock pnpm-lock.yaml requirements.txt Pipfile.lock go.sum 2>/dev/null
-```
+Use the agent's output for context. Do NOT run git/grep commands manually for context gathering.
 
 ### Phase 3: Root Cause Analysis
 

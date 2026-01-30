@@ -75,17 +75,17 @@ Supported CI platforms: GitHub Actions, GitLab CI, CircleCI, Jenkins, etc.
 
 **If job name or error message provided:**
 
-Search for related CI configuration and recent runs:
+Delegate CI configuration discovery to code-explorer:
 
-```bash
-# Find CI configuration files
-ls -la .github/workflows/ 2>/dev/null || \
-ls -la .gitlab-ci.yml 2>/dev/null || \
-ls -la .circleci/ 2>/dev/null || \
-ls -la Jenkinsfile 2>/dev/null
-
-# Check recent git history for CI-related changes
-git log --oneline -10 -- ".github/" ".gitlab-ci.yml" ".circleci/" "Jenkinsfile"
+```
+Launch code-explorer agent:
+Task: Find CI configuration and recent changes
+Analyze:
+- CI configuration files (.github/workflows/, .gitlab-ci.yml, .circleci/, Jenkinsfile)
+- Recent git history for CI-related changes
+- Match job name or error message to configuration
+Thoroughness: quick
+Output: CI platform, relevant config files, recent CI-related commits
 ```
 
 **If no argument:**
@@ -114,16 +114,23 @@ Options:
 | **Environment** | `command not found`, path issues, missing env vars | Phase 3E |
 | **Timeout** | `exceeded`, `timed out`, resource limits | Phase 3F |
 
-**Analyze log patterns:**
+**Delegate log analysis to code-explorer:**
 
 ```
-Look for:
+Launch code-explorer agent:
+Task: Analyze CI log for failure patterns
+Inputs: CI log content (from WebFetch or user)
+Analyze:
 - Exit codes (non-zero indicates failure point)
 - Error messages with file:line references
 - Stack traces
 - "FAILED" or "ERROR" markers
 - Difference between local and CI environment
+Thoroughness: medium
+Output: Failure category, specific error location, suggested resolution path
 ```
+
+Use the agent's output for classification. Do NOT analyze logs manually.
 
 ### Phase 3A: Test Failure Resolution
 
