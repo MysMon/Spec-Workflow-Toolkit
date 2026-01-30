@@ -75,15 +75,20 @@ Options:
 - When it started
 - Any recent deployments
 
-**Quick context check:**
+**Quick context check (delegate to code-explorer):**
 
-```bash
-# Recent deployments
-git log --oneline -5 --date=short
-
-# Current production branch
-git branch -r | grep -E "(main|master|production|release)"
 ```
+Launch code-explorer agent:
+Task: Quick production context for hotfix
+Analyze:
+- Recent deployments (git log --oneline -5 --date=short)
+- Production branch identification (main/master/production/release)
+- Latest deploy timestamp
+Thoroughness: quick
+Output: Recent commits + production branch name
+```
+
+Do NOT run git commands directly in the parent context. Use the agent's output for context.
 
 ### Phase 2: Create Hotfix Branch (30 seconds)
 

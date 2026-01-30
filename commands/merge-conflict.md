@@ -51,21 +51,29 @@ A structured workflow to analyze, resolve, and verify git merge conflicts using 
 
 **Goal:** Identify all files with conflicts and their scope.
 
-**Detect conflicts:**
+**CRITICAL: Delegate conflict detection to code-explorer agent (do NOT run git commands directly):**
 
-```bash
-# List conflicted files
-git diff --name-only --diff-filter=U
-
-# Get conflict summary
-git status --porcelain | grep "^UU\|^AA\|^DD"
+```
+Launch code-explorer agent:
+Task: Detect all git merge conflicts
+Run:
+- git diff --name-only --diff-filter=U (list conflicted files)
+- git status --porcelain (get conflict summary)
+Extract:
+- List of conflicted file paths
+- Conflict status for each file (UU, AA, DD)
+- Total conflict count
+Thoroughness: quick
+Output: Structured list of [file_path, conflict_status]
 ```
 
-**If no conflicts detected:**
+Use the agent's output for conflict information. Do NOT run git commands directly in the parent context.
+
+**If agent reports no conflicts:**
 - Inform user no conflicts exist
 - Suggest checking `git status` for current state
 
-**Create TodoWrite list** with each conflicted file.
+**Create TodoWrite list** using the agent's output (each conflicted file as one item).
 
 ### Phase 2: Conflict Analysis
 

@@ -248,7 +248,10 @@ Based on discovery and exploration, identify:
 **CRITICAL: Wait for user answers before proceeding.**
 
 **Draft the specification:**
-If a spec already exists, review/update it. Otherwise, draft a new spec using `product-manager`.
+
+**CRITICAL: ALL spec work must be delegated to `product-manager` agent.**
+
+Whether reviewing/updating an existing spec or drafting a new one, delegate to `product-manager`.
 
 ```
 Launch product-manager agent to draft the spec:
