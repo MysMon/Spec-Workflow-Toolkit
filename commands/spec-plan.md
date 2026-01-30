@@ -71,7 +71,7 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 | `code-explorer` | Sonnet | Deep codebase analysis (4-phase exploration) |
 | Built-in `Explore` | Haiku | Quick lookups and simple searches |
 | `code-architect` | Sonnet | Feature-level implementation blueprints |
-| `product-manager` | Sonnet | Specification drafting |
+| `product-manager` | Opus | Specification drafting (high-quality PRD) |
 | `verification-specialist` | Sonnet | Reference validation |
 
 ---
@@ -261,6 +261,16 @@ Inputs: Clarified requirements + exploration findings + user domain knowledge
 Output: Draft spec for user review
 ```
 
+**Error Handling for product-manager:**
+If product-manager fails or times out:
+1. Check the agent's partial output for usable draft content
+2. Retry once with reduced scope (focus on core requirements only)
+3. If retry fails, inform user and offer options:
+   - "Proceed with partial spec and refine manually"
+   - "Retry with simplified requirements"
+   - "Cancel and investigate the failure"
+4. Add to progress file: `"warnings": ["product-manager failed, spec may be incomplete"]`
+
 #### Specification Refinement Loop (max 3 iterations)
 
 Present the draft spec to the user and ask:
@@ -319,6 +329,13 @@ Launch these code-architect agents in parallel:
 
 **Wait for all agents to complete.**
 
+**Error Handling for code-architect agents:**
+If any code-architect agent fails or times out:
+1. Check the agent's partial output for usable analysis
+2. If critical analysis failed (reuse analysis), retry once with reduced scope
+3. If non-critical analysis failed (performance), proceed with available results
+4. Add to progress file: `"warnings": ["code-architect [type] failed, design may be incomplete"]`
+
 **Delegate design synthesis to product-manager agent:**
 
 ```
@@ -340,6 +357,16 @@ Output: Draft design document content
 ```
 
 Use the agent's output for the design document. Do NOT synthesize manually.
+
+**Error Handling for design synthesis:**
+If product-manager fails during synthesis:
+1. Check partial output for usable design elements
+2. Retry once with summarized code-architect outputs
+3. If retry fails, inform user and offer options:
+   - "Use available code-architect outputs directly (less integrated)"
+   - "Retry synthesis with simplified inputs"
+   - "Cancel and investigate"
+4. Add to progress file: `"warnings": ["design synthesis failed"]`
 
 #### Architecture Refinement Loop (max 3 iterations)
 

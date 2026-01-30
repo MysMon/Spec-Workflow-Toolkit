@@ -60,9 +60,9 @@ Process user change requests after `/spec-implement` completion. This command re
    - Review log: Use Glob to check if `docs/specs/[feature-name]-review.md` exists
    - Progress file: Use Glob to check if `.claude/workspaces/{id}/claude-progress.json` exists
 
-**CRITICAL: For initial context loading, do NOT read spec/design files directly. Delegate to subagent.**
+**CRITICAL: Do NOT read spec/design files directly. ALWAYS delegate to subagent.**
 
-(Exception: In Phase 5 when applying SMALL changes, you may read the specific sections needed for direct editing.)
+This applies to ALL phases including Phase 5 (TRIVIAL/SMALL changes). The orchestrator never edits spec/design files directly.
 
 **Delegate context loading to `product-manager` agent:**
 
@@ -331,17 +331,37 @@ Options:
 
 **Goal:** Apply changes when classification allows direct action.
 
+**CRITICAL: Even for TRIVIAL/SMALL changes, delegate editing to product-manager agent.**
+
+The orchestrator does NOT edit spec/design files directly. This maintains the delegation principle consistently.
+
 #### For TRIVIAL Changes
 
-1. Apply the fix using Edit tool
-2. Run verification:
-   ```
-   Launch verification-specialist agent:
-   Task: Verify change is consistent with spec and design
-   Inputs: Changed files + spec + design
-   Output: Consistency check result
-   ```
-3. Present result to user
+TRIVIAL changes are single-value fixes (typos, version numbers, dates) that:
+- Affect only 1-2 lines
+- Have no semantic impact
+- Require no judgment calls
+
+**Delegate to product-manager:**
+
+```
+Launch product-manager agent:
+Task: Apply trivial change to spec/design
+Change request: [user's request]
+File(s): [spec and/or design file paths]
+Constraint: Single-value fix only, no semantic changes
+Output: Confirmation of change with before/after
+```
+
+**After agent completes, run verification:**
+```
+Launch verification-specialist agent:
+Task: Verify change is consistent with spec and design
+Inputs: Changed files + spec + design
+Output: Consistency check result
+```
+
+Present result to user.
 
 #### For SMALL Changes
 
@@ -358,25 +378,36 @@ SMALL changes are minor edits that meet ALL of these criteria:
 
 If ANY criterion is not met, escalate to MEDIUM and recommend `/spec-review`.
 
-For qualifying SMALL changes, edit directly:
+**Delegate to product-manager:**
 
-1. Read the specific section(s) needed for editing (this is the exception to the initial "do not read" rule)
-2. Edit spec file with changes (using Edit tool)
-3. Edit design file with changes (using Edit tool)
-4. Present diff summary:
-   ```
-   ## Changes Applied
+```
+Launch product-manager agent:
+Task: Apply small change to spec and design
+Change request: [user's request]
+Spec file: [spec file path]
+Design file: [design file path]
+Impact analysis: [summary from Phase 3]
+Constraints:
+- Less than 20 lines changed
+- No architecture changes
+- Maintain document consistency
+Output:
+- Summary of changes made
+- Before/after for each modified section
+```
 
-   ### Specification Updates
-   - [Change 1]
-   - [Change 2]
+**Present agent's output as diff summary:**
+```
+## Changes Applied
 
-   ### Design Updates
-   - [Change 1]
-   - [Change 2]
+### Specification Updates
+[from product-manager output]
 
-   Next: Run /quick-impl to implement these changes.
-   ```
+### Design Updates
+[from product-manager output]
+
+Next: Run /quick-impl to implement these changes.
+```
 
 ---
 

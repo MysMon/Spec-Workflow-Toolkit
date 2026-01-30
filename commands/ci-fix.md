@@ -180,73 +180,107 @@ qa-engineer has the `testing` skill which includes:
 
 **Goal:** Fix compilation or build errors.
 
-1. **Identify build step:**
-   - Compilation (TypeScript, Go, Rust, etc.)
-   - Bundling (webpack, vite, etc.)
-   - Docker build
+**CRITICAL: Delegate build error analysis and reproduction to appropriate specialist:**
 
-2. **Common patterns:**
+```
+Launch backend-specialist agent (or frontend-specialist for UI build issues):
+Task: Analyze and fix CI build error
+Inputs:
+  - CI log content (from Phase 2 analysis)
+  - Build system type (TypeScript/webpack/vite/Docker/etc.)
+Do:
+  1. Identify build step that failed (compilation, bundling, Docker)
+  2. Reproduce build locally (npm ci && npm run build or equivalent)
+  3. Analyze the error:
+     - Type errors → Fix type definitions
+     - Module not found → Check imports, install deps
+     - Syntax error → Fix at indicated line
+     - Memory exceeded → Suggest optimization
+  4. Implement the fix
+Output:
+  - Root cause analysis
+  - Reproduction results
+  - Changes made to fix the issue
+```
 
-   | Error Type | Typical Cause | Fix |
-   |------------|---------------|-----|
-   | Type errors | Missing types, wrong imports | Fix type definitions |
-   | Module not found | Missing dependency, wrong path | Check imports, install deps |
-   | Syntax error | Invalid code | Fix syntax at indicated line |
-   | Memory exceeded | Large build, inefficient bundling | Optimize or increase limit |
+Do NOT run build commands directly in the parent context. Use the agent's output for next steps.
 
-3. **Reproduce locally:**
-   ```bash
-   # Match CI environment
-   npm ci  # Clean install
-   npm run build
-   ```
+**Common patterns reference:**
+
+| Error Type | Typical Cause | Fix |
+|------------|---------------|-----|
+| Type errors | Missing types, wrong imports | Fix type definitions |
+| Module not found | Missing dependency, wrong path | Check imports, install deps |
+| Syntax error | Invalid code | Fix syntax at indicated line |
+| Memory exceeded | Large build, inefficient bundling | Optimize or increase limit |
 
 ### Phase 3C: Lint/Format Error Resolution
 
 **Goal:** Fix code style violations.
 
-1. **Run linter locally:**
-   ```bash
-   npm run lint
-   # or
-   python -m black --check .
-   python -m flake8
-   ```
+**CRITICAL: Delegate lint/format analysis and auto-fix to qa-engineer agent:**
 
-2. **Auto-fix if possible:**
-   ```bash
-   npm run lint -- --fix
-   # or
-   python -m black .
-   ```
+```
+Launch qa-engineer agent:
+Task: Analyze and fix CI lint/format errors
+Inputs:
+  - CI log content (from Phase 2 analysis)
+  - Linter type (eslint/prettier/black/flake8/etc.)
+Do:
+  1. Run linter locally to reproduce (npm run lint / python -m black --check / etc.)
+  2. Apply auto-fix where possible (npm run lint -- --fix / python -m black . / etc.)
+  3. For remaining issues that cannot be auto-fixed:
+     - Review each violation
+     - Fix manually or add justified ignore comment
+  4. Verify all lint checks pass after fixes
+Output:
+  - List of violations found
+  - Auto-fixes applied
+  - Manual fixes applied
+  - Remaining issues (if any) with justification
+```
 
-3. **For remaining issues:**
-   - Review each violation
-   - Fix manually or add justified ignore comment
+Do NOT run lint commands directly in the parent context. Use the agent's output for next steps.
 
 ### Phase 3D: Dependency Resolution
 
 **Goal:** Fix package/dependency issues.
 
-1. **Common issues:**
+**CRITICAL: Delegate dependency analysis and resolution to backend-specialist agent:**
 
-   | Issue | Diagnosis | Resolution |
-   |-------|-----------|------------|
-   | Version conflict | Multiple packages need different versions | Update or use resolutions |
-   | Missing peer dep | Peer dependency not installed | Install explicitly |
-   | Lock file mismatch | package-lock.json out of sync | Regenerate lock file |
-   | Private package | Auth issue in CI | Check CI secrets |
+```
+Launch backend-specialist agent:
+Task: Analyze and fix CI dependency issues
+Inputs:
+  - CI log content (from Phase 2 analysis)
+  - Package manager type (npm/yarn/pip/etc.)
+Do:
+  1. Diagnose the issue:
+     - Version conflict → Update or use resolutions
+     - Missing peer dep → Install explicitly
+     - Lock file mismatch → Regenerate lock file
+     - Private package → Flag auth issue for CI secrets
+  2. Apply fix:
+     - For lock file issues: regenerate (rm -rf node_modules && npm install)
+     - For version conflicts: update package.json or add resolutions
+     - For peer deps: add explicit dependency
+  3. Verify dependencies install cleanly
+Output:
+  - Root cause identified
+  - Fix applied
+  - If auth issue: instructions for CI secrets configuration
+```
 
-2. **Verify lock file:**
-   ```bash
-   # Regenerate lock file
-   rm -rf node_modules package-lock.json
-   npm install
+Do NOT run dependency commands directly in the parent context. Use the agent's output for next steps.
 
-   # Or for yarn
-   rm -rf node_modules yarn.lock
-   yarn install
-   ```
+**Common issues reference:**
+
+| Issue | Diagnosis | Resolution |
+|-------|-----------|------------|
+| Version conflict | Multiple packages need different versions | Update or use resolutions |
+| Missing peer dep | Peer dependency not installed | Install explicitly |
+| Lock file mismatch | package-lock.json out of sync | Regenerate lock file |
+| Private package | Auth issue in CI | Check CI secrets |
 
 ### Phase 3E: Environment Issues
 
@@ -331,12 +365,29 @@ Include relevant CI log context in the prompt.
 
 **Goal:** Confirm fix works before pushing.
 
-```bash
-# Run the CI checks locally
-npm ci && npm run lint && npm run test && npm run build
+**CRITICAL: Delegate local verification to qa-engineer agent:**
 
-# Or the equivalent for your stack
 ```
+Launch qa-engineer agent:
+Task: Run full CI verification locally
+Inputs:
+  - CI configuration (from Phase 1)
+  - Changes made (from Phase 4)
+Do:
+  1. Run the same checks that CI runs:
+     - Install dependencies (npm ci / pip install / etc.)
+     - Run linter (npm run lint / etc.)
+     - Run tests (npm test / pytest / etc.)
+     - Run build (npm run build / etc.)
+  2. Verify all checks pass
+  3. Check for any side effects from the fix
+Output:
+  - Verification status for each check (PASS/FAIL)
+  - If FAIL: specific error details
+  - Confirmation fix addresses root cause
+```
+
+Do NOT run CI check commands directly in the parent context. Use the agent's output for summary.
 
 **If verification passes:**
 
