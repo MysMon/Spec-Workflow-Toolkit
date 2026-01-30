@@ -84,6 +84,13 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 
 **Before creating new progress files, check if work already exists for this project.**
 
+**Why progress file reading is acceptable (not delegated):**
+- Progress files are orchestrator state metadata (not project content)
+- Status checking is quick validation (typically <20 lines of JSON)
+- Essential to avoid duplicate work and maintain session continuity
+- Minimal context consumption compared to spec/design content analysis
+- Consistent with resume.md Phase 3 pattern
+
 1. **Check for existing progress file:**
    - Generate workspace ID: `{branch}_{path-hash}` (from SessionStart hook context)
    - Look for `.claude/workspaces/{workspace-id}/claude-progress.json`
@@ -146,12 +153,23 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 
 #### Discovery Work
 
-If the user provided a feature description (`$ARGUMENTS`), do a **light mental check** (do NOT read files or do deep analysis):
-- Is the problem statement clear?
-- Are target users identifiable?
-- Are there obvious constraints?
+If the user provided a feature description (`$ARGUMENTS`), perform a **quick clarity assessment** based on the provided text only:
 
-**Then immediately use AskUserQuestion to confirm your understanding and fill gaps.**
+**What "quick clarity assessment" means:**
+- Review ONLY the user's input string (no file reads, no codebase exploration)
+- Check if basic information is present or missing
+- Takes seconds, not minutes — pure text analysis of the argument
+
+**Assess these 3 criteria:**
+1. **Problem statement:** Can you understand what problem to solve from the text alone?
+2. **Target users:** Are intended users mentioned or inferable?
+3. **Constraints:** Are there obvious scope limits or requirements stated?
+
+**What to do next:**
+- If all 3 are clear: Use AskUserQuestion to confirm your understanding
+- If 1+ are unclear: Use AskUserQuestion to fill the gaps before proceeding
+
+**CRITICAL:** Do NOT read files or explore codebase at this point. Codebase exploration happens in Phase 2 after requirements are understood.
 
 **CRITICAL: Use AskUserQuestion when request is vague or ambiguous.**
 
