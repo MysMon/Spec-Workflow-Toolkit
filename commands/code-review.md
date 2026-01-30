@@ -79,21 +79,32 @@ gh pr diff 123
 
 ### Step 2: Gather Context
 
-Before launching agents, gather:
-1. **CLAUDE.md contents** - Project guidelines
-2. **Related files** - Files that interact with changed code
-3. **Recent history** - Why these files were changed recently
+Before launching review agents, delegate context gathering to code-explorer:
 
-```bash
-# Find CLAUDE.md files
-find . \( -name "CLAUDE.md" -o -path "./.claude/rules/*.md" \)
-
-# Get git blame for changed lines
-git blame [files]
-
-# Get recent commits touching these files
-git log --oneline -10 -- [files]
 ```
+Launch Task tool with subagent_type=Explore (model: haiku):
+
+Prompt:
+Gather review context for code review.
+
+Tasks:
+1. Find all CLAUDE.md files and .claude/rules/*.md files
+2. Summarize key guidelines relevant to changed files
+3. Get git blame for changed lines (identify recent authors)
+4. Get recent commit history touching these files
+
+Changed files:
+[list of files from Step 1]
+
+Output:
+- CLAUDE.md guidelines summary (relevant rules only)
+- Git history context (recent changes, authors)
+- Related files that may be affected
+
+Thoroughness: quick
+```
+
+Use the context summary from code-explorer in Step 3 agent prompts.
 
 ### Step 3: Launch 5 Parallel Review Agents (Sonnet)
 

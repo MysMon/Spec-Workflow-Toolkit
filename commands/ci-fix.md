@@ -300,13 +300,27 @@ Look for:
 
 **Goal:** Apply the identified fix.
 
-**IMPORTANT:** Use appropriate specialist agents for implementation.
+**IMPORTANT:** ALWAYS delegate implementation to appropriate specialist agents.
 
 ```
-For test fixes → delegate to qa-engineer
-For code changes → delegate to frontend-specialist or backend-specialist
-For config changes → can modify directly (CI config is usually simple)
+Launch Task tool with appropriate specialist:
+
+For test fixes → qa-engineer
+For code changes → frontend-specialist or backend-specialist
+For CI config changes → backend-specialist (model: haiku for simple fixes)
+
+Prompt:
+CI fix required.
+File: [file path]
+Issue: [error from CI log]
+Fix needed: [specific change]
+
+Include relevant CI log context in the prompt.
 ```
+
+**Direct modification allowed ONLY for:**
+- Single-line environment variable changes in CI config
+- Version number updates (e.g., Node version in workflow)
 
 **After implementing:**
 
