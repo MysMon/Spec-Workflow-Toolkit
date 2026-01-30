@@ -57,6 +57,21 @@ Output:
 
 Use the agent's summary output for presenting to user. Do NOT read spec/design files directly.
 
+**Error Handling for product-manager (content loading):**
+If product-manager fails or times out:
+1. Retry once with reduced scope (focus on key requirements list only)
+2. If retry fails, inform user:
+   ```
+   Content loading failed. Cannot summarize spec and design for review.
+
+   Options:
+   1. Retry content loading
+   2. Skip guided review and show file paths only
+   3. Cancel and investigate the failure
+   ```
+3. If user chooses option 2: Show file paths and suggest manual review
+4. Add warning to review log: "Content loading failed, guided review skipped"
+
 ### Step 2: Auto Review (only if `--auto` flag is present)
 
 **If `--auto` is specified**, launch 5 parallel review agents before the user feedback loop:

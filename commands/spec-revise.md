@@ -414,6 +414,25 @@ Output: Consistency check result
 
 Present result to user.
 
+**Error Handling for TRIVIAL execution:**
+If product-manager fails or times out:
+1. Retry once with explicit single-line focus
+2. If retry fails, inform user:
+   ```
+   Trivial change application failed.
+
+   Options:
+   1. Retry with simplified request
+   2. Escalate to SMALL classification
+   3. Cancel the change
+   ```
+3. Add to progress file: `"warnings": ["TRIVIAL change application failed"]`
+
+If verification-specialist fails:
+1. Warn user: "Consistency check could not be completed."
+2. Proceed with change applied but unverified
+3. Add to progress file: `"warnings": ["Change applied but not verified"]`
+
 #### For SMALL Changes
 
 SMALL changes are minor edits that meet ALL of these criteria:
@@ -459,6 +478,20 @@ Output:
 
 Next: Run /quick-impl to implement these changes.
 ```
+
+**Error Handling for SMALL execution:**
+If product-manager fails or times out:
+1. Retry once with single-file focus (spec or design, not both)
+2. If retry fails, inform user:
+   ```
+   Small change application failed.
+
+   Options:
+   1. Retry with single-file scope
+   2. Escalate to MEDIUM classification (use /spec-review)
+   3. Cancel the change
+   ```
+3. Add to progress file: `"warnings": ["SMALL change application failed"]`
 
 ---
 
