@@ -249,23 +249,22 @@ Run full test suite, confirm no regressions
 
 **Goal:** Confirm the fix works.
 
-**Discover and run verification commands:**
+**Discover verification commands using code-explorer (do NOT run grep directly):**
 
-```bash
-# Discover test command
-grep -E '"test"' package.json 2>/dev/null && echo "npm test"
-grep -E '^test:' Makefile 2>/dev/null && echo "make test"
-ls pytest.ini 2>/dev/null && echo "pytest"
-
-# Discover build command
-grep -E '"build"' package.json 2>/dev/null && echo "npm run build"
-grep -E '^build:' Makefile 2>/dev/null && echo "make build"
-
-# Discover lint command
-grep -E '"lint"' package.json 2>/dev/null && echo "npm run lint"
+```
+Launch code-explorer agent:
+Task: Discover project verification commands
+Analyze:
+- Test command (package.json scripts, Makefile, pytest.ini, etc.)
+- Build command (package.json scripts, Makefile, etc.)
+- Lint command (package.json scripts, linter configs)
+Thoroughness: quick
+Output: List of available commands with their invocations
 ```
 
-Run discovered commands to verify fix.
+Use the agent's output to determine available verification commands. Do NOT run grep commands directly in the parent context (per line 128 rule).
+
+**Run discovered commands to verify fix** (execution is OK, discovery is delegated).
 
 **If tests fail after fix:**
 

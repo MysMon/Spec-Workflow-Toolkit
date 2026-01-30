@@ -239,7 +239,15 @@ Options:
 
 **If "Show more details":**
 - Display full progress log
-- Read and summarize key files
+- Delegate key file summarization to code-explorer agent (do NOT read files directly):
+  ```
+  Launch code-explorer agent:
+  Task: Summarize key files for detailed status review
+  Inputs: List of file:line references from progress file
+  Thoroughness: quick
+  Output: Brief summary of each file's current state
+  ```
+- Display agent's summary
 - Return to confirmation
 
 **If "Start fresh":**

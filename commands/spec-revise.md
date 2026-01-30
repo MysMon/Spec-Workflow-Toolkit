@@ -163,20 +163,38 @@ Examples:
 
 **Wait for both agents to complete.**
 
-**Consolidate findings:**
+**CRITICAL: Delegate result consolidation to verification-specialist agent:**
+
+```
+Launch verification-specialist agent:
+Task: Consolidate and cross-reference impact analysis from product-manager and code-architect
+Inputs:
+  - Change request summary
+  - Product-manager findings (spec impact)
+  - Code-architect findings (design impact)
+Output:
+  - Consolidated impact analysis with verified references
+  - Recommended classification (TRIVIAL/SMALL/MEDIUM/LARGE/NEW)
+  - Confidence scores for each determination
+  - Identified contradictions or gaps between analyses
+```
+
+Do NOT consolidate results manually. Use the agent's consolidated output for Phase 4 presentation.
+
+**Present consolidated analysis to user (using verification-specialist output):**
 ```markdown
 ## Impact Analysis
 
 ### Specification Impact
-- **Affected Requirements:** [list from product-manager]
-- **New Requirements:** [list]
-- **Scope Assessment:** [in-scope / out-of-scope / boundary]
+- **Affected Requirements:** [from consolidated output]
+- **New Requirements:** [from consolidated output]
+- **Scope Assessment:** [from consolidated output]
 
 ### Design Impact
-- **Affected Components:** [list from code-architect]
-- **Architecture Changes:** [none / minor / significant]
-- **Complexity:** [low / medium / high]
-- **Risks:** [list]
+- **Affected Components:** [from consolidated output]
+- **Architecture Changes:** [from consolidated output]
+- **Complexity:** [from consolidated output]
+- **Risks:** [from consolidated output]
 
 ### Classification
 [See Phase 4 for classification result]

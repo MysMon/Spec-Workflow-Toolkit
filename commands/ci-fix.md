@@ -136,63 +136,45 @@ Use the agent's output for classification. Do NOT analyze logs manually.
 
 **Goal:** Identify and fix failing tests.
 
-1. **Extract failing test info:**
-   - Test file and name
-   - Expected vs actual values
-   - Stack trace location
+**CRITICAL: Delegate ALL test analysis and reproduction to qa-engineer agent:**
 
-2. **Reproduce locally:**
-   ```bash
-   # Run the specific failing test
-   npm test -- --testNamePattern="failing test name"
-   # or
-   pytest path/to/test.py::test_name -v
-   ```
+```
+Launch qa-engineer agent:
+Task: Analyze and diagnose test failure from CI
+Inputs:
+  - CI log content (from Phase 2 analysis)
+  - Test framework type (jest, pytest, etc.)
+Do:
+  1. Extract failing test info (file, name, expected vs actual, stack trace)
+  2. Reproduce locally by running the specific failing test
+  3. Analyze the difference (flaky, environment, recent code change)
+  4. Check for flaky test indicators by running multiple times
+  5. Categorize the issue (test logic, code bug, flaky test, environment)
+Output:
+  - Root cause analysis
+  - Reproduction results
+  - Recommended fix approach
+  - If flaky: specific pattern detected and suggested fix
+```
 
-3. **Analyze the difference:**
-   - Is it a flaky test? (timing, randomness)
-   - Environment difference? (CI has different config)
-   - Recent code change? (check git blame)
+Do NOT extract test info or run tests directly in the parent context. Use the agent's output for next steps.
 
-4. **Check for flaky test:**
+**Based on qa-engineer analysis:**
 
-   Before investing in fixes, verify the test isn't flaky:
+| Agent's Diagnosis | Next Step |
+|-------------------|-----------|
+| Test logic issue | Agent provides fix, review and apply |
+| Code bug | Delegate to appropriate specialist with qa-engineer's analysis |
+| Flaky test | Agent applies testing skill patterns (explicit waits, data isolation, mocking) |
+| Environment issue | Proceed to Phase 3E |
 
-   ```bash
-   # Run the failing test multiple times locally
-   for i in {1..5}; do npm test -- --testNamePattern="suspect test" && echo "Pass $i" || echo "FAIL $i"; done
-
-   # For pytest
-   for i in {1..5}; do pytest path/to/test.py::test_name -x && echo "Pass $i" || echo "FAIL $i"; done
-   ```
-
-   **Flaky test indicators:**
-   - Test passes some runs, fails others (without code changes)
-   - Test fails only in CI but passes locally
-   - Test mentions timing, sleep, or async operations
-   - Different results when run in isolation vs full suite
-
-   **If flaky test confirmed:**
-
-   Refer to the `testing` skill for comprehensive flaky test management (delegate to qa-engineer who has this skill, or read `skills/workflows/testing/SKILL.md` for reference):
-   - **Detection patterns**: Local and CI-based flaky test detection
-   - **Common causes and solutions**: Timing dependencies, shared state, race conditions
-   - **Fix strategies**: Explicit waits, test data isolation, time mocking, random seeding
-   - **Quarantine protocol**: How to skip flaky tests safely with proper tracking
-   - **CI retry strategies**: Framework-specific retry options
-
-   Quick fixes to try first:
-   - Replace `sleep()` with explicit wait conditions
-   - Isolate test data (unique per test, not shared)
-   - Mock time-dependent code
-   - Seed random generators for reproducibility
-
-5. **Delegate fix to appropriate agent:**
-   ```
-   If test logic issue → delegate to qa-engineer
-   If code bug → delegate to appropriate specialist
-   If flaky test → load testing skill, apply Flaky Test Management patterns
-   ```
+**Flaky test reference:**
+qa-engineer has the `testing` skill which includes:
+- **Detection patterns**: Local and CI-based flaky test detection
+- **Common causes and solutions**: Timing dependencies, shared state, race conditions
+- **Fix strategies**: Explicit waits, test data isolation, time mocking, random seeding
+- **Quarantine protocol**: How to skip flaky tests safely with proper tracking
+- **CI retry strategies**: Framework-specific retry options
 
 ### Phase 3B: Build Error Resolution
 
@@ -270,22 +252,32 @@ Use the agent's output for classification. Do NOT analyze logs manually.
 
 **Goal:** Fix CI environment configuration.
 
-1. **Check environment differences:**
-   - Node/Python/Go version
-   - Environment variables
-   - File system paths
-   - Available commands
+**Delegate environment comparison to code-explorer agent:**
 
-2. **Compare with CI config:**
-   ```
-   Read CI configuration file
-   Check specified versions and environment setup
-   ```
+```
+Launch code-explorer agent:
+Task: Compare local environment with CI configuration
+Analyze:
+  - CI configuration files (.github/workflows/, .gitlab-ci.yml, etc.)
+  - Specified runtime versions (Node, Python, Go, etc.)
+  - Environment variable usage
+  - System dependency requirements
+Compare with local:
+  - Local runtime versions (node -v, python --version, etc.)
+  - Differences in environment setup
+Thoroughness: medium
+Output:
+  - Environment differences found
+  - Specific version mismatches
+  - Missing environment variables or dependencies
+```
 
-3. **Common fixes:**
-   - Pin runtime version in CI config
-   - Add missing environment variables to CI secrets
-   - Install required system dependencies
+Do NOT read CI configuration files directly in the parent context. Use the agent's analysis for next steps.
+
+**Common fixes (based on agent's analysis):**
+- Pin runtime version in CI config
+- Add missing environment variables to CI secrets
+- Install required system dependencies
 
 ### Phase 3F: Timeout/Resource Issues
 

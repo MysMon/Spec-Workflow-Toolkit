@@ -81,14 +81,14 @@ Thoroughness: medium
 Output: Convention summary with file:line examples
 ```
 
-**Check for existing configuration (use Glob for existence check only):**
+**CRITICAL: Do NOT run Glob commands separately for configuration check.**
 
-Use Glob to check for existing configuration files:
+The code-explorer agent above already includes configuration file discovery in its analysis:
 - `.claude/`, `CLAUDE.md`, `.claude/rules/`
 - Quality tool configs (`.*rc*`, `*.config.*`)
 - Editor configs (`.editorconfig`, `.vscode/`, `.idea/`)
 
-The code-explorer agent above should include these in its analysis.
+Use the agent's output directly. Do NOT duplicate with separate Glob commands.
 
 **Output:** Discovered patterns with specific examples from the codebase (from agent output).
 
@@ -215,14 +215,13 @@ Only create path-specific rules if:
 1. User indicated different rules for different areas
 2. Analysis found clear separation in codebase
 
-**Discover paths from analysis, don't hardcode:**
+**Discover paths from Phase 2 analysis, don't hardcode or run commands:**
 
-```bash
-# Find actual directory structure
-find . -maxdepth 2 -type d | grep -v node_modules | grep -v .git | head -20
-```
+The code-explorer agent in Phase 2 already discovered the directory structure. Use that output directly.
 
-Create path-conditional rules using discovered paths:
+Do NOT run find commands in the parent context. If additional path discovery is needed, delegate to code-explorer.
+
+Create path-conditional rules using discovered paths (from Phase 2 agent output):
 
 ```yaml
 ---
