@@ -32,6 +32,42 @@ From Claude Code Best Practices:
 | Direct exploration | 10,000+ tokens | Context exhaustion |
 | Subagent exploration | ~500 token summary | Clean main context |
 
+#### Command Delegation Guidelines
+
+Commands should delegate to subagents to preserve the orchestrator's context window. However, not everything needs delegation.
+
+**MUST delegate (context-heavy):**
+
+| Task | Delegate To |
+|------|-------------|
+| Spec/design file reading and analysis | `product-manager` |
+| Codebase exploration and context gathering | `code-explorer` |
+| Multi-file changes or complex logic | Appropriate specialist |
+| CI log analysis | `code-explorer` |
+| Documentation discovery | `code-explorer` |
+
+**Direct execution OK (minimal context):**
+
+| Task | Why Direct is OK |
+|------|------------------|
+| SMALL changes (minor edits to spec/design) | Single Edit tool call, minimal tokens |
+| Single config value changes | One-line modification |
+| File existence checks | Glob returns paths only, not content |
+| Presenting summaries from agent output | Already summarized |
+
+**Anti-pattern: Over-delegation**
+
+Delegating trivial tasks wastes subagent resources and adds latency:
+
+```markdown
+# BAD: Delegating a one-line edit
+Launch product-manager agent:
+Task: Edit spec to change "1 hour" to "24 hours"
+
+# GOOD: Direct edit for minor changes
+Use Edit tool to change "1 hour" to "24 hours" in spec file
+```
+
 ---
 
 ## Instruction Design Guidelines
@@ -229,6 +265,40 @@ skills: skill1, skill2
 | **Haiku** | Fast, cheap operations | Scoring in /code-review |
 | **inherit** | User controls tradeoff | frontend-specialist, backend-specialist |
 
+#### Skill Assignment Guidelines
+
+Skills are fully injected into agent context. Each skill consumes ~2,500-3,000 tokens.
+
+**Include only skills the agent actually uses:**
+
+| Skill Type | Include For | Don't Include For |
+|------------|-------------|-------------------|
+| `stack-detector` | Agents that need to understand project tech | Agents working with known context |
+| `progress-tracking` | Orchestrator commands only | Specialist agents (orchestrator handles) |
+| `parallel-execution` | Orchestrator commands only | Individual agents |
+| `long-running-tasks` | Orchestrator commands only | Short-lived specialists |
+| `insight-recording` | Agents that discover patterns | Non-technical agents |
+
+**Common over-assignment anti-patterns:**
+
+```yaml
+# BAD: Specialist with orchestrator skills (wastes ~8,000 tokens)
+skills: stack-detector, subagent-contract, progress-tracking, parallel-execution, long-running-tasks
+
+# GOOD: Specialist with essential skills only
+skills: stack-detector, subagent-contract, insight-recording, language-enforcement
+```
+
+**When removing skills, check for orphaned references:**
+
+If you remove a skill from the `skills:` list, grep the agent file for references to that skill:
+
+```bash
+grep -n "skill-name" agents/agent-name.md
+```
+
+Remove any instructions that reference the removed skill.
+
 ---
 
 ### Skill Template
@@ -415,6 +485,54 @@ This breaks if eslint is replaced by biome or another tool.
 | `PermissionRequest` | Custom permission handling | - |
 | `Notification` | External notifications | - |
 | `UserPromptSubmit` | Input preprocessing | - |
+
+### SessionStart Hook Output Guidelines
+
+SessionStart output is injected at the beginning of every session, consuming main context tokens.
+
+**Keep output minimal (~500 tokens or less):**
+
+| Include | Exclude |
+|---------|---------|
+| Workspace ID | Detailed rule explanations |
+| Current branch | Command lists (already in /help) |
+| Role (CODING/INITIALIZER) | Pattern descriptions (in skills) |
+| Resumable work summary | Reference tables |
+| Pending insights count | Available agent lists |
+
+**Rationale:** Detailed context belongs in skills that are loaded on-demand. SessionStart should provide just enough to orient the session.
+
+**Example minimal output:**
+
+```
+Workspace: main_a1b2c3d4
+Branch: feature/auth
+Role: CODING
+Resumable: docs/specs/auth.md (Step 3/5)
+Pending insights: 2
+```
+
+**Anti-pattern: Verbose SessionStart**
+
+```markdown
+# BAD: Full context dump (2,000+ tokens)
+## Orchestrator Rules
+- Rule 1...
+- Rule 2...
+
+## Available Commands
+- /spec-plan: ...
+- /spec-review: ...
+
+## Agent Delegation Matrix
+...
+
+# GOOD: Minimal context with skill references
+Role: CODING. See `subagent-contract` skill for delegation rules.
+Resumable: docs/specs/auth.md
+```
+
+**Emoji guideline:** Avoid emojis in hook output per CLAUDE.md content guidelines.
 
 ### Hook Scripting Security
 
