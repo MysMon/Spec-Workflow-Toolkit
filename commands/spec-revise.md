@@ -60,7 +60,9 @@ Process user change requests after `/spec-implement` completion. This command re
    - Review log: Use Glob to check if `docs/specs/[feature-name]-review.md` exists
    - Progress file: Use Glob to check if `.claude/workspaces/{id}/claude-progress.json` exists
 
-**CRITICAL: Do NOT read spec/design files directly. Delegate to subagent.**
+**CRITICAL: For initial context loading, do NOT read spec/design files directly. Delegate to subagent.**
+
+(Exception: In Phase 5 when applying SMALL changes, you may read the specific sections needed for direct editing.)
 
 **Delegate context loading to `product-manager` agent:**
 
@@ -320,9 +322,10 @@ Options:
 
 SMALL changes are minor edits that don't require agent delegation. Edit directly:
 
-1. Edit spec file with changes (using Edit tool)
-2. Edit design file with changes (using Edit tool)
-3. Present diff summary:
+1. Read the specific section(s) needed for editing (this is the exception to the initial "do not read" rule)
+2. Edit spec file with changes (using Edit tool)
+3. Edit design file with changes (using Edit tool)
+4. Present diff summary:
    ```
    ## Changes Applied
 
