@@ -433,6 +433,21 @@ Inputs: Spec file path + Design file path
 Output: Checklist results with pass/flag status
 ```
 
+**Error Handling for verification-specialist (Self-Review):**
+If verification-specialist fails or times out:
+1. Retry once with reduced scope (focus on critical checklist items: requirement coverage, file references, build sequence)
+2. If retry fails, inform user:
+   ```
+   Self-review check could not be completed.
+
+   Options:
+   1. Present plan without self-review (manual review recommended)
+   2. Retry self-review
+   3. Cancel and investigate the failure
+   ```
+3. If user chooses option 1: Present plan with warning "Self-review incomplete"
+4. Add to progress file: `"warnings": ["Self-review failed, manual review recommended"]`
+
 **Based on self-review results:**
 
 The verification-specialist returns a checklist with items marked as PASS or FLAG. Count total FLAGS:

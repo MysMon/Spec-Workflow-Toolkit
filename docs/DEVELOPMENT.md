@@ -201,6 +201,57 @@ If specialist agent fails or times out:
    - "I'll handle manually (understanding the risks)"
 ```
 
+### Parallel Verification Pattern
+
+When high confidence is required for verifying complex changes (delegation patterns, feature completeness), use multiple independent agents to validate the same criteria.
+
+**When to Use:**
+- Cross-cutting concerns affecting multiple commands/agents
+- Verifying adherence to core patterns (delegation rules, error handling)
+- Pre-release quality checks
+- After large refactoring
+
+**Pattern:**
+
+1. Define verification criteria clearly (same prompt for all agents)
+2. Launch N agents (typically 3-5) with identical instructions
+3. Collect findings independently (no cross-contamination)
+4. Prioritize issues by consensus
+
+**Consensus-Based Prioritization:**
+
+| Agents Reporting | Priority | Action |
+|------------------|----------|--------|
+| Majority (3+ of 5) | High | Fix immediately |
+| Multiple (2 of 5) | Medium | Review carefully, likely fix |
+| Single (1 of 5) | Low | May be false positive, review manually |
+
+**Example: Delegation Pattern Verification**
+
+```markdown
+Launch 5 verification agents in parallel:
+Task: Review all commands for delegation pattern consistency.
+Criteria:
+1. Do commands delegate context-heavy tasks to subagents?
+2. Are exceptions (progress file reads) justified?
+3. Is error handling present for all agent calls?
+
+Results:
+- 5/5 identified: Missing error handling in spec-plan Self-Review → HIGH
+- 2/5 identified: spec-implement context loading needs error handling → MEDIUM
+- 1/5 identified: Minor terminology inconsistency → LOW (review manually)
+```
+
+**Benefits:**
+- Reduces false positives (single-agent may over-flag)
+- Increases coverage (different agents notice different issues)
+- Provides confidence scoring through agreement
+
+**Constraints:**
+- Higher token cost (N agents × task tokens)
+- Use for high-impact verification only, not trivial checks
+- Requires clear, reproducible criteria
+
 ### Emergency Override Pattern (Time-Critical Commands)
 
 For time-critical commands like `/hotfix`, strict delegation rules can be relaxed when agents are unresponsive. This pattern balances safety with urgency.

@@ -118,6 +118,21 @@ Output:
 
 Use the agent's summary output for implementation context. Do NOT read spec/design files directly.
 
+**Error Handling for product-manager (context loading):**
+If product-manager fails or times out:
+1. Retry once with reduced scope (focus on build sequence and key requirements only)
+2. If retry fails, inform user:
+   ```
+   Context loading failed. Cannot summarize spec and design.
+
+   Options:
+   1. Retry context loading
+   2. Proceed with minimal context (higher risk of missing requirements)
+   3. Cancel and investigate the failure
+   ```
+3. If user chooses option 2: Extract only build sequence from design file (minimal read)
+4. Add to progress file: `"warnings": ["Context loading failed, using minimal context"]`
+
 #### Review-Aware Handoff
 
 **Why progress file reading is acceptable (not delegated):**
@@ -234,7 +249,15 @@ Expected output: Working service with tests
 3. Update `feature-list.json` (mark feature as completed)
 4. Update `claude-progress.json` (update currentTask, nextAction)
 5. Run TodoWrite to update visible progress
-6. Ask user if they want to review before committing
+6. Use AskUserQuestion to ask if user wants to review before committing:
+   ```
+   Question: "Feature implementation complete. Would you like to review before committing?"
+   Header: "Review"
+   Options:
+   - "Show me the changes first"
+   - "Proceed with commit"
+   - "Run tests before deciding"
+   ```
 
 **Error Handling for specialist agents (frontend-specialist, backend-specialist):**
 
