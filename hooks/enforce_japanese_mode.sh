@@ -8,7 +8,7 @@
 # - Japanese documentation improves maintainability for Japanese teams
 
 # Minimal banner - detailed rules are in language-enforcement skill
-echo "🌐 **言語モード**: 日本語 (Japanese). 詳細は \`language-enforcement\` スキル参照。"
+echo "**言語モード**: 日本語 (Japanese). 詳細は \`language-enforcement\` スキル参照。"
 echo ""
 
 exit 0

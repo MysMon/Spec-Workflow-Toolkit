@@ -318,9 +318,11 @@ Options:
 
 #### For SMALL Changes
 
-1. Delegate spec update to product-manager agent with change request
-2. Delegate design update to code-architect agent with change request
-3. Present diff summary (using agent outputs):
+SMALL changes are minor edits that don't require agent delegation. Edit directly:
+
+1. Edit spec file with changes (using Edit tool)
+2. Edit design file with changes (using Edit tool)
+3. Present diff summary:
    ```
    ## Changes Applied
 

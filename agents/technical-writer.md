@@ -137,7 +137,7 @@ Follow the Keep a Changelog format:
 
 1. **Format**: Apply consistent styling
 2. **Cross-reference**: Link related docs
-3. **Version**: Use `git-mastery` for commits
+3. **Version**: Update version references in docs
 
 ## API Documentation
 
