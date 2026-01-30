@@ -56,6 +56,7 @@ claude --plugin-dir .plugins/spec-workflow-toolkit
 | `/spec-plan` | 計画（探索・仕様・設計、対話的に改善） | 新機能の計画フェーズ |
 | `/spec-review` | 対話的に計画をレビュー・修正（`--auto`で機械レビュー付き） | 計画後、実装前のユーザー確認 |
 | `/spec-implement` | 仕様に基づく実装 | 承認済み仕様からの実装 |
+| `/spec-revise` | 実装後の変更依頼を処理（影響分析・ルーティング） | 実装後の修正・追加依頼 |
 | `/quick-impl` | 高速実装 | 明確な小規模タスク |
 | `/code-review` | コードレビュー | コミット前 |
 | `/review-response` | レビュー対応 | PRレビューコメントへの対応 |
@@ -71,9 +72,9 @@ claude --plugin-dir .plugins/spec-workflow-toolkit
 
 ---
 
-## 計画 → レビュー → 実装
+## 計画 → レビュー → 実装 → 改訂
 
-大きな機能開発を、計画・レビュー・実装の3つのフェーズに分けて進めます。
+大きな機能開発を、計画・レビュー・実装・改訂の4つのフェーズに分けて進めます。
 
 **分離する理由**
 - 各フェーズでコンテキストを最大限使える（Anthropic公式推奨パターン）
@@ -98,11 +99,18 @@ flowchart LR
         I[Implementation] -->|"divergence → user"| I
         I --> QR[Quality Review] --> S[Summary]
     end
-    plan --> review --> impl
+    subgraph revise["/spec-revise"]
+        CR[Change Request] --> IA[Impact Analysis]
+        IA -->|"TRIVIAL/SMALL"| EX[Execute]
+        IA -->|"MEDIUM"| review
+        IA -->|"LARGE/NEW"| plan
+    end
+    plan --> review --> impl --> revise
 
     style plan fill:#e1f5fe
     style review fill:#fff3e0
     style impl fill:#e8f5e9
+    style revise fill:#fce4ec
 ```
 
 | フェーズ | コマンド | ユーザーの関わり方 | 出力 |
@@ -110,6 +118,7 @@ flowchart LR
 | 計画 | `/spec-plan` | 要件説明、仕様の修正依頼、設計の変更・代替案探索 | 仕様書 + 設計書 |
 | レビュー | `/spec-review` | 指摘事項を確認、仕様・設計の修正（整合性チェック付き） | レビューレポート |
 | 実装 | `/spec-implement` | 進捗確認、仕様乖離時の判断、品質レビュー対応 | 動作するコード |
+| 改訂 | `/spec-revise` | 変更依頼、影響の確認、対応方法の選択 | 更新された仕様/設計 or 次のアクション |
 
 ---
 
