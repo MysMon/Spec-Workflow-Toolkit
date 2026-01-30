@@ -53,15 +53,20 @@ Systematically audit documentation against code to detect outdated content, miss
 
 **Goal:** Identify documentation files to audit.
 
-**Discover documentation:**
+**Delegate documentation discovery to code-explorer:**
 
-```bash
-# Find all markdown files
-find . -name "*.md" -not -path "./.git/*" -not -path "./node_modules/*"
-
-# Common documentation locations
-ls -la README.md docs/ CONTRIBUTING.md CHANGELOG.md API.md 2>/dev/null
 ```
+Launch code-explorer agent:
+Task: Discover documentation files in the codebase
+Analyze:
+- All markdown files (excluding .git/, node_modules/)
+- Common documentation locations (README.md, docs/, CONTRIBUTING.md, CHANGELOG.md, API.md)
+- Documentation structure and organization
+Thoroughness: quick
+Output: List of documentation files with categories (user-facing, API, contributing, etc.)
+```
+
+Use the agent's output for categorization. Do NOT run find/ls commands manually.
 
 **Categorize documentation:**
 
@@ -105,20 +110,15 @@ Tasks:
 4. List configuration options mentioned
 5. Note any version numbers or dependencies
 
-Return a mapping of doc sections to code locations.
+Return a mapping table in this format:
+| Doc Section | Code Reference | File Path | Status |
+|-------------|---------------|-----------|--------|
+| [section] | [reference] | [path] | TBD |
 
 Thoroughness: medium
 ```
 
-**Build mapping table:**
-
-```markdown
-| Doc Section | Code Reference | File Path | Status |
-|-------------|---------------|-----------|--------|
-| Installation | `npm install` command | package.json | TBD |
-| API: /users | GET /users endpoint | src/routes/users.ts | TBD |
-| Config: PORT | PORT env variable | src/config.ts | TBD |
-```
+Use the agent's mapping table output directly. Do NOT build mapping tables manually.
 
 ### Phase 3: Drift Detection
 

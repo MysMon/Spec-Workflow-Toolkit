@@ -41,32 +41,24 @@ Phase 5: Review & Confirm   → User approval
 
 **Goal:** Discover the project's technology stack through analysis.
 
-**Use discovery patterns, not hardcoded file lists:**
-
-```bash
-# Discover project type from common indicators
-ls -la *.json *.toml *.yaml *.yml *.xml *.gradle 2>/dev/null | head -20
-
-# Discover language from file extensions
-find . -maxdepth 3 -type f -name "*.ts" -o -name "*.js" -o -name "*.py" -o -name "*.go" -o -name "*.rs" -o -name "*.java" 2>/dev/null | head -5
-
-# Discover build/package configuration
-ls -la package*.json Cargo.toml go.mod pyproject.toml pom.xml build.gradle 2>/dev/null
-```
-
-**Delegate to `code-explorer` agent if needed:**
+**CRITICAL: Delegate stack detection to code-explorer agent (do NOT explore manually):**
 
 ```
-Launch code-explorer agent to analyze:
-- Primary language(s) used
-- Project structure and organization
+Launch code-explorer agent:
+Task: Detect project technology stack
+Analyze:
+- Project type from common indicators (*.json, *.toml, *.yaml, etc.)
+- Primary language(s) from file extensions
+- Build/package configuration files
 - Package manager and dependencies
 - Testing setup (if present)
 - Build/lint configuration (if present)
 
 Thoroughness: quick
-Output: Stack profile summary
+Output: Stack profile summary with detected technologies
 ```
+
+Use the agent's output for stack summary. Do NOT run discovery commands manually.
 
 **Output:** Stack summary for user confirmation (don't assume specific frameworks).
 
@@ -89,20 +81,16 @@ Thoroughness: medium
 Output: Convention summary with file:line examples
 ```
 
-**Check for existing configuration:**
+**Check for existing configuration (use Glob for existence check only):**
 
-```bash
-# Check for existing Claude configuration
-ls -la .claude/ CLAUDE.md .claude/rules/ 2>/dev/null
+Use Glob to check for existing configuration files:
+- `.claude/`, `CLAUDE.md`, `.claude/rules/`
+- Quality tool configs (`.*rc*`, `*.config.*`)
+- Editor configs (`.editorconfig`, `.vscode/`, `.idea/`)
 
-# Check for quality tool configs (general patterns)
-ls -la .*rc* *.config.* 2>/dev/null | head -10
+The code-explorer agent above should include these in its analysis.
 
-# Check for editor configs
-ls -la .editorconfig .vscode/ .idea/ 2>/dev/null
-```
-
-**Output:** Discovered patterns with specific examples from the codebase.
+**Output:** Discovered patterns with specific examples from the codebase (from agent output).
 
 ### Phase 3: User Interview
 

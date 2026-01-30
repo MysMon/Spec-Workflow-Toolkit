@@ -13,7 +13,7 @@ description: |
 
   Trigger phrases: explore, trace, how does, find all, map dependencies, execution flow, call chain, understand codebase, analyze architecture
 model: sonnet
-tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
+tools: Glob, Grep, Read, WebFetch, WebSearch
 disallowedTools: Write, Edit, Bash
 permissionMode: plan
 skills: subagent-contract, insight-recording, stack-detector, language-enforcement

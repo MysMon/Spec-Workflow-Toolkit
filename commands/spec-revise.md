@@ -318,8 +318,10 @@ Options:
 
 #### For SMALL Changes
 
-1. Edit spec file with changes
-2. Edit design file with changes
+SMALL changes are minor edits that don't require agent delegation. Edit directly:
+
+1. Edit spec file with changes (using Edit tool)
+2. Edit design file with changes (using Edit tool)
 3. Present diff summary:
    ```
    ## Changes Applied

@@ -75,8 +75,8 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 #### Locate Spec and Design
 
 If `$ARGUMENTS` is provided:
-- If it's a file path, read that spec file and look for corresponding design file
-- If it's a feature name, search in `docs/specs/` for matching files
+- If it's a file path, verify the spec file exists and locate corresponding design file (use Glob, do NOT read content)
+- If it's a feature name, search in `docs/specs/` for matching files (use Glob)
 
 If no arguments:
 - Check progress file for current project spec
@@ -132,7 +132,7 @@ If a review log file exists (`docs/specs/[feature-name]-review.md`), delegate to
 #### Initialize or Resume Progress
 
 **If starting fresh (no implementation progress):**
-Create `feature-list.json` from the design document's Build Sequence.
+Create `feature-list.json` from the product-manager agent's Build Sequence output (obtained in Validate Prerequisites step above). Do NOT read design document directly.
 
 Update progress file:
 - currentPhase: "impl-starting"

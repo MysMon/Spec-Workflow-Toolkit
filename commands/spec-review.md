@@ -69,11 +69,19 @@ Use the agent's summary output for presenting to user. Do NOT read spec/design f
 5. verification-specialist: Spec↔design consistency check (if design exists)
 ```
 
-**Consolidate results:**
+**Delegate result consolidation to verification-specialist agent:**
+```
+Launch verification-specialist agent:
+Task: Consolidate review results from 5 agents
+Rules:
 - Filter by confidence (>= 80)
 - De-duplicate across agents (boost confidence by 10 when multiple agents agree)
 - Categorize: spec-only / design-only / both
 - Sort by severity
+Output: Consolidated findings list with confidence scores
+```
+
+Use the agent's consolidated output for presentation. Do NOT consolidate results manually.
 
 **Present auto-review results to user:**
 ```markdown
@@ -171,9 +179,9 @@ After each user message, determine the feedback type:
 
 **If a change requires re-architecture** (e.g., "use a different database", "change the auth approach"):
 1. Inform the user: "This change affects the architecture design. I have two options:"
-   - **Option A**: I'll revise the design based on my current understanding of the codebase (best-effort, no re-exploration)
+   - **Option A**: I'll delegate to code-architect to revise the design based on codebase context (best-effort, no re-exploration)
    - **Option B**: Re-run `/spec-plan` with this new constraint for a thorough re-analysis
-2. If Option A: revise the design document, re-present, continue loop
+2. If Option A: delegate design revision to code-architect agent, re-present the agent's output, continue loop
 3. If Option B: update progress file, exit, suggest `/spec-plan` command
 
 #### After Each Change

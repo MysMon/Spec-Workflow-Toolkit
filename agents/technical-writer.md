@@ -13,7 +13,7 @@ model: sonnet
 tools: Read, Glob, Grep, Write, Edit
 disallowedTools: Bash
 permissionMode: acceptEdits
-skills: stack-detector, git-mastery, subagent-contract, insight-recording, language-enforcement
+skills: stack-detector, subagent-contract, insight-recording, language-enforcement
 ---
 
 # Role: Technical Writer
@@ -137,7 +137,7 @@ Follow the Keep a Changelog format:
 
 1. **Format**: Apply consistent styling
 2. **Cross-reference**: Link related docs
-3. **Version**: Use `git-mastery` for commits
+3. **Version**: Update version references in docs
 
 ## API Documentation
 
