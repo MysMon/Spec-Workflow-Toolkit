@@ -513,7 +513,7 @@ Critical for safe implementation and orchestration.
   - Spec-reality divergence is discovered
   - Multiple implementation approaches are possible
   - User feedback is ambiguous during quality review
-- NEVER proceed if `security-auditor` agent fails — security review is mandatory
+- NEVER proceed if `security-auditor` agent fails without explicit user approval — security review skip requires documented user consent
 - MUST retry once if any agent times out, with reduced scope
 - MUST document all agent failures in progress file before continuing
 - ALWAYS update progress files after each feature completion
