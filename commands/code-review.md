@@ -51,35 +51,31 @@ For issues flagged due to CLAUDE.md:
 
 ## Execution Instructions
 
-### Step 1: Identify Changes to Review
+### Step 1: Identify Changed Files
 
-Based on `$ARGUMENTS`:
+Based on `$ARGUMENTS`, get the **file list only** (do NOT read diff content directly):
 
 **If "staged" or empty:**
 ```bash
 git diff --staged --name-only
-git diff --staged
 ```
 
-**If file path:**
+**If file path or directory:**
 ```bash
-git diff HEAD -- [file]
-# or if not in git, just read the file
-```
-
-**If directory:**
-```bash
-git diff HEAD -- [directory]
+git diff HEAD --name-only -- [path]
+# or if not in git, use Glob to list files
 ```
 
 **If PR number (e.g., "#123"):**
 ```bash
-gh pr diff 123
+gh pr diff 123 --name-only
 ```
 
-### Step 2: Gather Context
+**CRITICAL: Do NOT run `git diff` without `--name-only`. Diff content should be gathered by code-explorer in Step 2.**
 
-Before launching review agents, delegate context gathering to code-explorer:
+### Step 2: Gather Context (Including Diff Content)
+
+**CRITICAL: Delegate ALL context gathering to code-explorer, including diff content.**
 
 ```
 Launch Task tool with subagent_type=Explore (model: haiku):
@@ -88,15 +84,20 @@ Prompt:
 Gather review context for code review.
 
 Tasks:
-1. Find all CLAUDE.md files and .claude/rules/*.md files
-2. Summarize key guidelines relevant to changed files
-3. Get git blame for changed lines (identify recent authors)
-4. Get recent commit history touching these files
+1. Get diff content for the changed files (git diff --staged or git diff HEAD -- [files])
+2. Find all CLAUDE.md files and .claude/rules/*.md files
+3. Summarize key guidelines relevant to changed files
+4. Get git blame for changed lines (identify recent authors)
+5. Get recent commit history touching these files
 
 Changed files:
 [list of files from Step 1]
 
+Review scope:
+[staged / file / directory / PR#]
+
 Output:
+- Diff content (summarized if large, full if small)
 - CLAUDE.md guidelines summary (relevant rules only)
 - Git history context (recent changes, authors)
 - Related files that may be affected
@@ -104,7 +105,7 @@ Output:
 Thoroughness: quick
 ```
 
-Use the context summary from code-explorer in Step 3 agent prompts.
+Use the code-explorer's output (including diff content) in Step 3 agent prompts. Do NOT read diff content directly in the parent context.
 
 ### Step 3: Launch 5 Parallel Review Agents (Sonnet)
 

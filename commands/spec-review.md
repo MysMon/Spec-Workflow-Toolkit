@@ -27,7 +27,9 @@ For automated machine review, use `--auto` to run parallel review agents before 
 
 ### Step 1: Locate Spec and Design
 
-**CRITICAL: Do NOT read spec/design files directly. Delegate to subagent.**
+**CRITICAL: For initial context loading, do NOT read spec/design files directly. Delegate to subagent.**
+
+(Exception: During the feedback loop in Step 4, you may read specific sections when needed for direct editing.)
 
 If `$ARGUMENTS` is provided:
 - If it's a file path, use Glob to verify the file exists (do NOT read it directly)
@@ -174,7 +176,8 @@ After each user message, determine the feedback type:
 #### Handling Changes That Affect Architecture
 
 **If a change is small** (wording, adding an edge case, clarifying a requirement):
-- Edit the spec/design files directly
+- You may read the specific section needed for editing (this is the exception to the initial "do not read" rule)
+- Edit the spec/design files directly using Edit tool
 - Re-present the changed section
 
 **If a change requires re-architecture** (e.g., "use a different database", "change the auth approach"):

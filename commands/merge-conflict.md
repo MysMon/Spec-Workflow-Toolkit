@@ -73,6 +73,8 @@ git status --porcelain | grep "^UU\|^AA\|^DD"
 
 **For each conflicted file, launch parallel agents:**
 
+**CRITICAL: Delegate ALL analysis including conflict marker extraction to code-explorer agents.**
+
 ```
 Launch code-explorer agents in parallel:
 
@@ -86,17 +88,17 @@ Agent 2 (Theirs): Analyze the "theirs" (incoming branch) version
 - What is the intent of these changes?
 - What dependencies exist?
 
+Agent 3 (Conflict Analysis): Extract and categorize conflicts
+- Find all conflict markers (<<<<<<< / ======= / >>>>>>>)
+- Report line numbers and surrounding context
+- Categorize each conflict (additive / modificative / deletive / structural)
+
 Thoroughness: medium
 ```
 
-**Extract conflict markers:**
+Use the agents' output for conflict information. Do NOT run grep directly in the parent context.
 
-```bash
-# Show conflict sections
-grep -n "^<<<<<<< \|^=======$\|^>>>>>>> " <file>
-```
-
-**Categorize conflict type:**
+**Categorize conflict type (using agent output):**
 
 | Type | Pattern | Resolution Approach |
 |------|---------|---------------------|
