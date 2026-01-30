@@ -58,7 +58,7 @@ claude --plugin-dir .plugins/spec-workflow-toolkit
 | `/spec-plan` | 新機能の仕様と設計を対話的に作成 |
 | `/spec-review` | 仕様・設計をレビューし修正 |
 | `/spec-implement` | 承認済みの仕様に基づいて実装 |
-| `/spec-revise` | 実装後の変更依頼を設計書と照合し対応方法を判断 |
+| `/spec-revise` | 実装後の変更・追加依頼に対応 |
 | `/quick-impl` | 小規模タスクを迅速に実装（仕様書不要） |
 
 ### レビュー
