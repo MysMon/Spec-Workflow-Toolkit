@@ -76,29 +76,37 @@ Launch Task tool with subagent_type=Explore (quick mode) to find:
 
 ### Step 3: Implementation
 
-**IMPORTANT:** For anything beyond trivial changes, delegate to specialist:
+**IMPORTANT:** ALWAYS delegate implementation to appropriate specialist agent.
 
 ```
-Launch [frontend-specialist|backend-specialist] agent to implement:
-[Task description]
+Launch Task tool with appropriate specialist (model: haiku for simple tasks):
 
-Context:
-- Related files: [list]
-- Existing patterns: [summary]
-- Test file: [path]
+- Frontend code → frontend-specialist
+- Backend code → backend-specialist
+- Tests → qa-engineer
+
+Prompt:
+Quick implementation task.
+Task: [task description]
+Files: [related files]
+Patterns: [existing patterns to follow]
+Test file: [path if applicable]
+
+Constraints:
+- Follow existing code patterns
+- Minimal change scope
 ```
 
-**Trivial Change Definition** (all criteria must be met):
-- ≤10 lines of code changed
-- Single logical change (not multiple unrelated fixes)
-- No new functions, classes, or modules
-- No changes to public APIs or interfaces
-- Examples: typos, config values, import additions, simple string changes
+**Direct modification allowed ONLY for:**
+- Single-line typo fixes in comments or strings
+- Single config value changes (e.g., timeout: 30 → timeout: 60)
+- Import statement additions (single line)
 
-For trivial changes meeting ALL criteria above:
-- Make the change directly
-- Run linter/formatter
-- Run tests
+**Examples of what requires delegation:**
+- Any logic changes (even "simple" ones)
+- Multiple file modifications
+- New functions, classes, or modules
+- API or interface changes
 
 ### Step 4: Verification
 

@@ -144,22 +144,30 @@ Thoroughness: quick
 
 **Step 2: Implement the change**
 
-For straightforward changes:
-- Make the change directly
-- Ensure consistency with codebase style
+**ALWAYS delegate implementation to appropriate specialist:**
 
-For complex changes:
 ```
-DELEGATE to appropriate specialist:
+Launch Task tool with appropriate specialist (model: haiku for simple changes):
+
 - Code logic → backend-specialist or frontend-specialist
 - Tests → qa-engineer
 - Architecture concerns → code-architect
 
-Include:
-- Original code
-- Review comment
-- Any similar patterns found
+Prompt:
+Address PR review comment.
+
+Review comment: [comment text]
+File: [file path]
+Line: [line number]
+Original code: [code snippet]
+Similar patterns found: [from Step 1]
+
+Implement the requested change following codebase patterns.
 ```
+
+**Direct modification allowed ONLY for:**
+- Single-line typo fixes in comments or strings
+- Formatting-only changes (whitespace, indentation)
 
 **Step 3: Mark as addressed**
 

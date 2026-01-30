@@ -139,12 +139,30 @@ Launch Task tool with subagent_type=Explore:
 | **No new features** | Even if "while we're here..." |
 | **Preserve behavior** | Match existing patterns exactly |
 
-**Fix the issue directly** (no subagent delegation for hotfixes - speed is priority):
+**DELEGATE implementation to appropriate specialist** (use model: haiku for speed):
 
 ```
-Read the problematic file
-Implement the minimal fix
+Launch Task tool with appropriate specialist:
+- Frontend issue → frontend-specialist (model: haiku)
+- Backend issue → backend-specialist (model: haiku)
+- Config issue → can modify directly (single line only)
+
+Prompt:
+Emergency hotfix - implement minimal fix only.
+File: [file:line from Explore]
+Issue: [brief description]
+Fix: [specific change needed]
+
+Constraints:
+- Single logical change only
+- No refactoring
+- Match existing patterns
 ```
+
+**Direct modification allowed ONLY for:**
+- Single-line config value changes
+- Environment variable updates
+- Feature flag toggles
 
 ### Phase 4: Safety Verification (2-3 minutes)
 
