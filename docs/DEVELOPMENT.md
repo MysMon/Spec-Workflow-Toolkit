@@ -68,6 +68,133 @@ Task: Edit spec to change "1 hour" to "24 hours"
 Use Edit tool to change "1 hour" to "24 hours" in spec file
 ```
 
+### Agent Failure Handling Pattern
+
+When delegating to subagents, commands MUST include error handling for agent failures (timeout, crash, incomplete output).
+
+**Standard Pattern:**
+
+```markdown
+**Error Handling for [agent-name]:**
+If [agent-name] fails or times out:
+1. Check the agent's partial output for usable findings
+2. Retry once with reduced scope (if critical)
+3. Proceed with available results (if non-critical), documenting the gap
+4. Escalate to user if critical agent fails after retry
+```
+
+**Implementation by Command Type:**
+
+| Command Type | On Agent Failure |
+|--------------|------------------|
+| **Exploration** (spec-plan, code-review) | Use partial output, note gaps in report |
+| **Implementation** (quick-impl, spec-implement) | Retry with single-file focus, then ask user |
+| **Time-Critical** (hotfix) | Emergency override with user confirmation |
+| **Verification** (spec-review, ci-fix) | Continue with successful agents, note coverage gaps |
+
+**Example from quick-impl.md:**
+
+```markdown
+**Error Handling for specialist agent:**
+If specialist agent fails or times out:
+1. Check the agent's partial output for usable code
+2. Retry once with simplified scope (single file focus)
+3. If retry fails, inform user with specific error and offer options:
+   - "Try again with different approach"
+   - "Switch to /spec-plan for proper planning"
+   - "I'll handle manually (understanding the risks)"
+```
+
+### Emergency Override Pattern (Time-Critical Commands)
+
+For time-critical commands like `/hotfix`, strict delegation rules can be relaxed when agents are unresponsive. This pattern balances safety with urgency.
+
+**When to Apply:**
+
+- Production outages requiring immediate fixes
+- Agent timeouts exceeding defined thresholds
+- User has confirmed the emergency nature
+
+**Threshold Guidelines:**
+
+| Phase | Timeout Threshold | Override Action |
+|-------|-------------------|-----------------|
+| Context gathering | 60 seconds | Manual minimal check (single git command) |
+| Issue localization | 90 seconds | Emergency direct search (single Grep) |
+| Implementation | 2 minutes | User-confirmed manual fix with documentation |
+
+**Required Safeguards:**
+
+1. **User confirmation**: Always ask before manual override
+2. **Documentation**: Record "emergency manual fix" or "agent timeout" in commit message
+3. **Minimal scope**: Only the absolute minimum direct action needed
+4. **Post-fix verification**: Still run tests before pushing
+
+**Example from hotfix.md:**
+
+```markdown
+**Error Handling (Emergency Override):**
+If specialist agent fails or takes more than 2 minutes:
+1. Check agent's partial output for usable fix
+2. Retry once with explicit single-file focus
+3. If retry fails: inform user and offer emergency manual fix option:
+   ```
+   Question: "Agent timed out. This is an emergency - can I apply the fix manually?"
+   Header: "Emergency Override"
+   Options:
+   - "Yes, apply minimal fix directly" (understand the risks)
+   - "No, wait and retry with agent"
+   - "Abort hotfix and try /debug instead"
+   ```
+4. If user approves manual fix: apply minimal change, document "emergency manual fix" in commit
+```
+
+### Agent Tool Constraints
+
+Some agents are intentionally READ-ONLY to ensure analysis integrity. Commands must respect these constraints when delegating.
+
+**READ-ONLY Agents (cannot modify files):**
+
+| Agent | disallowedTools | Role |
+|-------|-----------------|------|
+| code-explorer | Write, Edit, Bash | Codebase analysis |
+| code-architect | Write, Edit, Bash | Architecture design |
+| verification-specialist | Write, Edit, Bash | Fact-checking findings |
+| security-auditor | Write, Edit | Security audit |
+| ui-ux-designer | Bash, Edit | Design specification |
+
+**Common Mistake:**
+
+```markdown
+# BAD: Delegating implementation to read-only agent
+Launch code-architect agent:
+Task: Implement the merge conflict resolution
+```
+
+**Correct Approach:**
+
+```markdown
+# GOOD: Use read-only agent for analysis, delegate implementation to specialist
+Launch code-architect agent:
+Task: Analyze both versions and recommend merge strategy
+
+# Then delegate implementation to appropriate specialist
+Launch frontend-specialist agent:
+Task: Implement the merge based on code-architect's recommendation
+```
+
+**Split Verification Pattern:**
+
+When verification requires both analysis (read-only) and execution (Bash):
+
+```markdown
+**Step 1: Launch verification-specialist for analysis (Read-only):**
+Task: Check for conflict markers, validate syntax
+
+**Step 2: Launch qa-engineer for execution (has Bash):**
+Task: Run linter, type check, and tests
+```
+
 ---
 
 ## Instruction Design Guidelines
@@ -288,6 +415,22 @@ skills: stack-detector, subagent-contract, progress-tracking, parallel-execution
 # GOOD: Specialist with essential skills only
 skills: stack-detector, subagent-contract, insight-recording, language-enforcement
 ```
+
+**Skills Order Convention:**
+
+Skills should be listed in a consistent order for maintainability:
+
+```yaml
+# Order: Domain-specific → Core framework → Insight → Language (always last)
+skills: stack-detector, testing, code-quality, subagent-contract, insight-recording, language-enforcement
+```
+
+| Position | Skill Type | Examples |
+|----------|------------|----------|
+| 1st | Domain-specific | stack-detector, testing, security-fundamentals, api-design |
+| 2nd | Core framework | subagent-contract |
+| 3rd | Insight capture | insight-recording |
+| Last | Language | language-enforcement (always last) |
 
 **When removing skills, check for orphaned references:**
 
