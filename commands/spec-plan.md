@@ -146,10 +146,12 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 
 #### Discovery Work
 
-If the user provided a feature description (`$ARGUMENTS`), analyze it first:
-- What problem is being solved?
-- Who are the target users?
-- What are potential constraints?
+If the user provided a feature description (`$ARGUMENTS`), do a **light mental check** (do NOT read files or do deep analysis):
+- Is the problem statement clear?
+- Are target users identifiable?
+- Are there obvious constraints?
+
+**Then immediately use AskUserQuestion to confirm your understanding and fill gaps.**
 
 **CRITICAL: Use AskUserQuestion when request is vague or ambiguous.**
 
@@ -385,11 +387,15 @@ Output: Checklist results with pass/flag status
 
 **Based on self-review results:**
 
+The verification-specialist returns a checklist with items marked as PASS or FLAG. Count total FLAGS:
+
 | Result | Action |
 |--------|--------|
 | ALL CLEAR (0 flags) | Present plan to user as-is |
-| MINOR FLAGS (1-2 flags) | Present plan with flags noted |
-| NEEDS ATTENTION (3+ flags) | Fix flagged items, re-run checklist once, then present |
+| MINOR FLAGS (1-2 flags) | Present plan with flags noted; user decides if acceptable |
+| NEEDS ATTENTION (3+ flags) | Delegate fixes to product-manager, re-run checklist once, then present |
+
+**Note:** Flags are items the verification-specialist marked as incomplete or inconsistent in the 13-item checklist (see `plan-self-review` skill).
 
 Include self-review results in the final output so the user sees what was checked.
 

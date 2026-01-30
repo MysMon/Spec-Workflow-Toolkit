@@ -320,7 +320,15 @@ Options:
 
 #### For SMALL Changes
 
-SMALL changes are minor edits that don't require agent delegation. Edit directly:
+SMALL changes are minor edits that meet ALL of these criteria:
+- **Line limit:** Less than 20 lines changed across all files
+- **File limit:** Affects 1-2 files only
+- **No architecture impact:** Does not change design decisions, data models, or API contracts
+- **Low risk:** Typos, wording improvements, adding clarifications, minor requirement additions
+
+If ANY criterion is not met, escalate to MEDIUM and recommend `/spec-review`.
+
+For qualifying SMALL changes, edit directly:
 
 1. Read the specific section(s) needed for editing (this is the exception to the initial "do not read" rule)
 2. Edit spec file with changes (using Edit tool)
