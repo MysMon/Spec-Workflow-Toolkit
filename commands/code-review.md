@@ -53,7 +53,9 @@ For issues flagged due to CLAUDE.md:
 
 ### Step 1: Identify Changed Files
 
-Based on `$ARGUMENTS`, get the **file list only** (do NOT read diff content directly):
+**Goal:** Get file list only (metadata). This is a lightweight operation that does not consume significant context.
+
+Based on `$ARGUMENTS`, get the **file list only**:
 
 **If "staged" or empty:**
 ```bash
@@ -71,7 +73,12 @@ git diff HEAD --name-only -- [path]
 gh pr diff 123 --name-only
 ```
 
-**CRITICAL: Do NOT run `git diff` without `--name-only`. Diff content should be gathered by code-explorer in Step 2.**
+**Why this is acceptable (not delegated):**
+- `--name-only` returns only file paths, not content
+- This is metadata discovery, not content analysis
+- Minimal context consumption (typically <100 lines)
+
+**CRITICAL: Do NOT run `git diff` without `--name-only`. Diff content (which consumes context) MUST be gathered by code-explorer in Step 2.**
 
 ### Step 2: Gather Context (Including Diff Content)
 

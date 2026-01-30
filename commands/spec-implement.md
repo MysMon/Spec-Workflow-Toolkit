@@ -299,9 +299,25 @@ Launch these review agents in parallel:
 **Wait for all agents to complete.**
 
 **Error Handling:**
-If any agent fails or times out:
+
+**CRITICAL: security-auditor failure is fatal (L1 rule):**
+If security-auditor fails or times out:
+1. Retry once with reduced scope (focus on critical paths only)
+2. If retry fails: **STOP and inform user**
+   ```
+   Security review failed. Cannot proceed without security validation.
+
+   Options:
+   1. Retry security review with manual scope selection
+   2. Skip security review (NOT RECOMMENDED - requires explicit user approval)
+   3. Abort and investigate the failure
+   ```
+3. Do NOT proceed with implementation until security review passes or user explicitly approves skip
+
+**For other agents (qa-engineer, code-explorer, verification-specialist):**
+If agent fails or times out:
 1. Check the agent's partial output for usable findings
-2. If critical agent failed (e.g., security-auditor), retry once with reduced scope
+2. Retry once with reduced scope
 3. If retry fails, proceed with available results and document the gap
 4. Add to progress file: `"warnings": ["Agent X failed, results may be incomplete"]`
 
