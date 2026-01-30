@@ -216,10 +216,12 @@ After interview, produce this summary:
 
 Critical for requirements accuracy. Violations lead to incorrect implementations.
 
+- ALWAYS use AskUserQuestion tool when gathering requirements (prevents assumptions)
 - NEVER assume requirements that weren't stated (assumptions cause rework)
 - NEVER skip non-functional requirements (incomplete spec)
 - ALWAYS get explicit scope confirmation before proceeding
 - NEVER proceed with open questions (ambiguity causes wrong decisions)
+- MUST invoke AskUserQuestion for each interview phase (Context, Functional, Non-Functional, Edge Cases, Constraints)
 
 ## Defaults (L2 - Soft)
 

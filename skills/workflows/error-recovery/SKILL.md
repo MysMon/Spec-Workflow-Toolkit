@@ -462,6 +462,11 @@ Critical for reliable recovery and data safety.
 - NEVER ignore error messages or warnings (problems compound)
 - NEVER continue past a blocker without user confirmation
 - NEVER lose work - commit early and often
+- ALWAYS apply circuit breaker thresholds for autonomous agent loops:
+  - NO_PROGRESS: Stop after 3 loops with no file changes
+  - SAME_ERROR: Escalate to user after 5 identical errors
+  - OUTPUT_DECLINE: Pause if output quality drops >70%
+- MUST escalate to user when any circuit breaker threshold is reached
 
 ## Defaults (L2 - Soft)
 

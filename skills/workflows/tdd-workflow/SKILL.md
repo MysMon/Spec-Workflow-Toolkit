@@ -316,6 +316,8 @@ Core TDD discipline. Violations undermine the entire methodology.
 - NEVER skip the RED confirmation step (proves test validity)
 - NEVER refactor on RED (changing code while tests fail)
 - ALWAYS run all tests before committing (catch regressions)
+- ALWAYS track each Red-Green-Refactor cycle as 3 separate todos (maintains discipline)
+- NEVER batch multiple TDD cycles into single todo (defeats incrementalism)
 
 ## Defaults (L2 - Soft)
 
@@ -324,7 +326,6 @@ Important for test quality. Override with reasoning when appropriate.
 - Keep tests fast and focused (slow tests get skipped)
 - Test behavior, not implementation details (fragile tests)
 - Write one test at a time (clearer cause-and-effect)
-- Each Red-Green-Refactor cycle should be 3 todos
 
 ## Guidelines (L3)
 

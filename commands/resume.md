@@ -453,3 +453,38 @@ If status is "completed":
 | Context | Full message history | Curated resumption context |
 | Workspace aware | No | Yes |
 | Best for | Recent interruptions | Long-running projects |
+
+---
+
+## Rules (L1 - Hard)
+
+Critical for safe and accurate session resumption.
+
+- ALWAYS validate git state before resuming (prevents silent data conflicts)
+- MUST warn user if uncommitted changes exist
+- MUST warn user if current branch doesn't match workspace
+- NEVER proceed without user confirmation when git state differs from progress file
+- MUST use AskUserQuestion when:
+  - Uncommitted changes exist (ask: continue or commit first?)
+  - Branch mismatch detected (ask: switch workspace or continue?)
+  - Multiple workspaces match (ask: which one to resume?)
+  - User requests "Start fresh" (confirm archival)
+- NEVER silently discard progress — always archive before reset
+- ALWAYS read progress files before any resumption work
+
+## Defaults (L2 - Soft)
+
+Important for quality resumption. Override with reasoning when appropriate.
+
+- Sync TodoWrite with feature-list.json on resume
+- Read up to 3 key files from resumption context
+- Display progress bar with feature completion percentage
+- Show last session summary for context
+
+## Guidelines (L3)
+
+Recommendations for effective session resumption.
+
+- Consider showing compaction history if context was compacted
+- Prefer displaying blockers prominently when status is "blocked"
+- Consider offering workspace switching when multiple projects exist
