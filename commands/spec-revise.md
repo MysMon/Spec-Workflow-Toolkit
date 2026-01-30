@@ -54,29 +54,37 @@ Process user change requests after `/spec-implement` completion. This command re
    - List files in `docs/specs/`
    - Ask user which project to revise
 
-3. **Read the following files:**
+3. **Read essential files (max 2):**
    - Specification: `docs/specs/[feature-name].md`
    - Design: `docs/specs/[feature-name]-design.md`
-   - Review log (if exists): `docs/specs/[feature-name]-review.md`
+
+4. **Check existence only (do not read full content):**
+   - Review log: `docs/specs/[feature-name]-review.md`
    - Progress file: `.claude/workspaces/{id}/claude-progress.json`
 
-**Present current state to user:**
+**Delegate summary generation to `product-manager` agent:**
+
+```
+Launch product-manager agent:
+Task: Summarize current project state for revision context
+Inputs: Spec file path + Design file path
+Output: Key requirements list + Architecture summary (concise)
+```
+
+**Present current state to user (using agent output):**
 ```
 ## Current Project State
 
 **Feature:** [feature name]
 **Spec:** docs/specs/[feature-name].md
 **Design:** docs/specs/[feature-name]-design.md
-**Status:** [from progress file]
+**Status:** [from progress file if exists, or "No progress file"]
 
-### Key Requirements (from spec)
-1. [Requirement 1]
-2. [Requirement 2]
-...
+### Key Requirements (from product-manager summary)
+[Agent-generated summary]
 
-### Architecture Summary (from design)
-- Approach: [summary]
-- Key components: [list]
+### Architecture Summary (from product-manager summary)
+[Agent-generated summary]
 
 Ready to receive your change request.
 ```

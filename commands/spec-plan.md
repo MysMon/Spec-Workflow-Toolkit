@@ -382,7 +382,15 @@ Options:
 
 **After Phase 4 design is approved, run the self-review gate before presenting the final output.**
 
-Load the `plan-self-review` skill. Run the 13-item checklist against the spec and design files. This is a lightweight direct-read check, NOT a subagent invocation.
+**Delegate to `verification-specialist` agent:**
+
+```
+Launch verification-specialist agent:
+Task: Run 13-item self-review checklist
+Skill: plan-self-review
+Inputs: Spec file path + Design file path
+Output: Checklist results with pass/flag status
+```
 
 **Based on self-review results:**
 
