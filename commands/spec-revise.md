@@ -318,9 +318,9 @@ Options:
 
 #### For SMALL Changes
 
-1. Edit spec file with changes
-2. Edit design file with changes
-3. Present diff summary:
+1. Delegate spec update to product-manager agent with change request
+2. Delegate design update to code-architect agent with change request
+3. Present diff summary (using agent outputs):
    ```
    ## Changes Applied
 

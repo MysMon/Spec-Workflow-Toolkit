@@ -314,42 +314,27 @@ Launch these code-architect agents in parallel:
 
 **Wait for all agents to complete.**
 
-**Synthesize all agent outputs into ONE definitive recommendation:**
-```markdown
-## Architecture Design
+**Delegate design synthesis to product-manager agent:**
 
-### Pattern Analysis from Codebase
-Based on code-architect findings:
-- Service pattern: [Pattern] (see `file:line`)
-- Data access: [Pattern] (see `file:line`)
-- API structure: [Pattern] (see `file:line`)
-
-### Recommended Approach
-
-**Architecture**: [Summary of recommended approach]
-
-**Rationale**:
-- Aligns with existing pattern at `file:line`
-- Follows convention in `file:line`
-
-**Implementation Map**:
-| Component | File | Action |
-|-----------|------|--------|
-| [Name] | `src/...` | Create |
-| [Name] | `src/...` | Modify |
-
-**Build Sequence**:
-- [ ] Step 1: [Task]
-- [ ] Step 2: [Task]
-- [ ] Step 3: [Task]
-
-**Trade-offs Considered**:
-- [Alternative A]: [Why not chosen]
-- [Alternative B]: [Why not chosen]
-
-**Rejected Approaches** (for future reference):
-- [Approach]: [Reason for rejection]
 ```
+Launch product-manager agent:
+Task: Synthesize code-architect outputs into ONE design document
+Inputs:
+- Reuse analysis output from code-architect #1
+- Extensibility analysis output from code-architect #2
+- Performance analysis output from code-architect #3 (if applicable)
+- Approved spec file path
+Template sections:
+- Pattern Analysis from Codebase (with file:line references)
+- Recommended Approach (architecture summary, rationale)
+- Implementation Map (component → file → action)
+- Build Sequence (ordered tasks)
+- Trade-offs Considered
+- Rejected Approaches
+Output: Draft design document content
+```
+
+Use the agent's output for the design document. Do NOT synthesize manually.
 
 #### Architecture Refinement Loop (max 3 iterations)
 
@@ -367,8 +352,8 @@ Options:
 
 **If the user requests changes (option 2):**
 1. Re-launch relevant `code-architect` agent(s) with updated constraints
-2. Revise the design document
-3. Present the revised design
+2. Delegate design revision to product-manager with updated code-architect outputs
+3. Present the revised design (using agent output)
 4. Repeat until approved or max 3 iterations
 
 **If the user wants to explore an alternative (option 3):**
