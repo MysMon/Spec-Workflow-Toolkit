@@ -6,13 +6,13 @@ Users receive context via the `SessionStart` hook, not this file.
 ## What This Plugin Does
 
 A Claude Code plugin implementing Anthropic's 6 composable patterns for long-running autonomous work:
-Plan→Review→Implement workflow (3 commands with iterative refinement), 13 specialized subagents, TDD integration, evaluator-optimizer loops, checkpoint-based error recovery, and progress tracking.
+Plan→Review→Implement→Revise workflow (4 commands with iterative refinement), 13 specialized subagents, TDD integration, evaluator-optimizer loops, checkpoint-based error recovery, and progress tracking.
 
 ## Project Structure
 
 ```
 .claude-plugin/plugin.json   # Plugin metadata
-commands/                    # 15 slash commands
+commands/                    # 16 slash commands
 agents/                      # 13 subagent definitions
 skills/                      # 22 skill definitions
   core/                      #   5 core skills (subagent-contract, spec-philosophy, security-fundamentals, interview, bounded-autonomy)
@@ -29,6 +29,7 @@ docs/                        # DEVELOPMENT.md (detailed specs), specs/
 | Understand planning (with refinement loops) | `commands/spec-plan.md` |
 | Understand interactive plan review | `commands/spec-review.md` |
 | Understand implementation phase | `commands/spec-implement.md` |
+| Understand post-implementation changes | `commands/spec-revise.md` |
 | See how agents work | `agents/code-explorer.md`, `agents/code-architect.md` |
 | Understand skill pattern | `skills/core/subagent-contract/SKILL.md` |
 | Check hook implementation | `hooks/hooks.json`, `hooks/spec_context.sh` |
