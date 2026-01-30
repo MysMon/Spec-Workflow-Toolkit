@@ -12,8 +12,8 @@ description: |
 
   Trigger phrases: requirements, PRD, specification, user stories, acceptance criteria, scope definition, stakeholder
 model: opus
-tools: Read, Glob, Grep, Write, AskUserQuestion
-disallowedTools: Bash, Edit
+tools: Read, Glob, Grep, Write, Edit, AskUserQuestion
+disallowedTools: Bash
 permissionMode: acceptEdits
 skills: interview, spec-philosophy, subagent-contract, language-enforcement
 ---

@@ -124,10 +124,13 @@ Use the agent's consolidated output for presentation. Do NOT consolidate results
 
 **Error Handling for verification-specialist:**
 If verification-specialist fails or times out:
-1. Present raw findings from the 5 review agents without consolidation
-2. Warn user: "Auto-review consolidation failed. Showing raw agent findings (duplicates not merged)."
-3. Proceed with user feedback loop using unfiltered findings
-4. Consider duplicates as potential high-confidence issues
+1. Retry once with reduced scope (focus on de-duplication and severity sorting only)
+2. If retry fails:
+   - Attempt basic de-duplication: group identical issues from multiple agents
+   - Issues reported by 2+ agents: treat as high-confidence (boost by 10)
+   - Issues reported by 1 agent: keep original confidence
+3. Warn user: "Auto-review consolidation incomplete. Basic de-duplication applied."
+4. Proceed with user feedback loop using partially consolidated findings
 
 **Present auto-review results to user:**
 ```markdown
