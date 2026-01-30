@@ -23,22 +23,35 @@ Even quick implementations follow core principles:
 
 ## Execution Instructions
 
-### Step 1: Validate Scope
+### Step 1: Validate Scope (MUST DO BEFORE ANY IMPLEMENTATION)
+
+**CRITICAL (L1): Validate scope BEFORE starting any work.**
 
 Check if this is actually a quick task:
 
-**Proceed if:**
+**Proceed ONLY if ALL criteria are met:**
 - [ ] Task is clearly defined in `$ARGUMENTS`
 - [ ] Affects 3 or fewer files
 - [ ] No database schema changes
 - [ ] No API contract changes
 - [ ] No security-sensitive code
 
-**Escalate to /spec-plan if:**
+**MUST escalate to /spec-plan if ANY of these apply:**
 - Task is vague or ambiguous
 - Multiple components affected
 - Architectural decisions needed
 - Security implications
+
+**MUST use AskUserQuestion if task is unclear:**
+
+| User Says | Ask About |
+|-----------|-----------|
+| "Fix the bug" | Which bug? Where? What's the expected behavior? |
+| "Add validation" | Which field? What rules? What error messages? |
+| "Improve this" | Improve what aspect? Performance? UX? Readability? |
+| "Make it work" | What's broken? What's the expected behavior? |
+
+**NEVER proceed with vague tasks — clarify first.**
 
 ### Step 2: Context Gathering
 
@@ -120,24 +133,25 @@ Brief summary:
 
 ## Escalation Triggers
 
-If during implementation you discover:
-- Scope is larger than expected
+**CRITICAL (L1): STOP immediately if any of these occur during implementation:**
+
+- Scope is larger than expected (more files affected)
 - Architectural questions arise
 - Security concerns emerge
-- Requirements are unclear
+- Requirements become unclear
 
-**STOP and inform the user:**
+**MUST inform the user using AskUserQuestion:**
 
 ```
-This task is more complex than initially expected because [reason].
-
-Recommend switching to /spec-plan for proper specification.
-
-Would you like to:
-1. Continue with /spec-plan
-2. Proceed anyway (at your own risk)
-3. Abandon and reassess
+Question: "This task is more complex than initially expected because [reason]. How should we proceed?"
+Header: "Escalate"
+Options:
+- "Switch to /spec-plan for proper planning"
+- "Proceed anyway (I understand the risks)"
+- "Abandon and reassess requirements"
 ```
+
+**NEVER continue implementing when scope becomes unclear.**
 
 ## Comparison with /spec-plan
 
@@ -149,3 +163,39 @@ Would you like to:
 | Review | Basic checks | Interactive + optional auto review |
 | Time | Minutes | Hours to days |
 | Risk | Low scope only | Any complexity |
+
+---
+
+## Rules (L1 - Hard)
+
+Critical for preventing scope creep and ensuring safe quick implementations.
+
+- MUST validate scope BEFORE starting implementation (check all criteria in Step 1)
+- MUST escalate to `/spec-plan` if:
+  - Task is vague or ambiguous
+  - Affects more than 3 files
+  - Requires architectural decisions
+  - Involves security-sensitive code
+  - Database schema or API contract changes needed
+- NEVER start implementation if scope is ambiguous — use AskUserQuestion first
+- MUST use AskUserQuestion when:
+  - Task description contains vague terms ("improve", "fix", "make it work")
+  - Multiple interpretations of the task are possible
+  - Scope boundaries are unclear
+- NEVER guess user intent — ask first
+- ALWAYS run tests before completing
+
+## Defaults (L2 - Soft)
+
+Important for quality. Override with reasoning when appropriate.
+
+- Delegate non-trivial changes to specialist agents
+- Run linter/formatter after changes
+- Provide brief summary of changes at completion
+
+## Guidelines (L3)
+
+Recommendations for effective quick implementations.
+
+- Consider detecting stack before implementation
+- Prefer reading related files before making changes

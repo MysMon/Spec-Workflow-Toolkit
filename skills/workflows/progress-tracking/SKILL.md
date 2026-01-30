@@ -473,6 +473,8 @@ Critical for session continuity and data integrity.
 - NEVER leave nextAction empty or vague (agent cannot resume)
 - ALWAYS include workspaceId in progress files (isolation)
 - NEVER write to progress files outside current workspace (prevents conflicts)
+- ALWAYS read progress files immediately after compaction (restores decision context)
+- NEVER continue work without verifying resumptionContext.position after compaction
 
 ## Defaults (L2 - Soft)
 

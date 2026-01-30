@@ -43,7 +43,7 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 
 ### Absolute Prohibitions
 
-1. **Prefer delegating bulk Grep/Glob operations to `code-explorer`** - Use directly only for single targeted lookups
+1. **MUST delegate bulk Grep/Glob operations to `code-explorer`** - Use directly only for single targeted lookups
 2. **NEVER read more than 3 files directly** - Delegate bulk reading to subagents
 3. **NEVER implement code yourself** - This is a planning command
 4. **NEVER skip to implementation** - Output is a plan, not code
@@ -145,10 +145,22 @@ If the user provided a feature description (`$ARGUMENTS`), analyze it first:
 - Who are the target users?
 - What are potential constraints?
 
+**CRITICAL: Use AskUserQuestion when request is vague or ambiguous.**
+
 If the request is vague or missing:
-1. Ask clarifying questions using AskUserQuestion
+1. **MUST use AskUserQuestion** to clarify:
+   - What problem is being solved?
+   - Who are the target users?
+   - What does success look like?
 2. Identify stakeholders and use cases
 3. Document initial understanding
+
+Example triggers for AskUserQuestion:
+| User Says | Ask About |
+|-----------|-----------|
+| "Add a feature" | What feature? For whom? Why? |
+| "Improve performance" | Which operation? What's the target? |
+| "Make it better" | Better how? Faster? Easier? More reliable? |
 
 **Domain Knowledge Injection:** Ask the user:
 ```
@@ -424,3 +436,39 @@ Then run `/spec-implement` to build it.
 - Trivial changes with clear scope (use `/quick-impl`)
 - Urgent hotfixes (use `/hotfix`)
 - Already have an approved spec (go straight to `/spec-implement`)
+
+---
+
+## Rules (L1 - Hard)
+
+Critical for orchestration and planning quality.
+
+- MUST delegate bulk Grep/Glob operations to `code-explorer` (use directly only for single targeted lookups)
+- NEVER read more than 3 files directly — delegate bulk reading to subagents
+- NEVER implement code yourself — this is a planning command
+- NEVER skip to implementation — output is a plan, not code
+- MUST use AskUserQuestion when:
+  - User request is vague or missing critical details
+  - Multiple interpretations of requirements are possible
+  - Clarification is needed before proceeding to next phase
+  - User feedback during refinement loop is ambiguous
+- NEVER guess user intent — ask first using AskUserQuestion
+- ALWAYS create progress file before any Phase 1 work
+- ALWAYS update progress file at each phase completion
+
+## Defaults (L2 - Soft)
+
+Important for quality planning. Override with reasoning when appropriate.
+
+- Launch 2-3 parallel agents per exploration/design phase
+- Use refinement loops (max 3 iterations) for spec and design approval
+- Document trade-offs and rejected approaches in design file
+- Present findings to user before proceeding to next phase
+
+## Guidelines (L3)
+
+Recommendations for effective planning.
+
+- Consider asking for domain knowledge before codebase exploration
+- Prefer presenting options with trade-offs rather than single recommendations
+- Consider running self-review gate before presenting final output

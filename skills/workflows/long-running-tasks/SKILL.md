@@ -386,6 +386,9 @@ Critical for session continuity and data integrity.
 - NEVER write to progress files outside current workspace
 - ALWAYS read workspace progress files first after compaction or new session
 - NEVER have more than one todo in_progress (focus and clarity)
+- NEVER attempt multiple features simultaneously (causes incomplete implementations)
+- ALWAYS focus on ONE feature per session: implement → test → update progress → commit → next
+- MUST complete current feature before starting next (prevents context explosion)
 
 ## Defaults (L2 - Soft)
 
@@ -404,5 +407,4 @@ Important for effective long-running tasks. Override with reasoning when appropr
 Recommendations for managing complex tasks.
 
 - Consider using the Initializer + Coding pattern for multi-session work
-- Prefer ONE feature at a time approach
 - Consider background subagents for non-blocking operations

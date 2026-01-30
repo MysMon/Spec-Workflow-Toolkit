@@ -319,10 +319,13 @@ INSIGHT: PreToolUse hooks with exit 1 are non-blocking - use JSON decision contr
 
 ## Rules (L1 - Hard)
 
+- ALWAYS validate workspace ID before use (must match `^[a-zA-Z0-9._-]+$`, must NOT contain `..`)
+- NEVER process user-provided workspace ID without validation (prevents path traversal attacks)
 - ALWAYS process insights one by one with explicit user confirmation
 - NEVER auto-approve or batch-approve without user decision per item
 - NEVER modify CLAUDE.md without showing the change to user first
 - ALWAYS preserve original insight content (user can edit destination text)
+- MUST use AskUserQuestion for each insight decision (approve/skip/reject)
 
 ## Defaults (L2 - Soft)
 

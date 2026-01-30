@@ -354,3 +354,38 @@ Code review completed:
 | What | Specification documents | Code changes |
 | Focus | Completeness, feasibility | Bugs, security, quality |
 | Output | Spec improvements | Code fixes |
+
+---
+
+## Rules (L1 - Hard)
+
+Critical for accurate and useful code reviews.
+
+- MUST launch all 5 review agents in a single message for true parallelism
+- NEVER launch agents sequentially (breaks parallel execution benefit)
+- MUST score each issue 0-100 using the confidence rubric
+- NEVER report issues with confidence < 80 (default threshold)
+- MUST re-check PR eligibility before presenting findings
+- NEVER post review if PR is closed or merged
+- MUST use AskUserQuestion when:
+  - User wants to fix issues (ask which ones)
+  - Multiple remediation approaches exist
+  - Need clarification on issue priority
+- ALWAYS include file:line references in reported issues
+
+## Defaults (L2 - Soft)
+
+Important for quality reviews. Override with reasoning when appropriate.
+
+- Launch 5 agents: Compliance, Bug Scan, Git History, PR Comments, Code Comments
+- De-duplicate issues from multiple agents (boost confidence by 10)
+- Use Haiku agents for confidence scoring
+- Present findings grouped by confidence level (Critical >= 90, Important 80-89)
+
+## Guidelines (L3)
+
+Recommendations for effective code reviews.
+
+- Consider presenting issues with GitHub permalink format for PR reviews
+- Prefer filtering out pedantic nitpicks and linter-catchable issues
+- Consider asking user about fix priority when multiple issues found

@@ -397,6 +397,11 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as e:
+        # CRITICAL: Fail-closed on exceptions - don't let potentially
+        # hallucinated references pass through unvalidated
         sys.stderr.write(f"verify_references FATAL: {e}\n")
-        print(json.dumps({"continue": True}))
+        print(json.dumps({
+            "continue": False,
+            "systemMessage": f"Reference validation failed due to error: {e}. Subagent output may contain hallucinated references."
+        }))
         sys.exit(0)

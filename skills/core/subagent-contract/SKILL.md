@@ -407,6 +407,10 @@ Critical for orchestration consistency and context protection.
 - ALWAYS use the standardized result format (enables aggregation)
 - NEVER exceed ~500 tokens for summaries (context protection critical)
 - ALWAYS report blockers that prevent completion (orchestrator needs to know)
+- ALWAYS complete Pre-Submission Verification checklist before returning results (see below)
+- ALWAYS verify file:line references exist before submitting (prevents hallucinations)
+- NEVER submit results with hallucinated file paths or line numbers
+- MUST include confidence breakdown (verified_confidence + inferred_confidence) when confidence >= 75
 
 ### Defaults (L2 - Soft)
 

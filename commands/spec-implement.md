@@ -40,7 +40,7 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 
 ### Absolute Prohibitions
 
-1. **Prefer delegating bulk Grep/Glob operations to `code-explorer`** - Use directly only for single targeted lookups
+1. **MUST delegate bulk Grep/Glob operations to `code-explorer`** - Use directly only for single targeted lookups
 2. **NEVER read more than 3 files directly** - Delegate bulk reading to subagents
 3. **NEVER implement code yourself** - Delegate to `frontend-specialist` or `backend-specialist`
 4. **NEVER write tests yourself** - Delegate to `qa-engineer`
@@ -117,9 +117,19 @@ Update progress file:
 **If progress file shows implementation in progress:**
 Resume from the last incomplete feature.
 
-**IMPORTANT:** Wait for explicit user approval before starting implementation.
+**CRITICAL (L1): MUST get explicit user approval before starting implementation.**
 
-Ask user: "Ready to start implementation? This will modify files in your codebase."
+Use AskUserQuestion:
+```
+Question: "Ready to start implementation? This will modify files in your codebase."
+Header: "Confirm"
+Options:
+- "Yes, proceed with implementation"
+- "No, let me review the plan first"
+- "Show me the build sequence again"
+```
+
+**NEVER proceed without explicit "Yes" confirmation.**
 
 ---
 
@@ -391,3 +401,42 @@ Update `claude-progress.json`:
 - Single-line bug fixes (just fix it directly)
 - Trivial changes (use `/quick-impl`)
 - Urgent hotfixes (use `/hotfix`)
+
+---
+
+## Rules (L1 - Hard)
+
+Critical for safe implementation and orchestration.
+
+- MUST delegate bulk Grep/Glob operations to `code-explorer` (use directly only for single targeted lookups)
+- NEVER read more than 3 files directly — delegate bulk reading to subagents
+- NEVER implement code yourself — delegate to `frontend-specialist` or `backend-specialist`
+- NEVER write tests yourself — delegate to `qa-engineer`
+- NEVER do security analysis yourself — delegate to `security-auditor`
+- MUST get explicit user approval before modifying any files
+- NEVER proceed with implementation without user confirmation
+- MUST use AskUserQuestion when:
+  - Spec-reality divergence is discovered
+  - Multiple implementation approaches are possible
+  - User feedback is ambiguous during quality review
+- NEVER proceed if `security-auditor` agent fails — security review is mandatory
+- MUST retry once if any agent times out, with reduced scope
+- MUST document all agent failures in progress file before continuing
+- ALWAYS update progress files after each feature completion
+
+## Defaults (L2 - Soft)
+
+Important for quality implementation. Override with reasoning when appropriate.
+
+- Complete one feature at a time (implement → test → commit → next)
+- Use TDD pattern when clear acceptance criteria exist
+- Launch 4 parallel review agents in Phase 3
+- De-duplicate issues from multiple agents (boost confidence by 10)
+
+## Guidelines (L3)
+
+Recommendations for effective implementation.
+
+- Consider asking user if they want to review before committing each feature
+- Prefer presenting quality review findings grouped by severity
+- Consider documenting deviations from design for future reference
