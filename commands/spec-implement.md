@@ -85,10 +85,13 @@ If no arguments:
 
 #### Validate Prerequisites
 
+**Read essential files (max 2):**
 1. **Read the spec file** - Understand what to build
 2. **Read the design file** - Understand how to build it
-3. **Check for review report** - Note review verdict and unresolved issues
-4. **Check progress file** - Determine if resuming or starting fresh
+
+**Check existence only (do not read full content):**
+3. **Locate review report** - Use Glob to check if `docs/specs/[feature-name]-review.md` exists
+4. **Locate progress file** - Use Glob to check if `.claude/workspaces/{id}/claude-progress.json` exists
 
 If spec or design is missing:
 ```
@@ -109,7 +112,7 @@ Check the progress file for review status:
 | `plan-complete` | User review was skipped | Warn: "No user review was run. Consider `/spec-review` first." Proceed if user confirms. |
 | `review-complete` + APPROVED | User reviewed and approved | Proceed normally. Note any changes applied during review. |
 
-If a review log file exists (`docs/specs/[feature-name]-review.md`), read it and note changes made during review.
+If a review log file exists (`docs/specs/[feature-name]-review.md`), delegate to `product-manager` agent to summarize changes made during review. Do not read the full review log directly.
 
 #### Initialize or Resume Progress
 
