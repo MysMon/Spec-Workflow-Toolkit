@@ -449,13 +449,43 @@ When a subagent fails or times out:
 
 1. **Check partial output** for usable findings
 2. **Retry once** with reduced scope if critical
-3. **Proceed with available results** if non-critical, documenting the gap
-4. **Escalate to user** if critical agent fails after retry
+3. **Fallback to direct read** if context-loading agent fails (see below)
+4. **Proceed with available results** if non-critical, documenting the gap
+5. **Escalate to user** if critical agent fails after retry
 
 Add to progress file when agents fail:
 ```json
 "warnings": ["Agent X failed, results may be incomplete"]
 ```
+
+### Fallback Mechanism (L1 - Required)
+
+**Why fallback is mandatory:**
+1. **Resilience**: Users should not be blocked by agent timeouts
+2. **Graceful degradation**: Partial progress is better than total failure
+3. **Consistency**: All commands use the same error recovery pattern
+
+**Fallback rules:**
+- **Primary path**: Always delegate to agent first
+- **Fallback trigger**: Agent timeout OR failure after retry
+- **Fallback action**: Direct file read (≤3 files, ≤200 lines each)
+- **Documentation**: Warn user and log in progress file
+
+**Anti-pattern (NEVER do this):**
+```markdown
+# BAD: Skip agent based on task clarity
+If task is clear → Read file directly, skip agent
+
+# GOOD: Agent first, fallback second
+Always → Delegate to agent
+If agent fails → Fallback to direct read + warn user
+```
+
+**Why delegation-first, not direct-read-first:**
+1. **Context Protection**: Agent reads don't consume orchestrator context
+2. **Consistency**: Same pattern across all commands
+3. **Expertise**: Agents apply stack-detector and pattern recognition
+4. **Fallback Safety**: Direct read is safety net, not primary path
 
 ---
 

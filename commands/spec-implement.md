@@ -1,7 +1,7 @@
 ---
 description: "Implement a feature from an approved spec and design - builds, tests, and reviews code"
 argument-hint: "[optional: spec file path or feature name]"
-allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite, Skill
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite
 ---
 
 # /spec-implement - Specification-Based Implementation

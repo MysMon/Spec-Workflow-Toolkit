@@ -80,16 +80,33 @@ Launch product-manager to update requirement wording
 
 **Task Clarity-Based Context Gathering:**
 
-For commands like `/quick-impl`, the level of delegation depends on task clarity:
+For commands like `/quick-impl`, always delegate discovery to agents first, with fallback for failures:
 
 | Scenario | Action |
 |----------|--------|
-| User specified exact file path | Read directly, skip Explore |
-| User specified function/class name | Use Glob to find file, then read directly |
-| Task is vague ("fix the bug") | Use Explore agent for discovery |
-| Multiple files potentially affected | Use Explore agent |
+| User specified exact file path | Delegate to Explore (quick mode) with file hint |
+| User specified function/class name | Delegate to Explore (quick mode) to locate |
+| Task is vague ("fix the bug") | Delegate to Explore (discovery mode) |
+| Multiple files potentially affected | Delegate to Explore (medium thoroughness) |
 
-This principle allows efficient handling of well-defined tasks while preserving full exploration for ambiguous requests.
+**Fallback (agent failure only):**
+If Explore agent fails or times out after retry, orchestrator MAY read 1-2 specified files directly (< 200 lines each) as fallback.
+
+**Why delegation-first, not direct-read-first:**
+1. **Context Protection**: Agent reads don't consume orchestrator context
+2. **Consistency**: Same pattern as spec-implement, spec-review, spec-revise
+3. **Expertise**: Agents apply stack-detector and pattern recognition
+4. **Fallback Safety**: Direct read is safety net, not primary path
+
+**Anti-pattern (AVOID):**
+```markdown
+# BAD: Read before agent call
+If task is clear → Read file directly, skip agent
+
+# GOOD: Agent first, fallback second
+Always → Delegate to agent
+If agent fails → Fallback to direct read + warn user
+```
 
 **Metadata Files Exception (progress files, feature-list.json):**
 

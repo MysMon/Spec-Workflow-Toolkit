@@ -61,18 +61,12 @@ Check if this is actually a quick task:
 
 ### Step 2: Context Gathering
 
-Before implementing, gather context based on task clarity:
+**Always delegate to Explore agent first** — even for clearly scoped tasks.
 
-**For clearly scoped tasks (user specified exact files):**
-- Orchestrator MAY read 1-2 specified files directly (if each file < 200 lines)
-- Skip Explore agent if task is unambiguous
-- Example: "Fix typo in src/utils/format.ts" → read that file directly
-
-**For tasks needing discovery (files not specified):**
-Delegate to Explore agent:
 ```
 Launch Task tool with subagent_type=Explore (quick mode):
 Task: Gather context for quick implementation
+Target: [user-specified file or task description]
 Find:
 - Project stack detection (from config files)
 - Files related to [task]
@@ -81,22 +75,30 @@ Find:
 Output: Stack info, related files, patterns to follow, test file paths
 ```
 
-**Note on patterns:** When Explore agent returns patterns, pass them to the specialist in Step 3. If orchestrator read files directly, do NOT extract patterns manually — specialist will discover patterns during implementation.
+**Why delegation-first (not direct-read-first):**
+1. **Context Protection**: Agent reads don't consume orchestrator context
+2. **Consistency**: Same pattern as spec-implement, spec-review, spec-revise
+3. **Expertise**: Agent applies stack-detector and pattern recognition
+4. **Fallback Safety**: Direct read is safety net, not primary path
 
-**Decision criteria (applied AFTER Step 1 scope validation passes):**
+**Decision criteria:**
 | Scenario | Action |
 |----------|--------|
-| User specified exact file path + file < 200 lines | Read directly, skip Explore |
-| User specified function/class name | Use Glob to find file, then read if < 200 lines |
-| File > 200 lines OR complex change | Use Explore agent for discovery |
-| Multiple files potentially affected | Use Explore agent |
+| User specified exact file path | Delegate to Explore (quick mode) with file hint |
+| User specified function/class name | Delegate to Explore (quick mode) to locate |
+| Task is vague ("fix the bug") | Delegate to Explore (discovery mode) |
+| Multiple files potentially affected | Delegate to Explore (medium thoroughness) |
 
-**Error Handling for Explore agent:**
+**Error Handling for Explore agent (Fallback):**
 If Explore agent fails or times out:
 1. Check the agent's partial output for usable context
-2. Fall back to minimal manual context: run `Glob` for 1-2 directly relevant files
+2. **Fallback: Read directly** (if file < 200 lines):
+   - Read the user-specified file directly
+   - Warn user: "Using direct file read (agent timed out)"
 3. Proceed with implementation using available context
-4. Document the gap in the summary
+4. Document in summary: "Context gathered via fallback (agent timeout)"
+
+**Note on patterns:** When Explore agent returns patterns, pass them to the specialist in Step 3. If fallback was used, specialist will discover patterns during implementation.
 
 ### Step 3: Implementation
 
