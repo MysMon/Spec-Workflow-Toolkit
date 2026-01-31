@@ -5,10 +5,10 @@ Validates file:line references in subagent output to catch hallucinated code loc
 
 Based on Claude Code hooks specification.
 
-Input: JSON metadata from stdin containing transcript_path to JSONL file
+Input: JSON metadata from stdin containing agent_transcript_path (preferred) or transcript_path to JSONL file
 Output:
-  - If >30% references are invalid: exit 0 with JSON {"continue": false} (SubagentStop control)
-  - Otherwise: exit 0 with JSON {"continue": true} and verification summary
+  - If >30% references are invalid: exit 0 with JSON {"decision": "block", "reason": "..."} (SubagentStop control)
+  - Otherwise: exit 0 with JSON {"decision": "allow"} and verification summary via systemMessage
 
 Reference patterns matched:
   - file.ts:123
@@ -281,59 +281,51 @@ def main():
         input_data = sys.stdin.read().strip()
     except Exception as e:
         sys.stderr.write(f"verify_references: Failed to read stdin: {e}\n")
-        print(json.dumps({"continue": True}))
-        sys.exit(0)
+        sys.exit(0)  # Allow by default
 
     if not input_data:
-        print(json.dumps({"continue": True}))
-        sys.exit(0)
+        sys.exit(0)  # Allow by default
 
     # Parse hook metadata
     try:
         metadata = json.loads(input_data)
     except json.JSONDecodeError:
         sys.stderr.write("verify_references: Invalid JSON input\n")
-        print(json.dumps({"continue": True}))
-        sys.exit(0)
+        sys.exit(0)  # Allow by default
 
     # Check for stop_hook_active to prevent infinite loops
     if metadata.get('stop_hook_active', False):
-        print(json.dumps({"continue": True}))
-        sys.exit(0)
+        sys.exit(0)  # Allow by default
 
     # Get transcript path
-    transcript_path = metadata.get('transcript_path', '')
+    # Prefer agent_transcript_path (subagent's own transcript) over transcript_path (main session)
+    transcript_path = metadata.get('agent_transcript_path', '') or metadata.get('transcript_path', '')
     if not transcript_path:
-        print(json.dumps({"continue": True}))
-        sys.exit(0)
+        sys.exit(0)  # Allow by default
 
     # Validate transcript path
     is_valid, error_msg, resolved_path = validate_transcript_path(transcript_path)
     if not is_valid:
         sys.stderr.write(f"verify_references: Invalid path - {error_msg}\n")
-        print(json.dumps({"continue": True}))
-        sys.exit(0)
+        sys.exit(0)  # Allow by default
 
     # Extract content from transcript
     content, was_size_skipped = extract_assistant_content(resolved_path, MAX_TRANSCRIPT_SIZE)
     if was_size_skipped:
         print(json.dumps({
-            "continue": True,
             "systemMessage": "verify_references: Transcript too large, skipping validation"
         }))
         sys.exit(0)
 
     if not content:
-        print(json.dumps({"continue": True}))
-        sys.exit(0)
+        sys.exit(0)  # Allow by default
 
     # Extract references from content
     references = extract_references(content)
 
     if not references:
         # No references found, nothing to validate
-        print(json.dumps({"continue": True}))
-        sys.exit(0)
+        sys.exit(0)  # Allow by default
 
     # Validate each reference
     results = []
@@ -370,14 +362,14 @@ def main():
 
         sys.stderr.write(f"verify_references: {error_message}\n")
 
-        # SubagentStop uses JSON control with exit 0 (not exit 2 which is for PreToolUse)
+        # SubagentStop uses decision control with exit 0 (not exit 2 which is for PreToolUse)
         print(json.dumps({
-            "continue": False,
-            "systemMessage": error_message
+            "decision": "block",
+            "reason": error_message
         }))
         sys.exit(0)
 
-    # Success - output summary
+    # Success - output summary via systemMessage
     if invalid_count > 0:
         summary = (
             f"Reference verification: {valid_count}/{total} references valid "
@@ -387,7 +379,6 @@ def main():
         summary = f"Reference verification: All {total} file:line references validated successfully"
 
     print(json.dumps({
-        "continue": True,
         "systemMessage": summary
     }))
     sys.exit(0)
@@ -401,7 +392,7 @@ if __name__ == '__main__':
         # hallucinated references pass through unvalidated
         sys.stderr.write(f"verify_references FATAL: {e}\n")
         print(json.dumps({
-            "continue": False,
-            "systemMessage": f"Reference validation failed due to error: {e}. Subagent output may contain hallucinated references."
+            "decision": "block",
+            "reason": f"Reference validation failed due to error: {e}. Subagent output may contain hallucinated references."
         }))
         sys.exit(0)

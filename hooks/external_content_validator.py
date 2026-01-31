@@ -14,10 +14,9 @@ Security Concerns Addressed:
 
 Features:
 - URL validation (block internal/localhost URLs)
-- Domain allowlist/blocklist support
+- Domain allowlist/blocklist support (reads allowed_domains/blocked_domains from WebSearch tool input)
 - Query parameter sanitization for sensitive data
-- Size limits for fetched content
-- Rate limiting awareness
+- SSRF prevention with IP normalization (handles decimal, octal, hex IP formats)
 
 Uses JSON decision control (exit 0 + hookSpecificOutput) for blocking.
 """
@@ -101,6 +100,71 @@ def extract_url_from_input(tool_name: str, tool_input: dict) -> str:
             return query
         return ""  # Regular search queries are allowed
     return ""
+
+
+def extract_domain_lists(tool_input: dict) -> tuple[list[str], list[str]]:
+    """
+    Extract allowed_domains and blocked_domains from tool input.
+    These are optional parameters for WebSearch tool.
+
+    Returns: (allowed_domains, blocked_domains)
+    """
+    allowed = tool_input.get("allowed_domains", [])
+    blocked = tool_input.get("blocked_domains", [])
+
+    # Ensure they are lists
+    if not isinstance(allowed, list):
+        allowed = []
+    if not isinstance(blocked, list):
+        blocked = []
+
+    return allowed, blocked
+
+
+def check_domain_lists(url: str, allowed_domains: list[str], blocked_domains: list[str]) -> tuple[bool, str]:
+    """
+    Check URL against allowed and blocked domain lists.
+
+    Args:
+        url: The URL to check
+        allowed_domains: If non-empty, only these domains are allowed
+        blocked_domains: These domains are always blocked
+
+    Returns: (is_valid, error_message)
+    """
+    if not url:
+        return True, ""
+
+    try:
+        parsed = urlparse(url)
+        host = (parsed.hostname or "").lower()
+    except Exception:
+        return True, ""  # Let other validation handle malformed URLs
+
+    if not host:
+        return True, ""
+
+    # Check blocked domains first
+    for blocked in blocked_domains:
+        blocked_lower = blocked.lower()
+        # Match exact domain or subdomain
+        if host == blocked_lower or host.endswith("." + blocked_lower):
+            return False, f"Domain is in blocked list: {blocked}"
+
+    # Check allowed domains (if specified, only these are allowed)
+    if allowed_domains:
+        is_allowed = False
+        for allowed in allowed_domains:
+            allowed_lower = allowed.lower()
+            # Match exact domain or subdomain
+            if host == allowed_lower or host.endswith("." + allowed_lower):
+                is_allowed = True
+                break
+
+        if not is_allowed:
+            return False, f"Domain not in allowed list: {host}"
+
+    return True, ""
 
 
 def normalize_ip_address(host: str) -> str | None:
@@ -273,7 +337,22 @@ try:
     # Extract URL to validate
     url = extract_url_from_input(tool_name, tool_input)
 
-    # Validate the URL
+    # Extract and check domain allowlist/blocklist (WebSearch tool parameters)
+    allowed_domains, blocked_domains = extract_domain_lists(tool_input)
+    if url and (allowed_domains or blocked_domains):
+        is_valid, error_reason = check_domain_lists(url, allowed_domains, blocked_domains)
+        if not is_valid:
+            output = {
+                "hookSpecificOutput": {
+                    "hookEventName": "PreToolUse",
+                    "permissionDecision": "deny",
+                    "permissionDecisionReason": f"External content validation failed: {error_reason}"
+                }
+            }
+            print(json.dumps(output))
+            sys.exit(0)
+
+    # Validate the URL (SSRF prevention, suspicious patterns, etc.)
     is_valid, error_reason = validate_url(url)
 
     if not is_valid:

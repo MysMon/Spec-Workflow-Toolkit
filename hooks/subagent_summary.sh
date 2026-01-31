@@ -93,15 +93,19 @@ if command -v get_session_log &> /dev/null; then
     echo "$LOG_ENTRY" >> "$SESSION_LOG"
 fi
 
-# Output summary (this will be shown in the conversation)
-# Use printf for safe variable output
-printf '%s\n' "---"
-printf '**Subagent Complete:** `%s` (Status: %s)\n' "$AGENT_NAME" "$AGENT_STATUS"
-printf '%s\n' ""
-printf '%s\n' "Review the output above and decide:"
-printf '%s\n' "- Accept and continue with next phase"
-printf '%s\n' "- Request clarification or changes"
-printf '%s\n' "- Delegate follow-up to another agent"
-printf '%s\n' "---"
+# Output summary via JSON systemMessage (stdout is not shown to users for SubagentStop)
+# Build summary message
+SUMMARY="---
+**Subagent Complete:** \`$AGENT_NAME\` (Status: $AGENT_STATUS)
+
+Review the output above and decide:
+- Accept and continue with next phase
+- Request clarification or changes
+- Delegate follow-up to another agent
+---"
+
+# Output as JSON with systemMessage (will be shown to user)
+python3 -c "import json; print(json.dumps({'systemMessage': '''$SUMMARY'''}))" 2>/dev/null || \
+    echo '{"systemMessage": "Subagent completed: '"$AGENT_NAME"'"}'
 
 exit 0
