@@ -165,16 +165,19 @@ If specialist agent fails or times out:
    - "Switch to /spec-plan for proper planning"
    - "I'll handle manually (understanding the risks)"
 
-**Direct modification allowed ONLY for:**
+**Direct modification allowed ONLY for TRIVIAL changes:**
+See `subagent-contract` skill "TRIVIAL Edit Definition" for criteria. Quick summary:
 - Single-line typo fixes in comments or strings
-- Single config value changes (e.g., timeout: 30 → timeout: 60)
 - Import statement additions (single line)
+
+**Note:** Config value changes (e.g., timeout: 30 → timeout: 60) are NOT TRIVIAL per `subagent-contract` - they may affect behavior.
 
 **Examples of what requires delegation:**
 - Any logic changes (even "simple" ones)
 - Multiple file modifications
 - New functions, classes, or modules
 - API or interface changes
+- Numeric config value changes
 
 ### Step 4: Verification
 

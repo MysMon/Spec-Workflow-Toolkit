@@ -86,20 +86,10 @@ If no arguments:
 #### Validate Prerequisites
 
 **Reading vs Editing distinction:**
-- **Reading for context**: Orchestrator MAY read spec/design files directly for quick lookups
+- **Reading for context**: Quick lookups allowed (see `subagent-contract` "Quick Lookup Definition")
 - **Editing/modifying**: ALWAYS delegate to appropriate agent
 
-Refer to `subagent-contract` skill for unified quick lookup limits (≤3 files, ≤200 lines per file, ≤300 lines total).
-
-**Quick lookup examples (direct read allowed):**
-- Confirming a single requirement (e.g., "What's the expected response time?")
-- Verifying acceptance criteria for one feature
-- Checking build sequence order
-
-**NOT quick lookups (delegate to product-manager):**
-- Understanding overall spec intent
-- Identifying integration points across features
-- Analyzing trade-offs or design decisions
+Refer to `subagent-contract` skill "Orchestrator Exceptions Reference" for all exception definitions including Quick Lookup limits (≤3 files, ≤200 lines/file, ≤300 total).
 
 **CRITICAL: The orchestrator never EDITS spec/design files directly.**
 

@@ -85,11 +85,7 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 **Before creating new progress files, check if work already exists for this project.**
 
 **Why progress file reading is acceptable (not delegated):**
-- Progress files are orchestrator state metadata (not project content)
-- Status checking is quick validation (typically <20 lines of JSON)
-- Essential to avoid duplicate work and maintain session continuity
-- Minimal context consumption compared to spec/design content analysis
-- Consistent with resume.md Phase 3 pattern
+Progress files are orchestrator state metadata, not project content. See `subagent-contract` skill "Orchestrator Exceptions Reference" for full justification of the Progress/Metadata Read exception.
 
 1. **Check for existing progress file:**
    - Generate workspace ID: `{branch}_{path-hash}` (from SessionStart hook context)
