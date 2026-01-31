@@ -1,7 +1,7 @@
 ---
 description: "Interactively review and refine a spec and design with the user - feedback loop until approved"
 argument-hint: "[path to spec file or feature name]"
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite, Skill
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite
 ---
 
 # /spec-review - Interactive Plan Review

@@ -1,7 +1,7 @@
 ---
 description: "Plan a feature with spec-first methodology - discovery, exploration, clarification, and architecture design with iterative refinement"
 argument-hint: "[optional: feature description]"
-allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite, Skill
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite
 ---
 
 # /spec-plan - Specification-First Planning
