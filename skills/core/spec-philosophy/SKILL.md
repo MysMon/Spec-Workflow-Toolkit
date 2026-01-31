@@ -76,9 +76,46 @@ The 5-phase model above is the **logical abstraction**. The plan→review→impl
 
 ```
 docs/specs/
-├── SPEC-TEMPLATE.md      # Template for new specs
-└── feature-*.md          # Feature specifications
+├── SPEC-TEMPLATE.md          # Standard template (default)
+├── SPEC-TEMPLATE-MINIMAL.md  # For small changes (< 1 day)
+├── SPEC-TEMPLATE-CRITICAL.md # For P0/security-sensitive features
+├── DESIGN-TEMPLATE.md        # Design document template
+└── feature-*.md              # Feature specifications
 ```
+
+### Template Selection Guide
+
+| Condition | Template |
+|-----------|----------|
+| Bug fix, config change, < 1 day effort | SPEC-TEMPLATE-MINIMAL.md |
+| Standard feature (1-5 days) | SPEC-TEMPLATE.md |
+| P0 (launch blocker) feature | SPEC-TEMPLATE-CRITICAL.md |
+| Security-sensitive (auth, PII) | SPEC-TEMPLATE-CRITICAL.md |
+| Architecture-level change | SPEC-TEMPLATE-CRITICAL.md |
+
+### Spec Writing Checklist
+
+Before submitting a spec for review, verify:
+
+**Structure (L1 - Must)**
+- [ ] Overview follows 3-part structure (What/Why/Risk)
+- [ ] All P0 requirements have measurable acceptance criteria
+- [ ] Out of Scope section explicitly lists exclusions
+
+**Clarity (L1 - Must)**
+- [ ] No ambiguous terms ("appropriate", "properly", "as needed")
+- [ ] Each requirement is independently testable
+- [ ] Priority distribution is realistic (not all P0)
+
+**Completeness (L2 - Should)**
+- [ ] Edge cases are documented
+- [ ] Error handling is specified
+- [ ] NFRs have measurement methods
+
+**Security (L1 - Must for security-sensitive)**
+- [ ] Threat analysis completed (if applicable)
+- [ ] Security checklist filled (if applicable)
+- [ ] Data protection requirements documented (if PII involved)
 
 ### Agent Integration
 
