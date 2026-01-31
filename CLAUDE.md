@@ -14,8 +14,8 @@ Plan→Review→Implement→Revise workflow (4 commands with iterative refinemen
 .claude-plugin/plugin.json   # Plugin metadata
 commands/                    # 16 slash commands
 agents/                      # 13 subagent definitions
-skills/                      # 22 skill definitions
-  core/                      #   5 core skills (subagent-contract, spec-philosophy, security-fundamentals, interview, bounded-autonomy)
+skills/                      # 23 skill definitions
+  core/                      #   6 core skills (subagent-contract, spec-philosophy, spec-reading-guide, security-fundamentals, interview, bounded-autonomy)
   detection/                 #   1 detection skill (stack-detector)
   workflows/                 #   16 workflow skills
 hooks/                       # Event handlers (7 event types, 11 handlers) + Python validators
@@ -32,6 +32,7 @@ docs/                        # DEVELOPMENT.md (detailed specs), specs/
 | Understand post-implementation changes | `commands/spec-revise.md` |
 | See how agents work | `agents/code-explorer.md`, `agents/code-architect.md` |
 | Understand skill pattern | `skills/core/subagent-contract/SKILL.md` |
+| Understand spec/design templates | `skills/core/spec-reading-guide/SKILL.md`, `docs/specs/` |
 | Check hook implementation | `hooks/hooks.json`, `hooks/spec_context.sh` |
 | Understand insight tracking | `commands/review-insights.md`, `hooks/insight_capture.sh` |
 

@@ -529,6 +529,42 @@ Update `claude-progress.json`:
 
 **Mark all todos complete.**
 
+## Reading Specs for Implementation
+
+See `spec-reading-guide` skill for complete reading guidance. For implementation, follow this order:
+
+### Before Starting
+
+| Section | What to Extract |
+|---------|-----------------|
+| **Overview Table** | Understand What/Why/Risk/Complexity |
+| **Must Requirements (Top 3)** | Critical requirements that must be done |
+| **Known Pitfalls** | Mistakes to avoid during implementation |
+
+### During Implementation
+
+| Section | When to Reference |
+|---------|-------------------|
+| **Build Sequence** | Follow the order exactly |
+| **Implementation Map** | Find which file to modify |
+| **Acceptance Criteria** | Verify each feature works |
+
+### Implementer's Quick Path
+
+1. **Overview** → Get context (30 sec)
+2. **Must Requirements (Top 3)** → Know what's critical (1 min)
+3. **Known Pitfalls** → Avoid common mistakes (2 min)
+4. **Build Sequence** → Plan your work order
+5. **Implementation Map** → Find target files
+
+### Key Sections by Template
+
+| Template | Critical Sections for Implementation |
+|----------|--------------------------------------|
+| MINIMAL | Overview → Requirements → Technical Notes |
+| STANDARD | Overview → Top 3 → Known Pitfalls → Build Sequence |
+| CRITICAL | + Critical Constraints → Security Considerations |
+
 ## Usage Examples
 
 ```bash

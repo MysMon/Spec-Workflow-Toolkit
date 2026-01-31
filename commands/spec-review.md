@@ -337,6 +337,37 @@ When the user approves:
    Plan approved. Run `/spec-implement docs/specs/[feature-name].md` to start building.
    ```
 
+## Reading Specs for Review
+
+See `spec-reading-guide` skill for complete reading guidance. For review, focus on:
+
+### Review Checklist
+
+| Section | Review Focus |
+|---------|--------------|
+| **Overview Table** | Is the What/Why/Risk clear and accurate? |
+| **Must Requirements (Top 3)** | Are these truly the most critical? |
+| **Scope (IN/OUT)** | Is the boundary clear? |
+| **Known Pitfalls** | Are common mistakes documented? |
+| **Acceptance Criteria** | Are scenarios testable? |
+
+### Design Review Focus
+
+| Section | Review Focus |
+|---------|--------------|
+| **Design Summary** | Does the approach make sense? |
+| **Build Sequence** | Is the order logical? |
+| **Rejected Approaches** | Were alternatives considered? |
+| **Implementation Map** | Are all requirements mapped? |
+
+### Quick Review Path
+
+1. **Overview** → Understand What/Why/Risk (30 sec)
+2. **Must Requirements (Top 3)** → Check priorities (1 min)
+3. **Known Pitfalls** → Validate common mistakes (1 min)
+4. **Build Sequence** → Verify order makes sense (1 min)
+5. **Rejected Approaches** → Understand trade-offs (2 min)
+
 ## Usage Examples
 
 ```bash

@@ -517,6 +517,39 @@ interactively — give feedback, request changes, or approve.
 Then run `/spec-implement` to build it.
 ```
 
+## Understanding the Output
+
+This command produces two documents. See `spec-reading-guide` skill for detailed reading guidance.
+
+### Specification File (`docs/specs/[feature-name].md`)
+
+| Section | Purpose | Read First? |
+|---------|---------|-------------|
+| Overview Table | What/Why/Risk/Complexity/Scope in 30 seconds | Yes |
+| Must Requirements (Top 3) | Most critical requirements | Yes |
+| Known Pitfalls | Common mistakes to avoid | Before implementing |
+| Functional Requirements | Detailed requirements by priority | For full review |
+| Acceptance Criteria | Gherkin scenarios for validation | For QA |
+
+### Design File (`docs/specs/[feature-name]-design.md`)
+
+| Section | Purpose | Read First? |
+|---------|---------|-------------|
+| Design Summary | Approach/Key Decision/Complexity/Files | Yes |
+| Build Sequence | Ordered implementation steps | Before coding |
+| Implementation Map | Requirement → File mapping | During coding |
+| Rejected Approaches | Why alternatives weren't chosen | For context |
+
+### Template Selection
+
+Templates are selected based on complexity:
+
+| Complexity | Template |
+|------------|----------|
+| Low | SPEC-TEMPLATE-MINIMAL.md |
+| Medium | SPEC-TEMPLATE.md |
+| High (P0/Security) | SPEC-TEMPLATE-CRITICAL.md |
+
 ## Usage Examples
 
 ```bash

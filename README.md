@@ -239,6 +239,30 @@ Spec-Workflow Toolkit は汎用ワークフローを提供します。プロジ�
 
 ---
 
+## 仕様書テンプレート
+
+`/spec-plan` で作成される仕様書と設計書は以下のテンプレートを使用します。
+
+| テンプレート | 用途 | 選択条件 |
+|--------------|------|----------|
+| `SPEC-TEMPLATE-MINIMAL.md` | 小規模変更用 | Low complexity |
+| `SPEC-TEMPLATE.md` | 標準的な機能 | Medium complexity |
+| `SPEC-TEMPLATE-CRITICAL.md` | P0/セキュリティ | High complexity |
+| `DESIGN-TEMPLATE.md` | 設計書 | 仕様書に付随 |
+
+### 重要なセクション
+
+| セクション | 説明 |
+|------------|------|
+| Overview Table | What/Why/Risk/Complexity を30秒で把握 |
+| Must Requirements (Top 3) | 最重要要件3つ |
+| Known Pitfalls | よくある実装ミスと正しいアプローチ |
+| Build Sequence | 実装順序と依存関係 |
+
+テンプレートは `docs/specs/` にあります。
+
+---
+
 ## 開発者向け
 
 このプラグインを拡張・修正する場合は `docs/DEVELOPMENT.md` を参照してください。

@@ -805,6 +805,55 @@ Skills should define **processes and frameworks**, not static knowledge that can
 
 ---
 
+### Specification Template
+
+Specification templates are located in `docs/specs/`. The `product-manager` agent uses these templates when creating specifications.
+
+#### Template Selection
+
+| Complexity | Template | When to Use |
+|------------|----------|-------------|
+| Low | `SPEC-TEMPLATE-MINIMAL.md` | Small changes (<1 day), bug fixes, config changes |
+| Medium | `SPEC-TEMPLATE.md` | Standard features, moderate complexity |
+| High | `SPEC-TEMPLATE-CRITICAL.md` | P0 features, security-sensitive, architecture changes |
+| Design | `DESIGN-TEMPLATE.md` | Accompanies spec for implementation details |
+
+#### Key Template Sections
+
+All templates include these essential sections:
+
+| Section | Purpose |
+|---------|---------|
+| **Overview Table** | What/Why/Risk/Complexity/Scope in one glance |
+| **Must Requirements (Top 3)** | Most critical requirements highlighted |
+| **Known Pitfalls** | Common mistakes and correct approaches |
+| **Quick Navigation** | Links to key sections for fast access |
+
+CRITICAL template adds:
+- Critical Constraints (max 3 absolute rules)
+- Security Considerations (threat analysis, checklist)
+- Rollback Plan (when and how to roll back)
+
+#### Writing Guides
+
+Templates include `<!-- 記入ガイド -->` comments with inline instructions:
+
+```markdown
+<!-- 記入ガイド: 各項目は1文で簡潔に。詳細は後続セクションに記載 -->
+```
+
+These help the `product-manager` agent fill sections correctly.
+
+#### Template Maintenance
+
+When modifying templates:
+1. Update all templates consistently (MINIMAL, STANDARD, CRITICAL)
+2. Update `spec-reading-guide` skill if section structure changes
+3. Update `product-manager.md` if new sections are added
+4. Update `spec-philosophy/SKILL.md` checklist if validation criteria change
+
+---
+
 ### Command Template
 
 Create `commands/[name].md`:
