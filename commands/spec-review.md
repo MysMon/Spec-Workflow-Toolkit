@@ -172,21 +172,30 @@ These will be incorporated into the feedback loop below.
 ```
 ## Quick Summary (動的に生成)
 
-**Overview**:
-[SpecのOverviewセクション (What/Why/Risk) をそのまま表示]
+### Overview (specから抽出)
+| 項目 | 内容 |
+|------|------|
+| **What** | [SpecのOverviewテーブルから抽出] |
+| **Why** | [SpecのOverviewテーブルから抽出] |
+| **Risk** | [SpecのOverviewテーブルから抽出] |
+| **Scope** | [SpecのOverviewテーブルから抽出] |
 
-**Requirements at a Glance**:
-- P0 (Must): [P0要件の数] items
-- P1 (Should): [P1要件の数] items
-- P2 (Could): [P2要件の数] items
+### Requirements at a Glance
+| Priority | Count | Status |
+|----------|-------|--------|
+| Must | [Must Requirementsテーブルの行数] | 実装必須 |
+| Should | [Should Requirementsテーブルの行数] | 調整可 |
+| Could | [Could Requirementsテーブルの行数] | 余裕があれば |
 
-**Key P0 Requirements**:
-[P0要件のみを箇条書きで表示]
+### Must Requirements (Top 3)
+[SpecのMust Requirements (Top 3)セクションをそのまま表示]
 
-**Risk Indicators**:
-- Security sensitive: [Yes/No - Securityセクションの内容から判断]
-- Breaking changes: [Yes/No - Technical Considerationsから判断]
-- External dependencies: [Yes/No - Dependenciesセクションから判断]
+### Risk Indicators
+| 指標 | 状態 | 根拠 |
+|------|------|------|
+| Security sensitive | Yes/No | [Securityセクションの内容から判断] |
+| Breaking changes | Yes/No | [Technical Considerationsから判断] |
+| External dependencies | Yes/No | [Dependenciesセクションから判断] |
 ```
 
 **Then provide guided review questions** to help the user focus:

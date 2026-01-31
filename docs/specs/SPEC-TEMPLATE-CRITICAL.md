@@ -8,11 +8,28 @@
 
 ## Overview
 
-**What**: [1文で何を実装するかを説明]
+| 項目 | 内容 |
+|------|------|
+| **What** | [1文で何を実装するか] |
+| **Why** | [1文でビジネス価値・解決する問題] |
+| **Risk** | [主要なリスクや注意点] |
+| **Scope** | IN: [主要な含有項目] / OUT: [#out-of-scope](#out-of-scope)参照 |
+| **Security** | [セキュリティ上の主要懸念点] |
 
-**Why**: [1文でビジネス価値・解決する問題を説明]
+### Must Requirements (Top 3)
 
-**Risk**: [1文で主要なリスクや注意点を説明]
+> 実装者が最初に確認すべき最重要要件
+
+1. **FR-XXX**: [最重要Must要件の1行要約]
+2. **FR-XXX**: [2番目のMust要件の1行要約]
+3. **FR-XXX**: [3番目のMust要件の1行要約]
+
+### Critical Constraints
+
+> 実装時に絶対守るべき制約（3項目以内）
+
+- **[制約カテゴリ]**: [制約内容と理由]
+- **[制約カテゴリ]**: [制約内容と理由]
 
 ## Background
 
@@ -32,15 +49,36 @@ Context and motivation for this feature. What problem does it solve?
 
 ## Functional Requirements
 
-### FR-001: [Requirement Name]
-- **Priority**: Must | Should | Could | Won't
+### Must Requirements (実装必須)
+
+| ID | 要件 | 受入条件 |
+|----|------|----------|
+| FR-001 | [要件の説明] | [検証方法を1行で] |
+| FR-002 | [要件の説明] | [検証方法を1行で] |
+
+### Should Requirements (重要だが調整可)
+
+| ID | 要件 | 受入条件 |
+|----|------|----------|
+| FR-003 | [要件の説明] | [検証方法を1行で] |
+
+### Could Requirements (余裕があれば)
+
+| ID | 要件 | 受入条件 |
+|----|------|----------|
+| FR-004 | [要件の説明] | [検証方法を1行で] |
+
+### Requirement Details
+
+> 各要件の詳細な受入条件が必要な場合は以下に記載
+
+#### FR-001: [Requirement Name]
 - **Description**: Detailed description of the requirement
 - **Acceptance Criteria**:
   - [ ] Criterion 1
   - [ ] Criterion 2
 
-### FR-002: [Requirement Name]
-- **Priority**: Must | Should | Could | Won't
+#### FR-002: [Requirement Name]
 - **Description**: Detailed description
 - **Acceptance Criteria**:
   - [ ] Criterion 1
