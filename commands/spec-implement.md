@@ -47,7 +47,7 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 ### Absolute Prohibitions
 
 1. **MUST delegate bulk Grep/Glob operations to `code-explorer`** - Use directly only for single targeted lookups
-2. **NEVER read more than 3 files directly** - Delegate bulk reading to subagents
+2. **For bulk reading (>3 files)**: Delegate to subagents. Quick lookups (1-3 files for specific sections) and fallbacks are allowed.
 3. **NEVER implement code yourself** - Delegate to `frontend-specialist` or `backend-specialist`
 4. **NEVER write tests yourself** - Delegate to `qa-engineer`
 5. **NEVER do security analysis yourself** - Delegate to `security-auditor`
@@ -517,7 +517,7 @@ Update `claude-progress.json`:
 Critical for safe implementation and orchestration.
 
 - MUST delegate bulk Grep/Glob operations to `code-explorer` (use directly only for single targeted lookups)
-- NEVER read more than 3 files directly — delegate bulk reading to subagents
+- For bulk reading (>3 files): delegate to subagents. Quick lookups and fallbacks are allowed.
 - NEVER implement code yourself — delegate to `frontend-specialist` or `backend-specialist`
 - NEVER write tests yourself — delegate to `qa-engineer`
 - NEVER do security analysis yourself — delegate to `security-auditor`
