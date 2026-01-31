@@ -85,9 +85,13 @@ If no arguments:
 
 #### Validate Prerequisites
 
-**CRITICAL: Do NOT read spec/design files directly. Delegate to subagent.**
+**Reading vs Editing distinction:**
+- **Reading for context**: Orchestrator MAY read spec/design files directly for quick lookups
+- **Editing/modifying**: ALWAYS delegate to appropriate agent
 
-**Check existence only (do not read full content):**
+**CRITICAL: The orchestrator never EDITS spec/design files directly.**
+
+**Check existence:**
 1. **Locate spec file** - Use Glob to check if `docs/specs/[feature-name].md` exists
 2. **Locate design file** - Use Glob to check if `docs/specs/[feature-name]-design.md` exists
 3. **Locate review report** - Use Glob to check if `docs/specs/[feature-name]-review.md` exists
@@ -103,8 +107,14 @@ Design: [found/missing]
 Recommended: Run /spec-plan first to create these files.
 ```
 
-**Delegate context loading to `product-manager` agent:**
+**Context loading - choose based on need:**
 
+**For quick reference (specific section lookup):**
+- Orchestrator MAY read spec/design files directly
+- Use for: checking a single requirement, verifying acceptance criteria, confirming build sequence
+
+**For comprehensive context (full implementation preparation):**
+Delegate to `product-manager` agent:
 ```
 Launch product-manager agent:
 Task: Summarize spec and design for implementation context
@@ -116,21 +126,16 @@ Output:
 - Acceptance criteria for each feature
 ```
 
-Use the agent's summary output for implementation context. Do NOT read spec/design files directly.
-
 **Error Handling for product-manager (context loading):**
 If product-manager fails or times out:
 1. Retry once with reduced scope (focus on build sequence and key requirements only)
-2. If retry fails, inform user:
-   ```
-   Context loading failed. Cannot summarize spec and design.
-
-   Options:
-   1. Retry context loading
-   2. Cancel and investigate the failure
-   ```
-3. **CRITICAL: Do NOT proceed without context.** Implementation without spec/design understanding causes fundamental misalignment.
-4. Add to progress file: `"warnings": ["Context loading failed"]`
+2. **Fallback: Read files directly** if retry fails:
+   - Read design file directly to extract Build Sequence section
+   - Read spec file directly to extract Acceptance Criteria section
+   - Use extracted content as implementation context
+   - Warn user: "Using direct file read (summarization failed)"
+3. Add to progress file: `"warnings": ["Context loading via agent failed, using direct read fallback"]`
+4. Proceed with available context (do NOT block implementation entirely)
 
 #### Review-Aware Handoff
 

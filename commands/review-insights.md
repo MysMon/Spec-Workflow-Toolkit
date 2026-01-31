@@ -1,7 +1,7 @@
 ---
 description: "Review and approve insights captured during development - process one by one interactively"
 argument-hint: "[workspace-id | list]"
-allowed-tools: Read, Write, Edit, AskUserQuestion, Bash, Glob
+allowed-tools: Read, Write, Edit, AskUserQuestion, Bash, Glob, Task
 ---
 
 # /review-insights - Insight Review Workflow
@@ -216,31 +216,47 @@ mv ".claude/workspaces/${WORKSPACE_ID}/insights/pending/INS-xxx.json" \
 
 **Goal:** Write approved insights to their destinations.
 
-**For CLAUDE.md additions:**
+**Choose execution method based on change complexity:**
 
+#### Option A: Direct Edit (for simple single-line additions)
+
+For straightforward insight additions (single rule, clear section):
+
+**For CLAUDE.md additions:**
 1. Read current CLAUDE.md
 2. Find appropriate section
 3. Format insight according to L1/L2/L3 style:
    - L1: `- **NEVER** do X` or `- **ALWAYS** do Y`
    - L2: `- X should Y` or `- By default, do Z`
    - L3: `- Consider X` or `- Prefer Y when Z`
-4. Append to section
+4. Use Edit tool to append to section
 5. Move insight file to `applied/`
 
 **For .claude/rules/ additions:**
-
 1. Check if `.claude/rules/{category}.md` exists
-2. If not, create with header:
-   ```markdown
-   # {Category} Development Insights
-
-   Insights captured during development for {category}.
-
-   ---
-
-   ```
-3. Append formatted insight
+2. If not, create with header using Write tool
+3. Use Edit tool to append formatted insight
 4. Move insight file to `applied/`
+
+#### Option B: Delegate to technical-writer (for complex additions)
+
+For insights requiring formatting judgment or multiple additions:
+
+```
+Launch technical-writer agent:
+Task: Add approved insight to documentation
+Insight content: [user-approved content]
+Destination: [CLAUDE.md or .claude/rules/{category}.md]
+Rule level: [L1/L2/L3]
+Section: [target section]
+Output: Confirmation with before/after diff
+```
+
+**Use Option B when:**
+- Insight content needs significant reformatting
+- Multiple related insights are being added together
+- Appropriate section is unclear
+- CLAUDE.md is large (>300 lines) and navigation is complex
 
 **For workspace-only:**
 

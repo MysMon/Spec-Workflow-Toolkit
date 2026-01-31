@@ -219,21 +219,37 @@ Do NOT consolidate results manually. Use the agent's consolidated output for Pha
 
 **Error Handling for verification-specialist:**
 If verification-specialist fails or times out:
-1. Present findings from product-manager and code-architect separately (without consolidation)
+1. Present findings from product-manager and code-architect separately
 2. Warn user: "Impact analysis consolidation failed. Showing raw agent findings."
-3. Offer options to user:
+3. **Fallback: Basic manual classification is ALLOWED** when verification-specialist fails:
+
+   Apply this simplified classification logic:
+   | Spec Impact | Design Impact | Classification |
+   |-------------|---------------|----------------|
+   | None mentioned | None mentioned | TRIVIAL |
+   | "minor" or "clarification" only | None or "minor" | SMALL |
+   | Any "new requirement" | Any | MEDIUM or higher |
+   | "significant" or "breaking" | Any | LARGE |
+   | "out of scope" mentioned | Any | NEW |
+
+4. Present classification to user with confidence caveat:
    ```
-   Based on the available analysis:
+   Based on available analysis (not fully consolidated):
    - Product-manager found: [summary of spec impact]
    - Code-architect found: [summary of design impact]
 
-   Options:
-   1. Retry consolidation with verification-specialist
-   2. Cancel and investigate the failure
-   ```
-4. **CRITICAL: Do NOT proceed without consolidated classification.** Inaccurate classification leads to incorrect routing.
+   Suggested classification: [TRIVIAL/SMALL/MEDIUM/LARGE/NEW]
 
-**Note:** Manual classification by orchestrator or user is prohibited. Always use verification-specialist for classification.
+   Note: This classification was derived without full consolidation.
+   Please confirm or adjust before proceeding.
+
+   Options:
+   1. Proceed with suggested classification
+   2. Retry consolidation with verification-specialist
+   3. Choose different classification manually
+   ```
+
+5. Require explicit user confirmation before proceeding with fallback classification
 
 **Present consolidated analysis to user (using verification-specialist output):**
 ```markdown
@@ -379,19 +395,33 @@ Options:
 
 **Goal:** Apply changes when classification allows direct action.
 
-**CRITICAL: Even for TRIVIAL/SMALL changes, delegate editing to product-manager agent.**
-
-The orchestrator does NOT edit spec/design files directly. This maintains the delegation principle consistently.
-
 #### For TRIVIAL Changes
 
-TRIVIAL changes are single-value fixes (typos, version numbers, dates) that:
+TRIVIAL changes are single-value fixes that meet ALL criteria:
 - Affect only 1-2 lines
 - Have no semantic impact
 - Require no judgment calls
 
-**Delegate to product-manager:**
+**Examples of TRIVIAL (orchestrator MAY apply directly):**
+- Typo fix: "recieve" → "receive"
+- Version number: "1.0.0" → "1.0.1"
+- Date update: "2025-01-01" → "2025-01-31"
+- Single config value: `timeout: 30` → `timeout: 60`
 
+**NOT TRIVIAL (delegate to product-manager):**
+- Wording changes that affect meaning
+- Adding/removing sentences or bullet points
+- Changes to requirement descriptions
+
+**Execution options for TRIVIAL:**
+
+**Option A: Direct Edit (Recommended for speed)**
+1. Use Edit tool to apply the single-line change
+2. Show user before/after diff
+3. Run `git diff` to confirm change scope
+4. If change affected more than intended lines, revert and escalate to SMALL
+
+**Option B: Delegate to product-manager (For consistency)**
 ```
 Launch product-manager agent:
 Task: Apply trivial change to spec/design
@@ -401,34 +431,14 @@ Constraint: Single-value fix only, no semantic changes
 Output: Confirmation of change with before/after
 ```
 
-**After agent completes, run verification:**
-```
-Launch verification-specialist agent:
-Task: Verify change is consistent with spec and design
-Inputs: Changed files + spec + design
-Output: Consistency check result
-```
+**Choose Option A by default. Use Option B if:**
+- User explicitly requests agent handling
+- Change involves multiple occurrences (use replace_all)
+- Orchestrator is uncertain about scope
 
-Present result to user.
-
-**Error Handling for TRIVIAL execution:**
-If product-manager fails or times out:
-1. Retry once with explicit single-line focus
-2. If retry fails, inform user:
-   ```
-   Trivial change application failed.
-
-   Options:
-   1. Retry with simplified request
-   2. Escalate to SMALL classification
-   3. Cancel the change
-   ```
-3. Add to progress file: `"warnings": ["TRIVIAL change application failed"]`
-
-If verification-specialist fails:
-1. Warn user: "Consistency check could not be completed."
-2. Proceed with change applied but unverified
-3. Add to progress file: `"warnings": ["Change applied but not verified"]`
+**Post-change verification (both options):**
+- Run `git diff` to confirm only intended lines changed
+- If more lines affected, warn user and offer to revert
 
 #### For SMALL Changes
 

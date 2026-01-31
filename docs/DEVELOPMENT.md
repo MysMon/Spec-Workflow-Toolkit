@@ -36,11 +36,33 @@ From Claude Code Best Practices:
 
 Commands should delegate to subagents to preserve the orchestrator's context window. However, not everything needs delegation.
 
+**Reading vs Editing Distinction:**
+
+A key principle for spec/design files: distinguish between reading for reference and modifying content.
+
+| Operation | Orchestrator Action | Rationale |
+|-----------|---------------------|-----------|
+| **Reading for reference** | MAY read directly | Quick lookups, section verification, confirmation checks |
+| **Editing/modifying** | MUST delegate to agent | Content analysis, semantic changes require agent judgment |
+
+**Examples:**
+```markdown
+# OK: Direct read for quick lookup
+Read spec file to check acceptance criteria for a single feature
+
+# OK: Direct read with size threshold
+If spec file < 300 lines, read directly; otherwise delegate for summary
+
+# MUST delegate: Content modification
+Launch product-manager to update requirement wording
+```
+
 **MUST delegate (context-heavy):**
 
 | Task | Delegate To |
 |------|-------------|
-| Spec/design file reading and analysis | `product-manager` |
+| Spec/design file analysis and summarization | `product-manager` |
+| Spec/design file editing | `product-manager` |
 | Codebase exploration and context gathering | `code-explorer` |
 | Multi-file changes or complex logic | Appropriate specialist |
 | CI log analysis | `code-explorer` |
@@ -50,10 +72,24 @@ Commands should delegate to subagents to preserve the orchestrator's context win
 
 | Task | Why Direct is OK |
 |------|------------------|
-| SMALL changes (minor edits to spec/design) | Single Edit tool call, minimal tokens |
+| Spec/design file reading (for reference only) | Quick section lookup, no analysis needed |
+| TRIVIAL changes (typos, version numbers, dates) | Single-value fix, no semantic impact |
 | Single config value changes | One-line modification |
 | File existence checks | Glob returns paths only, not content |
 | Presenting summaries from agent output | Already summarized |
+
+**Task Clarity-Based Context Gathering:**
+
+For commands like `/quick-impl`, the level of delegation depends on task clarity:
+
+| Scenario | Action |
+|----------|--------|
+| User specified exact file path | Read directly, skip Explore |
+| User specified function/class name | Use Glob to find file, then read directly |
+| Task is vague ("fix the bug") | Use Explore agent for discovery |
+| Multiple files potentially affected | Use Explore agent |
+
+This principle allows efficient handling of well-defined tasks while preserving full exploration for ambiguous requests.
 
 **Metadata Files Exception (progress files, feature-list.json):**
 
@@ -160,7 +196,11 @@ If ALL agents fail:
 
 **User-Choice Fallback Pattern:**
 
-When the orchestrator cannot make a classification or decision due to agent failure, delegate the decision to the user instead of attempting manual classification:
+When the orchestrator cannot make a classification or decision due to agent failure, there are two approaches depending on the situation:
+
+**Approach A: Pure User Choice (when orchestrator lacks context)**
+
+When the orchestrator has no information to make a judgment:
 
 ```markdown
 **Error Handling for consolidation failure:**
@@ -173,11 +213,42 @@ If verification-specialist fails or times out:
    2. Option B
    3. Option C
 4. Proceed with user-selected option
-
-**CRITICAL:** Do NOT attempt manual classification. Let the user decide.
 ```
 
-**Why this matters:** If the orchestrator is prohibited from reading spec/design files directly, it cannot perform "manual classification" or "best-effort analysis" when consolidation agents fail. The user must make the decision.
+**Approach B: Simplified Classification with User Confirmation (when partial context exists)**
+
+When the orchestrator has agent outputs but consolidation failed, a simplified classification logic can be applied with user confirmation:
+
+```markdown
+**Error Handling for verification-specialist (consolidation):**
+If verification-specialist fails or times out:
+1. Present findings from product-manager and code-architect separately
+2. Warn user: "Consolidation failed. Showing raw agent findings."
+3. **Fallback: Apply simplified classification logic:**
+
+   | Spec Impact | Design Impact | Classification |
+   |-------------|---------------|----------------|
+   | None mentioned | None mentioned | TRIVIAL |
+   | "minor" or "clarification" | None or "minor" | SMALL |
+   | Any "new requirement" | Any | MEDIUM or higher |
+   | "significant" or "breaking" | Any | LARGE |
+   | "out of scope" | Any | NEW |
+
+4. Present suggested classification with confidence caveat:
+   "Suggested classification: [X]. This was derived without full consolidation.
+   Please confirm or adjust before proceeding."
+5. **CRITICAL:** Require explicit user confirmation before proceeding
+```
+
+**When to use which approach:**
+
+| Situation | Approach | Rationale |
+|-----------|----------|-----------|
+| No agent output available | A (Pure user choice) | Orchestrator has no basis for suggestion |
+| Agent outputs available, consolidation failed | B (Simplified + confirm) | Can derive suggestion from raw outputs |
+| Classification affects downstream routing | B (Simplified + confirm) | Prevents complete workflow halt |
+
+**Key difference from pre-2025-01 design:** The orchestrator may now apply simplified classification logic as a fallback, but MUST require explicit user confirmation. This prevents deadlock while maintaining user oversight.
 
 **Implementation by Command Type:**
 

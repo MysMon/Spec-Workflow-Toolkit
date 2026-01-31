@@ -61,10 +61,15 @@ Check if this is actually a quick task:
 
 ### Step 2: Context Gathering
 
-Before implementing:
+Before implementing, gather context based on task clarity:
 
-**CRITICAL: Delegate context gathering to Explore agent (do NOT read files directly):**
+**For clearly scoped tasks (user specified exact files):**
+- Orchestrator MAY read 1-2 specified files directly
+- Skip Explore agent if task is unambiguous
+- Example: "Fix typo in src/utils/format.ts" → read that file directly
 
+**For tasks needing discovery (files not specified):**
+Delegate to Explore agent:
 ```
 Launch Task tool with subagent_type=Explore (quick mode):
 Task: Gather context for quick implementation
@@ -76,7 +81,13 @@ Find:
 Output: Stack info, related files, patterns to follow, test file paths
 ```
 
-Use the agent's output for context. Do NOT read config files or related files directly.
+**Decision criteria:**
+| Scenario | Action |
+|----------|--------|
+| User specified exact file path | Read directly, skip Explore |
+| User specified function/class name | Use Glob to find file, then read directly |
+| Task is vague ("fix the bug") | Use Explore agent for discovery |
+| Multiple files potentially affected | Use Explore agent |
 
 **Error Handling for Explore agent:**
 If Explore agent fails or times out:
