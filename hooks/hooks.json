@@ -1,5 +1,5 @@
 {
-  "description": "Spec-Workflow Toolkit global hooks for session management, security validation, and progress tracking. Implements PreToolUse validation for dangerous commands, secret detection, and external content (WebFetch/WebSearch) validation. PreCompact for state preservation, and session lifecycle hooks for context management.",
+  "description": "Spec-Workflow Toolkit global hooks for session management, security validation, and progress tracking. Implements PreToolUse validation for dangerous commands, secret detection, and external content (WebFetch/WebSearch) validation. PostToolUse and PostToolUseFailure for audit logging. PreCompact for state preservation, and session lifecycle hooks for context management.",
   "hooks": {
     "SessionStart": [
       {
@@ -85,6 +85,18 @@
       }
     ],
     "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/audit_log.sh",
+            "timeout": 2
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
       {
         "matcher": "",
         "hooks": [

@@ -67,7 +67,7 @@ YAML frontmatter fields:
 - Exit 2 = blocking error
 - Exit 1, 3, etc. = non-blocking error (tool may still execute!)
 
-**Global hooks (7 event types, 11 handlers in hooks.json):**
+**Global hooks (8 event types, 12 handlers in hooks.json):**
 
 | Hook | Script | Purpose |
 |------|--------|---------|
@@ -76,6 +76,7 @@ YAML frontmatter fields:
 | PreToolUse (Write\|Edit) | `prevent_secret_leak.py` | Prevent secret leakage |
 | PreToolUse (WebFetch\|WebSearch) | `external_content_validator.py` | Validate external URLs (SSRF prevention) |
 | PostToolUse | `audit_log.sh` | Audit logging for tool usage tracking |
+| PostToolUseFailure | `audit_log.sh` | Audit logging for failed tool calls |
 | PreCompact | `pre_compact_save.sh` | Save progress before context compaction |
 | SubagentStop | `subagent_summary.sh` | Summarize subagent results |
 | SubagentStop | `insight_capture.sh` | Capture marked insights from subagent output |

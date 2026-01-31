@@ -436,7 +436,7 @@ def main():
     if count > 0:
         print(json.dumps({
             "continue": True,
-            "systemMessage": f"📝 Captured {count} insight(s). Run /review-insights to evaluate."
+            "systemMessage": f"Captured {count} insight(s). Run /review-insights to evaluate."
         }))
     else:
         print(json.dumps({"continue": True}))
