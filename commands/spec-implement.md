@@ -89,6 +89,16 @@ If no arguments:
 - **Reading for context**: Orchestrator MAY read spec/design files directly for quick lookups
 - **Editing/modifying**: ALWAYS delegate to appropriate agent
 
+**Quick lookup examples (direct read allowed):**
+- Confirming a single requirement (e.g., "What's the expected response time?")
+- Verifying acceptance criteria for one feature
+- Checking build sequence order
+
+**NOT quick lookups (delegate to product-manager):**
+- Understanding overall spec intent
+- Identifying integration points across features
+- Analyzing trade-offs or design decisions
+
 **CRITICAL: The orchestrator never EDITS spec/design files directly.**
 
 **Check existence:**

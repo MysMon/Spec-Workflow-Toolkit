@@ -219,22 +219,44 @@ If specialist agent fails or takes more than 2 minutes:
 
 **Goal:** Ensure fix doesn't break anything else.
 
-**Mandatory checks:**
+**CRITICAL: Delegate verification to qa-engineer agent (do NOT run tests directly in parent context):**
 
-```bash
-# 1. Run tests (required)
-npm test
-# or
-pytest
-
-# 2. Run linter (if quick)
-npm run lint
-# or skip if > 30 seconds
-
-# 3. Type check (if quick)
-npm run typecheck
-# or skip if > 30 seconds
 ```
+Launch qa-engineer agent:
+
+Task: Run safety verification for hotfix
+
+Changed files:
+[list of files modified in Phase 3]
+
+Verify:
+1. Run tests (required)
+2. Run linter (if < 30 seconds)
+3. Run type check (if < 30 seconds)
+
+Output:
+- Test results (PASS/FAIL)
+- Lint results (PASS/FAIL/SKIPPED)
+- Type check results (PASS/FAIL/SKIPPED)
+- Any failures with error details
+```
+
+Use the agent's output for verification results. Do NOT run test/lint commands directly in the parent context.
+
+**Error Handling (Emergency Override):**
+If qa-engineer fails or takes more than 2 minutes:
+1. Check agent's partial output for usable results
+2. Retry once with simplified scope (tests only)
+3. If retry fails, offer emergency manual option:
+   ```
+   Question: "Verification agent timed out. How should I proceed?"
+   Header: "Emergency Verification"
+   Options:
+   - "Run minimal test suite manually" (single test command)
+   - "Skip verification (I'll verify manually before deploy)"
+   - "Abort hotfix and investigate"
+   ```
+4. Document verification approach in commit message
 
 **Security check (L1 - NEVER skip for auth/data code):**
 
@@ -245,7 +267,7 @@ If fix touches authentication, authorization, or data handling:
 - Must pass before proceeding
 ```
 
-**If tests fail:**
+**If tests fail (from qa-engineer output):**
 - Fix the test if it's testing the bug (bug was "correct" behavior)
 - Fix the code if test reveals new issue
 - Do NOT skip failing tests

@@ -210,20 +210,40 @@ Options:
 
 **Goal:** Ensure all changes work together.
 
-**Run verification:**
+**CRITICAL: Delegate verification to qa-engineer agent (do NOT run tests directly in parent context):**
 
-```bash
-# Discover and run tests
-npm test  # or pytest, go test, etc.
+```
+Launch qa-engineer agent:
 
-# Discover and run linting
-npm run lint  # or equivalent
+Task: Verify PR review changes
 
-# Build check
-npm run build  # or equivalent
+Changed files:
+[list of files modified in Phase 3]
+
+Run:
+1. Tests (npm test / pytest / go test / etc.)
+2. Linting (npm run lint / eslint / etc.)
+3. Build check (npm run build / etc.)
+
+Output:
+- Test results (PASS/FAIL)
+- Lint results (PASS/FAIL)
+- Build results (PASS/FAIL)
+- Any failures with error details
 ```
 
-**Check for conflicts:**
+Use the agent's output for verification results. Do NOT run test/lint/build commands directly in the parent context.
+
+**Error Handling:**
+If qa-engineer fails or times out:
+1. Check agent's partial output for usable results
+2. Retry once with simplified scope (tests only)
+3. If retry fails, inform user and offer options:
+   - "Retry verification"
+   - "Skip automated verification (I'll verify manually)"
+   - "Show me the commands to run manually"
+
+**Check for conflicts (allowed in parent context - lightweight git state commands):**
 
 ```bash
 # Ensure changes don't conflict

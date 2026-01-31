@@ -64,7 +64,7 @@ Check if this is actually a quick task:
 Before implementing, gather context based on task clarity:
 
 **For clearly scoped tasks (user specified exact files):**
-- Orchestrator MAY read 1-2 specified files directly
+- Orchestrator MAY read 1-2 specified files directly (if each file < 200 lines)
 - Skip Explore agent if task is unambiguous
 - Example: "Fix typo in src/utils/format.ts" → read that file directly
 
@@ -81,12 +81,14 @@ Find:
 Output: Stack info, related files, patterns to follow, test file paths
 ```
 
-**Decision criteria:**
+**Note on patterns:** When Explore agent returns patterns, pass them to the specialist in Step 3. If orchestrator read files directly, do NOT extract patterns manually — specialist will discover patterns during implementation.
+
+**Decision criteria (applied AFTER Step 1 scope validation passes):**
 | Scenario | Action |
 |----------|--------|
-| User specified exact file path | Read directly, skip Explore |
-| User specified function/class name | Use Glob to find file, then read directly |
-| Task is vague ("fix the bug") | Use Explore agent for discovery |
+| User specified exact file path + file < 200 lines | Read directly, skip Explore |
+| User specified function/class name | Use Glob to find file, then read if < 200 lines |
+| File > 200 lines OR complex change | Use Explore agent for discovery |
 | Multiple files potentially affected | Use Explore agent |
 
 **Error Handling for Explore agent:**

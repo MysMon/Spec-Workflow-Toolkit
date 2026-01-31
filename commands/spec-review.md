@@ -47,8 +47,9 @@ If no arguments:
 **Content loading - choose based on file size:**
 
 **For small files (<300 lines):**
-- Orchestrator MAY read directly using Read tool
-- Extract key sections for presentation
+- Orchestrator MAY read directly using Read tool for presentation purposes ONLY
+- Show content as-is (do NOT synthesize, summarize, or analyze)
+- If synthesis/analysis is needed (e.g., understanding trade-offs, identifying gaps), delegate to product-manager
 
 **For large files (≥300 lines) or when summary is needed:**
 Delegate to `product-manager` agent:
