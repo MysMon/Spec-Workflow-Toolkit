@@ -159,18 +159,20 @@ After receiving agent output, orchestrators MUST present key findings to user be
 - After classification/diagnosis (ci-fix, debug)
 - Before major workflow decisions
 
-**Anti-pattern: Over-delegation**
+**Anti-pattern: Over-delegation (for CODE files only)**
 
-Delegating trivial tasks wastes subagent resources and adds latency:
+Delegating trivial CODE changes wastes subagent resources and adds latency:
 
 ```markdown
-# BAD: Delegating a one-line edit
-Launch product-manager agent:
-Task: Edit spec to change "1 hour" to "24 hours"
+# BAD: Delegating a one-line code typo fix
+Launch frontend-specialist agent:
+Task: Fix typo "recieve" → "receive" in comment
 
-# GOOD: Direct edit for minor changes
-Use Edit tool to change "1 hour" to "24 hours" in spec file
+# GOOD: Direct edit for minor code changes
+Use Edit tool to fix typo in code file
 ```
+
+**Note:** For spec/design documents, delegation-first principle applies. Even trivial spec/design edits should be delegated to `product-manager` by default to ensure proper context tracking. Direct edit is fallback only when agent fails. See `spec-revise.md` Phase 5 for details.
 
 ### Phase Consistency Rule
 
