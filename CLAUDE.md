@@ -18,7 +18,7 @@ skills/                      # 23 skill definitions
   core/                      #   6 core skills (subagent-contract, spec-philosophy, security-fundamentals, interview, bounded-autonomy, language-enforcement)
   detection/                 #   1 detection skill (stack-detector)
   workflows/                 #   16 workflow skills
-hooks/                       # Event handlers (7 event types, 12 handlers) + Python validators
+hooks/                       # Event handlers (8 event types, 13 handlers) + Python validators
 docs/                        # DEVELOPMENT.md (detailed specs), specs/
 ```
 
@@ -67,11 +67,12 @@ YAML frontmatter fields:
 - Exit 2 = blocking error
 - Exit 1, 3, etc. = non-blocking error (tool may still execute!)
 
-**Global hooks (8 event types, 12 handlers in hooks.json):**
+**Global hooks (8 event types, 13 handlers in hooks.json):**
 
 | Hook | Script | Purpose |
 |------|--------|---------|
 | SessionStart | `spec_context.sh` | Load progress files and notify pending insights |
+| SessionStart | `enforce_japanese_mode.sh` | Enforce Japanese language mode |
 | PreToolUse (Bash) | `safety_check.py` | Block dangerous commands |
 | PreToolUse (Write\|Edit) | `prevent_secret_leak.py` | Prevent secret leakage |
 | PreToolUse (WebFetch\|WebSearch) | `external_content_validator.py` | Validate external URLs (SSRF prevention) |

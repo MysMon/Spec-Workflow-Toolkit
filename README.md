@@ -95,7 +95,7 @@ claude --plugin-dir ./spec-workflow-toolkit
 
 ```mermaid
 flowchart LR
-    subgraph plan["/spec-plan"]
+    subgraph plan["spec-plan"]
         D[1. Discovery] --> E[2. Exploration]
         E --> C[3. Spec Drafting]
         C -->|"refinement ←→ user"| C
@@ -103,14 +103,14 @@ flowchart LR
         A -->|"refinement ←→ user"| A
         A -->|"back to spec"| C
     end
-    subgraph review["/spec-review"]
+    subgraph review["spec-review"]
         R1[Completeness] & R2[Feasibility] & R3[Security] & R4[Testability] & R5[Consistency]
     end
-    subgraph impl["/spec-implement"]
+    subgraph impl["spec-implement"]
         I[Implementation] -->|"divergence → user"| I
         I --> QR[Quality Review] --> S[Summary]
     end
-    subgraph revise["/spec-revise"]
+    subgraph revise["spec-revise"]
         CR[Change Request] --> IA[Impact Analysis]
         IA -->|"TRIVIAL/SMALL"| EX[Execute]
         IA -->|"MEDIUM"| review
@@ -124,12 +124,14 @@ flowchart LR
     style revise fill:#fce4ec
 ```
 
+> **Note**: コマンドは `spec-workflow-toolkit:` プレフィックス付きで実行します（例: `/spec-workflow-toolkit:spec-plan`）
+
 | フェーズ | コマンド | ユーザーがやること | 出力 |
 |----------|----------|---------------------|------|
-| 計画 | `spec-plan` | 要件を説明し、仕様・設計の修正を依頼 | 仕様書 + 設計書 |
-| レビュー | `spec-review` | 指摘事項を確認し、必要に応じて修正を指示 | レビューレポート |
-| 実装 | `spec-implement` | 進捗を確認し、仕様とのずれがあれば判断 | 動作するコード |
-| 改訂 | `spec-revise` | 変更内容を説明し、影響度に応じた対応を選択 | 更新された仕様・設計
+| 計画 | `spec-workflow-toolkit:spec-plan` | 要件を説明し、仕様・設計の修正を依頼 | 仕様書 + 設計書 |
+| レビュー | `spec-workflow-toolkit:spec-review` | 指摘事項を確認し、必要に応じて修正を指示 | レビューレポート |
+| 実装 | `spec-workflow-toolkit:spec-implement` | 進捗を確認し、仕様とのずれがあれば判断 | 動作するコード |
+| 改訂 | `spec-workflow-toolkit:spec-revise` | 変更内容を説明し、影響度に応じた対応を選択 | 更新された仕様・設計
 
 ---
 
@@ -145,9 +147,9 @@ Claude Code では 2 つの再開方法があります。
 | シナリオ | 推奨 |
 |----------|------|
 | ネットワーク切断後すぐに再接続 | `--continue` |
-| 翌日に作業を再開 | `resume` |
-| 別のターミナルで作業継続 | `resume` |
-| コンテキスト肥大化時 | `resume` |
+| 翌日に作業を再開 | `spec-workflow-toolkit:resume` |
+| 別のターミナルで作業継続 | `spec-workflow-toolkit:resume` |
+| コンテキスト肥大化時 | `spec-workflow-toolkit:resume` |
 
 ---
 
@@ -165,17 +167,17 @@ Claude Code では 2 つの再開方法があります。
 
 | 推奨 | 理由 |
 |------|------|
-| 複雑な作業は `spec-plan` で計画から開始 | 仕様を明確にしてから実装することで手戻りを防ぐ |
-| コードベース調査は `code-explorer` に任せる | メインセッションのコンテキストを節約できる |
+| 複雑な作業は `spec-workflow-toolkit:spec-plan` で計画から開始 | 仕様を明確にしてから実装することで手戻りを防ぐ |
+| コードベース調査は `code-explorer` エージェントに任せる | メインセッションのコンテキストを節約できる |
 | コードより先に仕様を書く | 要件の曖昧さを実装前に解消できる |
-| コミット前に `code-review` を実行 | 品質問題を早期に発見できる |
+| コミット前に `spec-workflow-toolkit:code-review` を実行 | 品質問題を早期に発見できる |
 
 | 避けるべきこと | 理由 |
 |----------------|------|
 | コードベースを理解せずに実装を始める | 既存設計との不整合が発生しやすい |
 | 全機能を一度に実装しようとする | デバッグが困難になり、品質が低下する |
 | 秘密情報をコードにハードコード | リポジトリ公開時に漏洩するリスクがある |
-| `security-auditor` の指摘を無視 | セキュリティ脆弱性が本番環境に混入する |
+| `security-auditor` エージェントの指摘を無視 | セキュリティ脆弱性が本番環境に混入する |
 
 ---
 
