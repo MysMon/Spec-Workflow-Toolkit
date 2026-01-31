@@ -8,7 +8,7 @@ Based on Claude Code hooks specification.
 Input: JSON metadata from stdin containing agent_transcript_path (preferred) or transcript_path to JSONL file
 Output:
   - If >30% references are invalid: exit 0 with JSON {"decision": "block", "reason": "..."} (SubagentStop control)
-  - Otherwise: exit 0 with JSON {"decision": "allow"} and verification summary via systemMessage
+  - Otherwise: exit 0 with JSON {"systemMessage": "..."} containing verification summary
 
 Reference patterns matched:
   - file.ts:123
