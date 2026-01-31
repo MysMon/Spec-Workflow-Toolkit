@@ -27,12 +27,14 @@ For automated machine review, use `--auto` to run parallel review agents before 
 
 ### Step 1: Locate Spec and Design
 
-**CRITICAL: Do NOT read spec/design files directly. ALWAYS delegate to subagent.**
+**Reading vs Editing distinction:**
+- **Reading for reference**: Orchestrator MAY read spec/design files directly for quick lookups
+- **Editing/modifying**: ALWAYS delegate to product-manager agent
 
-This applies to ALL steps including the feedback loop in Step 4. The orchestrator never edits spec/design files directly - delegate to product-manager.
+**CRITICAL: The orchestrator never EDITS spec/design files directly - delegate editing to product-manager.**
 
 If `$ARGUMENTS` is provided:
-- If it's a file path, use Glob to verify the file exists (do NOT read it directly)
+- If it's a file path, use Glob to verify the file exists
 - If it's a feature name, search in `docs/specs/` directory using Glob
 
 **Also locate the corresponding design document:**
@@ -42,8 +44,14 @@ If no arguments:
 - List available specs in `docs/specs/` using Glob
 - Ask user which one to review
 
-**Delegate content loading to `product-manager` agent:**
+**Content loading - choose based on file size:**
 
+**For small files (<300 lines):**
+- Orchestrator MAY read directly using Read tool
+- Extract key sections for presentation
+
+**For large files (≥300 lines) or when summary is needed:**
+Delegate to `product-manager` agent:
 ```
 Launch product-manager agent:
 Task: Summarize spec and design for review presentation
@@ -55,22 +63,15 @@ Output:
 - Trade-offs and decisions
 ```
 
-Use the agent's summary output for presenting to user. Do NOT read spec/design files directly.
-
 **Error Handling for product-manager (content loading):**
 If product-manager fails or times out:
 1. Retry once with reduced scope (focus on key requirements list only)
-2. If retry fails, inform user:
-   ```
-   Content loading failed. Cannot summarize spec and design for review.
-
-   Options:
-   1. Retry content loading
-   2. Skip guided review and show file paths only
-   3. Cancel and investigate the failure
-   ```
-3. If user chooses option 2: Show file paths and suggest manual review
-4. Add warning to review log: "Content loading failed, guided review skipped"
+2. **Fallback: Read files directly** if retry fails:
+   - Read spec file directly (max 500 lines)
+   - Read design file directly (max 500 lines)
+   - Present raw content with section headers
+   - Warn user: "Showing raw content (summarization failed)"
+3. Add warning to review log: "Content loading via agent failed, using direct read fallback"
 
 ### Step 2: Auto Review (only if `--auto` flag is present)
 
