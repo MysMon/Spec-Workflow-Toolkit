@@ -167,11 +167,31 @@ These will be incorporated into the feedback loop below.
 
 ### Step 3: Present Plan for User Review
 
-Display both spec and design (or summaries for long documents), then provide **guided review questions** to help the user focus:
+**First, generate a dynamic summary** by extracting key information from the spec:
 
 ```
-Here is your plan. I'll walk you through key areas to check.
+## Quick Summary (動的に生成)
 
+**Overview**:
+[SpecのOverviewセクション (What/Why/Risk) をそのまま表示]
+
+**Requirements at a Glance**:
+- P0 (Must): [P0要件の数] items
+- P1 (Should): [P1要件の数] items
+- P2 (Could): [P2要件の数] items
+
+**Key P0 Requirements**:
+[P0要件のみを箇条書きで表示]
+
+**Risk Indicators**:
+- Security sensitive: [Yes/No - Securityセクションの内容から判断]
+- Breaking changes: [Yes/No - Technical Considerationsから判断]
+- External dependencies: [Yes/No - Dependenciesセクションから判断]
+```
+
+**Then provide guided review questions** to help the user focus:
+
+```
 ## Guided Review
 
 1. **Requirements**: Do these capture what you want to build?

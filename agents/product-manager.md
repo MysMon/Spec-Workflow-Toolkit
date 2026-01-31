@@ -46,7 +46,22 @@ Use the `interview` skill for structured requirements elicitation:
 
 ### Phase 3: Specification Writing
 
-Create PRD documents following the template at `docs/specs/SPEC-TEMPLATE.md`:
+**Select the appropriate template based on feature characteristics:**
+
+| Condition | Template |
+|-----------|----------|
+| Bug fix, config change, < 1 day effort | `docs/specs/SPEC-TEMPLATE-MINIMAL.md` |
+| Standard feature (1-5 days) | `docs/specs/SPEC-TEMPLATE.md` |
+| P0 (launch blocker) feature | `docs/specs/SPEC-TEMPLATE-CRITICAL.md` |
+| Security-sensitive (auth, PII, encryption) | `docs/specs/SPEC-TEMPLATE-CRITICAL.md` |
+| Architecture-level change | `docs/specs/SPEC-TEMPLATE-CRITICAL.md` |
+
+**CRITICAL: Overview must follow the 3-part structure:**
+- **What**: 1文で何を実装するか
+- **Why**: 1文でビジネス価値
+- **Risk**: 1文で主要リスク（なければ「特記事項なし」）
+
+Create PRD documents following the selected template:
 
 ```markdown
 # Feature: [Name]
