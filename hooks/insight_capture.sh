@@ -8,10 +8,16 @@
 #   {
 #     "session_id": "...",
 #     "transcript_path": "~/.claude/projects/.../xxx.jsonl",
+#     "agent_transcript_path": "~/.claude/projects/.../subagents/agent-yyy.jsonl",
+#     "agent_id": "yyy",
+#     "agent_type": "Explore",
 #     "permission_mode": "default",
 #     "hook_event_name": "SubagentStop",
 #     "stop_hook_active": true/false
 #   }
+#
+# Note: agent_transcript_path is the subagent's own transcript (preferred for insight capture).
+#       transcript_path is the main session's transcript (fallback).
 #
 # Architecture:
 #   Each insight is stored as a separate file in pending/ directory.
@@ -394,7 +400,8 @@ def main():
         return
 
     # Get and validate transcript path
-    transcript_path = metadata.get('transcript_path', '')
+    # Prefer agent_transcript_path (subagent's own transcript) over transcript_path (main session)
+    transcript_path = metadata.get('agent_transcript_path', '') or metadata.get('transcript_path', '')
     if not transcript_path:
         print(json.dumps({"continue": True}))
         return

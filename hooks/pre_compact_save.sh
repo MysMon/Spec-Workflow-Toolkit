@@ -160,9 +160,9 @@ except Exception as e:
 PYEOF
 fi
 
-# Output context for Claude (added to compaction summary)
-cat << EOF
-## Pre-Compaction State Saved
+# Output context via JSON systemMessage (stdout is not shown to users for PreCompact)
+# Build summary message
+SUMMARY="## Pre-Compaction State Saved
 
 **Trigger**: $TRIGGER
 **Workspace ID**: ${WORKSPACE_ID:-"(not set)"}
@@ -172,7 +172,14 @@ Remember after compaction:
 - Read progress files to restore context
 - Workspace: \`.claude/workspaces/${WORKSPACE_ID}/\`
 - Check \`feature-list.json\` for current task
-- Continue from documented position
-EOF
+- Continue from documented position"
+
+# Output as JSON with systemMessage (will be shown to user)
+python3 -c "
+import json
+import sys
+summary = '''$SUMMARY'''
+print(json.dumps({'systemMessage': summary}))
+" 2>/dev/null || echo '{"systemMessage": "Pre-compaction state saved"}'
 
 exit 0

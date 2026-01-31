@@ -14,11 +14,11 @@ Plan→Review→Implement→Revise workflow (4 commands with iterative refinemen
 .claude-plugin/plugin.json   # Plugin metadata
 commands/                    # 16 slash commands
 agents/                      # 13 subagent definitions
-skills/                      # 22 skill definitions
-  core/                      #   5 core skills (subagent-contract, spec-philosophy, security-fundamentals, interview, bounded-autonomy)
+skills/                      # 23 skill definitions
+  core/                      #   6 core skills (subagent-contract, spec-philosophy, security-fundamentals, interview, bounded-autonomy, language-enforcement)
   detection/                 #   1 detection skill (stack-detector)
   workflows/                 #   16 workflow skills
-hooks/                       # Event handlers (7 event types, 11 handlers) + Python validators
+hooks/                       # Event handlers (7 event types, 12 handlers) + Python validators
 docs/                        # DEVELOPMENT.md (detailed specs), specs/
 ```
 
