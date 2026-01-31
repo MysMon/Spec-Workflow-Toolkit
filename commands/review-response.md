@@ -165,7 +165,8 @@ Similar patterns found: [from Step 1]
 Implement the requested change following codebase patterns.
 ```
 
-**Direct modification allowed ONLY for:**
+**Direct modification allowed ONLY for TRIVIAL changes:**
+See `subagent-contract` skill "TRIVIAL Edit Definition" for criteria:
 - Single-line typo fixes in comments or strings
 - Formatting-only changes (whitespace, indentation)
 

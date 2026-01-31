@@ -412,7 +412,7 @@ Critical for context protection and delegation consistency.
 - **NEVER implement code yourself** - Delegate to specialist agents (frontend-specialist, backend-specialist, qa-engineer)
 - **NEVER write tests yourself** - Delegate to `qa-engineer`
 - **NEVER do security analysis yourself** - Delegate to `security-auditor`
-- **NEVER edit spec/design files directly** - Delegate to `product-manager`
+- **NEVER edit spec/design files directly** - Delegate to `product-manager` (exception: TRIVIAL edits, see below)
 - **ALWAYS wait for subagent completion** before synthesizing results
 - **ALWAYS use subagent output** for context - do not re-read files the subagent already analyzed
 
@@ -448,6 +448,54 @@ Critical for context protection and delegation consistency.
 | Quick reference during phase | ≤200 lines per file, ≤3 files |
 | Progress/metadata files | No limit (not project content) |
 | Presentation to user | ≤300 lines total (show, don't analyze) |
+
+### TRIVIAL Edit Definition (L1 - Required)
+
+**TRIVIAL edit** is the ONLY direct spec/design edit allowed for orchestrators. ALL conditions must be met:
+
+| Criterion | Requirement | Rationale |
+|-----------|-------------|-----------|
+| **Line count** | ≤2 lines | Beyond 2 lines = delegate to product-manager |
+| **Semantic impact** | None | Meaning must be identical before and after |
+| **Judgment required** | None | Change must be obvious correction |
+
+**Examples of TRIVIAL edits (ALLOWED with delegation-first):**
+
+| Change Type | Example | Why TRIVIAL |
+|-------------|---------|-------------|
+| Typo fix | "recieve" → "receive" | Spelling error, meaning unchanged |
+| Version metadata | "1.0.0" → "1.0.1" | Metadata update, no behavior change |
+| Date metadata | "2025-01-01" → "2025-01-31" | Metadata update |
+| Formatting only | Fix markdown bullet indent | Visual only, no content change |
+
+**Examples that are NOT TRIVIAL (MUST delegate to product-manager):**
+
+| Change Type | Example | Why NOT TRIVIAL |
+|-------------|---------|-----------------|
+| Numeric values | `timeout: 30` → `timeout: 60` | May affect implementation behavior |
+| Wording strength | "should" → "must" | Changes requirement strength |
+| Content addition | Adding a new bullet point | New requirement |
+| Clarification | "Fast response" → "Response under 100ms" | Adds specificity |
+
+**Gray zone - ALWAYS delegate to product-manager:**
+- Any numeric value change (even small: `maxRetries: 3` → `maxRetries: 5`)
+- Removing "(optional)" from a field
+- Word changes that could shift meaning ("error message" → "error notification")
+
+**Execution preference:**
+1. **Default**: Delegate to `product-manager` (delegation-first principle)
+2. **Fallback**: Direct edit ONLY if:
+   - User explicitly requests direct edit for speed
+   - Agent retry failed (after one retry attempt)
+   - Change is purely formatting (whitespace, markdown syntax only)
+
+**Post-edit verification (required):**
+- Run `git diff` to confirm only intended lines changed
+- If more lines affected, warn user and offer to revert
+
+**Rule of thumb:** If the change affects any numeric value or could influence implementation behavior, delegate to product-manager. When in doubt, always delegate.
+
+See `spec-revise.md` for detailed examples and phase-specific handling.
 
 ### Defaults (L2 - Soft)
 
@@ -519,6 +567,29 @@ If agent fails → Fallback to direct read + warn user
 2. **Consistency**: Same pattern across all commands
 3. **Expertise**: Agents apply stack-detector and pattern recognition
 4. **Fallback Safety**: Direct read is safety net, not primary path
+
+### Orchestrator Exceptions Reference (L1)
+
+All orchestrator exceptions to the delegation-first principle are defined here. Commands should reference this section instead of duplicating explanations.
+
+| Exception | Conditions | Context Cost | Alternative Cost | Justification |
+|-----------|------------|--------------|------------------|---------------|
+| **Quick Lookup** | ≤3 files, ≤200 lines/file, ≤300 total | ~100 tokens | ~700 tokens (agent) | Single value confirmation doesn't warrant agent overhead |
+| **Fallback Read** | After agent timeout/failure + 1 retry | ~200 tokens | User blocked | Resilience: users must not be blocked by agent failures |
+| **TRIVIAL Edit** | ≤2 lines, no semantic impact, no judgment | ~50 tokens | ~1000 tokens (agent) | Obvious corrections don't warrant agent overhead |
+| **Progress/Metadata Read** | Orchestrator state files only | ~30 tokens | ~500 tokens (agent) | Not project content; orchestrator's own state |
+
+**Common principle:** All exceptions follow delegation-first. Direct action is fallback, not primary path.
+
+**When exceptions apply:**
+1. Exceptions are **allowed**, not **required** - delegation is always acceptable
+2. Exceptions require **all conditions met** - partial match = delegate
+3. Exceptions require **post-action verification** - confirm scope was as expected
+
+**Anti-patterns to avoid:**
+- Using exceptions to skip agents for convenience
+- Applying exceptions without verifying all conditions
+- Not documenting when exceptions were used
 
 ---
 

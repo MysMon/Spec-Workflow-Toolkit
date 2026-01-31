@@ -414,14 +414,10 @@ Options:
 
 TRIVIAL changes are single-value fixes that meet ALL criteria:
 - Affect only 1-2 lines
-- Have no semantic impact (see definition below)
+- Have no semantic impact (meaning identical before and after)
 - Require no judgment calls
 
-**Definition of "no semantic impact":**
-A change has NO semantic impact if:
-1. The meaning of the spec/design is identical before and after
-2. No implementation behavior would change based on the new wording
-3. No developer reading the spec would interpret it differently
+See `subagent-contract` skill "TRIVIAL Edit Definition" for base criteria and "Orchestrator Exceptions Reference" for justification.
 
 **Concrete Examples of TRIVIAL (delegate to product-manager by default):**
 
