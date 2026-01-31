@@ -14,7 +14,21 @@ Full specification template for SDD workflow.
 - **Last Updated**: YYYY-MM-DD
 
 ## Overview
-[2-3 sentence business value summary. What problem does this solve?]
+
+| 項目 | 内容 |
+|------|------|
+| **What** | [1文で何を実装するか] |
+| **Why** | [1文でビジネス価値・解決する問題] |
+| **Risk** | [主要なリスクや注意点。なければ「特記事項なし」] |
+| **Scope** | IN: [主要な含有項目] / OUT: [#out-of-scope](#out-of-scope)参照 |
+
+### Must Requirements (Top 3)
+
+> 実装者が最初に確認すべき最重要要件
+
+1. **FR-001**: [最重要Must要件の1行要約]
+2. **FR-002**: [2番目のMust要件の1行要約]
+3. **FR-003**: [3番目のMust要件の1行要約]
 
 ## Background
 [Why is this needed? What is the current state?]
@@ -28,21 +42,35 @@ Full specification template for SDD workflow.
 ### Stories
 | ID | Story | Priority |
 |----|-------|----------|
-| US-001 | As a [user], I want [goal] so that [benefit] | P0 |
-| US-002 | As a [user], I want [goal] so that [benefit] | P1 |
+| US-001 | As a [user], I want [goal] so that [benefit] | Must |
+| US-002 | As a [user], I want [goal] so that [benefit] | Should |
 
 ## Functional Requirements
 
-| ID | Requirement | Priority | Acceptance Criteria |
-|----|-------------|----------|---------------------|
-| FR-001 | System SHALL [action] | P0 | GIVEN [context] WHEN [action] THEN [result] |
-| FR-002 | System SHALL [action] | P1 | GIVEN [context] WHEN [action] THEN [result] |
+### Must Requirements (実装必須)
+
+| ID | 要件 | 受入条件 |
+|----|------|----------|
+| FR-001 | [要件の説明] | [検証方法を1行で] |
+| FR-002 | [要件の説明] | [検証方法を1行で] |
+
+### Should Requirements (重要だが調整可)
+
+| ID | 要件 | 受入条件 |
+|----|------|----------|
+| FR-003 | [要件の説明] | [検証方法を1行で] |
+
+### Could Requirements (余裕があれば)
+
+| ID | 要件 | 受入条件 |
+|----|------|----------|
+| FR-004 | [要件の説明] | [検証方法を1行で] |
 
 ### Priority Legend
-- **P0**: Must have (launch blocker)
-- **P1**: Should have (important)
-- **P2**: Nice to have (if time permits)
-- **P3**: Future consideration
+- **Must**: 実装必須 (launch blocker)
+- **Should**: 重要だが調整可
+- **Could**: 余裕があれば
+- **Won't**: 今回は対象外
 
 ## Non-Functional Requirements
 

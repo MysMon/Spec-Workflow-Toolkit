@@ -141,25 +141,36 @@ If product-manager fails or times out:
 
 **CRITICAL: Present context summary to user before proceeding:**
 
-After product-manager completes (or fallback completes), present the implementation context to the user:
+After product-manager completes (or fallback completes), present the implementation context to the user using the structured spec format:
 
 ```markdown
-## Implementation Context Summary
+## Implementation Context Summary (動的に生成)
 
-### What to Build
-[Key requirements from product-manager output]
+### Overview (specから抽出)
+| 項目 | 内容 |
+|------|------|
+| **What** | [SpecのOverviewテーブルから抽出] |
+| **Why** | [SpecのOverviewテーブルから抽出] |
+| **Risk** | [SpecのOverviewテーブルから抽出] |
 
-### How to Build It
-[Architecture summary from product-manager output]
+### Must Requirements (Top 3)
+[SpecのMust Requirements (Top 3)セクションをそのまま表示]
 
-### Build Sequence
+### Requirements Summary
+| Priority | Count |
+|----------|-------|
+| Must | [Must Requirementsテーブルの行数] |
+| Should | [Should Requirementsテーブルの行数] |
+| Could | [Could Requirementsテーブルの行数] |
+
+### Build Sequence (designから抽出)
 1. [Feature 1]
 2. [Feature 2]
 ...
 
-### Acceptance Criteria
-- [Criteria 1]
-- [Criteria 2]
+### Key Acceptance Criteria (Must要件のみ)
+- [Must要件FR-001の受入条件]
+- [Must要件FR-002の受入条件]
 ...
 ```
 
