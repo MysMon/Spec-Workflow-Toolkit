@@ -147,9 +147,9 @@ Claude Code では 2 つの再開方法があります。
 | シナリオ | 推奨 |
 |----------|------|
 | ネットワーク切断後すぐに再接続 | `--continue` |
-| 翌日に作業を再開 | `spec-workflow-toolkit:resume` |
-| 別のターミナルで作業継続 | `spec-workflow-toolkit:resume` |
-| コンテキスト肥大化時 | `spec-workflow-toolkit:resume` |
+| 翌日に作業を再開 | `/spec-workflow-toolkit:resume` |
+| 別のターミナルで作業継続 | `/spec-workflow-toolkit:resume` |
+| コンテキスト肥大化時 | `/spec-workflow-toolkit:resume` |
 
 ---
 
@@ -167,10 +167,10 @@ Claude Code では 2 つの再開方法があります。
 
 | 推奨 | 理由 |
 |------|------|
-| 複雑な作業は `spec-workflow-toolkit:spec-plan` で計画から開始 | 仕様を明確にしてから実装することで手戻りを防ぐ |
+| 複雑な作業は `/spec-workflow-toolkit:spec-plan` で計画から開始 | 仕様を明確にしてから実装することで手戻りを防ぐ |
 | コードベース調査は `code-explorer` エージェントに任せる | メインセッションのコンテキストを節約できる |
 | コードより先に仕様を書く | 要件の曖昧さを実装前に解消できる |
-| コミット前に `spec-workflow-toolkit:code-review` を実行 | 品質問題を早期に発見できる |
+| コミット前に `/spec-workflow-toolkit:code-review` を実行 | 品質問題を早期に発見できる |
 
 | 避けるべきこと | 理由 |
 |----------------|------|
