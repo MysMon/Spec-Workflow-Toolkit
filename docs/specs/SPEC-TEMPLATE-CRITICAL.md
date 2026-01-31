@@ -6,13 +6,28 @@
 > **Reviewers**: [Names]
 > **Security Review Required**: Yes
 
+## Quick Navigation
+
+<!-- 読者が必要なセクションに直接アクセス可能 -->
+- [Overview](#overview) - 30秒で概要把握
+- [Critical Constraints](#critical-constraints) - 絶対守るべき制約
+- [Must Requirements](#must-requirements-top-3) - 最重要要件
+- [Security Considerations](#security-considerations) - セキュリティ詳細
+- [Technical Considerations](#technical-considerations) - 技術制約
+- [Rollback Plan](#rollback-plan) - ロールバック手順
+
+---
+
 ## Overview
+
+<!-- 記入ガイド: 各項目は1文で簡潔に。詳細は後続セクションに記載 -->
 
 | 項目 | 内容 |
 |------|------|
 | **What** | [1文で何を実装するか] |
 | **Why** | [1文でビジネス価値・解決する問題] |
 | **Risk** | [主要なリスクや注意点] |
+| **Complexity** | Low / Medium / High |
 | **Scope** | IN: [主要な含有項目] / OUT: [#out-of-scope](#out-of-scope)参照 |
 | **Security** | [セキュリティ上の主要懸念点] |
 
@@ -33,9 +48,20 @@
 
 ## Background
 
+<!-- 記入ガイド:
+- 1-3文でこの機能が必要な背景を説明
+- 「なぜ今これが必要か」を明確に
+- セキュリティ上の動機があれば明記
+-->
+
 Context and motivation for this feature. What problem does it solve?
 
 ## User Stories
+
+<!-- 記入ガイド:
+- 各ストーリーは「誰が」「何を」「なぜ」の形式で記載
+- セキュリティ関連のユーザーストーリーを含める
+-->
 
 ### US-001: [Story Title]
 **As a** [type of user]
@@ -48,6 +74,13 @@ Context and motivation for this feature. What problem does it solve?
 **So that** [benefit/value]
 
 ## Functional Requirements
+
+<!-- 記入ガイド:
+- Must: リリースに必須。これがないと機能しない
+- Should: 重要だがスケジュール調整可能
+- Could: あれば良いが、なくてもリリース可能
+- セキュリティ要件は Must に含める
+-->
 
 ### Must Requirements (実装必須)
 
@@ -162,12 +195,27 @@ Feature: [Feature Name]
 
 ## Technical Considerations
 
+<!-- 記入ガイド:
+- 実装に影響する技術的制約を記載
+- セキュリティに影響する技術的選択を明記
+- Breaking changesがある場合は必ずMigration計画も記載
+-->
+
 - Affected services/components: [List]
 - Database changes required: Yes/No
 - API changes required: Yes/No
 - Third-party integrations: [List]
 - **Breaking changes**: [Yes/No, details]
 - **Migration required**: [Yes/No, approach]
+
+### Known Pitfalls
+
+<!-- このタイプの実装でよくある間違いや注意点（特にセキュリティ関連） -->
+
+| やりがちな間違い | 正しいアプローチ | 理由 |
+|-----------------|------------------|------|
+| [例: 平文でのパスワード保存] | [bcryptでハッシュ化] | [セキュリティ要件] |
+| [例: N+1クエリ] | [バッチ取得を使用] | [パフォーマンス劣化防止] |
 
 ## Rollback Plan
 

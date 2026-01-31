@@ -5,7 +5,33 @@
 > **Author**: [Name]
 > **Date**: YYYY-MM-DD
 
+## Quick Navigation
+
+<!-- 読者が必要なセクションに直接アクセス可能 -->
+- [Design Summary](#design-summary) - 30秒で設計概要把握
+- [Recommended Approach](#recommended-approach) - 採用アプローチ
+- [Implementation Map](#implementation-map) - 実装マップ
+- [Build Sequence](#build-sequence) - 実装順序
+- [Rejected Approaches](#rejected-approaches) - 却下案
+
+---
+
+## Design Summary
+
+<!-- 設計の全体像を30秒で把握 -->
+
+| 項目 | 内容 |
+|------|------|
+| **Approach** | [設計アプローチを1文で] |
+| **Key Decision** | [最も重要な設計判断を1文で] |
+| **Complexity** | Low / Medium / High |
+| **Files to Change** | [概算の変更ファイル数] |
+
+---
+
 ## Pattern Analysis from Codebase
+
+<!-- 記入ガイド: コードベースから再利用可能なパターンを特定 -->
 
 ### Relevant Existing Patterns
 | Pattern | Location | Applicability |

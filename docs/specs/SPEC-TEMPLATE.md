@@ -5,13 +5,27 @@
 > **Date**: YYYY-MM-DD
 > **Reviewers**: [Names]
 
+## Quick Navigation
+
+<!-- 読者が必要なセクションに直接アクセス可能 -->
+- [Overview](#overview) - 30秒で概要把握
+- [Must Requirements](#must-requirements-top-3) - 最重要要件
+- [Functional Requirements](#functional-requirements) - 詳細仕様
+- [Technical Considerations](#technical-considerations) - 技術制約
+- [Acceptance Criteria](#acceptance-criteria-gherkin) - 受入条件
+
+---
+
 ## Overview
+
+<!-- 記入ガイド: 各項目は1文で簡潔に。詳細は後続セクションに記載 -->
 
 | 項目 | 内容 |
 |------|------|
 | **What** | [1文で何を実装するか] |
 | **Why** | [1文でビジネス価値・解決する問題] |
 | **Risk** | [主要なリスクや注意点。なければ「特記事項なし」] |
+| **Complexity** | Low / Medium / High |
 | **Scope** | IN: [主要な含有項目] / OUT: [#out-of-scope](#out-of-scope)参照 |
 
 ### Must Requirements (Top 3)
@@ -24,9 +38,21 @@
 
 ## Background
 
+<!-- 記入ガイド:
+- 1-3文でこの機能が必要な背景を説明
+- 「なぜ今これが必要か」を明確に
+- 技術的詳細は Technical Considerations に記載
+-->
+
 Context and motivation for this feature. What problem does it solve?
 
 ## User Stories
+
+<!-- 記入ガイド:
+- 各ストーリーは「誰が」「何を」「なぜ」の形式で記載
+- 要件の意図と優先度判断に重要な情報
+- 主要なユースケースを2-3個記載
+-->
 
 ### US-001: [Story Title]
 **As a** [type of user]
@@ -39,6 +65,13 @@ Context and motivation for this feature. What problem does it solve?
 **So that** [benefit/value]
 
 ## Functional Requirements
+
+<!-- 記入ガイド:
+- Must: リリースに必須。これがないと機能しない
+- Should: 重要だがスケジュール調整可能
+- Could: あれば良いが、なくてもリリース可能
+- 各要件は独立してテスト可能な単位で記載
+-->
 
 ### Must Requirements (実装必須)
 
@@ -117,10 +150,24 @@ Feature: [Feature Name]
 
 ## Technical Considerations
 
+<!-- 記入ガイド:
+- 実装に影響する技術的制約を記載
+- 依存関係やブロッカーがあれば明記
+- パフォーマンスやセキュリティの懸念点も含める
+-->
+
 - Affected services/components: [List]
 - Database changes required: Yes/No
 - API changes required: Yes/No
 - Third-party integrations: [List]
+
+### Known Pitfalls
+
+<!-- このタイプの実装でよくある間違いや注意点 -->
+
+| やりがちな間違い | 正しいアプローチ | 理由 |
+|-----------------|------------------|------|
+| [例: N+1クエリ] | [バッチ取得を使用] | [パフォーマンス劣化防止] |
 
 ## Out of Scope
 

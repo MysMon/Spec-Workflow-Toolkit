@@ -50,38 +50,33 @@ Use the `interview` skill for structured requirements elicitation:
 
 | Condition | Template |
 |-----------|----------|
-| Bug fix, config change, < 1 day effort | `docs/specs/SPEC-TEMPLATE-MINIMAL.md` |
-| Standard feature (1-5 days) | `docs/specs/SPEC-TEMPLATE.md` |
+| Low complexity (small change) | `docs/specs/SPEC-TEMPLATE-MINIMAL.md` |
+| Medium complexity (standard feature) | `docs/specs/SPEC-TEMPLATE.md` |
 | P0 (launch blocker) feature | `docs/specs/SPEC-TEMPLATE-CRITICAL.md` |
 | Security-sensitive (auth, PII, encryption) | `docs/specs/SPEC-TEMPLATE-CRITICAL.md` |
 | Architecture-level change | `docs/specs/SPEC-TEMPLATE-CRITICAL.md` |
+| Design document needed | `docs/specs/DESIGN-TEMPLATE.md` (accompanies spec) |
 
-**CRITICAL: Overview must follow the 3-part structure:**
-- **What**: 1文で何を実装するか
-- **Why**: 1文でビジネス価値
-- **Risk**: 1文で主要リスク（なければ「特記事項なし」）
+**CRITICAL: Overview must use table format:**
 
-Create PRD documents following the selected template:
+| 項目 | 内容 |
+|------|------|
+| **What** | 1文で何を実装するか |
+| **Why** | 1文でビジネス価値 |
+| **Risk** | 1文で主要リスク（なければ「特記事項なし」）|
+| **Complexity** | Low / Medium / High |
+| **Scope** | IN: [含有項目] / OUT: [#out-of-scope参照] |
+| **Security** | (CRITICALのみ) セキュリティ上の主要懸念点 |
 
-```markdown
-# Feature: [Name]
+**Key sections to populate:**
 
-## Overview
-[2-3 sentence business value summary]
+- **Quick Navigation**: テンプレート内のリンクリストを維持
+- **Must Requirements (Top 3)**: 最重要要件3つを冒頭に抽出
+- **Known Pitfalls**: よくある実装ミスと正しいアプローチ
+- **Critical Constraints** (CRITICALのみ): 絶対守るべき制約3項目以内
+- **Rollback Plan** (CRITICALのみ): ロールバック条件と手順
 
-## User Stories
-- US-001: As a [user], I want [goal] so that [benefit]
-
-## Requirements
-- FR-001: [Functional requirement] | Priority: [P0-P3]
-- NFR-001: [Non-functional requirement]
-
-## Acceptance Criteria
-Given [context], When [action], Then [outcome]
-
-## Out of Scope
-[Explicitly listed exclusions]
-```
+Templates contain `<!-- 記入ガイド -->` comments - follow these inline instructions for each section.
 
 ### Phase 4: Review & Approval
 
