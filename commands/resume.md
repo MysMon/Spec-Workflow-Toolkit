@@ -258,7 +258,9 @@ Options:
 
 **If "Start fresh":**
 - Confirm: "This will archive current progress. Are you sure?"
-- If confirmed: Move progress files to `.claude/workspaces/{id}/archive/[timestamp]/`
+- If confirmed: Move progress files to `.claude/workspaces/{id}/archived/{timestamp}/`
+  - Archive path format: `.claude/workspaces/{id}/archived/{YYYY-MM-DD_HH-MM-SS}/`
+  - Move all progress files (claude-progress.json, feature-list.json, etc.) to this directory
 - Exit with suggestion to run `/spec-plan`
 
 **If "Just checking status":**

@@ -71,9 +71,12 @@ Process user change requests after `/spec-implement` completion. This command re
 - **Reading for context**: Orchestrator MAY read spec/design files directly for quick lookups (confirming change location, verifying current value)
 - **Editing/modifying**: Delegate to `product-manager` for SMALL or larger changes
 
+Refer to `subagent-contract` skill for unified quick lookup limits (≤3 files, ≤200 lines per file, ≤300 lines total).
+
 **Exception for TRIVIAL changes only** (Phase 5 Option A):
 Single-value fixes (typos, dates, version numbers) MAY be edited directly using the Edit tool.
 TRIVIAL criteria: Affects only 1-2 lines, has no semantic impact, requires no judgment calls.
+See Phase 5 for detailed TRIVIAL classification with concrete examples.
 
 **For comprehensive analysis**: ALWAYS delegate to `product-manager` or `code-architect` agents.
 
@@ -89,9 +92,10 @@ Output: Key requirements list + Architecture summary (concise)
 **Error Handling for product-manager (context loading):**
 If product-manager fails or times out:
 1. Retry once with reduced scope (focus on key requirements only)
-2. **Fallback: Read files directly** if retry fails:
-   - Read spec file directly to extract Key Requirements section
-   - Read design file directly to extract Architecture Summary section
+2. **Fallback: Read files directly** if retry fails (respecting unified limits from `subagent-contract`):
+   - Read spec file directly to extract Key Requirements section (≤200 lines)
+   - Read design file directly to extract Architecture Summary section (≤200 lines)
+   - If file exceeds 200 lines, read first 200 lines with warning
    - Use extracted content as context for impact analysis
    - Warn user: "Using direct file read (summarization failed)"
 3. Add to progress file: `"warnings": ["Context loading via agent failed, using direct read fallback"]`
@@ -410,19 +414,44 @@ Options:
 
 TRIVIAL changes are single-value fixes that meet ALL criteria:
 - Affect only 1-2 lines
-- Have no semantic impact
+- Have no semantic impact (see definition below)
 - Require no judgment calls
 
-**Examples of TRIVIAL (orchestrator MAY apply directly):**
-- Typo fix: "recieve" → "receive"
-- Version number: "1.0.0" → "1.0.1"
-- Date update: "2025-01-01" → "2025-01-31"
-- Single config value: `timeout: 30` → `timeout: 60`
+**Definition of "no semantic impact":**
+A change has NO semantic impact if:
+1. The meaning of the spec/design is identical before and after
+2. No implementation behavior would change based on the new wording
+3. No developer reading the spec would interpret it differently
+
+**Concrete Examples of TRIVIAL (orchestrator MAY apply directly):**
+
+| Change Type | Example | Why TRIVIAL |
+|-------------|---------|-------------|
+| Typo fix | "recieve" → "receive" | Spelling error, meaning unchanged |
+| Version number | "1.0.0" → "1.0.1" | Metadata update, no behavior change |
+| Date update | "2025-01-01" → "2025-01-31" | Metadata update |
+| Config placeholder | `timeout: 30` → `timeout: 60` (if explicitly numeric-only change) | Single value, no logic change |
+| Formatting | Fix markdown bullet indent | Visual only |
 
 **NOT TRIVIAL (delegate to product-manager):**
-- Wording changes that affect meaning
-- Adding/removing sentences or bullet points
-- Changes to requirement descriptions
+
+| Change Type | Example | Why NOT TRIVIAL |
+|-------------|---------|-----------------|
+| Value that affects behavior | `timeout: 30` → `timeout: 600` (10x increase) | May indicate spec intent change |
+| Wording that affects meaning | "should" → "must" | Changes requirement strength |
+| Adding/removing content | Adding a new bullet point | New requirement |
+| Requirement description | "User can upload files" → "User can upload images only" | Scope change |
+| Clarification with intent | "Fast response" → "Response under 100ms" | Adds specificity |
+
+**Gray Zone - When in doubt, delegate:**
+
+| Change | Looks TRIVIAL but... | Action |
+|--------|---------------------|--------|
+| `maxRetries: 3` → `maxRetries: 5` | Could indicate reliability concern | Ask user if this is spec intent or just value fix |
+| "error message" → "error notification" | Subtle meaning shift? | Delegate to product-manager |
+| Removing "(optional)" from a field | Changes requirement status | Definitely NOT TRIVIAL |
+
+**Rule of thumb:** If you hesitate for more than 3 seconds about whether it's TRIVIAL, it's NOT TRIVIAL. Delegate to product-manager.
 
 **Execution options for TRIVIAL:**
 

@@ -45,13 +45,24 @@ A key principle for spec/design files: distinguish between reading for reference
 | **Reading for reference** | MAY read directly | Quick lookups, section verification, confirmation checks |
 | **Editing/modifying** | MUST delegate to agent | Content analysis, semantic changes require agent judgment |
 
+**Quick Lookup Limits (unified across commands):**
+
+| Criterion | Limit | Rationale |
+|-----------|-------|-----------|
+| File count | ≤3 files | Beyond 3 files = delegate to agent |
+| Line count per file | ≤200 lines | Beyond 200 lines = delegate to agent |
+| Total lines read | ≤300 lines | Aggregate limit for context protection |
+| Purpose | Single value/section confirmation | NOT analysis, NOT comprehension |
+
+See `subagent-contract` skill for detailed examples and edge cases.
+
 **Examples:**
 ```markdown
 # OK: Direct read for quick lookup
-Read spec file to check acceptance criteria for a single feature
+Read spec file to check acceptance criteria for a single feature (≤200 lines)
 
 # OK: Direct read with size threshold
-If spec file < 300 lines, read directly; otherwise delegate for summary
+If spec file ≤200 lines, read directly; otherwise delegate for summary
 
 # MUST delegate: Content modification
 Launch product-manager to update requirement wording
@@ -124,6 +135,29 @@ Progress files and other orchestrator metadata are exceptions to the delegation 
 **Key distinction:**
 - **Spec/design files** → MUST delegate (content analysis)
 - **Progress/metadata files** → Direct read OK with justification (state validation)
+
+**User Presentation Pattern (required before major actions):**
+
+After receiving agent output, orchestrators MUST present key findings to user before proceeding:
+
+```markdown
+# GOOD: Present context before implementation
+1. Delegate to product-manager for spec summary
+2. Present summary to user:
+   "Here's what I understand from the spec: [summary]"
+3. Use AskUserQuestion: "Is this correct?"
+4. THEN proceed to implementation
+
+# BAD: Skip user confirmation
+1. Delegate to product-manager for spec summary
+2. Use summary internally for implementation (user never sees it)
+```
+
+**When to apply this pattern:**
+- Before implementation starts (spec-implement, quick-impl)
+- After discovery/exploration (quick-impl, doc-audit)
+- After classification/diagnosis (ci-fix, debug)
+- Before major workflow decisions
 
 **Anti-pattern: Over-delegation**
 

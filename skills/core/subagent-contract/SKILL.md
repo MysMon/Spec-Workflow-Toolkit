@@ -416,6 +416,39 @@ Critical for context protection and delegation consistency.
 - **ALWAYS wait for subagent completion** before synthesizing results
 - **ALWAYS use subagent output** for context - do not re-read files the subagent already analyzed
 
+### Quick Lookup Definition (L1 - Required)
+
+**Quick lookup** is the ONLY direct file read allowed for orchestrators. ALL conditions must be met:
+
+| Criterion | Limit | Rationale |
+|-----------|-------|-----------|
+| **File count** | ≤3 files | Beyond 3 files = delegate to agent |
+| **Line count per file** | ≤200 lines | Beyond 200 lines = delegate to agent |
+| **Total lines read** | ≤300 lines | Aggregate limit for context protection |
+| **Purpose** | Single value/section confirmation | NOT analysis, NOT comprehension |
+| **Time** | <10 seconds | If longer, should have been delegated |
+
+**Examples of quick lookups (ALLOWED):**
+- Confirming a timeout value: "What's the CACHE_TTL setting?"
+- Checking a specific function exists: "Is `validateEmail` defined here?"
+- Verifying acceptance criteria for ONE feature
+- Reading a single config section
+
+**Examples that are NOT quick lookups (MUST DELEGATE):**
+- Understanding overall architecture
+- Analyzing trade-offs or design decisions
+- Identifying integration points across features
+- Reading multiple related files for context
+- Summarizing a document
+
+**Unified line limits across commands:**
+| Context | Direct Read Limit |
+|---------|-------------------|
+| Fallback after agent failure | ≤200 lines per file, ≤3 files |
+| Quick reference during phase | ≤200 lines per file, ≤3 files |
+| Progress/metadata files | No limit (not project content) |
+| Presentation to user | ≤300 lines total (show, don't analyze) |
+
 ### Defaults (L2 - Soft)
 
 Important for orchestration quality. Override with reasoning when appropriate.

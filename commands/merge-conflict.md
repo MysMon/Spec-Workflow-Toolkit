@@ -106,6 +106,37 @@ Thoroughness: medium
 
 Use the agents' output for conflict information. Do NOT run grep directly in the parent context.
 
+**Error Handling for parallel agents:**
+
+| Scenario | Action |
+|----------|--------|
+| **All 3 succeed** | Proceed to Phase 3 with complete analysis |
+| **1 agent fails** | Retry failed agent once with reduced scope; proceed with partial analysis if retry fails |
+| **2 agents fail** | Warn user about incomplete analysis; offer to retry or proceed cautiously |
+| **All 3 fail** | Do NOT proceed; offer options to user |
+
+**If 1-2 agents fail after retry:**
+```
+Question: "Some analysis agents failed. I have partial information about this conflict."
+Header: "Partial Analysis"
+Options:
+- "Proceed with available analysis (may need manual verification)"
+- "Retry all analysis agents"
+- "Show me the raw conflict markers instead"
+```
+
+**If all 3 agents fail:**
+```
+Question: "Conflict analysis failed completely. How would you like to proceed?"
+Header: "Analysis Failed"
+Options:
+- "Retry conflict analysis"
+- "Show me the conflicted file directly (manual resolution)"
+- "Skip this file for now"
+```
+
+If user chooses "Show me the conflicted file directly", read the file (≤200 lines) and present conflict markers.
+
 **Categorize conflict type (using agent output):**
 
 | Type | Pattern | Resolution Approach |
@@ -191,8 +222,24 @@ Requirements:
 Output: Confirmation of merged file with conflict markers removed
 ```
 
+**Error Handling for specialist agent:**
+If specialist agent fails or times out:
+1. Check partial output for usable merged code
+2. Retry once with simplified scope (single conflict region at a time)
+3. If retry fails:
+   ```
+   Question: "Automatic merge failed. How would you like to proceed?"
+   Header: "Merge Failed"
+   Options:
+   - "Show me both versions and I'll merge manually"
+   - "Retry merge with different approach"
+   - "Keep ours for now (will need manual follow-up)"
+   - "Keep theirs for now (will need manual follow-up)"
+   ```
+4. If user chooses "Show me both versions", present ours/theirs content and wait for user to provide merged code
+
 **After specialist agent completes:**
-- Remove conflict markers
+- Verify conflict markers are removed
 - Stage the resolved file: `git add <file>`
 - Mark TodoWrite item as completed
 

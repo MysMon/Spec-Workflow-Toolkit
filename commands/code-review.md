@@ -117,9 +117,26 @@ Use the code-explorer's output (including diff content) in Step 3 agent prompts.
 **Error Handling for code-explorer:**
 If code-explorer fails or times out:
 1. Check partial output for usable context
-2. Fall back to minimal context: read only CLAUDE.md (if exists) and run `git diff --staged` for diff content
-3. Proceed with Step 3 using available context
-4. Note "limited context" in final report
+2. **Fallback: Minimal context gathering** (respecting unified limits from `subagent-contract`):
+   - Check for CLAUDE.md using Glob: `**/CLAUDE.md`
+   - If CLAUDE.md exists: read directly (≤200 lines)
+   - If no CLAUDE.md: proceed without guidelines (Agent 1 will report "no guidelines found")
+   - Run `git diff --staged` for diff content (≤200 lines, truncate with warning if larger)
+3. **Warn user about limited context:**
+   ```
+   Question: "Context gathering failed. I have limited information for the review. How would you like to proceed?"
+   Header: "Limited Context"
+   Options:
+   - "Proceed with limited review (may miss some issues)"
+   - "Retry context gathering"
+   - "Cancel and investigate the issue"
+   ```
+4. If user chooses to proceed: continue with Step 3 using available context
+5. Note in final report: "Review conducted with limited context - git history and related file analysis unavailable"
+
+**If git diff also fails or returns too much content (>500 lines):**
+- Ask user to narrow scope: specify files or use `staged` mode
+- Do NOT proceed with massive diffs that would overwhelm context
 
 ### Step 3: Launch 5 Parallel Review Agents (Sonnet)
 

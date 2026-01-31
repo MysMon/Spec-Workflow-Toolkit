@@ -69,11 +69,38 @@ Options:
 - "Performance degradation"
 ```
 
-**Get specifics:**
-- Error message or symptoms
-- Affected users/scope
-- When it started
-- Any recent deployments
+**CRITICAL: Get specifics (even in emergencies, clarity prevents wrong fixes):**
+
+```
+Question: "Tell me more about the issue to ensure we fix the right thing."
+Header: "Details"
+Options:
+- "Show me the error message"
+- "The issue is in [specific feature/endpoint]"
+- "I'll describe the symptoms"
+- "I have a ticket/issue link"
+```
+
+**If description is vague**, use AskUserQuestion to clarify:
+
+| User Says | Ask About |
+|-----------|-----------|
+| "Something is broken" | Which feature? What happens when users try to use it? |
+| "Users seeing errors" | What error message? Which page/action triggers it? |
+| "It's not working" | What was the expected behavior? What happens instead? |
+| "Performance issue" | Which operation is slow? How slow (seconds/timeout)? |
+
+**NEVER proceed with vague descriptions** — wrong fixes waste time and may cause additional issues.
+
+**After gathering specifics, confirm understanding:**
+
+```
+Question: "I understand the issue as: [summary]. Is this correct?"
+Header: "Confirm"
+Options:
+- "Yes, that's correct"
+- "Let me clarify: [...]"
+```
 
 **Quick context check (delegate to code-explorer):**
 
