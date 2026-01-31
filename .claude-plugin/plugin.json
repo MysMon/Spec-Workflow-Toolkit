@@ -8,21 +8,9 @@
     "email": "contact@github.com/MysMon",
     "url": "https://github.com/MysMon"
   },
-  "homepage": "https://github.com/MysMon/cc-web-dev#readme",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/MysMon/cc-web-dev.git"
-  },
+  "homepage": "https://github.com/MysMon/Spec-Workflow-Toolkit#readme",
+  "repository": "https://github.com/MysMon/Spec-Workflow-Toolkit.git",
   "license": "MIT",
-  "category": "development",
-  "tags": [
-    "specification-first",
-    "multi-stack",
-    "agentic-workflow",
-    "code-review",
-    "architecture"
-  ],
-  "strict": false,
   "keywords": [
     "spec-workflow",
     "specification-first",
