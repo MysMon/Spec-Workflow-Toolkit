@@ -8,12 +8,12 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/spec_context.sh",
-            "timeout": 5000
+            "timeout": 5
           },
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/enforce_japanese_mode.sh",
-            "timeout": 3000
+            "timeout": 3
           }
         ]
       }
@@ -25,7 +25,7 @@
           {
             "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/safety_check.py",
-            "timeout": 5000
+            "timeout": 5
           }
         ]
       },
@@ -35,7 +35,7 @@
           {
             "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/prevent_secret_leak.py",
-            "timeout": 5000
+            "timeout": 5
           }
         ]
       },
@@ -45,7 +45,7 @@
           {
             "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/external_content_validator.py",
-            "timeout": 5000
+            "timeout": 5
           }
         ]
       }
@@ -57,7 +57,7 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre_compact_save.sh",
-            "timeout": 5000
+            "timeout": 5
           }
         ]
       }
@@ -69,17 +69,17 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent_summary.sh",
-            "timeout": 5000
+            "timeout": 5
           },
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/insight_capture.sh",
-            "timeout": 3000
+            "timeout": 3
           },
           {
             "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/verify_references.py",
-            "timeout": 5000
+            "timeout": 5
           }
         ]
       }
@@ -91,7 +91,7 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/audit_log.sh",
-            "timeout": 2000
+            "timeout": 2
           }
         ]
       }
@@ -103,7 +103,7 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session_summary.sh",
-            "timeout": 5000
+            "timeout": 5
           }
         ]
       }
@@ -115,7 +115,7 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session_cleanup.sh",
-            "timeout": 5000
+            "timeout": 5
           }
         ]
       }

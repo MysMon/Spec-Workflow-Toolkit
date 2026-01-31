@@ -15,14 +15,19 @@ model: sonnet
 tools: Read, Glob, Grep, Bash
 disallowedTools: Write, Edit
 permissionMode: plan
-skills: security-fundamentals, stack-detector, subagent-contract, insight-recording, language-enforcement
+skills:
+  - security-fundamentals
+  - stack-detector
+  - subagent-contract
+  - insight-recording
+  - language-enforcement
 hooks:
   PreToolUse:
     - matcher: "Bash"
       hooks:
         - type: command
           command: "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/security_audit_bash_validator.py"
-          timeout: 5000
+          timeout: 5
 ---
 
 # Role: Security Auditor

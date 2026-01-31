@@ -15,7 +15,10 @@ model: sonnet
 tools: Read, Glob, Grep
 disallowedTools: Write, Edit, Bash
 permissionMode: plan
-skills: subagent-contract, insight-recording, language-enforcement
+skills:
+  - subagent-contract
+  - insight-recording
+  - language-enforcement
 ---
 
 # Role: Verification Specialist
