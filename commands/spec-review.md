@@ -46,12 +46,14 @@ If no arguments:
 
 **Content loading - choose based on file size:**
 
-**For small files (<300 lines):**
+Refer to `subagent-contract` skill for unified quick lookup limits.
+
+**For small files (≤200 lines per file, ≤300 lines total):**
 - Orchestrator MAY read directly using Read tool for presentation purposes ONLY
 - Show content as-is (do NOT synthesize, summarize, or analyze)
 - If synthesis/analysis is needed (e.g., understanding trade-offs, identifying gaps), delegate to product-manager
 
-**For large files (≥300 lines) or when summary is needed:**
+**For large files (>200 lines) or when summary is needed:**
 Delegate to `product-manager` agent:
 ```
 Launch product-manager agent:
@@ -67,11 +69,12 @@ Output:
 **Error Handling for product-manager (content loading):**
 If product-manager fails or times out:
 1. Retry once with reduced scope (focus on key requirements list only)
-2. **Fallback: Read files directly** if retry fails:
-   - Read spec file directly (max 500 lines)
-   - Read design file directly (max 500 lines)
+2. **Fallback: Read files directly** if retry fails (respecting unified limits from `subagent-contract`):
+   - Read spec file directly (≤200 lines)
+   - Read design file directly (≤200 lines)
+   - If file exceeds 200 lines, read first 200 lines with warning
    - Present raw content with section headers
-   - Warn user: "Showing raw content (summarization failed)"
+   - Warn user: "Showing partial content (summarization failed, file exceeded 200 lines)"
 3. Add warning to review log: "Content loading via agent failed, using direct read fallback"
 
 ### Step 2: Auto Review (only if `--auto` flag is present)

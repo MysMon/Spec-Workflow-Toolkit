@@ -94,6 +94,36 @@ Options:
 
 **Goal:** Map documentation sections to corresponding code.
 
+**Pre-mapping context (orchestrator reads section structure only):**
+
+For each documentation file to audit (≤200 lines per file, respecting `subagent-contract` limits):
+1. Read the documentation file directly (section headers and structure only)
+2. Extract top-level headings (e.g., "## Installation", "## API Reference", "## Configuration")
+3. This gives orchestrator awareness of document structure for subsequent verification
+
+**Present document structure to user:**
+```markdown
+## Document: [filename]
+
+### Sections Identified:
+1. [Section heading 1]
+2. [Section heading 2]
+...
+
+### Audit Scope:
+[Which sections will be verified against code]
+```
+
+Use AskUserQuestion to confirm:
+```
+Question: "I found these sections in the documentation. Which should I prioritize for drift detection?"
+Header: "Prioritize"
+Options:
+- "Audit all sections"
+- "Focus on [high-priority sections like Installation, API]"
+- "Let me specify sections"
+```
+
 **For each documentation file, launch code-explorer:**
 
 ```

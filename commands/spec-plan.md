@@ -106,15 +106,18 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 
    Options:
    1. Continue existing work → Use /resume command
-   2. Start fresh → Existing progress will be archived to .claude/workspaces/{id}/archived/
+   2. Start fresh → Existing progress will be archived
    3. Cancel → Do nothing
 
    What would you like to do?
    ```
 
 3. **If user chooses "Start fresh":**
-   - Archive existing progress: Move `claude-progress.json` to `archived/claude-progress-{timestamp}.json`
-   - Archive feature list if exists: Move `feature-list.json` to `archived/feature-list-{timestamp}.json`
+   - Create archive directory: `.claude/workspaces/{id}/archived/{YYYY-MM-DD_HH-MM-SS}/`
+   - Move all progress files to archive directory:
+     - `claude-progress.json` → `archived/{timestamp}/claude-progress.json`
+     - `feature-list.json` → `archived/{timestamp}/feature-list.json`
+   - This format matches `/resume` command's archive convention
    - Proceed to create new progress files
 
 4. **If progress file doesn't exist or status is "completed":**

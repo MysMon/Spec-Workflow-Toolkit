@@ -89,6 +89,8 @@ If no arguments:
 - **Reading for context**: Orchestrator MAY read spec/design files directly for quick lookups
 - **Editing/modifying**: ALWAYS delegate to appropriate agent
 
+Refer to `subagent-contract` skill for unified quick lookup limits (≤3 files, ≤200 lines per file, ≤300 lines total).
+
 **Quick lookup examples (direct read allowed):**
 - Confirming a single requirement (e.g., "What's the expected response time?")
 - Verifying acceptance criteria for one feature
@@ -146,6 +148,42 @@ If product-manager fails or times out:
    - Warn user: "Using direct file read (summarization failed)"
 3. Add to progress file: `"warnings": ["Context loading via agent failed, using direct read fallback"]`
 4. Proceed with available context (do NOT block implementation entirely)
+
+**CRITICAL: Present context summary to user before proceeding:**
+
+After product-manager completes (or fallback completes), present the implementation context to the user:
+
+```markdown
+## Implementation Context Summary
+
+### What to Build
+[Key requirements from product-manager output]
+
+### How to Build It
+[Architecture summary from product-manager output]
+
+### Build Sequence
+1. [Feature 1]
+2. [Feature 2]
+...
+
+### Acceptance Criteria
+- [Criteria 1]
+- [Criteria 2]
+...
+```
+
+Use AskUserQuestion to confirm understanding:
+```
+Question: "This is what I understand from the spec. Is this correct?"
+Header: "Context Confirmation"
+Options:
+- "Yes, this is correct"
+- "Partially correct, let me clarify"
+- "Wrong, let me re-explain the requirements"
+```
+
+If user chooses "Partially correct" or "Wrong", gather clarification before proceeding.
 
 #### Review-Aware Handoff
 

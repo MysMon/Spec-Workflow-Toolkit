@@ -101,6 +101,21 @@ Options:
 - "Dependency issues"
 ```
 
+**CRITICAL: After initial category selection, gather specific details:**
+
+```
+Question: "Please provide more details about the failure."
+Header: "Details"
+Options:
+- "Show me the error message from CI"
+- "I'll paste the CI log URL"
+- "The failure is in [specific test/file]"
+- "I'm not sure, help me investigate"
+```
+
+If user provides error message or URL, proceed to Phase 2.
+If user says "not sure", delegate discovery to code-explorer with broader scope.
+
 ### Phase 2: Failure Classification
 
 **Goal:** Categorize the failure type for targeted resolution.
@@ -131,6 +146,32 @@ Output: Failure category, specific error location, suggested resolution path
 ```
 
 Use the agent's output for classification. Do NOT analyze logs manually.
+
+**CRITICAL: Present classification result to user for confirmation:**
+
+```markdown
+## Failure Analysis Result
+
+**Category:** [Failure category from agent]
+**Error Location:** [file:line from agent output]
+**Root Cause Hypothesis:** [agent's suggested cause]
+
+**Suggested Resolution Path:** Phase 3[X] - [description]
+```
+
+Use AskUserQuestion to confirm:
+```
+Question: "Does this diagnosis match what you're seeing?"
+Header: "Confirm Diagnosis"
+Options:
+- "Yes, proceed with this diagnosis"
+- "Partially correct - let me add context"
+- "No, the issue is different"
+- "I need more investigation first"
+```
+
+If user chooses "Partially correct" or "No", gather additional context before proceeding.
+If user chooses "need more investigation", re-run code-explorer with broader scope.
 
 ### Phase 3A: Test Failure Resolution
 

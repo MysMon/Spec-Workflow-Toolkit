@@ -100,6 +100,39 @@ If Explore agent fails or times out:
 
 **Note on patterns:** When Explore agent returns patterns, pass them to the specialist in Step 3. If fallback was used, specialist will discover patterns during implementation.
 
+**CRITICAL: Present discovery results to user before implementation:**
+
+After Explore agent completes (or fallback completes), present findings to user:
+
+```markdown
+## Context Discovery Results
+
+**Stack Detected:** [e.g., React + TypeScript, Node.js + Express]
+
+**Related Files:**
+- `path/to/file1.ts` - [brief description]
+- `path/to/file2.ts` - [brief description]
+
+**Patterns to Follow:**
+- [Pattern 1 from codebase]
+- [Pattern 2 from codebase]
+
+**Test Files to Update:**
+- `path/to/test.spec.ts`
+```
+
+Use AskUserQuestion to confirm:
+```
+Question: "I found these related files and patterns. Shall I proceed with implementation?"
+Header: "Confirm Context"
+Options:
+- "Yes, proceed with implementation"
+- "Add more context (specify files)"
+- "This isn't what I expected, let me clarify"
+```
+
+If user chooses "Add more context" or "This isn't what I expected", gather additional information before proceeding.
+
 ### Step 3: Implementation
 
 **IMPORTANT:** ALWAYS delegate implementation to appropriate specialist agent.
