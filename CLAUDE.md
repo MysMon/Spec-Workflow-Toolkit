@@ -44,7 +44,7 @@ YAML frontmatter fields:
 - `tools`: Available tools
 - `disallowedTools`: Explicitly prohibited tools
 - `permissionMode`: default, acceptEdits, plan, dontAsk
-- `skills`: Comma-separated skill names (minimize to preserve context)
+- `skills`: YAML array of skill names (minimize to preserve context)
 
 ### Editing Skills (`skills/**/SKILL.md`)
 

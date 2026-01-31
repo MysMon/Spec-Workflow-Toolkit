@@ -642,7 +642,7 @@ skills: skill1, skill2
 | `tools` | No | Comma-separated tool names |
 | `disallowedTools` | No | Explicitly prohibited tools |
 | `permissionMode` | No | `default`, `acceptEdits`, `plan`, `dontAsk` |
-| `skills` | No | Comma-separated skill names |
+| `skills` | No | YAML array of skill names |
 | `hooks` | No | Agent-scoped lifecycle hooks (PreToolUse, PostToolUse, Stop) |
 
 #### permissionMode Options
