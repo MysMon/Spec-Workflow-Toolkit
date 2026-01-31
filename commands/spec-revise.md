@@ -423,15 +423,16 @@ A change has NO semantic impact if:
 2. No implementation behavior would change based on the new wording
 3. No developer reading the spec would interpret it differently
 
-**Concrete Examples of TRIVIAL (orchestrator MAY apply directly):**
+**Concrete Examples of TRIVIAL (delegate to product-manager by default):**
 
 | Change Type | Example | Why TRIVIAL |
 |-------------|---------|-------------|
 | Typo fix | "recieve" → "receive" | Spelling error, meaning unchanged |
 | Version number | "1.0.0" → "1.0.1" | Metadata update, no behavior change |
 | Date update | "2025-01-01" → "2025-01-31" | Metadata update |
-| Config placeholder | `timeout: 30` → `timeout: 60` (if explicitly numeric-only change) | Single value, no logic change |
 | Formatting | Fix markdown bullet indent | Visual only |
+
+**Note:** Numeric value changes (timeout, retries, limits) are NOT TRIVIAL by default. Even small numeric changes may indicate spec intent changes and should be delegated to product-manager for proper context tracking.
 
 **NOT TRIVIAL (delegate to product-manager):**
 
@@ -443,25 +444,20 @@ A change has NO semantic impact if:
 | Requirement description | "User can upload files" → "User can upload images only" | Scope change |
 | Clarification with intent | "Fast response" → "Response under 100ms" | Adds specificity |
 
-**Gray Zone - When in doubt, delegate:**
+**Gray Zone - Always delegate to product-manager:**
 
-| Change | Looks TRIVIAL but... | Action |
+| Change | Why it's NOT TRIVIAL | Action |
 |--------|---------------------|--------|
-| `maxRetries: 3` → `maxRetries: 5` | Could indicate reliability concern | Ask user if this is spec intent or just value fix |
-| "error message" → "error notification" | Subtle meaning shift? | Delegate to product-manager |
-| Removing "(optional)" from a field | Changes requirement status | Definitely NOT TRIVIAL |
+| `maxRetries: 3` → `maxRetries: 5` | Numeric change affects behavior | Delegate to product-manager |
+| `timeout: 30` → `timeout: 60` | Numeric change affects behavior | Delegate to product-manager |
+| "error message" → "error notification" | Subtle meaning shift | Delegate to product-manager |
+| Removing "(optional)" from a field | Changes requirement status | Delegate to product-manager |
 
-**Rule of thumb:** If you hesitate for more than 3 seconds about whether it's TRIVIAL, it's NOT TRIVIAL. Delegate to product-manager.
+**Rule of thumb:** If the change affects any numeric value or could influence implementation behavior, delegate to product-manager. When in doubt, always delegate.
 
 **Execution options for TRIVIAL:**
 
-**Option A: Direct Edit (Recommended for speed)**
-1. Use Edit tool to apply the single-line change
-2. Show user before/after diff
-3. Run `git diff` to confirm change scope
-4. If change affected more than intended lines, revert and escalate to SMALL
-
-**Option B: Delegate to product-manager (For consistency)**
+**Option A: Delegate to product-manager (Recommended - delegation-first)**
 ```
 Launch product-manager agent:
 Task: Apply trivial change to spec/design
@@ -471,10 +467,16 @@ Constraint: Single-value fix only, no semantic changes
 Output: Confirmation of change with before/after
 ```
 
-**Choose Option A by default. Use Option B if:**
-- User explicitly requests agent handling
-- Change involves multiple occurrences (use replace_all)
-- Orchestrator is uncertain about scope
+**Option B: Direct Edit (Fallback only)**
+1. Use Edit tool to apply the single-line change
+2. Show user before/after diff
+3. Run `git diff` to confirm change scope
+4. If change affected more than intended lines, revert and escalate to SMALL
+
+**Choose Option A by default (delegation-first principle). Use Option B only if:**
+- User explicitly requests direct edit for speed
+- Agent retry failed (after one retry attempt)
+- Change is purely formatting (whitespace, markdown syntax only)
 
 **Post-change verification (both options):**
 - Run `git diff` to confirm only intended lines changed
@@ -636,7 +638,7 @@ If "Undo": Revert changes using git, return to Phase 2.
 ## Rules (L1 - Hard)
 
 - For comprehensive spec/design analysis, delegate to `product-manager` or `code-architect` agent
-- TRIVIAL changes (single-value, no semantic impact) MAY be edited directly using Edit tool
+- TRIVIAL changes: delegate to `product-manager` by default; direct Edit is fallback only (see Phase 5)
 - ALWAYS use AskUserQuestion when change request is ambiguous
 - NEVER auto-route to other commands without user confirmation
 - NEVER skip impact analysis - always run both agents
