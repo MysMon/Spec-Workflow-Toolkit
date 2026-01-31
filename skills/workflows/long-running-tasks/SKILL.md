@@ -97,15 +97,19 @@ For migrations affecting many files:
 
 ### Phase 1: Discovery
 
-```bash
-# Find all affected files
-find . -name "*.tsx" -exec grep -l "OldPattern" {} \;
+**CRITICAL: Delegate bulk file discovery to code-explorer agent.**
 
-# Count scope
-wc -l $(find . -name "*.tsx" -exec grep -l "OldPattern" {} \;)
+Do NOT run find/grep directly in orchestrator context. Instead:
+
+```markdown
+**Delegate to code-explorer:**
+- Task: Find all files matching `*.tsx` containing pattern `OldPattern`
+- Return: File list, match count, and estimated scope
+- Purpose: Discovery for migration planning
 ```
 
-Document findings in plan file.
+This preserves orchestrator context and follows the delegation-first principle.
+Document agent findings in plan file.
 
 ### Phase 2: Batch Processing
 
