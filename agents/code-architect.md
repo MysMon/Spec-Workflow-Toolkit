@@ -14,7 +14,11 @@ model: sonnet
 tools: Glob, Grep, Read, WebFetch, WebSearch, TodoWrite
 disallowedTools: Write, Edit, Bash
 permissionMode: plan
-skills: stack-detector, subagent-contract, insight-recording, language-enforcement
+skills:
+  - stack-detector
+  - subagent-contract
+  - insight-recording
+  - language-enforcement
 ---
 
 ## L1 Hard Rules

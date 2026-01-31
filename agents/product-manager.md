@@ -15,7 +15,11 @@ model: opus
 tools: Read, Glob, Grep, Write, Edit, AskUserQuestion
 disallowedTools: Bash
 permissionMode: acceptEdits
-skills: interview, spec-philosophy, subagent-contract, language-enforcement
+skills:
+  - interview
+  - spec-philosophy
+  - subagent-contract
+  - language-enforcement
 ---
 
 # Role: Senior Technical Product Manager

@@ -14,7 +14,14 @@ description: |
 model: sonnet
 tools: Read, Glob, Grep, Write, Edit, Bash
 permissionMode: acceptEdits
-skills: stack-detector, testing, tdd-workflow, error-recovery, subagent-contract, insight-recording, language-enforcement
+skills:
+  - stack-detector
+  - testing
+  - tdd-workflow
+  - error-recovery
+  - subagent-contract
+  - insight-recording
+  - language-enforcement
 ---
 
 # Role: QA Automation Engineer
