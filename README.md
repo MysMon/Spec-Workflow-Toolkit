@@ -12,7 +12,7 @@
 ### インストール
 
 ```bash
-git clone https://github.com/MysMon/cc-web-dev.git spec-workflow-toolkit
+git clone https://github.com/MysMon/Spec-Workflow-Toolkit.git spec-workflow-toolkit
 claude --plugin-dir ./spec-workflow-toolkit
 ```
 
