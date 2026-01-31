@@ -23,6 +23,20 @@ A lightweight quality gate that the orchestrator runs at the end of `/spec-plan`
 
 Load this skill at the end of `/spec-plan` Phase 4, after spec and design files have been saved.
 
+## Prerequisites
+
+**File size check before running this checklist:**
+
+This self-review is appropriate ONLY if BOTH conditions are met:
+1. Specification file ≤200 lines
+2. Design file ≤200 lines
+
+**If either file exceeds 200 lines:**
+→ Skip this checklist and proceed directly to `/spec-review` with `--auto` flag
+→ The parallel review agents are better suited for larger documents
+
+This respects the Quick Lookup limits defined in `subagent-contract` skill.
+
 ## Checklist
 
 The orchestrator reads both output files and checks each item. Mark each as PASS or FLAG.
