@@ -67,9 +67,15 @@ Process user change requests after `/spec-implement` completion. This command re
    - Review log: Use Glob to check if `docs/specs/[feature-name]-review.md` exists
    - Progress file: Use Glob to check if `.claude/workspaces/{id}/claude-progress.json` exists
 
-**CRITICAL: Do NOT read spec/design files directly. ALWAYS delegate to subagent.**
+**Reading vs Editing distinction:**
+- **Reading for context**: Orchestrator MAY read spec/design files directly for quick lookups (confirming change location, verifying current value)
+- **Editing/modifying**: Delegate to `product-manager` for SMALL or larger changes
 
-This applies to ALL phases including Phase 5 (TRIVIAL/SMALL changes). The orchestrator never edits spec/design files directly.
+**Exception for TRIVIAL changes only** (Phase 5 Option A):
+Single-value fixes (typos, dates, version numbers) MAY be edited directly using the Edit tool.
+TRIVIAL criteria: Affects only 1-2 lines, has no semantic impact, requires no judgment calls.
+
+**For comprehensive analysis**: ALWAYS delegate to `product-manager` or `code-architect` agents.
 
 **Delegate context loading to `product-manager` agent:**
 
@@ -83,12 +89,15 @@ Output: Key requirements list + Architecture summary (concise)
 **Error Handling for product-manager (context loading):**
 If product-manager fails or times out:
 1. Retry once with reduced scope (focus on key requirements only)
-2. If retry fails, inform user and offer options:
-   - "Retry with simplified request"
-   - "Cancel and investigate the failure"
-3. Do NOT proceed without context — context loading is required for impact analysis
+2. **Fallback: Read files directly** if retry fails:
+   - Read spec file directly to extract Key Requirements section
+   - Read design file directly to extract Architecture Summary section
+   - Use extracted content as context for impact analysis
+   - Warn user: "Using direct file read (summarization failed)"
+3. Add to progress file: `"warnings": ["Context loading via agent failed, using direct read fallback"]`
+4. Proceed with available context (do NOT block impact analysis entirely)
 
-Use the agent's summary output for context. Do NOT read spec/design files directly.
+Use the agent's summary output for context when available.
 
 **Present current state to user (using agent output):**
 ```
@@ -315,14 +324,16 @@ Options:
 **TRIVIAL (Direct Fix):**
 ```
 This is a minor change that doesn't affect the spec or design.
-I'll delegate to product-manager to apply it.
+I can apply this directly using the Edit tool for speed.
 
 Proceed with the fix?
-1. Yes, apply the change
-2. No, let me reconsider
+1. Yes, apply the change directly
+2. Delegate to product-manager instead
+3. No, let me reconsider
 ```
 
-If yes: Proceed to Phase 5 (TRIVIAL execution via product-manager delegation).
+If yes (option 1): Proceed to Phase 5 Option A (direct edit).
+If option 2: Proceed to Phase 5 Option B (product-manager delegation).
 
 **SMALL (Spec/Design Edit + Quick Implementation):**
 ```
@@ -595,7 +606,8 @@ If "Undo": Revert changes using git, return to Phase 2.
 
 ## Rules (L1 - Hard)
 
-- ALWAYS delegate spec/design reading to `product-manager` agent — do NOT read directly
+- For comprehensive spec/design analysis, delegate to `product-manager` or `code-architect` agent
+- TRIVIAL changes (single-value, no semantic impact) MAY be edited directly using Edit tool
 - ALWAYS use AskUserQuestion when change request is ambiguous
 - NEVER auto-route to other commands without user confirmation
 - NEVER skip impact analysis - always run both agents

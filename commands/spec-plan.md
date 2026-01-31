@@ -50,7 +50,7 @@ Load the `subagent-contract` skill for detailed orchestration protocols.
 ### Absolute Prohibitions
 
 1. **MUST delegate bulk Grep/Glob operations to `code-explorer`** - Use directly only for single targeted lookups
-2. **NEVER read more than 3 files directly** - Delegate bulk reading to subagents
+2. **For bulk reading (>3 files)**: Delegate to subagents. Quick lookups (1-3 files for specific sections) are allowed.
 3. **NEVER implement code yourself** - This is a planning command
 4. **NEVER skip to implementation** - Output is a plan, not code
 
@@ -545,7 +545,7 @@ Then run `/spec-implement` to build it.
 Critical for orchestration and planning quality.
 
 - MUST delegate bulk Grep/Glob operations to `code-explorer` (use directly only for single targeted lookups)
-- NEVER read more than 3 files directly — delegate bulk reading to subagents
+- For bulk reading (>3 files): delegate to subagents. Quick lookups are allowed.
 - NEVER implement code yourself — this is a planning command
 - NEVER skip to implementation — output is a plan, not code
 - MUST use AskUserQuestion when:
