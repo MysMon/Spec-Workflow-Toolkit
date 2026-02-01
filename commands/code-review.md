@@ -312,7 +312,6 @@ Found [N] issues:
 
    `path/file.ext#L[start]-L[end]`
 
-🤖 Generated with Claude Code
 ```
 
 **Link Format Requirements:**

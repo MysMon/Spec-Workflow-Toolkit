@@ -26,10 +26,10 @@ Use these axes to compare any technology options discovered through research:
 
 | Score | Meaning |
 |-------|---------|
-| ✅ Strong | Clearly meets requirement with evidence |
-| ⚠️ Partial | Meets requirement with caveats or workarounds |
-| ❌ Weak | Does not meet requirement or significant gaps |
-| ❓ Unknown | Insufficient information, needs more research |
+| Strong | Clearly meets requirement with evidence |
+| Partial | Meets requirement with caveats or workarounds |
+| Weak | Does not meet requirement or significant gaps |
+| Unknown | Insufficient information, needs more research |
 
 ---
 
