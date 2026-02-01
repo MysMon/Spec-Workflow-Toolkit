@@ -544,7 +544,7 @@ Then run `/spec-implement` to build it.
 Critical for orchestration and planning quality.
 
 - MUST delegate bulk Grep/Glob operations to `code-explorer` (use directly only for single targeted lookups)
-- For bulk reading (>3 files): delegate to subagents. Quick lookups are allowed.
+- MUST delegate bulk reading (>3 files) to subagents (quick lookups of 1-3 files are allowed)
 - NEVER implement code yourself — this is a planning command
 - NEVER skip to implementation — output is a plan, not code
 - NEVER include code snippets in specification documents — specs define WHAT, not HOW

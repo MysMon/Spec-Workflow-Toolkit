@@ -10,7 +10,7 @@
 
 This template defines WHAT to build, not HOW to code it.
 
-✅ INCLUDE:
+INCLUDE:
 - User Stories (As a [user], I want [goal] so that [benefit])
 - Acceptance Criteria in Gherkin format (Given-When-Then)
 - Non-Functional Requirements with measurable targets
@@ -18,14 +18,14 @@ This template defines WHAT to build, not HOW to code it.
 - Out of Scope (explicit exclusions)
 - Success metrics
 
-❌ DO NOT INCLUDE:
+DO NOT INCLUDE:
 - Code snippets or implementation examples
 - Pseudocode or algorithm details
 - Function signatures or class definitions
 - Specific tool/library version numbers
 - Step-by-step implementation instructions
 
-📎 CODE REFERENCES:
+CODE REFERENCES:
 - Use file:line pointers: "Follow pattern at `src/services/auth.ts:23`"
 - Reference existing implementations: "See error handling in `utils/errors.ts`"
 - NEVER copy code into this document
