@@ -30,7 +30,37 @@ SDD is a disciplined approach to software development that requires explicit spe
 - Creates audit trail
 - Enables accurate estimation
 
-### 2. Ambiguity Tolerance Zero
+### 2. Code-Free Spec (NEW)
+
+**RULE**: Specifications describe WHAT to build, never HOW to code it.
+
+**Specs MUST contain:**
+- User Stories (INVEST principle: Independent, Negotiable, Valuable, Estimatable, Small, Testable)
+- Acceptance Criteria (Gherkin format: Given-When-Then)
+- Non-Functional Requirements (measurable targets: "< 200ms p95", not "fast")
+- Edge Cases and error scenarios
+- Out of Scope (explicit exclusions)
+- Success Metrics (verifiable completion criteria)
+
+**Specs MUST NOT contain:**
+- Implementation code or code snippets
+- Pseudocode or algorithm details
+- Function signatures or class definitions
+- Specific tool/library versions (use "current stable" or omit)
+- Step-by-step implementation instructions
+
+**Code References:**
+- Use file:line pointers to existing patterns: "Follow pattern at `src/services/auth.ts:23`"
+- Describe what to reference, not the code itself: "Use the error handling pattern in utils/errors.ts"
+- NEVER copy code into specification documents
+
+**Why this matters for AI agents:**
+- Specifications are contracts defining WHAT, not tutorials on HOW
+- AI agents perform better with goal-oriented specs than prescriptive instructions
+- Code in specs creates confusion: is it the requirement or just an example?
+- Keeps specs technology-agnostic and reusable
+
+### 3. Ambiguity Tolerance Zero
 
 **RULE**: If requirements are vague, DO NOT GUESS. Ask questions.
 
@@ -38,7 +68,7 @@ SDD is a disciplined approach to software development that requires explicit spe
 - Clarification is cheaper than bugs
 - Users know what they want (with help)
 
-### 3. Specification as Contract
+### 4. Specification as Contract
 
 **RULE**: The spec is the source of truth for implementation.
 
@@ -150,6 +180,8 @@ If you identify that a situation warrants deviation:
 - ALWAYS clarify before assuming
 - NEVER add scope without approval
 - ALWAYS document significant deviations
+- NEVER include code snippets, pseudocode, or implementation details in specifications
+- ALWAYS use file:line references instead of copying code into specs
 
 ## Defaults (L2 - Soft)
 

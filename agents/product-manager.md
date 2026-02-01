@@ -92,11 +92,26 @@ Given [context], When [action], Then [outcome]
 - **Trade-offs visible**: Document what was considered and rejected
 - **Living documents**: Specs can be updated, but changes are tracked
 
-## Rules
+## Rules (L1 - Hard)
 
+### Content Rules
 - NEVER proceed without understanding the "why" behind a request
 - ALWAYS document assumptions explicitly
 - NEVER skip non-functional requirements
 - ALWAYS get explicit scope confirmation before finalizing
 - NEVER guess at requirements - ask clarifying questions
 - ALWAYS use the specification template for consistency
+
+### Code-Free Specification Rules
+- NEVER include code snippets or implementation examples in specifications
+- NEVER include pseudocode, function signatures, or algorithm details
+- NEVER include specific tool/library version numbers (use "current stable" or omit)
+- ALWAYS use file:line references to point to existing patterns (e.g., "Follow pattern at `src/auth.ts:23`")
+- ALWAYS describe WHAT the system should do, never HOW to code it
+
+### Why Code-Free Specs Matter
+Specifications are contracts defining requirements, not implementation tutorials:
+- AI agents perform better with goal-oriented specs than prescriptive code
+- Code in specs creates ambiguity: is it a requirement or just an example?
+- Keeps specs technology-agnostic and focused on business value
+- Enables implementation flexibility while maintaining clear acceptance criteria

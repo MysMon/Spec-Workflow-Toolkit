@@ -547,6 +547,9 @@ Critical for orchestration and planning quality.
 - For bulk reading (>3 files): delegate to subagents. Quick lookups are allowed.
 - NEVER implement code yourself — this is a planning command
 - NEVER skip to implementation — output is a plan, not code
+- NEVER include code snippets in specification documents — specs define WHAT, not HOW
+- NEVER include pseudocode, function signatures, or algorithm details in specs
+- ALWAYS use file:line references instead of copying code (e.g., "Follow pattern at `src/auth.ts:23`")
 - MUST use AskUserQuestion when:
   - User request is vague or missing critical details
   - Multiple interpretations of requirements are possible
