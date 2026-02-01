@@ -293,9 +293,9 @@ Options:
 
 | # | File | Comment | Action | Status |
 |---|------|---------|--------|--------|
-| 1 | `path/file.ts:45` | [summary] | Implemented | ✅ |
-| 2 | `path/other.ts:12` | [summary] | Discussed | 💬 |
-| 3 | `path/test.ts:78` | [summary] | Declined | ❌ |
+| 1 | `path/file.ts:45` | [summary] | Implemented | Done |
+| 2 | `path/other.ts:12` | [summary] | Discussed | Noted |
+| 3 | `path/test.ts:78` | [summary] | Declined | Rejected |
 
 ### Changes Made
 

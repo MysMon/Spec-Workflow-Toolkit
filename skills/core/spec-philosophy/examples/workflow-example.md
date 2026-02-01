@@ -110,10 +110,10 @@ Tests created:
 Claude: Delegating to security-auditor for review...
 
 Security audit:
-- ✅ Tokens in httpOnly cookies
-- ✅ CSRF protection
-- ✅ State parameter prevents CSRF on OAuth
-- ⚠️ Recommendation: Add rate limiting to auth endpoints
+- Tokens in httpOnly cookies
+- CSRF protection
+- State parameter prevents CSRF on OAuth
+- Recommendation: Add rate limiting to auth endpoints
 ```
 
 ---
@@ -186,7 +186,7 @@ Ready to proceed with this spec?
 
 ## Anti-Pattern Examples
 
-### ❌ Bad: Assuming Requirements
+### Bad: Assuming Requirements
 
 ```
 User: Add search functionality
@@ -197,7 +197,7 @@ autocomplete suggestions, and search analytics...
 [WRONG: Never assumed all these requirements]
 ```
 
-### ✅ Good: Clarifying Requirements
+### Good: Clarifying Requirements
 
 ```
 User: Add search functionality
@@ -221,7 +221,7 @@ Claude: I'll help add search. Let me understand what you need:
    - > 100K items (need dedicated search service)
 ```
 
-### ❌ Bad: Gold-Plating
+### Bad: Gold-Plating
 
 ```
 # Implementing FR-001: Display user name
@@ -236,7 +236,7 @@ Claude: I'll also add:
 [WRONG: Only FR-001 was requested]
 ```
 
-### ✅ Good: Scope Discipline
+### Good: Scope Discipline
 
 ```
 # Implementing FR-001: Display user name

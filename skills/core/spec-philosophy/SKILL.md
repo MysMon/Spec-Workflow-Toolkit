@@ -148,12 +148,12 @@ From Claude Code Best Practices:
 
 | Scenario | Full Plan→Implement | Abbreviated |
 |----------|--------------|-------------|
-| New feature | ✅ | |
-| Complex change | ✅ | |
-| Architecture decision | ✅ | |
-| Bug fix | | ✅ `/debug` |
-| Typo/config change | | ✅ `/quick-impl` |
-| Clear, scoped task | | ✅ `/quick-impl` |
+| New feature | Yes | |
+| Complex change | Yes | |
+| Architecture decision | Yes | |
+| Bug fix | | Yes `/debug` |
+| Typo/config change | | Yes `/quick-impl` |
+| Clear, scoped task | | Yes `/quick-impl` |
 
 ### Flexibility Clause
 

@@ -227,10 +227,10 @@ Resume agent-abc123 in foreground to retry failed operations.
 
 | Feature | Foreground | Background |
 |---------|------------|------------|
-| MCP tools | ✅ Available | ❌ Not available |
-| Permission prompts | ✅ Interactive | ❌ Auto-denied |
-| AskUserQuestion | ✅ Available | ❌ Fails silently |
-| Resume | - | ✅ Can resume in foreground |
+| MCP tools | Available | Not available |
+| Permission prompts | Interactive | Auto-denied |
+| AskUserQuestion | Available | Fails silently |
+| Resume | - | Can resume in foreground |
 
 **Critical Implications for Orchestrators:**
 

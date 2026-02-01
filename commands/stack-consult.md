@@ -291,9 +291,9 @@ For each candidate, assess:
 ```markdown
 | Aspect | [Option A] | [Option B] | [Option C] |
 |--------|------------|------------|------------|
-| Requirement 1 | ✅ | ⚠️ | ❌ |
-| Requirement 2 | ⚠️ | ✅ | ✅ |
-| Team skill match | ✅ | ❌ | ⚠️ |
+| Requirement 1 | Strong | Partial | Weak |
+| Requirement 2 | Partial | Strong | Strong |
+| Team skill match | Strong | Weak | Partial |
 | Learning curve | Low | High | Medium |
 ```
 

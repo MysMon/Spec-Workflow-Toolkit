@@ -286,9 +286,9 @@ For the top candidates, create explicit trade-off comparison:
 
 | Aspect | [Option A] | [Option B] | [Option C] |
 |--------|------------|------------|------------|
-| Your requirement 1 | ✅ Strong | ⚠️ Partial | ❌ Weak |
-| Your requirement 2 | ⚠️ Partial | ✅ Strong | ✅ Strong |
-| Team skill match | ✅ | ❌ | ⚠️ |
+| Your requirement 1 | Strong | Partial | Weak |
+| Your requirement 2 | Partial | Strong | Strong |
+| Team skill match | Strong | Weak | Partial |
 | Learning curve | Low | High | Medium |
 | Community activity | High | Medium | Growing |
 ```
