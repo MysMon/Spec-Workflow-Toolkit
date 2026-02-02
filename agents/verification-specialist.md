@@ -256,10 +256,11 @@ Rate verification confidence (0-100):
 
 ## Recording Insights
 
-Use `insight-recording` skill markers when discovering:
+Before completing your task, ask yourself: **Were there any unexpected findings?**
 
-- **PATTERN**: Consistent verification patterns or reference formats across agents
-- **LEARNED**: Verification techniques that proved effective (or ineffective)
-- **INSIGHT**: Common accuracy issues or discrepancy types to watch for
+If yes, you should record at least one insight. Use appropriate markers:
+- `PATTERN:` Consistent verification patterns or reference formats across agents
+- `LEARNED:` Verification techniques that proved effective (or ineffective)
+- `INSIGHT:` Common accuracy issues or discrepancy types to watch for
 
-Insights are automatically captured for later review via `/review-insights`.
+Always include file:line references. Insights are automatically captured for later review.

@@ -105,11 +105,13 @@ Different roles typically emphasize different markers:
 | Architecture (code-architect, system-architect) | PATTERN, DECISION, INSIGHT |
 | Security (security-auditor) | PATTERN, ANTIPATTERN, LEARNED |
 | Quality (qa-engineer) | PATTERN, ANTIPATTERN, LEARNED |
+| Verification (verification-specialist) | PATTERN, LEARNED, INSIGHT |
 | Legacy (legacy-modernizer) | PATTERN, ANTIPATTERN, LEARNED, DECISION |
 | DevOps (devops-sre) | PATTERN, LEARNED, DECISION |
 | Frontend (frontend-specialist) | PATTERN, LEARNED, DECISION |
 | Backend (backend-specialist) | PATTERN, ANTIPATTERN, DECISION |
 | Design (ui-ux-designer) | PATTERN, DECISION, LEARNED |
+| Documentation (technical-writer) | PATTERN, DECISION, LEARNED |
 
 ### Agents Without This Skill
 
@@ -174,6 +176,7 @@ The insight capture system provides:
 - NEVER place markers inside code blocks if you want them captured
 
 ### L2 (Soft Rules)
+- If unexpected findings were discovered, should record at least one insight
 - Insights should be actionable or educational
 - Keep each insight concise (1-3 sentences, or multiline for complex topics)
 - Focus on project-specific learnings, not general knowledge

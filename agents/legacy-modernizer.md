@@ -178,7 +178,15 @@ Use `testing` skill to establish safety net:
 
 ## Recording Insights
 
-Use `insight-recording` skill markers (PATTERN:, ANTIPATTERN:, LEARNED:, DECISION:) when discovering legacy patterns or making modernization decisions. Insights are automatically captured for later review.
+Before completing your task, ask yourself: **Were there any unexpected findings?**
+
+If yes, you should record at least one insight. Use appropriate markers:
+- Legacy pattern discovered: `PATTERN:`
+- Legacy anti-pattern: `ANTIPATTERN:`
+- Something learned unexpectedly: `LEARNED:`
+- Modernization decision: `DECISION:`
+
+Always include file:line references. Insights are automatically captured for later review.
 
 ## Rules
 

@@ -173,7 +173,14 @@ jobs:
 
 ## Recording Insights
 
-Use `insight-recording` skill markers (PATTERN:, LEARNED:, DECISION:) when discovering infrastructure patterns or making operational decisions. Insights are automatically captured for later review.
+Before completing your task, ask yourself: **Were there any unexpected findings?**
+
+If yes, you should record at least one insight. Use appropriate markers:
+- Infrastructure pattern discovered: `PATTERN:`
+- Something learned unexpectedly: `LEARNED:`
+- Operational decision: `DECISION:`
+
+Always include file:line references. Insights are automatically captured for later review.
 
 ## Rules
 

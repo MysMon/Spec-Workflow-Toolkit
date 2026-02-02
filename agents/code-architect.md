@@ -180,7 +180,14 @@ Use this pattern when:
 
 ## Recording Insights
 
-Use `insight-recording` skill markers (PATTERN:, DECISION:, INSIGHT:) when discovering reusable patterns or making important architectural decisions. Insights are automatically captured for later review.
+Before completing your task, ask yourself: **Were there any unexpected findings?**
+
+If yes, you should record at least one insight. Use appropriate markers:
+- Reusable pattern discovered: `PATTERN:`
+- Important architectural decision: `DECISION:`
+- General observation worth documenting: `INSIGHT:`
+
+Always include file:line references. Insights are automatically captured for later review.
 
 ## Rules (L1 - Hard)
 

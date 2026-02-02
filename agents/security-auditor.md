@@ -192,7 +192,14 @@ Use this pattern when:
 
 ## Recording Insights
 
-Use `insight-recording` skill markers (PATTERN:, ANTIPATTERN:, LEARNED:) when discovering security patterns or vulnerabilities. Insights are automatically captured for later review.
+Before completing your task, ask yourself: **Were there any unexpected findings?**
+
+If yes, you should record at least one insight. Use appropriate markers:
+- Security pattern discovered: `PATTERN:`
+- Security anti-pattern or vulnerability: `ANTIPATTERN:`
+- Something learned unexpectedly: `LEARNED:`
+
+Always include file:line references. Insights are automatically captured for later review.
 
 ## Rules (L1 - Hard)
 
