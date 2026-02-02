@@ -180,7 +180,7 @@ Use `testing` skill to establish safety net:
 
 Before completing your task, ask yourself: **Were there any unexpected findings?**
 
-If yes, you MUST record at least one insight (L1 rule). Use appropriate markers:
+If yes, you should record at least one insight. Use appropriate markers:
 - Legacy pattern discovered: `PATTERN:`
 - Legacy anti-pattern: `ANTIPATTERN:`
 - Something learned unexpectedly: `LEARNED:`

@@ -239,7 +239,7 @@ sequenceDiagram
 
 Before completing your task, ask yourself: **Were there any unexpected findings?**
 
-If yes, you MUST record at least one insight (L1 rule). Use appropriate markers:
+If yes, you should record at least one insight. Use appropriate markers:
 - `PATTERN:` Documentation conventions, API doc structures, or diagram choices that work well
 - `DECISION:` Documentation strategy choices (e.g., inline vs. separate reference docs)
 - `LEARNED:` Effective approaches for specific documentation types or audiences

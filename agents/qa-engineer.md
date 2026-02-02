@@ -270,7 +270,7 @@ Use this pattern when:
 
 Before completing your task, ask yourself: **Were there any unexpected findings?**
 
-If yes, you MUST record at least one insight (L1 rule). Use appropriate markers:
+If yes, you should record at least one insight. Use appropriate markers:
 - Testing pattern discovered: `PATTERN:`
 - Testing anti-pattern or quality issue: `ANTIPATTERN:`
 - Something learned unexpectedly: `LEARNED:`
