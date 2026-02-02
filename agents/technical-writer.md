@@ -237,10 +237,11 @@ sequenceDiagram
 
 ## Recording Insights
 
-Use `insight-recording` skill markers when discovering:
+Before completing your task, ask yourself: **Were there any unexpected findings?**
 
-- **PATTERN**: Documentation conventions, API doc structures, or diagram choices that work well
-- **DECISION**: Documentation strategy choices (e.g., inline vs. separate reference docs)
-- **LEARNED**: Effective approaches for specific documentation types or audiences
+If yes, you MUST record at least one insight (L1 rule). Use appropriate markers:
+- `PATTERN:` Documentation conventions, API doc structures, or diagram choices that work well
+- `DECISION:` Documentation strategy choices (e.g., inline vs. separate reference docs)
+- `LEARNED:` Effective approaches for specific documentation types or audiences
 
-Insights are automatically captured for later review via `/review-insights`.
+Always include file:line references. Insights are automatically captured for later review.

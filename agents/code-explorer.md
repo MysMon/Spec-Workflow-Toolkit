@@ -229,7 +229,14 @@ Your exploration must include:
 
 ## Recording Insights
 
-Use `insight-recording` skill markers (PATTERN:, LEARNED:, INSIGHT:) when discovering patterns or learning something unexpected about the codebase. Insights are automatically captured for later review.
+Before completing your task, ask yourself: **Were there any unexpected findings?**
+
+If yes, you MUST record at least one insight (L1 rule). Use appropriate markers:
+- Reusable pattern discovered: `PATTERN:`
+- Something learned unexpectedly: `LEARNED:`
+- General observation worth documenting: `INSIGHT:`
+
+Always include file:line references. Insights are automatically captured for later review.
 
 ## Rules (L1 - Hard)
 

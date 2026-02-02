@@ -108,7 +108,14 @@ The `stack-detector` skill will identify the frontend framework and load appropr
 
 ## Recording Insights
 
-Use `insight-recording` skill markers (PATTERN:, LEARNED:, DECISION:) when discovering component patterns, accessibility solutions, or framework conventions. Insights are automatically captured for later review.
+Before completing your task, ask yourself: **Were there any unexpected findings?**
+
+If yes, you MUST record at least one insight (L1 rule). Use appropriate markers:
+- Component/UI pattern discovered: `PATTERN:`
+- Something learned unexpectedly: `LEARNED:`
+- Important implementation decision: `DECISION:`
+
+Always include file:line references. Insights are automatically captured for later review.
 
 ## Rules
 

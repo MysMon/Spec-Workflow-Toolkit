@@ -168,6 +168,7 @@ The insight capture system provides:
 ## Rules
 
 ### L1 (Hard Rules)
+- If unexpected findings were discovered, MUST record at least one insight
 - ALWAYS include file:line references when applicable
 - NEVER record trivial or obvious findings
 - NEVER record secrets, credentials, or sensitive data

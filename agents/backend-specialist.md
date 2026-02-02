@@ -168,7 +168,14 @@ Use this pattern when:
 
 ## Recording Insights
 
-Use `insight-recording` skill markers (PATTERN:, ANTIPATTERN:, DECISION:) when discovering service patterns, API conventions, or performance optimizations. Insights are automatically captured for later review.
+Before completing your task, ask yourself: **Were there any unexpected findings?**
+
+If yes, you MUST record at least one insight (L1 rule). Use appropriate markers:
+- Service/API pattern discovered: `PATTERN:`
+- Backend anti-pattern: `ANTIPATTERN:`
+- Important implementation decision: `DECISION:`
+
+Always include file:line references. Insights are automatically captured for later review.
 
 ## Rules
 
