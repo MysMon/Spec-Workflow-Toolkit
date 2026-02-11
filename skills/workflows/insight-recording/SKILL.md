@@ -1,60 +1,60 @@
 ---
 name: insight-recording
 description: |
-  Standard protocol for recording development insights that can be captured and reviewed later.
+  後からキャプチャ・レビュー可能な開発インサイトを記録するための標準プロトコル。
 
-  Use when:
-  - Discovering reusable patterns or anti-patterns
-  - Learning something unexpected about the codebase
-  - Making important decisions with clear rationale
-  - Finding insights worth documenting for future reference
+  以下の場合に使用:
+  - 再利用可能なパターンやアンチパターンの発見時
+  - コードベースについて予期しないことを学んだ時
+  - 明確な根拠に基づく重要な判断を下した時
+  - 将来の参照のために記録する価値のあるインサイトを見つけた時
 
-  This skill defines the insight markers that the insight_capture hook automatically extracts.
+  このスキルは insight_capture フックが自動的に抽出するインサイトマーカーを定義する。
 allowed-tools: Read
 model: sonnet
 user-invocable: false
 ---
 
-# Insight Recording Protocol
+# インサイト記録プロトコル
 
-A standardized protocol for recording development insights during autonomous work. Marked insights are automatically captured by the `insight_capture.sh` hook (via SubagentStop) and can be reviewed via `/review-insights`.
+自律的な作業中に開発インサイトを記録するための標準化プロトコル。マークされたインサイトは `insight_capture.sh` フック（SubagentStop 経由）により自動的にキャプチャされ、`/review-insights` でレビューできる。
 
-## How It Works
+## 仕組み
 
 ```
-Subagent Output       transcript.jsonl      insight_capture.sh      /review-insights
+サブエージェント出力      transcript.jsonl      insight_capture.sh      /review-insights
       │                     │                       │                       │
       ├─ PATTERN: ... ─────►│                       │                       │
       ├─ LEARNED: ... ─────►├──────────────────────►├─► pending/INS-*.json ►│
-      └─ Other text         │                       │                       ├─► CLAUDE.md
-                            │  (code blocks         │  (atomic writes,      ├─► .claude/rules/
-                            │   filtered out)       │   deduplication)      └─► Workspace only
+      └─ その他のテキスト     │                       │                       ├─► CLAUDE.md
+                            │  (コードブロックは      │  (アトミック書き込み、  ├─► .claude/rules/
+                            │   フィルタ除外)         │   重複排除)            └─► ワークスペースのみ
 ```
 
-The hook reads from the transcript JSONL file (via `transcript_path` in SubagentStop metadata), extracts assistant messages, filters code blocks, and searches for insight markers.
+フックはトランスクリプト JSONL ファイル（SubagentStop メタデータの `transcript_path` 経由）から読み取り、アシスタントメッセージを抽出し、コードブロックをフィルタリングし、インサイトマーカーを検索する。
 
-## Insight Markers
+## インサイトマーカー
 
-Output insights with these markers (case-insensitive). Only marked content is captured.
+以下のマーカーでインサイトを出力する（大文字小文字を区別しない）。マークされたコンテンツのみキャプチャされる。
 
-| Marker | Use When | Example |
-|--------|----------|---------|
-| `PATTERN:` | Discovered a reusable pattern | `PATTERN: Repository pattern with Unit of Work at src/repositories/base.ts:15` |
-| `ANTIPATTERN:` | Found an approach to avoid | `ANTIPATTERN: Global state in config.js makes testing difficult` |
-| `LEARNED:` | Learned something unexpected | `LEARNED: The legacy auth module is deprecated but still used by admin` |
-| `DECISION:` | Made an important decision with rationale | `DECISION: Chose event-driven over direct calls due to async patterns` |
-| `INSIGHT:` | General observation worth documenting | `INSIGHT: Error handling uses custom AppError class consistently` |
+| マーカー | 使用場面 | 例 |
+|---------|---------|-----|
+| `PATTERN:` | 再利用可能なパターンを発見した時 | `PATTERN: Repository pattern with Unit of Work at src/repositories/base.ts:15` |
+| `ANTIPATTERN:` | 避けるべきアプローチを発見した時 | `ANTIPATTERN: Global state in config.js makes testing difficult` |
+| `LEARNED:` | 予期しないことを学んだ時 | `LEARNED: The legacy auth module is deprecated but still used by admin` |
+| `DECISION:` | 根拠を伴う重要な判断をした時 | `DECISION: Chose event-driven over direct calls due to async patterns` |
+| `INSIGHT:` | 記録する価値のある一般的な観察 | `INSIGHT: Error handling uses custom AppError class consistently` |
 
-## Multiline Support
+## 複数行サポート
 
-Insights can span multiple lines. Content is captured until the next marker or end of text.
+インサイトは複数行にわたることができる。コンテンツは次のマーカーまたはテキストの終わりまでキャプチャされる。
 
-**Single line:**
+**1 行:**
 ```
 PATTERN: Repository pattern at src/repositories/base.ts:15
 ```
 
-**Multiline (recommended for complex insights):**
+**複数行（複雑なインサイトに推奨）:**
 ```
 PATTERN: This codebase uses Repository pattern with Unit of Work for all
 database operations. Each repository extends BaseRepository which handles
@@ -64,64 +64,64 @@ LEARNED: The user.status field uses magic numbers (1=active, 2=inactive) -
 no documentation exists, discovered through characterization testing
 ```
 
-**Important:** Multiline insights end at the next marker. Use blank lines for readability but they don't affect capture.
+**重要:** 複数行インサイトは次のマーカーで終了する。空行は可読性のために使用できるが、キャプチャには影響しない。
 
-## Constraints
+## 制約
 
-| Constraint | Value | Rationale |
-|------------|-------|-----------|
-| **Minimum length** | 11 characters | Filters noise and placeholder markers |
-| **Maximum length** | 10,000 characters | Prevents storage bloat; truncated with `... [truncated]` |
-| **Max per capture** | 100 insights | Rate limiting to prevent DoS |
-| **Code block filtering** | Enabled | Markers inside \`\`\`...\`\`\` are ignored |
-| **Inline code filtering** | Enabled | Markers inside \`...\` are ignored |
-| **Deduplication** | By content hash | Identical insights captured only once |
-| **Atomic writes** | temp + fsync + rename | No partial writes or corruption |
+| 制約 | 値 | 根拠 |
+|------|-----|------|
+| **最小長** | 11 文字 | ノイズやプレースホルダーマーカーをフィルタ |
+| **最大長** | 10,000 文字 | ストレージの肥大化を防止。`... [truncated]` で切り詰め |
+| **キャプチャあたり最大数** | 100 インサイト | DoS 防止のレート制限 |
+| **コードブロックフィルタリング** | 有効 | \`\`\`...\`\`\` 内のマーカーは無視 |
+| **インラインコードフィルタリング** | 有効 | \`...\` 内のマーカーは無視 |
+| **重複排除** | コンテンツハッシュによる | 同一インサイトは一度だけキャプチャ |
+| **アトミック書き込み** | temp + fsync + rename | 部分的な書き込みや破損を防止 |
 
-## Code Block Handling
+## コードブロックの扱い
 
-**Markers inside code blocks are ignored** to prevent false matches:
+**コードブロック内のマーカーは無視される**（誤検出防止のため）:
 
 ```markdown
-Here's an example of documenting patterns:
+パターンの文書化の例:
 ```python
-# PATTERN: This is NOT captured (inside code block)
+# PATTERN: これはキャプチャされない（コードブロック内）
 def example():
     pass
 ```
 
-PATTERN: This IS captured (outside code block)
+PATTERN: これはキャプチャされる（コードブロック外）
 ```
 
-This allows you to document patterns without accidentally capturing examples.
+これにより、例を文書化する際に誤ってキャプチャすることを防げる。
 
-## Marker Selection by Role
+## ロール別マーカー選択
 
-Different roles typically emphasize different markers:
+異なるロールは通常、異なるマーカーを重視する:
 
-| Role | Primary Markers |
-|------|-----------------|
-| Exploration (code-explorer) | PATTERN, LEARNED, INSIGHT |
-| Architecture (code-architect, system-architect) | PATTERN, DECISION, INSIGHT |
-| Security (security-auditor) | PATTERN, ANTIPATTERN, LEARNED |
-| Quality (qa-engineer) | PATTERN, ANTIPATTERN, LEARNED |
-| Verification (verification-specialist) | PATTERN, LEARNED, INSIGHT |
-| Legacy (legacy-modernizer) | PATTERN, ANTIPATTERN, LEARNED, DECISION |
-| DevOps (devops-sre) | PATTERN, LEARNED, DECISION |
-| Frontend (frontend-specialist) | PATTERN, LEARNED, DECISION |
-| Backend (backend-specialist) | PATTERN, ANTIPATTERN, DECISION |
-| Design (ui-ux-designer) | PATTERN, DECISION, LEARNED |
-| Documentation (technical-writer) | PATTERN, DECISION, LEARNED |
+| ロール | 主要マーカー |
+|--------|-----------|
+| 探索（code-explorer） | PATTERN, LEARNED, INSIGHT |
+| アーキテクチャ（code-architect, system-architect） | PATTERN, DECISION, INSIGHT |
+| セキュリティ（security-auditor） | PATTERN, ANTIPATTERN, LEARNED |
+| 品質（qa-engineer） | PATTERN, ANTIPATTERN, LEARNED |
+| 検証（verification-specialist） | PATTERN, LEARNED, INSIGHT |
+| レガシー（legacy-modernizer） | PATTERN, ANTIPATTERN, LEARNED, DECISION |
+| DevOps（devops-sre） | PATTERN, LEARNED, DECISION |
+| フロントエンド（frontend-specialist） | PATTERN, LEARNED, DECISION |
+| バックエンド（backend-specialist） | PATTERN, ANTIPATTERN, DECISION |
+| デザイン（ui-ux-designer） | PATTERN, DECISION, LEARNED |
+| ドキュメント（technical-writer） | PATTERN, DECISION, LEARNED |
 
-### Agents Without This Skill
+### このスキルを持たないエージェント
 
-The following agents do NOT have insight-recording:
+以下のエージェントは insight-recording を持たない:
 
-| Agent | Rationale |
-|-------|-----------|
-| `product-manager` | Focuses on user-facing requirements, not code-level patterns. Decisions are captured in PRDs/specs. |
+| エージェント | 根拠 |
+|------------|------|
+| `product-manager` | コードレベルのパターンではなく、ユーザー向け要件に焦点。判断は PRD/仕様書にキャプチャされる。 |
 
-## Output Format Example
+## 出力形式の例
 
 ```markdown
 PATTERN: This codebase uses Repository pattern with Unit of Work for all
@@ -134,26 +134,26 @@ DECISION: Chose Strangler Fig pattern for migration due to existing
 /api/v1/ that can coexist with new /api/v2/ endpoints
 ```
 
-## Observability
+## オブザーバビリティ
 
-The insight capture system provides:
+インサイトキャプチャシステムが提供するもの:
 
-- **Statistics**: Use `get_workspace_stats` function to count insights by status
-- **Folder structure**: Insights organized by status in separate directories
-- **Archive**: Processed insights can be moved to `archive/` directory
+- **統計**: `get_workspace_stats` 関数でステータス別のインサイト数をカウント
+- **フォルダ構造**: インサイトは別のディレクトリにステータス別で整理
+- **アーカイブ**: 処理済みインサイトは `archive/` ディレクトリに移動可能
 
-**Directory structure:**
+**ディレクトリ構造:**
 ```
 .claude/workspaces/{id}/insights/
-├── pending/       # Awaiting review
+├── pending/       # レビュー待ち
 │   ├── INS-20250121143000-a1b2c3d4.json
 │   └── INS-20250121143500-e5f6g7h8.json
-├── applied/       # Applied to CLAUDE.md or rules
-├── rejected/      # Rejected by user
-└── archive/       # Old insights for reference
+├── applied/       # CLAUDE.md またはルールに適用済み
+├── rejected/      # ユーザーが却下
+└── archive/       # 参照用の古いインサイト
 ```
 
-**Individual insight file format:**
+**個別インサイトファイル形式:**
 ```json
 {
   "id": "INS-20250121143000-a1b2c3d4",
@@ -167,23 +167,24 @@ The insight capture system provides:
 }
 ```
 
-## Rules
+## Rules (L1 - Hard)
 
-### L1 (Hard Rules)
-- ALWAYS include file:line references when applicable
-- NEVER record trivial or obvious findings
-- NEVER record secrets, credentials, or sensitive data
-- NEVER place markers inside code blocks if you want them captured
+- ALWAYS: 該当する場合は file:line 参照を含める
+- NEVER: 些細なまたは明白な発見を記録しない
+- NEVER: シークレット、認証情報、または機密データを記録しない
+- NEVER: キャプチャしたいマーカーをコードブロック内に置かない
 
-### L2 (Soft Rules)
-- If unexpected findings were discovered, should record at least one insight
-- Insights should be actionable or educational
-- Keep each insight concise (1-3 sentences, or multiline for complex topics)
-- Focus on project-specific learnings, not general knowledge
-- Place markers at the start of a line (after optional whitespace)
+## Defaults (L2 - Soft)
 
-### L3 (Guidelines)
-- Include context about why the insight matters
-- Reference specific code locations for verification
-- Consider if the insight would help future developers
-- Use the most specific marker category (PATTERN over INSIGHT when applicable)
+- 予期しない発見があった場合、少なくとも 1 つのインサイトを記録すべき
+- インサイトはアクション可能または教育的であるべき
+- 各インサイトは簡潔に（1-3 文、または複雑なトピックの場合は複数行）
+- プロジェクト固有の学びに焦点を当て、一般的な知識ではなく
+- マーカーは行の先頭に置く（オプションの空白の後）
+
+## Guidelines (L3)
+
+- consider: インサイトが重要な理由のコンテキストを含めることを検討
+- recommend: 検証用に具体的なコード位置を参照
+- consider: そのインサイトが将来の開発者に役立つかを検討
+- prefer: 最も具体的なマーカーカテゴリを使用（該当する場合は INSIGHT より PATTERN）

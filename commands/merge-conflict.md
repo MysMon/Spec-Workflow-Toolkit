@@ -1,10 +1,10 @@
 ---
-description: "Resolve git merge conflicts systematically - analyze both versions, choose strategy, and verify resolution"
-argument-hint: "[file path or --all]"
+description: "git マージコンフリクトを体系的に解決する - 両バージョンを分析し、戦略を選択し、解決を検証する"
+argument-hint: "[ファイルパス or --all]"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
 ---
 
-# /merge-conflict - Systematic Merge Conflict Resolution
+# /merge-conflict - 体系的なマージコンフリクト解決
 
 ## Language Mode
 
@@ -12,374 +12,374 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion, Task, TodoW
 
 ---
 
-A structured workflow to analyze, resolve, and verify git merge conflicts using subagent delegation.
+git のマージコンフリクトを分析・解決・検証するための構造化ワークフロー。サブエージェント委任を活用する。
 
-## Design Principles
+## 設計原則
 
-1. **Understand before resolving**: Analyze both versions before making decisions
-2. **Preserve intent**: Maintain the purpose of changes from both branches
-3. **Verify resolution**: Always test after resolving conflicts
-4. **Document decisions**: Record why specific resolutions were chosen
+1. **解決前に理解する**: 判断を下す前に両バージョンを分析する
+2. **意図を保持する**: 両ブランチの変更目的を維持する
+3. **解決を検証する**: コンフリクト解決後は必ずテストを実行する
+4. **判断を記録する**: 特定の解決方法を選んだ理由を記録する
 
 ---
 
-## When to Use
+## 使用タイミング
 
-- Git merge resulted in conflicts
-- Git rebase encountered conflicts
-- Cherry-pick failed due to conflicts
-- Need systematic approach to complex conflicts
+- git merge でコンフリクトが発生した場合
+- git rebase でコンフリクトが発生した場合
+- cherry-pick がコンフリクトにより失敗した場合
+- 複雑なコンフリクトに体系的なアプローチが必要な場合
 
-## Input Formats
+## 入力形式
 
 ```bash
-# Resolve conflicts in specific file
+# 特定のファイルのコンフリクトを解決
 /merge-conflict src/components/Auth.tsx
 
-# Resolve all current conflicts
+# 現在のすべてのコンフリクトを解決
 /merge-conflict --all
 
-# Interactive mode (list and choose)
+# インタラクティブモード（一覧から選択）
 /merge-conflict
 ```
 
 ---
 
-## Execution Instructions
+## 実行手順
 
-### Phase 1: Conflict Detection
+### フェーズ 1: コンフリクト検出
 
-**Goal:** Identify all files with conflicts and their scope.
+**目的:** コンフリクトのあるすべてのファイルとその範囲を特定する。
 
-**CRITICAL: Delegate conflict detection to code-explorer agent (do NOT run git analysis commands directly):**
+**重要: コンフリクト検出は code-explorer エージェントに委任する（git 分析コマンドを直接実行しないこと）:**
 
 ```
-Launch code-explorer agent:
-Task: Detect all git merge conflicts
-Run:
-- git diff --name-only --diff-filter=U (list conflicted files)
-- git status --porcelain (get conflict summary)
-Extract:
-- List of conflicted file paths
-- Conflict status for each file (UU, AA, DD)
-- Total conflict count
+code-explorer エージェントを起動:
+タスク: すべての git マージコンフリクトを検出
+実行:
+- git diff --name-only --diff-filter=U（コンフリクトファイル一覧）
+- git status --porcelain（コンフリクト概要の取得）
+抽出:
+- コンフリクトのあるファイルパス一覧
+- 各ファイルのコンフリクトステータス（UU, AA, DD）
+- コンフリクト総数
 Thoroughness: quick
-Output: Structured list of [file_path, conflict_status]
+出力: [file_path, conflict_status] の構造化リスト
 ```
 
-Use the agent's output for conflict information. Do NOT run git analysis commands (diff, status, log, show) directly in the parent context during detection and analysis phases.
+エージェントの出力をコンフリクト情報として使用する。検出・分析フェーズでは、親コンテキストで git 分析コマンド（diff, status, log, show）を直接実行しないこと。
 
-**If agent reports no conflicts:**
-- Inform user no conflicts exist
-- Suggest checking `git status` for current state
+**エージェントがコンフリクトなしと報告した場合:**
+- コンフリクトが存在しないことをユーザーに通知する
+- 現在の状態を確認するために `git status` の実行を提案する
 
-**Create TodoWrite list** using the agent's output (each conflicted file as one item).
+**TodoWrite リストを作成する**（エージェントの出力を使用し、各コンフリクトファイルを1項目とする）。
 
-### Phase 2: Conflict Analysis
+### フェーズ 2: コンフリクト分析
 
-**Goal:** Understand the changes from both sides for each conflict.
+**目的:** 各コンフリクトについて、両サイドの変更内容を理解する。
 
-**For each conflicted file, launch parallel agents:**
+**各コンフリクトファイルに対して、並列エージェントを起動する:**
 
-**CRITICAL: Delegate ALL analysis including conflict marker extraction to code-explorer agents.**
+**重要: コンフリクトマーカーの抽出を含むすべての分析を code-explorer エージェントに委任すること。**
 
 ```
-Launch code-explorer agents in parallel:
+code-explorer エージェントを並列起動:
 
-Agent 1 (Ours): Analyze the "ours" (current branch) version
-- What changes were made?
-- What is the intent of these changes?
-- What dependencies exist?
+エージェント 1（Ours）: "ours"（現在のブランチ）バージョンを分析
+- どのような変更が行われたか？
+- これらの変更の意図は何か？
+- どのような依存関係があるか？
 
-Agent 2 (Theirs): Analyze the "theirs" (incoming branch) version
-- What changes were made?
-- What is the intent of these changes?
-- What dependencies exist?
+エージェント 2（Theirs）: "theirs"（取り込みブランチ）バージョンを分析
+- どのような変更が行われたか？
+- これらの変更の意図は何か？
+- どのような依存関係があるか？
 
-Agent 3 (Conflict Analysis): Extract and categorize conflicts
-- Find all conflict markers (<<<<<<< / ======= / >>>>>>>)
-- Report line numbers and surrounding context
-- Categorize each conflict (additive / modificative / deletive / structural)
+エージェント 3（コンフリクト分析）: コンフリクトの抽出と分類
+- すべてのコンフリクトマーカー（<<<<<<< / ======= / >>>>>>>）を検出
+- 行番号と周辺コンテキストを報告
+- 各コンフリクトを分類（追加型 / 修正型 / 削除型 / 構造型）
 
 Thoroughness: medium
 ```
 
-Use the agents' output for conflict information. Do NOT run grep directly in the parent context.
+エージェントの出力をコンフリクト情報として使用する。親コンテキストで grep を直接実行しないこと。
 
-**Error Handling for parallel agents:**
+**並列エージェントのエラーハンドリング:**
 
-| Scenario | Action |
-|----------|--------|
-| **All 3 succeed** | Proceed to Phase 3 with complete analysis |
-| **1 agent fails** | Retry failed agent once with reduced scope; proceed with partial analysis if retry fails |
-| **2 agents fail** | Warn user about incomplete analysis; offer to retry or proceed cautiously |
-| **All 3 fail** | Do NOT proceed; offer options to user |
+| シナリオ | 対応 |
+|----------|------|
+| **3つとも成功** | 完全な分析結果でフェーズ 3 に進む |
+| **1つ失敗** | 失敗したエージェントをスコープを縮小して1回リトライ。リトライも失敗した場合は部分的な分析で進行 |
+| **2つ失敗** | 不完全な分析であることをユーザーに警告。リトライまたは慎重に進行するか選択させる |
+| **3つとも失敗** | 進行しない。ユーザーに選択肢を提示する |
 
-**If 1-2 agents fail after retry:**
+**1〜2個のエージェントがリトライ後も失敗した場合:**
 ```
-Question: "Some analysis agents failed. I have partial information about this conflict."
-Header: "Partial Analysis"
+Question: "一部の分析エージェントが失敗しました。このコンフリクトについて部分的な情報のみ取得できています。"
+Header: "部分的な分析"
 Options:
-- "Proceed with available analysis (may need manual verification)"
-- "Retry all analysis agents"
-- "Show me the raw conflict markers instead"
+- "利用可能な分析で進行する（手動検証が必要な場合あり）"
+- "すべての分析エージェントをリトライする"
+- "代わりにコンフリクトマーカーをそのまま表示する"
 ```
 
-**If all 3 agents fail:**
+**3つすべてのエージェントが失敗した場合:**
 ```
-Question: "Conflict analysis failed completely. How would you like to proceed?"
-Header: "Analysis Failed"
+Question: "コンフリクト分析が完全に失敗しました。どのように進めますか？"
+Header: "分析失敗"
 Options:
-- "Retry conflict analysis"
-- "Show me the conflicted file directly (manual resolution)"
-- "Skip this file for now"
+- "コンフリクト分析をリトライする"
+- "コンフリクトファイルを直接表示する（手動解決）"
+- "このファイルを今はスキップする"
 ```
 
-If user chooses "Show me the conflicted file directly", read the file (≤200 lines) and present conflict markers.
+ユーザーが「コンフリクトファイルを直接表示する」を選択した場合、ファイルを読み取り（200行以下）、コンフリクトマーカーを表示する。
 
-**Categorize conflict type (using agent output):**
+**コンフリクトタイプの分類（エージェント出力を使用）:**
 
-| Type | Pattern | Resolution Approach |
-|------|---------|---------------------|
-| **Additive** | Both sides add different code | Usually keep both |
-| **Modificative** | Both modify same lines | Need semantic merge |
-| **Deletive** | One deletes, one modifies | Decide which intent prevails |
-| **Structural** | Refactoring conflicts | May need manual rewrite |
+| タイプ | パターン | 解決アプローチ |
+|--------|----------|----------------|
+| **追加型** | 両サイドが異なるコードを追加 | 通常は両方を保持 |
+| **修正型** | 両サイドが同じ行を修正 | 意味的なマージが必要 |
+| **削除型** | 一方が削除、他方が修正 | どちらの意図を優先するか判断 |
+| **構造型** | リファクタリングのコンフリクト | 手動での書き直しが必要な場合あり |
 
-### Phase 3: Resolution Strategy
+### フェーズ 3: 解決戦略
 
-**Goal:** Choose the best resolution approach for each conflict.
+**目的:** 各コンフリクトに最適な解決アプローチを選択する。
 
-**Present analysis to user:**
+**分析結果をユーザーに提示する:**
 
 ```markdown
-## Conflict: [filename]
+## コンフリクト: [ファイル名]
 
-### Ours (current branch)
-[Summary of changes and intent]
+### Ours（現在のブランチ）
+[変更内容と意図のサマリー]
 
-### Theirs (incoming branch)
-[Summary of changes and intent]
+### Theirs（取り込みブランチ）
+[変更内容と意図のサマリー]
 
-### Conflict Type: [type]
+### コンフリクトタイプ: [タイプ]
 
-### Recommended Resolution: [recommendation]
+### 推奨される解決方法: [推奨内容]
 ```
 
-**Ask user for resolution strategy:**
+**解決戦略をユーザーに確認する:**
 
 ```
-Question: "How should I resolve this conflict?"
-Header: "Strategy"
+Question: "このコンフリクトをどのように解決しますか？"
+Header: "戦略"
 Options:
-- "Keep ours (current branch)"
-- "Keep theirs (incoming branch)"
-- "Combine both changes" (Recommended for additive conflicts)
-- "Let me specify manually"
+- "ours（現在のブランチ）を保持"
+- "theirs（取り込みブランチ）を保持"
+- "両方の変更を統合"（追加型コンフリクトに推奨）
+- "手動で指定する"
 ```
 
-### Phase 4: Resolution Implementation
+### フェーズ 4: 解決の実装
 
-**Goal:** Apply the chosen resolution strategy.
+**目的:** 選択された解決戦略を適用する。
 
-**Note:** Simple git state commands (checkout --ours/--theirs, add) are allowed directly in the parent context during resolution. These are lightweight operations that don't consume context. The delegation requirement in Phases 1-2 applies only to analysis commands (diff, status, log).
+**注意:** 単純な git 状態コマンド（checkout --ours/--theirs, add）は、解決フェーズでは親コンテキストで直接実行してよい。これらは軽量な操作でありコンテキストを消費しない。フェーズ 1〜2 の委任要件は分析コマンド（diff, status, log）にのみ適用される。
 
-**For "Keep ours":**
+**「ours を保持」の場合:**
 ```bash
 git checkout --ours <file>
 git add <file>
 ```
 
-**For "Keep theirs":**
+**「theirs を保持」の場合:**
 ```bash
 git checkout --theirs <file>
 git add <file>
 ```
 
-**For "Combine both":**
+**「両方を統合」の場合:**
 
-**CRITICAL: code-architect is READ-ONLY (no Write/Edit tools). Delegate implementation to appropriate specialist.**
+**重要: code-architect は読み取り専用（Write/Edit ツールなし）。実装は適切なスペシャリストに委任すること。**
 
 ```
-DELEGATE to appropriate specialist agent (frontend-specialist or backend-specialist):
+適切なスペシャリストエージェント（frontend-specialist または backend-specialist）に委任:
 
-Task: Merge conflict resolution - combine both versions
-File: [conflicted file path]
+タスク: コンフリクト解決 - 両バージョンの統合
+ファイル: [コンフリクトファイルパス]
 
-Ours version:
-[code from ours]
+Ours バージョン:
+[ours のコード]
 
-Theirs version:
-[code from theirs]
+Theirs バージョン:
+[theirs のコード]
 
-Requirements:
-- Preserve functionality from both changes
-- Resolve any logical conflicts
-- Maintain code style consistency
-- Remove ALL conflict markers (<<<<<<< / ======= / >>>>>>>)
-- Stage the file after editing (git add)
+要件:
+- 両方の変更の機能を保持する
+- 論理的なコンフリクトを解決する
+- コードスタイルの一貫性を維持する
+- すべてのコンフリクトマーカー（<<<<<<< / ======= / >>>>>>>）を除去する
+- 編集後にファイルをステージングする（git add）
 
-Output: Confirmation of merged file with conflict markers removed
+出力: コンフリクトマーカーが除去されたマージ済みファイルの確認
 ```
 
-**Error Handling for specialist agent:**
-If specialist agent fails or times out:
-1. Check partial output for usable merged code
-2. Retry once with simplified scope (single conflict region at a time)
-3. If retry fails:
+**スペシャリストエージェントのエラーハンドリング:**
+スペシャリストエージェントが失敗またはタイムアウトした場合:
+1. 部分的な出力に使用可能なマージコードがないか確認する
+2. スコープを簡略化して1回リトライする（一度に1つのコンフリクト領域）
+3. リトライも失敗した場合:
    ```
-   Question: "Automatic merge failed. How would you like to proceed?"
-   Header: "Merge Failed"
+   Question: "自動マージに失敗しました。どのように進めますか？"
+   Header: "マージ失敗"
    Options:
-   - "Show me both versions and I'll merge manually"
-   - "Retry merge with different approach"
-   - "Keep ours for now (will need manual follow-up)"
-   - "Keep theirs for now (will need manual follow-up)"
+   - "両方のバージョンを表示して手動でマージする"
+   - "別のアプローチでマージをリトライする"
+   - "一旦 ours を保持する（後で手動対応が必要）"
+   - "一旦 theirs を保持する（後で手動対応が必要）"
    ```
-4. If user chooses "Show me both versions", present ours/theirs content and wait for user to provide merged code
+4. ユーザーが「両方のバージョンを表示」を選択した場合、ours/theirs の内容を表示し、ユーザーがマージコードを提供するのを待つ
 
-**After specialist agent completes:**
-- Verify conflict markers are removed
-- Stage the resolved file: `git add <file>`
-- Mark TodoWrite item as completed
+**スペシャリストエージェント完了後:**
+- コンフリクトマーカーが除去されていることを確認する
+- 解決済みファイルをステージングする: `git add <file>`
+- TodoWrite の項目を完了としてマークする
 
-### Phase 5: Verification
+### フェーズ 5: 検証
 
-**Goal:** Ensure resolution doesn't break functionality.
+**目的:** 解決が機能を壊していないことを確認する。
 
-**CRITICAL: Split verification between agents based on their capabilities.**
+**重要: エージェントの能力に応じて検証を分割すること。**
 
-**Step 1: Launch verification-specialist for marker check (Read-only):**
+**ステップ 1: verification-specialist でマーカーチェックを起動（読み取り専用）:**
 
 ```
-Launch verification-specialist agent:
-Task: Verify conflict markers removed
-Inputs:
-  - Resolved files: [list from Phase 4]
-Check:
-  1. No conflict markers remain (<<<<<<< / ======= / >>>>>>>)
-  2. File syntax appears valid (structural analysis)
-Output:
-  - Marker check status (PASS/FAIL)
-  - If FAIL: file:line locations of remaining markers
+verification-specialist エージェントを起動:
+タスク: コンフリクトマーカーの除去を確認
+入力:
+  - 解決済みファイル: [フェーズ 4 のリスト]
+チェック:
+  1. コンフリクトマーカーが残っていないこと（<<<<<<< / ======= / >>>>>>>）
+  2. ファイル構文が妥当であること（構造分析）
+出力:
+  - マーカーチェックステータス（PASS/FAIL）
+  - FAIL の場合: 残存マーカーの file:line 位置
 Thoroughness: quick
 ```
 
-**Step 2: Launch qa-engineer for execution-based verification (has Bash):**
+**ステップ 2: qa-engineer で実行ベースの検証を起動（Bash 使用可能）:**
 
 ```
-Launch qa-engineer agent:
-Task: Run verification commands for resolved files
-Inputs:
-  - Resolved files: [list from Phase 4]
-Execute:
-  1. Linter (npm run lint / eslint / etc.)
-  2. Type check (tsc --noEmit / etc.) if applicable
-  3. Tests (npm test / pytest / etc.)
-Output:
-  - Execution status for each check (PASS/FAIL)
-  - If FAIL: specific error details with file:line
-  - Overall verdict (VERIFIED / ISSUES_FOUND)
+qa-engineer エージェントを起動:
+タスク: 解決済みファイルの検証コマンドを実行
+入力:
+  - 解決済みファイル: [フェーズ 4 のリスト]
+実行:
+  1. リンター（npm run lint / eslint 等）
+  2. 型チェック（tsc --noEmit 等）（該当する場合）
+  3. テスト（npm test / pytest 等）
+出力:
+  - 各チェックの実行ステータス（PASS/FAIL）
+  - FAIL の場合: file:line 付きの具体的なエラー詳細
+  - 総合判定（VERIFIED / ISSUES_FOUND）
 ```
 
-**Note:** verification-specialist cannot run Bash commands. Use qa-engineer for lint/type/test execution.
+**注意:** verification-specialist は Bash コマンドを実行できない。lint/type/test の実行には qa-engineer を使用すること。
 
-Use the agents' output for verification results. Do NOT run lint/test commands directly in the parent context.
+エージェントの出力を検証結果として使用する。親コンテキストで lint/test コマンドを直接実行しないこと。
 
-**If verification-specialist reports issues:**
-- Present which check(s) failed
-- Ask user how to proceed:
+**verification-specialist が問題を報告した場合:**
+- どのチェックが失敗したかを提示する
+- ユーザーに対応方法を確認する:
   ```
-  Question: "Verification found issues. How should I proceed?"
-  Header: "Issues"
+  Question: "検証で問題が見つかりました。どのように進めますか？"
+  Header: "問題"
   Options:
-  - "Fix the issues and re-verify"
-  - "Show me the details first"
-  - "Revert and re-resolve conflicts"
+  - "問題を修正して再検証する"
+  - "まず詳細を確認する"
+  - "元に戻してコンフリクトを再解決する"
   ```
 
-### Phase 6: Completion
+### フェーズ 6: 完了
 
-**Goal:** Finalize the merge and document resolution.
+**目的:** マージを確定し、解決内容を記録する。
 
-**Check merge status:**
+**マージ状態の確認:**
 
 ```bash
 git status
 ```
 
-**If all conflicts resolved:**
+**すべてのコンフリクトが解決された場合:**
 
 ```
-Question: "All conflicts resolved and verified. How should I proceed?"
-Header: "Complete"
+Question: "すべてのコンフリクトが解決・検証されました。どのように進めますか？"
+Header: "完了"
 Options:
-- "Continue merge/rebase" (Recommended)
-- "Show me the final diff first"
-- "I'll complete manually"
+- "merge/rebase を続行する"（推奨）
+- "最終 diff を先に確認する"
+- "手動で完了する"
 ```
 
-**Complete merge:**
+**マージの完了:**
 
 ```bash
-# For merge
+# merge の場合
 git merge --continue
 
-# For rebase
+# rebase の場合
 git rebase --continue
 
-# For cherry-pick
+# cherry-pick の場合
 git cherry-pick --continue
 ```
 
-### Phase 7: Summary Report
+### フェーズ 7: サマリーレポート
 
-**Goal:** Document what was resolved and how.
+**目的:** 解決内容と方法を記録する。
 
 ```markdown
-## Merge Conflict Resolution Summary
+## マージコンフリクト解決サマリー
 
-### Operation: [merge/rebase/cherry-pick]
-### Branch: [current] <- [incoming]
+### 操作: [merge/rebase/cherry-pick]
+### ブランチ: [現在] <- [取り込み]
 
-### Resolved Files
+### 解決済みファイル
 
-| File | Conflict Type | Resolution | Verified |
-|------|---------------|------------|----------|
-| `path/file1.ts` | Additive | Combined both | Tests pass |
-| `path/file2.ts` | Modificative | Kept theirs | Lint pass |
+| ファイル | コンフリクトタイプ | 解決方法 | 検証結果 |
+|----------|---------------------|----------|----------|
+| `path/file1.ts` | 追加型 | 両方を統合 | テスト合格 |
+| `path/file2.ts` | 修正型 | theirs を保持 | リント合格 |
 
-### Resolution Decisions
+### 解決の判断
 
 #### file1.ts
-- **Conflict**: Both branches added imports
-- **Resolution**: Kept both import sets, removed duplicates
-- **Reasoning**: Both imports are needed for respective features
+- **コンフリクト**: 両ブランチがインポートを追加
+- **解決方法**: 両方のインポートセットを保持し、重複を除去
+- **理由**: 両方のインポートがそれぞれの機能に必要
 
 #### file2.ts
-- **Conflict**: Different validation logic
-- **Resolution**: Used theirs (more comprehensive)
-- **Reasoning**: Theirs includes additional edge cases
+- **コンフリクト**: 異なるバリデーションロジック
+- **解決方法**: theirs を使用（より包括的）
+- **理由**: theirs の方が追加のエッジケースを含む
 
-### Verification Results
+### 検証結果
 
-- [ ] No conflict markers remain
-- [ ] Lint passes
-- [ ] Type check passes
-- [ ] Tests pass
+- [ ] コンフリクトマーカーが残っていないこと
+- [ ] リント合格
+- [ ] 型チェック合格
+- [ ] テスト合格
 
-### Next Steps
+### 次のステップ
 
-1. Review the merged changes
-2. Run full test suite
-3. Push when ready
+1. マージされた変更をレビューする
+2. フルテストスイートを実行する
+3. 準備ができたらプッシュする
 ```
 
 ---
 
-## Conflict Resolution Patterns
+## コンフリクト解決パターン
 
-### Pattern 1: Import Conflicts
+### パターン 1: インポートのコンフリクト
 
 ```
 <<<<<<< HEAD
@@ -391,40 +391,40 @@ import { LogService } from './log';
 >>>>>>> feature-branch
 ```
 
-**Resolution**: Combine imports, remove duplicates:
+**解決方法**: インポートを統合し、重複を除去:
 ```typescript
 import { AuthService } from './auth';
 import { UserService } from './user';
 import { LogService } from './log';
 ```
 
-### Pattern 2: Function Modification Conflicts
+### パターン 2: 関数修正のコンフリクト
 
-Both branches modified the same function differently. Resolution requires understanding both intents and creating a unified implementation.
+両ブランチが同じ関数を異なる方法で修正した場合。両方の意図を理解し、統一された実装を作成する必要がある。
 
-### Pattern 3: Deletion vs Modification
+### パターン 3: 削除 vs 修正
 
-One branch deleted code another modified. Ask user which intent should prevail.
+一方がコードを削除し、他方が修正した場合。どちらの意図を優先するかユーザーに確認する。
 
 ---
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-- ALWAYS verify no conflict markers remain after resolution
-- NEVER auto-resolve without understanding both sides
-- ALWAYS run verification before completing merge
-- NEVER force push after resolving conflicts on shared branches
+- MUST: 解決後にコンフリクトマーカーが残っていないことを確認する
+- NEVER: 両サイドを理解せずに自動解決する
+- MUST: マージ完了前に検証を実行する
+- NEVER: 共有ブランチでコンフリクト解決後に強制プッシュする
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-- Use parallel agent analysis for understanding both versions
-- Stage files immediately after resolving each conflict
-- Run lint and type check as minimum verification
-- Document resolution decisions for complex conflicts
+- 両バージョンの理解には並列エージェント分析を使用する
+- 各コンフリクト解決後すぐにファイルをステージングする
+- 最低限の検証としてリントと型チェックを実行する
+- 複雑なコンフリクトの解決判断を記録する
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-- Consider resolving simpler conflicts first to build context
-- Prefer combining changes over choosing one side when possible
-- Consider asking original authors for complex semantic conflicts
-- Run full test suite for critical code paths
+- consider: 単純なコンフリクトから先に解決してコンテキストを構築する
+- prefer: 可能な場合は一方を選択するよりも変更の統合を行う
+- consider: 複雑な意味的コンフリクトの場合はオリジナルの作成者に確認する
+- recommend: 重要なコードパスにはフルテストスイートを実行する

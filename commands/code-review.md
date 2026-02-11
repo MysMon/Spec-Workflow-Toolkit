@@ -1,10 +1,10 @@
 ---
-description: "Review code changes using 5 parallel specialized agents with confidence-based scoring and filtering (Requires: GitHub CLI 'gh' for PR reviews)"
-argument-hint: "[file path, directory, PR #, or 'staged' for git staged changes]"
+description: "5つの並列スペシャリストエージェントによる信頼度ベースのスコアリングとフィルタリングを用いたコードレビュー（必要条件: PR レビュー用の GitHub CLI 'gh'）"
+argument-hint: "[ファイルパス、ディレクトリ、PR 番号、または 'staged' で git ステージ済みの変更]"
 allowed-tools: Read, Glob, Grep, Bash, Task, AskUserQuestion
 ---
 
-# /code-review - Parallel Code Review
+# /code-review - 並列コードレビュー
 
 ## Language Mode
 
@@ -12,441 +12,441 @@ allowed-tools: Read, Glob, Grep, Bash, Task, AskUserQuestion
 
 ---
 
-Launch 5 specialized agents in parallel (CLAUDE.md Compliance, Bug Scan, Git History, PR Comments, Code Comments) to comprehensively review code changes, then score each issue with Haiku agents for confidence-based filtering.
+5つのスペシャリストエージェント（CLAUDE.md 準拠、バグスキャン、Git 履歴、PR コメント、コードコメント）を並列起動してコード変更を包括的にレビューし、各指摘を Haiku エージェントで信頼度ベースのフィルタリングによりスコアリングする。
 
-Based on the official code-review plugin pattern.
+公式の code-review プラグインパターンに基づく。
 
-## Overview
+## 概要
 
-This command implements an 8-step workflow:
+このコマンドは8ステップのワークフローを実装する:
 
-1. **Eligibility Check** (Haiku) - Verify PR is reviewable
-2. **CLAUDE.md Discovery** (Haiku) - Find all guideline files
-3. **Change Summary** (Haiku) - Summarize PR changes
-4. **Parallel Review** (5 agents: Compliance, Bug Scan, Git History, PR Comments, Code Comments) - Analyze from different perspectives
-5. **Confidence Scoring** (N Haiku agents) - Score each issue found
-6. **Filtering** - Remove issues below 80% confidence
-7. **Re-check Eligibility** (Haiku) - Verify before posting
-8. **Report** - Post findings with GitHub links
+1. **適格性チェック** (Haiku) - PR がレビュー可能か確認
+2. **CLAUDE.md 探索** (Haiku) - すべてのガイドラインファイルを検索
+3. **変更サマリー** (Haiku) - PR の変更を要約
+4. **並列レビュー** (5エージェント: 準拠、バグスキャン、Git 履歴、PR コメント、コードコメント) - 異なる観点から分析
+5. **信頼度スコアリング** (N個の Haiku エージェント) - 各指摘をスコアリング
+6. **フィルタリング** - 信頼度80%未満の指摘を除去
+7. **適格性再チェック** (Haiku) - 投稿前に確認
+8. **レポート** - GitHub リンク付きで結果を投稿
 
-## Confidence Scoring Rubric
+## 信頼度スコアリング基準
 
-Each issue must be scored on this scale:
+各指摘は以下のスケールでスコアリングされる:
 
-| Score | Meaning | When to Use |
-|-------|---------|-------------|
-| **0** | Not confident at all | False positive, pre-existing issue, or unstated preference |
-| **25** | Somewhat confident | Might be real but unverified |
-| **50** | Moderately confident | Real issue but minor/infrequent occurrence |
-| **75** | Highly confident | Verified real, happens in practice, significant impact |
-| **100** | Absolutely certain | Definitely real, frequently occurring, directly verifiable |
+| スコア | 意味 | 使用する場面 |
+|--------|------|-------------|
+| **0** | まったく確信がない | 誤検知、既存の問題、または明示されていない好み |
+| **25** | やや確信がある | 実際の問題かもしれないが未検証 |
+| **50** | 中程度の確信 | 実際の問題だが軽微/稀な発生 |
+| **75** | 高い確信 | 検証済みで実際に発生し、重大な影響がある |
+| **100** | 絶対的に確実 | 間違いなく実際の問題で、頻繁に発生し、直接検証可能 |
 
-**Default Threshold:** 80 (only reports issues with score >= 80)
+**デフォルトしきい値:** 80（スコアが80以上の指摘のみ報告）
 
-### CLAUDE.md Issue Verification
+### CLAUDE.md 指摘の検証
 
-For issues flagged due to CLAUDE.md:
-- Double-check that CLAUDE.md **explicitly** calls out that issue
-- Score low if the guideline is vague or doesn't directly apply
+CLAUDE.md に起因する指摘の場合:
+- CLAUDE.md がその問題を**明示的に**指摘しているか再確認する
+- ガイドラインが曖昧または直接適用されない場合は低スコアにする
 
-## Execution Instructions
+## 実行手順
 
-### Step 1: Identify Changed Files
+### ステップ 1: 変更ファイルの特定
 
-**Goal:** Get file list only (metadata). This is a lightweight operation that does not consume significant context.
+**ゴール:** ファイルリストのみ（メタデータ）を取得する。これは大量のコンテキストを消費しない軽量な操作である。
 
-Based on `$ARGUMENTS`, get the **file list only**:
+`$ARGUMENTS` に基づき、**ファイルリストのみ**を取得する:
 
-**If "staged" or empty:**
+**"staged" または空の場合:**
 ```bash
 git diff --staged --name-only
 ```
 
-**If file path or directory:**
+**ファイルパスまたはディレクトリの場合:**
 ```bash
 git diff HEAD --name-only -- [path]
-# or if not in git, use Glob to list files
+# git 管理外の場合は Glob でファイルを一覧
 ```
 
-**If PR number (e.g., "#123"):**
+**PR 番号の場合（例: "#123"）:**
 ```bash
 gh pr diff 123 --name-only
 ```
 
-**Why this is acceptable (not delegated):**
-- `--name-only` returns only file paths, not content
-- This is metadata discovery, not content analysis
-- Minimal context consumption (typically <100 lines)
+**これが許可される理由（委任不要）:**
+- `--name-only` はファイルパスのみを返し、内容は含まない
+- これはメタデータの探索であり、内容分析ではない
+- コンテキスト消費は最小限（通常100行未満）
 
-**CRITICAL: Do NOT run `git diff` without `--name-only`. Diff content (which consumes context) MUST be gathered by code-explorer in Step 2.**
+**CRITICAL: `--name-only` なしで `git diff` を実行してはならない。差分内容（コンテキストを消費する）はステップ 2 で code-explorer が収集しなければならない。**
 
-### Step 2: Gather Context (Including Diff Content)
+### ステップ 2: コンテキスト収集（差分内容を含む）
 
-**CRITICAL: Delegate ALL context gathering to code-explorer, including diff content.**
+**CRITICAL: 差分内容を含むすべてのコンテキスト収集を code-explorer に委任する。**
 
 ```
-Launch Task tool with subagent_type=Explore (model: haiku):
+Task ツールで subagent_type=Explore（model: haiku）を起動:
 
-Prompt:
-Gather review context for code review.
+プロンプト:
+コードレビュー用のレビューコンテキストを収集する。
 
-Tasks:
-1. Get diff content for the changed files (git diff --staged or git diff HEAD -- [files])
-2. Find all CLAUDE.md files and .claude/rules/*.md files
-3. Summarize key guidelines relevant to changed files
-4. Get git blame for changed lines (identify recent authors)
-5. Get recent commit history touching these files
+タスク:
+1. 変更ファイルの差分内容を取得（git diff --staged または git diff HEAD -- [files]）
+2. すべての CLAUDE.md ファイルと .claude/rules/*.md ファイルを検索
+3. 変更ファイルに関連する主要ガイドラインを要約
+4. 変更行の git blame を取得（最近の著者を特定）
+5. これらのファイルに影響する最近のコミット履歴を取得
 
-Changed files:
-[list of files from Step 1]
+変更ファイル:
+[ステップ 1 のファイルリスト]
 
-Review scope:
+レビュー範囲:
 [staged / file / directory / PR#]
 
-Output:
-- Diff content (summarized if large, full if small)
-- CLAUDE.md guidelines summary (relevant rules only)
-- Git history context (recent changes, authors)
-- Related files that may be affected
+出力:
+- 差分内容（大きい場合は要約、小さい場合は全文）
+- CLAUDE.md ガイドラインの要約（関連ルールのみ）
+- Git 履歴コンテキスト（最近の変更、著者）
+- 影響を受ける可能性のある関連ファイル
 
-Thoroughness: quick
+網羅度: quick
 ```
 
-Use the code-explorer's output (including diff content) in Step 3 agent prompts. Do NOT read diff content directly in the parent context.
+ステップ 3 のエージェントプロンプトには code-explorer の出力（差分内容を含む）を使用する。親コンテキストで差分内容を直接読んではならない。
 
-**Error Handling for code-explorer:**
-If code-explorer fails or times out:
-1. Check partial output for usable context
-2. **Fallback: Minimal context gathering** (respecting unified limits from `subagent-contract`):
-   - Check for CLAUDE.md using Glob: `**/CLAUDE.md`
-   - If CLAUDE.md exists: read directly (≤200 lines)
-   - If no CLAUDE.md: proceed without guidelines (Agent 1 will report "no guidelines found")
-   - Run `git diff --staged` for diff content (≤200 lines, truncate with warning if larger)
-3. **Warn user about limited context:**
+**code-explorer のエラーハンドリング:**
+code-explorer が失敗またはタイムアウトした場合:
+1. 部分的な出力に利用可能なコンテキストがないか確認
+2. **フォールバック: 最小限のコンテキスト収集**（`subagent-contract` の統一リミットに従う）:
+   - Glob で CLAUDE.md を確認: `**/CLAUDE.md`
+   - CLAUDE.md がある場合: 直接読み込む（200行以下）
+   - CLAUDE.md がない場合: ガイドラインなしで続行（エージェント 1 が「ガイドラインが見つかりません」と報告）
+   - 差分内容を取得: `git diff --staged`（200行以下、超過時は警告付きで切り捨て）
+3. **限定コンテキストについてユーザーに警告:**
    ```
-   Question: "Context gathering failed. I have limited information for the review. How would you like to proceed?"
-   Header: "Limited Context"
+   Question: "コンテキスト収集に失敗しました。限定的な情報でのレビューとなります。どうしますか？"
+   Header: "限定コンテキスト"
    Options:
-   - "Proceed with limited review (may miss some issues)"
-   - "Retry context gathering"
-   - "Cancel and investigate the issue"
+   - "限定レビューで進める（一部の問題を見逃す可能性あり）"
+   - "コンテキスト収集を再試行"
+   - "キャンセルして問題を調査"
    ```
-4. If user chooses to proceed: continue with Step 3 using available context
-5. Note in final report: "Review conducted with limited context - git history and related file analysis unavailable"
+4. ユーザーが続行を選択した場合: 利用可能なコンテキストでステップ 3 を続行
+5. 最終レポートに注記: "限定コンテキストでのレビュー - Git 履歴および関連ファイル分析は利用不可"
 
-**If git diff also fails or returns too much content (>500 lines):**
-- Ask user to narrow scope: specify files or use `staged` mode
-- Do NOT proceed with massive diffs that would overwhelm context
+**git diff も失敗するか、内容が多すぎる場合（500行超）:**
+- ユーザーにスコープの絞り込みを依頼: ファイルを指定するか `staged` モードを使用
+- コンテキストを圧迫する大量の差分で処理を続行してはならない
 
-### Step 3: Launch 5 Parallel Review Agents (Sonnet)
+### ステップ 3: 5つの並列レビューエージェントを起動（Sonnet）
 
-**CRITICAL: Launch all 5 agents in a single message with 5 separate Task tool calls.**
+**CRITICAL: 5つすべてのエージェントを1つのメッセージ内で5つの個別 Task ツール呼び出しとして起動する。**
 
-To achieve true parallelism, invoke multiple Task tools in a single response:
+真の並列処理を実現するため、1つのレスポンスで複数の Task ツールを呼び出す:
 ```
 <parallel-execution>
-Task tool call 1: Agent 1 (CLAUDE.md Compliance)
-Task tool call 2: Agent 2 (Bug Scan)
-Task tool call 3: Agent 3 (Git History)
-Task tool call 4: Agent 4 (PR Comments)
-Task tool call 5: Agent 5 (Code Comments)
+Task ツール呼び出し 1: エージェント 1（CLAUDE.md 準拠）
+Task ツール呼び出し 2: エージェント 2（バグスキャン）
+Task ツール呼び出し 3: エージェント 3（Git 履歴）
+Task ツール呼び出し 4: エージェント 4（PR コメント）
+Task ツール呼び出し 5: エージェント 5（コードコメント）
 </parallel-execution>
 ```
 
-Each Task should use `subagent_type: general-purpose` with `model: inherit` (or omit to use the agent's default model).
+各 Task は `subagent_type: general-purpose` で `model: inherit` を使用（またはエージェントのデフォルトモデルを使用するため省略）。
 
-**Agent 1: CLAUDE.md Compliance Audit**
+**エージェント 1: CLAUDE.md 準拠監査**
 ```
-Review code for CLAUDE.md guideline compliance.
+CLAUDE.md ガイドラインへの準拠をレビューする。
 
-CLAUDE.md files:
-[List of CLAUDE.md paths and content]
+CLAUDE.md ファイル:
+[CLAUDE.md のパスと内容のリスト]
 
-Changes to review:
-[diff content]
+レビュー対象の変更:
+[差分内容]
 
-For each violation found, return:
-- Guideline violated (quote the specific rule)
-- Code location (file:line)
-- Brief description
-```
-
-**Agent 2: Shallow Bug Scan**
-```
-Review code for obvious bugs in the changed code ONLY.
-
-Changes to review:
-[diff content]
-
-Focus ONLY on bugs introduced in this change, not pre-existing issues.
-
-Look for:
-- Logic errors, off-by-one errors
-- Null/undefined handling issues
-- Race conditions, resource leaks
-- Incorrect error handling
-
-For each bug:
-- Bug description
-- Code location (file:line)
+検出された各違反について返すこと:
+- 違反したガイドライン（具体的なルールを引用）
+- コード位置（file:line）
+- 簡潔な説明
 ```
 
-**Agent 3: Git History Context Analysis**
+**エージェント 2: 簡易バグスキャン**
 ```
-Analyze git blame and history for contextual issues.
+変更されたコードのみを対象に明らかなバグをレビューする。
 
-Changed files:
-[list of files]
+レビュー対象の変更:
+[差分内容]
 
-Run git blame on changed lines.
-Check recent commit history for these files.
+この変更で導入されたバグのみに注目し、既存の問題は対象外。
 
-For each issue:
-- Issue description
-- Code location (file:line)
-- Historical context (why this might be problematic)
-```
+注目すべき点:
+- ロジックエラー、オフバイワンエラー
+- null/undefined のハンドリング問題
+- レースコンディション、リソースリーク
+- 不正なエラーハンドリング
 
-**Agent 4: Related PR Comments Review**
-```
-Check for comments or discussions from related PRs.
-
-Changed files:
-[list of files]
-
-Look for any existing review comments or discussions
-that might apply to this code.
-
-For each relevant finding:
-- Finding description
-- Code location (file:line)
-- Reference to previous discussion
+各バグについて:
+- バグの説明
+- コード位置（file:line）
 ```
 
-**Agent 5: Code Comments Alignment**
+**エージェント 3: Git 履歴コンテキスト分析**
 ```
-Verify code behavior matches inline comments.
+git blame と履歴を分析してコンテキストに基づく問題を検出する。
 
-Changes to review:
-[diff content]
+変更ファイル:
+[ファイルリスト]
 
-Check that:
-- Comments accurately describe the code
-- TODOs are addressed or still relevant
-- No misleading comments
+変更行の git blame を実行する。
+これらのファイルの最近のコミット履歴を確認する。
 
-For each misalignment:
-- Issue description
-- Code location (file:line)
-```
-
-**Error Handling for parallel agents:**
-If any review agent fails or times out:
-1. Check partial output from the failed agent(s) for usable findings
-2. Continue with successful agents' results
-3. Note which agent(s) failed in the final report under "Coverage Limitations"
-4. If 3+ agents fail: warn user and offer to retry or proceed with partial results
-
-### Step 4: Score Each Issue with Haiku Agents
-
-**For each issue found in Step 3, launch a parallel Haiku agent** to score confidence.
-
-```
-Launch N parallel Haiku agents (one per issue):
-
-For each issue:
-- PR context: [PR summary]
-- Issue description: [from step 3]
-- CLAUDE.md files: [list of guideline files]
-
-Score this issue 0-100 based on the rubric.
-For CLAUDE.md issues, verify the guideline explicitly mentions this.
+各問題について:
+- 問題の説明
+- コード位置（file:line）
+- 歴史的コンテキスト（なぜ問題になりうるか）
 ```
 
-**Error Handling for scoring agents:**
-If scoring agents fail:
-1. Assign default confidence of 70 to unscored issues
-2. Mark these issues as "unscored" in the report
-3. Continue with filtering (unscored issues will be filtered out at default 80 threshold unless user lowers threshold)
+**エージェント 4: 関連 PR コメントレビュー**
+```
+関連する PR のコメントやディスカッションを確認する。
 
-### Step 5: Filter and De-duplicate Issues
+変更ファイル:
+[ファイルリスト]
 
-**Remove issues with score < 80.**
+このコードに適用される可能性のある既存のレビューコメントや
+ディスカッションを検索する。
 
-**De-duplication Strategy:**
-- **Same file:line + same category** → Keep highest confidence, merge descriptions
-- **Same file:line + different categories** → Keep both (e.g., bug AND CLAUDE.md violation)
-- **Multiple agents flag same issue** → Boost confidence by 10 (max 100)
-- **Overlapping line ranges** → If >50% overlap and same category, merge
+各関連する発見について:
+- 発見の説明
+- コード位置（file:line）
+- 以前のディスカッションへの参照
+```
 
-**Auto-filtered (do not report):**
-- Pre-existing issues not in this change
-- Issues linters/type checkers will catch
-- Pedantic nitpicks
-- Code with lint-ignore comments
-- General code quality issues not in CLAUDE.md
-- Issues where user didn't modify those lines
-- Intentional functionality changes
+**エージェント 5: コードコメントの整合性**
+```
+コードの動作がインラインコメントと一致しているか検証する。
 
-### Step 6: Re-check Eligibility
+レビュー対象の変更:
+[差分内容]
 
-Before presenting, verify:
-- PR is still open (not closed or merged)
-- No new commits since analysis started
-- Issues are still relevant
+以下を確認:
+- コメントがコードを正確に説明しているか
+- TODO が対応済みまたはまだ有効か
+- 誤解を招くコメントがないか
 
-### Step 7: Present Review
+各不整合について:
+- 問題の説明
+- コード位置（file:line）
+```
 
-**For PR reviews (posting to GitHub):**
+**並列エージェントのエラーハンドリング:**
+レビューエージェントのいずれかが失敗またはタイムアウトした場合:
+1. 失敗したエージェントの部分的な出力に利用可能な発見がないか確認
+2. 成功したエージェントの結果で続行
+3. 最終レポートの「カバレッジの制限」に失敗したエージェントを記載
+4. 3つ以上のエージェントが失敗した場合: ユーザーに警告し、再試行または部分的な結果での続行を提案
+
+### ステップ 4: Haiku エージェントで各指摘をスコアリング
+
+**ステップ 3 で検出された各指摘に対して、並列 Haiku エージェントを起動**して信頼度をスコアリングする。
+
+```
+N個の並列 Haiku エージェントを起動（指摘ごとに1つ）:
+
+各指摘について:
+- PR コンテキスト: [PR サマリー]
+- 指摘の説明: [ステップ 3 から]
+- CLAUDE.md ファイル: [ガイドラインファイルのリスト]
+
+基準に基づいてこの指摘を0-100でスコアリングする。
+CLAUDE.md の指摘については、ガイドラインが明示的に言及しているか確認する。
+```
+
+**スコアリングエージェントのエラーハンドリング:**
+スコアリングエージェントが失敗した場合:
+1. スコアリングされていない指摘にデフォルト信頼度70を割り当てる
+2. これらの指摘をレポートで「未スコアリング」とマーク
+3. フィルタリングを続行（未スコアリングの指摘はデフォルトの80しきい値で除外、ユーザーがしきい値を下げない限り）
+
+### ステップ 5: フィルタリングと重複排除
+
+**スコアが80未満の指摘を除去する。**
+
+**重複排除戦略:**
+- **同じ file:line + 同じカテゴリ** → 最も高い信頼度を保持し、説明をマージ
+- **同じ file:line + 異なるカテゴリ** → 両方保持（例: バグ AND CLAUDE.md 違反）
+- **複数エージェントが同じ問題を指摘** → 信頼度を10ブースト（最大100）
+- **重複する行範囲** → 50%以上の重複かつ同じカテゴリの場合はマージ
+
+**自動フィルタ（報告しない）:**
+- この変更に含まれない既存の問題
+- リンター/型チェッカーが検出する問題
+- 些末なニットピック
+- lint-ignore コメント付きのコード
+- CLAUDE.md にない一般的なコード品質の問題
+- ユーザーが変更していない行の問題
+- 意図的な機能変更
+
+### ステップ 6: 適格性の再チェック
+
+提示前に確認:
+- PR がまだオープンか（クローズまたはマージされていないか）
+- 分析開始以降に新しいコミットがないか
+- 指摘がまだ有効か
+
+### ステップ 7: レビュー結果の提示
+
+**PR レビューの場合（GitHub に投稿）:**
 
 ```markdown
-## Code review
+## コードレビュー
 
-Found [N] issues:
+[N] 件の問題を検出:
 
-1. [Brief description] (CLAUDE.md says "[quote guideline]")
+1. [簡潔な説明]（CLAUDE.md に「[ガイドラインを引用]」とある）
 
    `path/file.ext#L[start]-L[end]`
 
-2. [Brief description] (bug due to [explanation])
+2. [簡潔な説明]（[説明] によるバグ）
 
    `path/file.ext#L[start]-L[end]`
 
 ```
 
-**Link Format Requirements:**
-- Use full SHA (not shortened)
-- Use `#L` notation for line references
-- Include at least 1 line of context around the issue
+**リンクフォーマットの要件:**
+- 完全な SHA を使用（短縮版ではない）
+- 行参照には `#L` 表記を使用
+- 問題の前後に少なくとも1行のコンテキストを含める
 
-**For local reviews:**
+**ローカルレビューの場合:**
 
 ```markdown
-## Code Review
+## コードレビュー
 
-Reviewed [N] files with [M] lines changed.
+[N] ファイル、[M] 行の変更をレビューしました。
 
-### Critical Issues (Confidence >= 90)
+### 重大な問題（信頼度 >= 90）
 
-1. **[Issue Title]** - [Category] (Score: [N])
+1. **[問題のタイトル]** - [カテゴリ]（スコア: [N]）
 
-   File: `src/auth.ts:67-72`
+   ファイル: `src/auth.ts:67-72`
 
-   [Description of the issue]
+   [問題の説明]
 
-   **Fix:** [Suggested fix]
+   **修正案:** [提案する修正]
 
-### Important Issues (Confidence 80-89)
+### 重要な問題（信頼度 80-89）
 
 ...
 
-### Summary
+### サマリー
 
-- Critical: [N]
-- Important: [N]
-- Filtered (below threshold): [N]
+- 重大: [N]
+- 重要: [N]
+- フィルタ済み（しきい値未満）: [N]
 
-**Verdict:** [APPROVED / NEEDS CHANGES]
+**判定:** [APPROVED / NEEDS CHANGES]
 ```
 
-### Step 8: User Action
+### ステップ 8: ユーザーアクション
 
-Ask user:
+ユーザーに質問する:
 ```
-Review complete. What would you like to do?
-1. Fix critical issues now
-2. Fix all issues now
-3. Proceed without changes
-4. Get more details on specific issues
+レビュー完了。どうしますか？
+1. 重大な問題を今すぐ修正
+2. すべての問題を今すぐ修正
+3. 変更なしで続行
+4. 特定の問題について詳細を確認
 ```
 
-## Usage Examples
+## 使用例
 
 ```bash
-# Review staged changes
+# ステージ済みの変更をレビュー
 /code-review staged
 /code-review
 
-# Review specific file
+# 特定のファイルをレビュー
 /code-review src/auth/login.ts
 
-# Review directory
+# ディレクトリをレビュー
 /code-review src/components/
 
-# Review PR
+# PR をレビュー
 /code-review #123
 ```
 
-## Configuration
+## 設定
 
-### Adjust Confidence Threshold
+### 信頼度しきい値の調整
 
-In your request:
+リクエスト内で:
 ```
 /code-review staged --threshold 60
 ```
 
-### Focus Mode
+### フォーカスモード
 
 ```
 /code-review staged --focus security
 /code-review staged --focus bugs
 ```
 
-## Integration with Git
+## Git との連携
 
-After review, if approved:
+レビュー後、承認された場合:
 ```bash
-# Stage and commit with review reference
+# ステージしてレビュー参照付きでコミット
 git add .
-git commit -m "feat: implement feature X
+git commit -m "feat: 機能 X を実装
 
-Code review completed:
-- Security: Passed
-- Quality: Passed
-- Compliance: Passed"
+コードレビュー完了:
+- セキュリティ: 合格
+- 品質: 合格
+- 準拠: 合格"
 ```
 
-## Comparison with /spec-review
+## /spec-review との比較
 
-| Aspect | /spec-review | /code-review |
-|--------|--------------|--------------|
-| When | Before implementation | After implementation |
-| What | Specification documents | Code changes |
-| Focus | Completeness, feasibility | Bugs, security, quality |
-| Output | Spec improvements | Code fixes |
+| 側面 | /spec-review | /code-review |
+|------|-------------|-------------|
+| いつ | 実装前 | 実装後 |
+| 何を | 仕様書 | コード変更 |
+| 焦点 | 完全性、実現可能性 | バグ、セキュリティ、品質 |
+| 出力 | 仕様の改善 | コードの修正 |
 
 ---
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-Critical for accurate and useful code reviews.
+正確で有用なコードレビューのために不可欠。
 
-- MUST launch all 5 review agents in a single message for true parallelism
-- NEVER launch agents sequentially (breaks parallel execution benefit)
-- MUST score each issue 0-100 using the confidence rubric
-- NEVER report issues with confidence < 80 (default threshold)
-- MUST re-check PR eligibility before presenting findings
-- NEVER post review if PR is closed or merged
-- MUST use AskUserQuestion when:
-  - User wants to fix issues (ask which ones)
-  - Multiple remediation approaches exist
-  - Need clarification on issue priority
-- ALWAYS include file:line references in reported issues
+- MUST: 真の並列処理のため5つのレビューエージェントを1つのメッセージで起動する
+- NEVER: エージェントを順次起動してはならない（並列実行の利点が失われる）
+- MUST: 信頼度基準を用いて各指摘を0-100でスコアリングする
+- NEVER: 信頼度80未満の指摘を報告してはならない（デフォルトしきい値）
+- MUST: 結果提示前に PR の適格性を再チェックする
+- NEVER: PR がクローズまたはマージ済みの場合にレビューを投稿してはならない
+- MUST: 以下の場合に AskUserQuestion を使用する:
+  - ユーザーが問題の修正を希望する場合（どの問題か確認）
+  - 複数の修復アプローチが存在する場合
+  - 問題の優先度について明確化が必要な場合
+- ALWAYS: 報告する指摘に file:line 参照を含める
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-Important for quality reviews. Override with reasoning when appropriate.
+品質の高いレビューのために重要。適切な理由がある場合はオーバーライド可。
 
-- Launch 5 agents: Compliance, Bug Scan, Git History, PR Comments, Code Comments
-- De-duplicate issues from multiple agents (boost confidence by 10)
-- Use Haiku agents for confidence scoring
-- Present findings grouped by confidence level (Critical >= 90, Important 80-89)
+- 5つのエージェントを起動: 準拠、バグスキャン、Git 履歴、PR コメント、コードコメント
+- 複数エージェントからの指摘を重複排除（信頼度を10ブースト）
+- 信頼度スコアリングに Haiku エージェントを使用
+- 信頼度レベル別に結果をグループ化して提示（重大 >= 90、重要 80-89）
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-Recommendations for effective code reviews.
+効果的なコードレビューのための推奨事項。
 
-- Consider presenting issues with GitHub permalink format for PR reviews
-- Prefer filtering out pedantic nitpicks and linter-catchable issues
-- Consider asking user about fix priority when multiple issues found
+- consider: PR レビューでは GitHub パーマリンク形式での指摘提示を検討
+- prefer: 些末なニットピックやリンターで検出可能な問題はフィルタリングする
+- consider: 複数の問題が検出された場合、修正の優先度についてユーザーに確認する

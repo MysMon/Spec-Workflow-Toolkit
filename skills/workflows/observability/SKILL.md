@@ -1,219 +1,219 @@
 ---
 name: observability
 description: |
-  Observability patterns for logging, metrics, and distributed tracing. Use when:
-  - Implementing structured logging
-  - Setting up metrics and monitoring
-  - Adding distributed tracing
-  - Implementing health checks (liveness, readiness)
-  - Designing alerts or SLO-based monitoring
+  ロギング、メトリクス、分散トレーシングのオブザーバビリティパターン。以下の場合に使用:
+  - 構造化ロギングの実装
+  - メトリクスとモニタリングのセットアップ
+  - 分散トレーシングの追加
+  - ヘルスチェック（liveness、readiness）の実装
+  - アラートや SLO ベースのモニタリングの設計
   Trigger phrases: logging, metrics, tracing, monitoring, health check, alerting, SLO, structured logs, observability
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, WebSearch, WebFetch
 model: sonnet
 user-invocable: true
 ---
 
-# Observability
+# オブザーバビリティ
 
-Stack-agnostic patterns for building observable systems through logging, metrics, and tracing. This skill defines **concepts and patterns**, not specific library implementations.
+ロギング、メトリクス、トレーシングを通じてオブザーバブルなシステムを構築するためのスタック非依存パターン。このスキルは**コンセプトとパターン**を定義するものであり、特定のライブラリ実装を定義するものではない。
 
-## Design Principles
+## 設計原則
 
-1. **Concepts over libraries**: Teach patterns that work across any stack
-2. **Discover project tools**: Check what observability tools the project uses
-3. **Research when implementing**: Use WebSearch for current library recommendations
-4. **Follow project conventions**: Match existing logging/metrics patterns
-
----
-
-## Three Pillars of Observability
-
-### 1. Logging
-
-Structured, contextual logs for debugging and auditing.
-
-### 2. Metrics
-
-Numerical measurements for monitoring and alerting.
-
-### 3. Tracing
-
-Distributed request tracking across services.
+1. **ライブラリよりコンセプト**: 任意のスタックで動作するパターンを教える
+2. **プロジェクトのツールを発見**: プロジェクトが使用するオブザーバビリティツールを確認
+3. **実装時にリサーチ**: WebSearch で最新のライブラリ推奨を調査
+4. **プロジェクトの慣例に従う**: 既存のロギング/メトリクスパターンに合わせる
 
 ---
 
-## Structured Logging
+## オブザーバビリティの 3 本柱
 
-### Log Format Principles
+### 1. ロギング
 
-A well-structured log entry should include:
+デバッグと監査のための構造化されたコンテキスト付きログ。
+
+### 2. メトリクス
+
+モニタリングとアラートのための数値測定。
+
+### 3. トレーシング
+
+サービス間の分散リクエスト追跡。
+
+---
+
+## 構造化ロギング
+
+### ログフォーマットの原則
+
+適切に構造化されたログエントリは以下を含むべき:
 
 ```json
 {
-  "timestamp": "ISO 8601 format",
+  "timestamp": "ISO 8601 形式",
   "level": "INFO/WARN/ERROR/DEBUG",
-  "service": "service identifier",
-  "trace_id": "correlation ID for request tracking",
-  "message": "human-readable description",
+  "service": "サービス識別子",
+  "trace_id": "リクエスト追跡用の相関 ID",
+  "message": "人間が読める説明",
   "context": {
-    "relevant": "contextual data"
+    "relevant": "コンテキストデータ"
   }
 }
 ```
 
-### Log Levels
+### ログレベル
 
-| Level | Use Case | Example |
-|-------|----------|---------|
-| DEBUG | Development details | Query params, cache hits |
-| INFO | Normal operations | User created, request completed |
-| WARN | Potential issues | Retry needed, deprecated API used |
-| ERROR | Operation failed | Database connection failed |
-| FATAL | Application crash | Unrecoverable error |
+| レベル | 使用場面 | 例 |
+|-------|---------|-----|
+| DEBUG | 開発の詳細 | クエリパラメータ、キャッシュヒット |
+| INFO | 通常の操作 | ユーザー作成、リクエスト完了 |
+| WARN | 潜在的な問題 | リトライが必要、非推奨 API の使用 |
+| ERROR | 操作失敗 | データベース接続失敗 |
+| FATAL | アプリケーションクラッシュ | 回復不能なエラー |
 
-### Best Practices
+### ベストプラクティス
 
-**DO:**
-- Use structured logging (JSON or similar)
-- Include correlation/trace IDs
-- Log at service boundaries
-- Include relevant context
-- Use consistent field names across services
+**すべきこと:**
+- 構造化ロギングを使用（JSON または類似形式）
+- 相関/トレース ID を含める
+- サービス境界でログ出力
+- 関連コンテキストを含める
+- サービス間で一貫したフィールド名を使用
 
-**DON'T:**
-- Log sensitive data (passwords, tokens, PII)
-- Log at high frequency in loops
-- Use string concatenation for log messages
-- Log entire request/response bodies
-- Use print statements in production
+**すべきでないこと:**
+- 機密データをログに記録しない（パスワード、トークン、PII）
+- ループ内で高頻度にログ出力しない
+- ログメッセージに文字列連結を使用しない
+- リクエスト/レスポンス本文全体をログに記録しない
+- 本番環境で print 文を使用しない
 
-### Implementation
+### 実装
 
-When implementing logging:
+ロギングを実装する際:
 
-1. **Discover existing patterns**: Check how the project currently logs
-2. **Research current libraries**:
+1. **既存のパターンを発見**: プロジェクトの現在のロギング方法を確認
+2. **最新ライブラリをリサーチ**:
    ```
-   WebSearch: "[language] structured logging library [year]"
+   WebSearch: "[言語] structured logging library [year]"
    ```
-3. **Follow project conventions**: Match existing log format and style
+3. **プロジェクトの慣例に従う**: 既存のログ形式とスタイルに合わせる
 
 ---
 
-## Metrics
+## メトリクス
 
-### Metric Types
+### メトリクスタイプ
 
-| Type | Use Case | Example |
-|------|----------|---------|
-| Counter | Cumulative values (only increase) | Request count, errors |
-| Gauge | Point-in-time values (can go up/down) | Active connections, queue size |
-| Histogram | Distribution of values | Request latency, response size |
-| Summary | Pre-calculated quantiles | p50, p99 latency |
+| タイプ | 使用場面 | 例 |
+|--------|---------|-----|
+| Counter | 累積値（増加のみ） | リクエスト数、エラー数 |
+| Gauge | ポイントインタイム値（増減あり） | アクティブ接続数、キューサイズ |
+| Histogram | 値の分布 | リクエストレイテンシー、レスポンスサイズ |
+| Summary | 事前計算されたパーセンタイル | p50、p99 レイテンシー |
 
-### Naming Conventions
+### 命名規則
 
 ```
-Format: <namespace>_<name>_<unit>
+形式: <namespace>_<name>_<unit>
 
-Good examples:
+良い例:
 - http_requests_total
 - http_request_duration_seconds
 - database_connections_active
 - queue_messages_waiting
 
-Bad examples:
-- requests              (no namespace, no unit)
-- httpRequestDuration   (camelCase, inconsistent)
-- request-latency       (hyphens, no unit)
+悪い例:
+- requests              (名前空間なし、単位なし)
+- httpRequestDuration   (camelCase、不統一)
+- request-latency       (ハイフン、単位なし)
 ```
 
-### Key Metrics Frameworks
+### 主要メトリクスフレームワーク
 
-**RED Method (Request-oriented):**
-- **R**ate: Requests per second
-- **E**rrors: Error rate
-- **D**uration: Latency percentiles
+**RED メソッド（リクエスト指向）:**
+- **R**ate: 1 秒あたりのリクエスト数
+- **E**rrors: エラー率
+- **D**uration: レイテンシーパーセンタイル
 
-**USE Method (Resource-oriented):**
-- **U**tilization: Percentage time busy
-- **S**aturation: Queue length/backlog
-- **E**rrors: Error count
+**USE メソッド（リソース指向）:**
+- **U**tilization: ビジー状態の割合
+- **S**aturation: キュー長/バックログ
+- **E**rrors: エラー件数
 
 **Four Golden Signals:**
-- Latency: Time to serve requests
-- Traffic: Demand on system
-- Errors: Rate of failed requests
-- Saturation: How "full" the system is
+- レイテンシー: リクエスト処理時間
+- トラフィック: システムへの需要
+- エラー: 失敗リクエストの割合
+- サチュレーション: システムの「飽和度」
 
-### Implementation
+### 実装
 
-When implementing metrics:
+メトリクスを実装する際:
 
-1. **Identify what to measure**: Use RED/USE/Golden Signals as guide
-2. **Discover existing setup**: Check if project has metrics infrastructure
-3. **Research current tools**:
+1. **測定対象を特定**: RED/USE/Golden Signals をガイドとして使用
+2. **既存のセットアップを発見**: プロジェクトにメトリクス基盤があるか確認
+3. **最新ツールをリサーチ**:
    ```
-   WebSearch: "[language] metrics library [year]"
-   WebSearch: "metrics collection [your infrastructure] [year]"
+   WebSearch: "[言語] metrics library [year]"
+   WebSearch: "metrics collection [インフラストラクチャ] [year]"
    ```
 
 ---
 
-## Distributed Tracing
+## 分散トレーシング
 
-### Trace Concepts
+### トレースの概念
 
 ```
-Trace (entire request journey)
-├── Span A: API Gateway (parent)
+Trace（リクエスト全体の旅程）
+├── Span A: API Gateway（親）
 │   ├── Span B: Auth Service
 │   └── Span C: User Service
 │       └── Span D: Database Query
 ```
 
-- **Trace**: End-to-end request journey across services
-- **Span**: Single operation within a trace
-- **Context**: Propagated trace/span IDs
+- **Trace**: サービス間のエンドツーエンドのリクエスト旅程
+- **Span**: トレース内の単一操作
+- **Context**: 伝播されるトレース/スパン ID
 
-### Trace Context Propagation
+### トレースコンテキスト伝播
 
-Standard headers for context propagation:
+コンテキスト伝播の標準ヘッダー:
 
-| Standard | Description |
-|----------|-------------|
-| W3C Trace Context | Modern standard (traceparent, tracestate) |
-| B3 | Zipkin format (X-B3-* headers) |
+| 標準 | 説明 |
+|------|------|
+| W3C Trace Context | モダンな標準（traceparent、tracestate） |
+| B3 | Zipkin 形式（X-B3-* ヘッダー） |
 
-### Best Practices
+### ベストプラクティス
 
-- Propagate trace context across all service boundaries
-- Include trace IDs in logs for correlation
-- Sample traces in high-traffic environments
-- Add meaningful span names and attributes
+- 全サービス境界でトレースコンテキストを伝播
+- 相関のためにログにトレース ID を含める
+- 高トラフィック環境ではトレースをサンプリング
+- 意味のあるスパン名と属性を追加
 
-### Implementation
+### 実装
 
-When implementing tracing:
+トレーシングを実装する際:
 
-1. **Check existing setup**: Does project already have tracing?
-2. **Research current standards**:
+1. **既存のセットアップを確認**: プロジェクトに既にトレーシングがあるか
+2. **最新の標準をリサーチ**:
    ```
-   WebSearch: "distributed tracing [language] [year]"
-   WebSearch: "[tracing platform] integration guide"
+   WebSearch: "distributed tracing [言語] [year]"
+   WebSearch: "[トレーシングプラットフォーム] integration guide"
    ```
 
 ---
 
-## Health Checks
+## ヘルスチェック
 
-### Endpoint Design
+### エンドポイント設計
 
 ```json
 // GET /health
 {
   "status": "healthy|degraded|unhealthy",
-  "version": "app version",
+  "version": "アプリバージョン",
   "uptime_seconds": 3600,
   "checks": {
     "database": {
@@ -232,83 +232,83 @@ When implementing tracing:
 }
 ```
 
-### Kubernetes Health Checks
+### Kubernetes ヘルスチェック
 
-| Check | Purpose | Failure Action |
-|-------|---------|----------------|
-| Liveness | Is app running? | Restart container |
-| Readiness | Can handle requests? | Remove from load balancer |
-| Startup | Has app started? | Don't check liveness yet |
-
----
-
-## Alerting
-
-### Alert Design Principles
-
-**Good alerts include:**
-- Clear, actionable name
-- Threshold with duration (avoid flapping)
-- Severity level
-- Link to runbook
-- Relevant labels/context
-
-**Avoid:**
-- Flapping alerts (too sensitive thresholds)
-- Alerts on symptoms only (dig to root cause)
-- Too many alerts (alert fatigue)
-- Alerts without runbooks
-
-### SLO-Based Alerting
-
-```
-SLI: 99.9% of requests complete in < 200ms
-SLO: 99.9% success rate over 30 days
-Error Budget: 0.1% = ~43 minutes/month
-
-Alert when:
-- Burn rate > 1x: Slow burn, low severity
-- Burn rate > 10x: Fast burn, high severity
-```
+| チェック | 目的 | 失敗時のアクション |
+|---------|------|------------------|
+| Liveness | アプリは動作しているか？ | コンテナを再起動 |
+| Readiness | リクエストを処理できるか？ | ロードバランサーから除外 |
+| Startup | アプリは起動したか？ | まだ liveness をチェックしない |
 
 ---
 
-## Implementation Checklist
+## アラート
 
-- [ ] Structured logging configured
-- [ ] Log levels appropriate for environment
-- [ ] Sensitive data excluded from logs
-- [ ] Key metrics identified (RED/USE framework)
-- [ ] Metrics endpoint exposed (/metrics)
-- [ ] Trace context propagated across services
-- [ ] Health endpoints implemented (/health)
-- [ ] Alerts defined for critical paths
-- [ ] Runbooks linked to alerts
+### アラート設計原則
+
+**良いアラートに含まれるもの:**
+- 明確でアクション可能な名前
+- 持続時間付き閾値（フラッピング防止）
+- 重大度レベル
+- ランブックへのリンク
+- 関連ラベル/コンテキスト
+
+**避けるべきこと:**
+- フラッピングアラート（過敏すぎる閾値）
+- 症状だけのアラート（根本原因を掘り下げる）
+- 多すぎるアラート（アラート疲れ）
+- ランブックなしのアラート
+
+### SLO ベースのアラート
+
+```
+SLI: 99.9% のリクエストが 200ms 以内に完了
+SLO: 30 日間で 99.9% の成功率
+エラーバジェット: 0.1% = 約 43 分/月
+
+アラート条件:
+- バーンレート > 1x: スローバーン、低重大度
+- バーンレート > 10x: ファストバーン、高重大度
+```
+
+---
+
+## 実装チェックリスト
+
+- [ ] 構造化ロギングを設定
+- [ ] 環境に適したログレベル
+- [ ] ログから機密データを除外
+- [ ] 主要メトリクスを特定（RED/USE フレームワーク）
+- [ ] メトリクスエンドポイントを公開（/metrics）
+- [ ] サービス間でトレースコンテキストを伝播
+- [ ] ヘルスエンドポイントを実装（/health）
+- [ ] クリティカルパスのアラートを定義
+- [ ] アラートにランブックをリンク
 
 ---
 
 ## Rules (L1 - Hard)
 
-Critical for security and operational safety.
+セキュリティと運用の安全性に不可欠。
 
-- NEVER log sensitive data (PII, tokens, passwords) - security requirement
-- ALWAYS propagate trace context across services (enables debugging)
-- ALWAYS include correlation IDs in logs (request tracing)
+- NEVER: 機密データをログに記録しない（PII、トークン、パスワード） - セキュリティ要件
+- ALWAYS: サービス間でトレースコンテキストを伝播する（デバッグを可能にする）
+- ALWAYS: ログに相関 ID を含める（リクエストトレーシング）
 
 ## Defaults (L2 - Soft)
 
-Important for operational quality. Override with reasoning when appropriate.
+運用品質に重要。適切な理由がある場合はオーバーライド可。
 
-- Use structured logging (not print/console.log)
-- Expose health check endpoints for orchestration
-- Discover existing project patterns before implementing
-- Use WebSearch for current library recommendations
-- Link alerts to runbooks
+- 構造化ロギングを使用する（print/console.log ではなく）
+- オーケストレーション用のヘルスチェックエンドポイントを公開する
+- 実装前に既存のプロジェクトパターンを発見する
+- 最新ライブラリの推奨には WebSearch を使用する
+- アラートにランブックをリンクする
 
 ## Guidelines (L3)
 
-Recommendations for comprehensive observability.
+包括的なオブザーバビリティのための推奨事項。
 
-- Consider using RED/USE/Golden Signals frameworks for metrics
-- Prefer sampling traces in high-traffic environments
-- Consider SLO-based alerting over threshold-based
+- consider: メトリクスに RED/USE/Golden Signals フレームワークの使用を検討
+- prefer: 高トラフィック環境ではトレースのサンプリングを推奨
+- consider: 閾値ベースより SLO ベースのアラートを検討

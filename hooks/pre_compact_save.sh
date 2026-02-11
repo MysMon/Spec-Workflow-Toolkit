@@ -1,33 +1,30 @@
 #!/bin/bash
-# PreCompact Hook: Save critical context before compaction
-# This hook ensures progress state is preserved before context is compacted
-# Now supports workspace-isolated progress files
-# Based on:
-# - https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
-# - https://code.claude.com/docs/en/hooks
+# PreCompact フック: コンパクション前に重要なコンテキストを保存
+# コンテキストがコンパクションされる前に進捗状態が保持されることを保証する
+# ワークスペース分離された進捗ファイルをサポート
 
-# Source workspace utilities
+# ワークスペースユーティリティを読み込み
 SCRIPT_DIR="$(dirname "$0")"
 if [ -f "$SCRIPT_DIR/workspace_utils.sh" ]; then
     source "$SCRIPT_DIR/workspace_utils.sh"
 fi
 
-# Read hook input
+# フック入力を読み取り
 INPUT=$(cat)
 TRIGGER=$(echo "$INPUT" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('trigger','unknown'))" 2>/dev/null || echo "unknown")
 CUSTOM=$(echo "$INPUT" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('custom_instructions',''))" 2>/dev/null || echo "")
 
-# Determine progress file location (workspace-isolated)
+# 進捗ファイルの場所を決定（ワークスペース分離）
 PROGRESS_FILE=""
 WORKSPACE_ID=""
 
 if command -v get_workspace_id &> /dev/null; then
     WORKSPACE_ID=$(get_workspace_id)
 
-    # Defense-in-depth: Validate workspace ID before use
+    # 多層防御: 使用前にワークスペース ID を検証
     if command -v validate_workspace_id &> /dev/null; then
         if ! validate_workspace_id "$WORKSPACE_ID"; then
-            echo "Warning: Invalid workspace ID, skipping progress save" >&2
+            echo "警告: 無効なワークスペース ID です。進捗の保存をスキップします" >&2
             exit 0
         fi
     fi
@@ -39,16 +36,16 @@ if command -v get_workspace_id &> /dev/null; then
     fi
 fi
 
-# If progress file exists, create backup and add compaction timestamp
-# Use environment variables to safely pass data to Python
+# 進捗ファイルが存在する場合、バックアップを作成しコンパクションのタイムスタンプを追加
+# 環境変数を使用して Python にデータを安全に渡す
 if [ -n "$PROGRESS_FILE" ] && command -v python3 &> /dev/null; then
-    # Create backup of progress file before compaction
+    # コンパクション前に進捗ファイルのバックアップを作成
     BACKUP_DIR="$(dirname "$PROGRESS_FILE")/backups"
     mkdir -p "$BACKUP_DIR" 2>/dev/null
     BACKUP_FILE="$BACKUP_DIR/progress-$(date '+%Y%m%d_%H%M%S').json"
     cp "$PROGRESS_FILE" "$BACKUP_FILE" 2>/dev/null
 
-    # Keep only last 5 backups
+    # 最新の5つのバックアップのみ保持
     ls -t "$BACKUP_DIR"/progress-*.json 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null
 
     PROGRESS_FILE_PATH="$PROGRESS_FILE" \
@@ -64,15 +61,15 @@ import tempfile
 import signal
 from datetime import datetime
 
-# Lock acquisition timeout (seconds)
+# ロック取得のタイムアウト（秒）
 LOCK_TIMEOUT = 5
 
 class LockTimeoutError(Exception):
-    """Raised when lock acquisition times out."""
+    """ロック取得がタイムアウトした場合に発生。"""
     pass
 
 def lock_timeout_handler(signum, frame):
-    raise LockTimeoutError("Lock acquisition timed out")
+    raise LockTimeoutError("ロック取得がタイムアウトしました")
 
 try:
     progress_file = os.environ.get('PROGRESS_FILE_PATH', '')
@@ -83,19 +80,19 @@ try:
     if not progress_file:
         sys.exit(0)
 
-    # Use file locking for safe concurrent access with timeout
+    # タイムアウト付きファイルロックで安全な並行アクセス
     lock_file = progress_file + '.lock'
     with open(lock_file, 'w') as lf:
-        # Set up timeout for lock acquisition
+        # ロック取得のタイムアウトを設定
         old_handler = signal.signal(signal.SIGALRM, lock_timeout_handler)
         signal.alarm(LOCK_TIMEOUT)
         try:
             fcntl.flock(lf.fileno(), fcntl.LOCK_EX)
-            signal.alarm(0)  # Cancel alarm on successful lock
+            signal.alarm(0)  # ロック成功時にアラームをキャンセル
         except LockTimeoutError:
             signal.alarm(0)
             signal.signal(signal.SIGALRM, old_handler)
-            print(f"Warning: Could not acquire lock within {LOCK_TIMEOUT}s, skipping progress update", file=sys.stderr)
+            print(f"警告: {LOCK_TIMEOUT}秒以内にロックを取得できませんでした。進捗の更新をスキップします", file=sys.stderr)
             sys.exit(0)
         finally:
             signal.signal(signal.SIGALRM, old_handler)
@@ -104,11 +101,11 @@ try:
             with open(progress_file, "r", encoding='utf-8') as f:
                 data = json.load(f)
 
-            # Add compaction event to history with more context
+            # コンパクションイベントを履歴に追加（より詳細なコンテキスト付き）
             if "compactionHistory" not in data:
                 data["compactionHistory"] = []
 
-            # Capture current state snapshot before compaction
+            # コンパクション前の現在の状態スナップショットをキャプチャ
             current_task = data.get("currentTask", "unknown")
             resumption_ctx = data.get("resumptionContext", {})
 
@@ -124,62 +121,62 @@ try:
                 }
             })
 
-            # Keep only last 10 compaction events
+            # 最新の10件のコンパクションイベントのみ保持
             data["compactionHistory"] = data["compactionHistory"][-10:]
 
-            # Update last compaction timestamp
+            # 最終コンパクションのタイムスタンプを更新
             data["lastCompaction"] = datetime.now().isoformat()
 
-            # Add compaction warning to resumption context
+            # 再開コンテキストにコンパクション警告を追加
             if "resumptionContext" not in data:
                 data["resumptionContext"] = {}
             data["resumptionContext"]["lastCompactionWarning"] = (
-                "Context was compacted. Subagent results and intermediate findings may have been lost. "
-                "Re-read key files and re-run critical analyses if needed."
+                "コンテキストがコンパクションされました。サブエージェントの結果や中間的な発見が失われている可能性があります。"
+                "必要に応じて重要なファイルを再読み込みし、重要な分析を再実行してください。"
             )
 
-            # Atomic write: write to temp file, fsync, then replace
+            # アトミック書き込み: 一時ファイルに書き込み、fsync、その後置換
             dir_name = os.path.dirname(progress_file)
             fd, temp_path = tempfile.mkstemp(dir=dir_name, suffix='.tmp')
             try:
                 with os.fdopen(fd, 'w', encoding='utf-8') as tf:
                     json.dump(data, tf, indent=2, ensure_ascii=False)
                     tf.flush()
-                    os.fsync(tf.fileno())  # Ensure data hits disk before rename
-                os.replace(temp_path, progress_file)  # More portable than os.rename
+                    os.fsync(tf.fileno())  # リネーム前にデータがディスクに書き込まれることを保証
+                os.replace(temp_path, progress_file)  # os.rename より移植性が高い
             except Exception:
                 if os.path.exists(temp_path):
                     os.unlink(temp_path)
                 raise
         finally:
-            pass  # Lock released when lf closes
+            pass  # lf がクローズされるときにロックが解放される
 
 except Exception as e:
-    # Don't block compaction on errors
-    print(f"Warning: Could not update progress file: {e}", file=sys.stderr)
+    # エラー時にコンパクションをブロックしない
+    print(f"警告: 進捗ファイルを更新できませんでした: {e}", file=sys.stderr)
 PYEOF
 fi
 
-# Output context via JSON systemMessage (stdout is not shown to users for PreCompact)
-# Build summary message
-SUMMARY="## Pre-Compaction State Saved
+# JSON systemMessage 経由でコンテキストを出力（PreCompact では stdout はユーザーに表示されない）
+# サマリーメッセージを構築
+SUMMARY="## コンパクション前の状態を保存しました
 
-**Trigger**: $TRIGGER
-**Workspace ID**: ${WORKSPACE_ID:-"(not set)"}
-**Progress File**: ${PROGRESS_FILE:-"(none detected)"}
+**トリガー**: $TRIGGER
+**ワークスペース ID**: ${WORKSPACE_ID:-"(未設定)"}
+**進捗ファイル**: ${PROGRESS_FILE:-"(検出されませんでした)"}
 
-Remember after compaction:
-- Read progress files to restore context
-- Workspace: \`.claude/workspaces/${WORKSPACE_ID}/\`
-- Check \`feature-list.json\` for current task
-- Continue from documented position"
+コンパクション後の注意:
+- 進捗ファイルを読み取ってコンテキストを復元してください
+- ワークスペース: \`.claude/workspaces/${WORKSPACE_ID}/\`
+- \`feature-list.json\` で現在のタスクを確認してください
+- ドキュメントに記載された位置から続行してください"
 
-# Output as JSON with systemMessage (will be shown to user)
+# JSON の systemMessage として出力（ユーザーに表示される）
 python3 -c "
 import json
 import sys
 summary = '''$SUMMARY'''
 print(json.dumps({'systemMessage': summary}))
-" 2>/dev/null || echo '{"systemMessage": "Pre-compaction state saved"}'
+" 2>/dev/null || echo '{"systemMessage": "コンパクション前の状態を保存しました"}'
 
 exit 0

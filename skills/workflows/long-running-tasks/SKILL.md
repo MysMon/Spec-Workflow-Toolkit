@@ -1,14 +1,14 @@
 ---
 name: long-running-tasks
 description: |
-  Patterns for autonomous, long-running tasks with state persistence and progress tracking.
+  状態の永続化と進捗トラッキングを伴う自律的なロングランニングタスクのパターン。
 
-  Use when:
-  - Task has multiple steps that need tracking
-  - Work may span context window limits
-  - Need to persist state between sessions
-  - Complex migrations, refactoring, or multi-file changes
-  - User says "complete everything" or "run autonomously"
+  以下の場合に使用:
+  - 追跡が必要な複数ステップのタスク
+  - コンテキストウィンドウの制限を超える可能性のある作業
+  - セッション間で状態を永続化する必要がある場合
+  - 複雑なマイグレーション、リファクタリング、複数ファイルの変更
+  - ユーザーが「全部完了して」「自律的に実行」と言った場合
 
   Trigger phrases: long task, autonomous, persist state, track progress, migration, refactoring, multi-step
 allowed-tools: Read, Write, Glob, Grep, Bash, TodoWrite
@@ -16,169 +16,169 @@ model: sonnet
 user-invocable: true
 ---
 
-# Long-Running Task Patterns
+# ロングランニングタスクパターン
 
-Techniques for managing complex, multi-step tasks that may exceed a single session or context window.
+単一セッションやコンテキストウィンドウを超える可能性のある複雑な複数ステップのタスクを管理するテクニック。
 
-## Initializer + Coding Agent Pattern
+## イニシャライザー + コーディングエージェントパターン
 
-Anthropic's recommended pattern uses **two distinct roles**:
+Anthropic の推奨パターンは **2 つの異なるロール** を使用する:
 
-### 1. Initializer Role (First Session Only)
+### 1. イニシャライザーロール（初回セッションのみ）
 
-On first run:
-- **Create** workspace progress files in `.claude/workspaces/{workspace-id}/`
-- **Analyze** the full task scope and break into features
-- **Initialize** git repository state
-- **Document** resumption context for future sessions
+初回実行時:
+- `.claude/workspaces/{workspace-id}/` にワークスペース進捗ファイルを**作成**
+- タスクの全スコープを**分析**し、機能に分解
+- git リポジトリの状態を**初期化**
+- 将来のセッション用の再開コンテキストを**記録**
 
-### 2. Coding Role (Each Session)
+### 2. コーディングロール（各セッション）
 
-On each session:
-1. **Read** progress files and git log
-2. **Identify** next incomplete feature
-3. **Implement** one feature at a time (not all at once!)
-4. **Test** the feature manually or automatically
-5. **Update** progress files with results
-6. **Commit** working code with descriptive message
+各セッションで:
+1. 進捗ファイルと git log を**読み取り**
+2. 次の未完了機能を**特定**
+3. 一度に 1 つの機能を**実装**（全部一度にやらない！）
+4. 機能を手動または自動で**テスト**
+5. 結果で進捗ファイルを**更新**
+6. 説明的なメッセージで動作するコードを**コミット**
 
-### Key Insight: "One Feature at a Time"
+### 重要な知見: 「一度に 1 つの機能」
 
-From Anthropic's research: The agent tends to try to do too much at once—essentially attempting to one-shot the app.
+Anthropic のリサーチより: エージェントは一度にやりすぎる傾向がある — 本質的にアプリをワンショットで試みる。
 
-**Solution**: Focus on ONE feature per session, test it thoroughly, then update progress.
+**解決策**: 1 セッションにつき 1 つの機能に集中し、徹底的にテストし、進捗を更新する。
 
 ---
 
-## Core Principles
+## 基本原則
 
-From Claude Code Best Practices:
+Claude Code Best Practices より:
 
-1. **Use TodoWrite extensively** - Break down work, track progress visibly
-2. **JSON-based state persistence** - Use `.claude/workspaces/{workspace-id}/claude-progress.json` and `.claude/workspaces/{workspace-id}/feature-list.json`
-3. **Checkpoint frequently** - Claude Code auto-saves before changes
-4. **Mark complete immediately** - Don't batch completions
+1. **TodoWrite を広範に使用** - 作業を分解し、進捗を可視化
+2. **JSON ベースの状態永続化** - `.claude/workspaces/{workspace-id}/claude-progress.json` と `.claude/workspaces/{workspace-id}/feature-list.json` を使用
+3. **頻繁にチェックポイント** - Claude Code は変更前に自動保存
+4. **即座に完了マーク** - 完了のバッチ処理をしない
 
-> **Why JSON over Markdown?** "Models are less likely to improperly modify JSON files compared to Markdown files." - Anthropic
+> **なぜ Markdown ではなく JSON か？** 「モデルは Markdown ファイルと比べて JSON ファイルを不適切に変更する可能性が低い。」 - Anthropic
 
-## State Management
+## 状態管理
 
-For detailed progress tracking implementation, see the `progress-tracking` skill which covers:
-- JSON file schemas (`claude-progress.json`, `feature-list.json`)
-- Workspace isolation (`{branch}_{path-hash}` format)
-- PreCompact hook integration and compaction recovery
-- Session tracking and resumption context
+詳細な進捗トラッキングの実装については `progress-tracking` スキルを参照:
+- JSON ファイルスキーマ（`claude-progress.json`、`feature-list.json`）
+- ワークスペース分離（`{branch}_{path-hash}` 形式）
+- PreCompact フック統合とコンパクション回復
+- セッション追跡と再開コンテキスト
 
-**Quick Reference:**
+**クイックリファレンス:**
 ```
 .claude/workspaces/{workspace-id}/
-├── claude-progress.json  # Progress log, resumption context
-└── feature-list.json     # Feature/task status tracking
+├── claude-progress.json  # 進捗ログ、再開コンテキスト
+└── feature-list.json     # 機能/タスクステータス追跡
 ```
 
-## TodoWrite Integration
+## TodoWrite 統合
 
-Use TodoWrite alongside JSON files:
+TodoWrite を JSON ファイルと併用:
 
-| System | Purpose | Scope |
-|--------|---------|-------|
-| TodoWrite | Real-time visibility | Current session |
-| JSON files | Persistence | Across sessions |
+| システム | 目的 | スコープ |
+|---------|------|---------|
+| TodoWrite | リアルタイム可視化 | 現在のセッション |
+| JSON ファイル | 永続化 | セッション横断 |
 
-**Flow:**
-1. Mark todo `in_progress` BEFORE starting work
-2. Mark `completed` IMMEDIATELY after finishing
-3. Keep only ONE `in_progress` at a time
-4. Sync from JSON files on session resume
+**フロー:**
+1. 作業開始前に todo を `in_progress` にマーク
+2. 完了直後に `completed` にマーク
+3. 一度に `in_progress` は 1 つだけ
+4. セッション再開時に JSON ファイルから同期
 
-## Large Migration Pattern
+## 大規模マイグレーションパターン
 
-For migrations affecting many files:
+多くのファイルに影響するマイグレーション:
 
-### Phase 1: Discovery
+### フェーズ 1: 発見
 
-**CRITICAL: Delegate bulk file discovery to code-explorer agent.**
+**重要: バルクファイル発見は code-explorer エージェントに委任する。**
 
-Do NOT run find/grep directly in orchestrator context. Instead:
+オーケストレーターのコンテキストで find/grep を直接実行しない。代わりに:
 
 ```markdown
-**Delegate to code-explorer:**
-- Task: Find all files matching `*.tsx` containing pattern `OldPattern`
-- Return: File list, match count, and estimated scope
-- Purpose: Discovery for migration planning
+**code-explorer に委任:**
+- タスク: `*.tsx` に一致し `OldPattern` パターンを含む全ファイルを検索
+- 返却: ファイル一覧、一致件数、推定スコープ
+- 目的: マイグレーション計画のための発見
 ```
 
-This preserves orchestrator context and follows the delegation-first principle.
-Document agent findings in plan file.
+これによりオーケストレーターのコンテキストを保持し、委任ファーストの原則に従う。
+エージェントの発見結果を計画ファイルに記録する。
 
-### Phase 2: Batch Processing
+### フェーズ 2: バッチ処理
 
-Process files in manageable batches:
+管理可能なバッチでファイルを処理:
 
 ```
-Batch 1: src/components/*.tsx (15 files)
-Batch 2: src/pages/*.tsx (8 files)
-Batch 3: src/utils/*.ts (4 files)
+バッチ 1: src/components/*.tsx（15 ファイル）
+バッチ 2: src/pages/*.tsx（8 ファイル）
+バッチ 3: src/utils/*.ts（4 ファイル）
 ```
 
-Track each batch as a separate todo.
+各バッチを個別の todo として追跡。
 
-### Phase 3: Verification
+### フェーズ 3: 検証
 
-After each batch:
-- Run tests
-- Check for regressions
-- Update progress
+各バッチ後:
+- テストを実行
+- リグレッションを確認
+- 進捗を更新
 
-## Background Tasks
+## バックグラウンドタスク
 
-For non-blocking operations:
+ノンブロッキング操作:
 
 ```bash
-# Run dev server in background
+# バックグラウンドで開発サーバーを実行
 npm run dev &
 
-# Run tests while continuing work
+# 作業を続けながらテストを実行
 npm test &
 
-# Use Ctrl+B to background running tasks
+# Ctrl+B で実行中タスクをバックグラウンドに
 ```
 
-Note:
-- Use background tasks only when the environment supports it.
-- In constrained environments, prefer foreground runs with explicit timeouts (e.g., `timeout 300 npm test`).
+注:
+- バックグラウンドタスクは環境がサポートしている場合のみ使用。
+- 制約のある環境では、明示的なタイムアウト付きフォアグラウンド実行を推奨（例: `timeout 300 npm test`）。
 
-## Subagent Resume Pattern
+## サブエージェント再開パターン
 
-Patterns for efficiently utilizing subagents in long-running tasks.
+ロングランニングタスクでサブエージェントを効率的に活用するパターン。
 
-### Why Resume Matters
+### 再開が重要な理由
 
-From Claude Code Subagents Documentation:
+Claude Code Subagents Documentation より:
 
-> "Resumed subagents retain their full conversation history, including all previous tool calls, results, and reasoning."
+> 「再開されたサブエージェントは、以前の全ツール呼び出し、結果、推論を含む完全な会話履歴を保持する。」
 
-Benefits of resuming subagents:
-- No need to rebuild context from scratch
-- Continue exactly where the agent stopped
-- Prevent loss of exploration results
-- Recover from permission errors or interruptions
+サブエージェント再開の利点:
+- コンテキストをゼロから再構築する必要がない
+- エージェントが停止したところから正確に継続
+- 探索結果の喪失を防止
+- 権限エラーや中断からのリカバリ
 
-### Basic Resume Pattern
+### 基本的な再開パターン
 
 ```
-Initial invocation:
-"Use code-explorer to analyze module A"
-[Agent completes, returns agent ID: agent-abc123]
+初回呼び出し:
+"code-explorer を使用してモジュール A を分析"
+[エージェント完了、エージェント ID: agent-abc123 を返す]
 
-Continuation (resume same agent):
-"Resume agent-abc123 and also analyze module B"
-[Resumes with full context from previous conversation]
+継続（同じエージェントを再開）:
+"agent-abc123 を再開し、モジュール B も分析"
+[以前の会話の完全なコンテキストで再開]
 ```
 
-### Orchestrator Resume Protocol
+### オーケストレーター再開プロトコル
 
-When orchestrating long tasks, track agent IDs for potential resume:
+ロングタスクのオーケストレーション時、再開の可能性のためにエージェント ID を追跡:
 
 ```json
 {
@@ -192,110 +192,110 @@ When orchestrating long tasks, track agent IDs for potential resume:
 }
 ```
 
-**Resume Decision Tree:**
+**再開の判断ツリー:**
 
 ```
-Agent completed successfully?
-├─ Yes: Store summary, clear agent ID
-└─ No (interrupted/failed):
-    ├─ Permission error → Resume in foreground
-    ├─ Context exhaustion → Start new agent with summary
-    └─ Network error → Resume after brief wait
+エージェントは正常に完了したか？
+├─ はい: サマリーを保存、エージェント ID をクリア
+└─ いいえ（中断/失敗）:
+    ├─ 権限エラー → フォアグラウンドで再開
+    ├─ コンテキスト枯渇 → サマリー付きで新しいエージェントを開始
+    └─ ネットワークエラー → 短い待機後に再開
 ```
 
-### Background Subagent Recovery
+### バックグラウンドサブエージェントのリカバリ
 
-When a background subagent fails due to missing permissions:
+バックグラウンドサブエージェントが権限不足で失敗した場合:
 
-1. The agent skips the failed tool call and continues
-2. After completion, can be resumed in foreground to retry
-3. Interactive permission prompts are available when resumed
+1. エージェントは失敗したツール呼び出しをスキップして続行
+2. 完了後、フォアグラウンドで再開してリトライ可能
+3. 再開時にインタラクティブな権限プロンプトが利用可能
 
-**Recovery Example:**
+**リカバリの例:**
 
 ```
-# Background agent hit permission error
-Agent agent-abc123 completed with partial results.
-Skipped operations: Write to /etc/config (permission denied)
+# バックグラウンドエージェントが権限エラーに遭遇
+エージェント agent-abc123 が部分的な結果で完了。
+スキップされた操作: /etc/config への書き込み（権限拒否）
 
-# Resume in foreground to complete
-Resume agent-abc123 in foreground to retry failed operations.
-[Interactive permission prompt appears]
+# フォアグラウンドで再開して完了
+agent-abc123 をフォアグラウンドで再開し、失敗した操作をリトライ。
+[インタラクティブ権限プロンプトが表示]
 ```
 
-### Background Subagent Limitations
+### バックグラウンドサブエージェントの制限
 
-| Feature | Foreground | Background |
-|---------|------------|------------|
-| MCP tools | Available | Not available |
-| Permission prompts | Interactive | Auto-denied |
-| AskUserQuestion | Available | Fails silently |
-| Resume | - | Can resume in foreground |
+| 機能 | フォアグラウンド | バックグラウンド |
+|------|---------------|----------------|
+| MCP ツール | 利用可能 | 利用不可 |
+| 権限プロンプト | インタラクティブ | 自動拒否 |
+| AskUserQuestion | 利用可能 | サイレント失敗 |
+| 再開 | - | フォアグラウンドで再開可能 |
 
-**Critical Implications for Orchestrators:**
+**オーケストレーターへの重要な影響:**
 
-1. **MCP Tools Unavailable**: Background subagents cannot use MCP-provided tools (e.g., `mcp__github__*`, `mcp__memory__*`). If a task requires MCP tools, run the agent in foreground or split the work.
+1. **MCP ツール利用不可**: バックグラウンドサブエージェントは MCP 提供ツール（例: `mcp__github__*`、`mcp__memory__*`）を使用できない。タスクが MCP ツールを必要とする場合、フォアグラウンドで実行するか作業を分割する。
 
-2. **Permission Auto-Denial**: When a background agent attempts an operation requiring permission (e.g., writing to a new file outside allowed paths), the operation is silently skipped. The agent continues but may produce incomplete results.
+2. **権限の自動拒否**: バックグラウンドエージェントが権限を必要とする操作（例: 許可パス外の新ファイルへの書き込み）を試みると、操作はサイレントにスキップされる。エージェントは続行するが不完全な結果になる可能性がある。
 
-3. **AskUserQuestion Fails Silently**: Background agents cannot ask clarifying questions. If an agent needs user input mid-task, it will either:
-   - Skip the step and note it in the result
-   - Make a default assumption (potentially incorrect)
-   - Fail the subtask
+3. **AskUserQuestion のサイレント失敗**: バックグラウンドエージェントは明確化の質問ができない。タスク途中でユーザー入力が必要な場合:
+   - ステップをスキップして結果に記録
+   - デフォルトの仮定をする（潜在的に不正確）
+   - サブタスクを失敗させる
 
-4. **Recovery Strategy**: When background agent results are incomplete:
+4. **リカバリ戦略**: バックグラウンドエージェントの結果が不完全な場合:
    ```
-   Check agent result for:
-   - "Skipped operations" or "partial results" indicators
-   - Missing expected outputs
-   - Lower-than-expected confidence scores
+   エージェント結果で以下を確認:
+   - 「スキップされた操作」や「部分的な結果」の表示
+   - 期待される出力の欠落
+   - 予想より低い確信度スコア
 
-   If incomplete:
-   → Resume agent in foreground to complete interactively
-   → Or start new foreground agent with specific instructions
+   不完全な場合:
+   → エージェントをフォアグラウンドで再開してインタラクティブに完了
+   → または具体的な指示で新しいフォアグラウンドエージェントを開始
    ```
 
-### When to Use Resume
+### 再開を使用すべき場面
 
-| Scenario | Recommended Action |
-|----------|-------------------|
-| Expanding exploration | Resume same code-explorer |
-| Additional review checks | Resume same security-auditor |
-| Recovering from permission errors | Resume in foreground |
-| Agent hit context limit | Start new agent with summary |
-| Need completely fresh perspective | Launch new agent |
+| シナリオ | 推奨アクション |
+|---------|-------------|
+| 探索の拡大 | 同じ code-explorer を再開 |
+| 追加のレビューチェック | 同じ security-auditor を再開 |
+| 権限エラーからのリカバリ | フォアグラウンドで再開 |
+| エージェントがコンテキスト上限に達した | サマリー付きで新しいエージェントを開始 |
+| 完全に新しい視点が必要 | 新しいエージェントを起動 |
 
-### Resume Decision Tree
+### 再開の判断ツリー
 
-Use this decision tree to determine whether to resume an existing agent or start fresh:
+既存のエージェントを再開するか新規に開始するかを決定するための判断ツリー:
 
 ```
-Agent task completed?
-├─ No (interrupted/failed):
-│   ├─ Permission error?
-│   │   └─ YES → Resume in foreground (interactive prompts available)
-│   ├─ Network/transient error?
-│   │   └─ YES → Resume after brief wait
-│   ├─ Context exhaustion?
-│   │   └─ YES → Start NEW agent with summary of previous work
-│   └─ User cancellation?
-│       └─ YES → Resume if work should continue, else new agent
+エージェントタスクは完了したか？
+├─ いいえ（中断/失敗）:
+│   ├─ 権限エラー？
+│   │   └─ はい → フォアグラウンドで再開（インタラクティブプロンプトが利用可能）
+│   ├─ ネットワーク/一時的エラー？
+│   │   └─ はい → 短い待機後に再開
+│   ├─ コンテキスト枯渇？
+│   │   └─ はい → 以前の作業のサマリーで新しいエージェントを開始
+│   └─ ユーザーキャンセル？
+│       └─ はい → 作業を続けるべきなら再開、そうでなければ新しいエージェント
 │
-└─ Yes (completed successfully):
-    ├─ Need follow-up on SAME topic?
-    │   └─ YES → Resume (preserves context)
-    ├─ Need work on DIFFERENT topic?
-    │   └─ YES → Start NEW agent
-    └─ Results insufficient?
-        ├─ Missing depth?
-        │   └─ Resume with "dig deeper into X"
-        └─ Wrong direction?
-            └─ Start NEW agent with corrected prompt
+└─ はい（正常に完了）:
+    ├─ 同じトピックのフォローアップが必要？
+    │   └─ はい → 再開（コンテキストを保持）
+    ├─ 別のトピックの作業が必要？
+    │   └─ はい → 新しいエージェントを開始
+    └─ 結果が不十分？
+        ├─ 深さが不足？
+        │   └─ 「X についてより深く調査」で再開
+        └─ 方向が間違い？
+            └─ 修正されたプロンプトで新しいエージェントを開始
 ```
 
-### Agent ID Tracking Best Practice
+### エージェント ID 追跡のベストプラクティス
 
-Track agent IDs in your orchestration state for efficient resume:
+効率的な再開のためにオーケストレーション状態でエージェント ID を追跡:
 
 ```json
 {
@@ -329,86 +329,86 @@ Track agent IDs in your orchestration state for efficient resume:
 }
 ```
 
-**Orchestrator Protocol:**
+**オーケストレータープロトコル:**
 
-1. **On agent launch**: Record agent ID and task description
-2. **On agent completion**: Move to completed list with summary
-3. **On agent failure**: Record failure reason and recovery action
-4. **Before starting new similar work**: Check if resumable agent exists
+1. **エージェント起動時**: エージェント ID とタスク説明を記録
+2. **エージェント完了時**: サマリー付きで完了リストに移動
+3. **エージェント失敗時**: 失敗理由とリカバリアクションを記録
+4. **類似の新しい作業の開始前**: 再開可能なエージェントが存在するか確認
 
-### Context Preservation on Resume
+### 再開時のコンテキスト保持
 
-When resuming, the agent retains:
-- Full conversation history
-- All previous tool calls and results
-- Reasoning and decisions made
-- Files read and analysis performed
+再開時、エージェントは以下を保持:
+- 完全な会話履歴
+- 以前の全ツール呼び出しと結果
+- 推論と行った決定
+- 読んだファイルと実施した分析
 
-This makes resume ideal for:
-- Iterative exploration (analyze A, then B, then C)
-- Multi-phase reviews (security, then performance, then accessibility)
-- Error recovery without losing work
+これにより再開は以下に最適:
+- 反復的な探索（A を分析、次に B、次に C）
+- 多フェーズレビュー（セキュリティ、次にパフォーマンス、次にアクセシビリティ）
+- 作業を失わないエラーリカバリ
 
-### Transcript Location
+### トランスクリプトの場所
 
-Subagent transcripts are stored at:
+サブエージェントのトランスクリプトは以下に保存:
 ```
 ~/.claude/projects/{project}/{sessionId}/subagents/agent-{agentId}.jsonl
 ```
 
-Automatic cleanup after 30 days by default (configurable via `cleanupPeriodDays` setting).
+デフォルトで 30 日後に自動クリーンアップ（`cleanupPeriodDays` 設定で変更可能）。
 
-## Multi-Session Work
+## マルチセッション作業
 
-**End of Session:**
-1. Update progress files with current position
-2. Commit WIP changes with descriptive message
-3. Ensure `resumptionContext.nextAction` is specific
+**セッション終了時:**
+1. 現在の位置で進捗ファイルを更新
+2. 説明的なメッセージで WIP 変更をコミット
+3. `resumptionContext.nextAction` が具体的であることを確認
 
-**Start of Next Session:**
-1. Read workspace progress files
-2. Find first `pending` or `in_progress` feature
-3. Continue from documented position
+**次のセッション開始時:**
+1. ワークスペース進捗ファイルを読む
+2. 最初の `pending` または `in_progress` 機能を見つける
+3. 記録された位置から続行
 
-For detailed session protocols and examples, see the `progress-tracking` skill.
+詳細なセッションプロトコルと例は `progress-tracking` スキルを参照。
 
-## Anti-Patterns to Avoid
+## 避けるべきアンチパターン
 
-| Anti-Pattern | Why Bad | Instead |
+| アンチパターン | 悪い理由 | 代わりに |
 |--------------|---------|---------|
-| Batching completions | Loses progress on failure | Mark complete immediately |
-| Multiple in_progress | Confusing, loses focus | One at a time |
-| No state file | Can't resume | Always document state |
-| No progress log | Can't track what happened | Log each action |
-| Skipping tests | Regressions compound | Test after each batch |
+| 完了のバッチ処理 | 失敗時に進捗を失う | 即座に完了マーク |
+| 複数の in_progress | 混乱、焦点を失う | 一度に 1 つ |
+| 状態ファイルなし | 再開できない | 常に状態を記録 |
+| 進捗ログなし | 何が起きたか追跡できない | 各アクションをログ |
+| テストをスキップ | リグレッションが複合化 | 各バッチ後にテスト |
 
 ## Rules (L1 - Hard)
 
-Critical for session continuity and data integrity.
+セッション継続性とデータ整合性に不可欠。
 
-- ALWAYS include workspaceId in progress files (prevents workspace conflicts)
-- NEVER write to progress files outside current workspace
-- ALWAYS read workspace progress files first after compaction or new session
-- NEVER have more than one todo in_progress (focus and clarity)
-- NEVER attempt multiple features simultaneously (causes incomplete implementations)
-- ALWAYS focus on ONE feature per session: implement → test → update progress → commit → next
-- MUST complete current feature before starting next (prevents context explosion)
+- ALWAYS: 進捗ファイルに workspaceId を含める（ワークスペースの競合防止）
+- NEVER: 現在のワークスペース外の進捗ファイルに書き込まない
+- ALWAYS: コンパクション後または新しいセッションでは最初にワークスペース進捗ファイルを読む
+- NEVER: 複数の todo を in_progress にしない（焦点と明確さ）
+- NEVER: 複数の機能を同時に試みない（不完全な実装の原因）
+- ALWAYS: 1 セッション 1 機能に集中: 実装 → テスト → 進捗更新 → コミット → 次へ
+- MUST: 現在の機能を完了してから次を開始（コンテキスト爆発の防止）
 
 ## Defaults (L2 - Soft)
 
-Important for effective long-running tasks. Override with reasoning when appropriate.
+効果的なロングランニングタスクに重要。適切な理由がある場合はオーバーライド可。
 
-- Create workspace progress files for tasks > 3 steps
-- Use workspace-isolated paths: `.claude/workspaces/{workspace-id}/`
-- Update progress files after each significant action
-- Mark todos complete immediately (not batched)
-- Document resumption context in JSON (position, nextAction, keyFiles)
-- Test after batched changes
-- Use JSON for state persistence (not plain text)
+- 3 ステップを超えるタスクにはワークスペース進捗ファイルを作成
+- ワークスペース分離パスを使用: `.claude/workspaces/{workspace-id}/`
+- 各重要なアクション後に進捗ファイルを更新
+- todo は即座に完了マーク（バッチ処理しない）
+- 再開コンテキストを JSON で記録（position、nextAction、keyFiles）
+- バッチ変更後にテスト
+- 状態永続化には JSON を使用（プレーンテキストではなく）
 
 ## Guidelines (L3)
 
-Recommendations for managing complex tasks.
+複雑なタスク管理のための推奨事項。
 
-- Consider using the Initializer + Coding pattern for multi-session work
-- Consider background subagents for non-blocking operations
+- consider: マルチセッション作業にはイニシャライザー + コーディングパターンの使用を検討
+- consider: ノンブロッキング操作にはバックグラウンドサブエージェントを検討

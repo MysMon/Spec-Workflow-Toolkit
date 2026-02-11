@@ -1,12 +1,12 @@
 ---
 name: stack-detector
 description: |
-  Automatically detects project technology stack from configuration files and source code. Use when:
-  - Starting work on a new or unfamiliar codebase
-  - Need to identify programming language, frameworks, or tools
-  - Determining which testing, linting, or build commands to use
-  - Adapting patterns to the project's specific technology
-  - Asked "what stack is this" or "what framework"
+  設定ファイルとソースコードからプロジェクトの技術スタックを自動検出する。使用場面:
+  - 新しいまたは不慣れなコードベースでの作業開始
+  - プログラミング言語、フレームワーク、ツールの特定が必要な場合
+  - テスト、リンティング、ビルドコマンドの決定
+  - プロジェクト固有の技術にパターンを適応させる場合
+  - 「どのスタック？」「どのフレームワーク？」と聞かれた場合
   Trigger phrases: detect stack, what framework, identify technology, project setup, package.json, go.mod, Cargo.toml, requirements.txt
 allowed-tools: Read, Glob, Grep, Bash
 model: haiku
@@ -15,20 +15,20 @@ context: fork
 agent: Explore
 ---
 
-# Stack Detector
+# スタック検出
 
-Automatically identifies the technology stack of a project by analyzing configuration files and source code patterns.
+設定ファイルとソースコードパターンを分析して、プロジェクトの技術スタックを自動的に特定する。
 
-## Detection Process
+## 検出プロセス
 
-### Step 1: Scan for Configuration Files
+### ステップ 1: 設定ファイルのスキャン
 
-Look for these indicator files in the project root:
+プロジェクトルートでこれらの指標ファイルを探す:
 
 ```bash
-# Run these checks (presence indicates stack)
+# これらのチェックを実行（存在がスタックを示す）
 ls -la package.json         # JavaScript/Node.js
-ls -la pyproject.toml       # Python (modern)
+ls -la pyproject.toml       # Python（モダン）
 ls -la requirements.txt     # Python
 ls -la go.mod               # Go
 ls -la Cargo.toml           # Rust
@@ -43,10 +43,10 @@ ls -la pubspec.yaml         # Dart/Flutter
 ls -la Package.swift        # Swift
 ```
 
-### Step 2: Identify Primary Language
+### ステップ 2: 主要言語の特定
 
-| Config File | Primary Language | Package Manager |
-|-------------|------------------|-----------------|
+| 設定ファイル | 主要言語 | パッケージマネージャー |
+|-------------|----------|---------------------|
 | `package.json` | JavaScript/TypeScript | npm/yarn/pnpm/bun |
 | `pyproject.toml` | Python | pip/poetry/uv |
 | `requirements.txt` | Python | pip |
@@ -61,126 +61,126 @@ ls -la Package.swift        # Swift
 | `pubspec.yaml` | Dart | pub |
 | `Package.swift` | Swift | SwiftPM |
 
-### Step 2a: Detect Package Manager (JavaScript)
+### ステップ 2a: パッケージマネージャーの検出（JavaScript）
 
-| Lock File | Package Manager |
-|-----------|-----------------|
+| ロックファイル | パッケージマネージャー |
+|--------------|---------------------|
 | `package-lock.json` | npm |
 | `yarn.lock` | yarn |
 | `pnpm-lock.yaml` | pnpm |
 | `bun.lockb` | bun |
 
-### Step 3: Detect Frameworks
+### ステップ 3: フレームワークの検出
 
-#### JavaScript/TypeScript Frameworks
+#### JavaScript/TypeScript フレームワーク
 ```bash
-# Check package.json for dependencies
+# package.json の依存関係をチェック
 grep -E '"(react|vue|angular|svelte|next|nuxt|express|fastify|hono|nestjs)"' package.json
 ```
 
-| Dependency | Framework Type | Category |
-|------------|----------------|----------|
-| `react`, `react-dom` | React | Frontend |
-| `next` | Next.js | Full-stack |
-| `vue` | Vue.js | Frontend |
-| `nuxt` | Nuxt.js | Full-stack |
-| `@angular/core` | Angular | Frontend |
-| `svelte` | Svelte | Frontend |
-| `express` | Express | Backend |
-| `fastify` | Fastify | Backend |
-| `hono` | Hono | Backend |
-| `@nestjs/core` | NestJS | Backend |
+| 依存関係 | フレームワーク | カテゴリ |
+|---------|---------------|---------|
+| `react`, `react-dom` | React | フロントエンド |
+| `next` | Next.js | フルスタック |
+| `vue` | Vue.js | フロントエンド |
+| `nuxt` | Nuxt.js | フルスタック |
+| `@angular/core` | Angular | フロントエンド |
+| `svelte` | Svelte | フロントエンド |
+| `express` | Express | バックエンド |
+| `fastify` | Fastify | バックエンド |
+| `hono` | Hono | バックエンド |
+| `@nestjs/core` | NestJS | バックエンド |
 
-#### Python Frameworks
+#### Python フレームワーク
 ```bash
-# Check pyproject.toml or requirements.txt
+# pyproject.toml または requirements.txt をチェック
 grep -E '(django|flask|fastapi|starlette)' pyproject.toml requirements.txt 2>/dev/null
 ```
 
-| Dependency | Framework | Category |
-|------------|-----------|----------|
-| `django` | Django | Full-stack |
-| `flask` | Flask | Backend |
-| `fastapi` | FastAPI | Backend |
-| `starlette` | Starlette | Backend |
+| 依存関係 | フレームワーク | カテゴリ |
+|---------|---------------|---------|
+| `django` | Django | フルスタック |
+| `flask` | Flask | バックエンド |
+| `fastapi` | FastAPI | バックエンド |
+| `starlette` | Starlette | バックエンド |
 
-#### Go Frameworks
+#### Go フレームワーク
 ```bash
-# Check go.mod
+# go.mod をチェック
 grep -E '(gin|echo|fiber|chi)' go.mod 2>/dev/null
 ```
 
-#### Rust Frameworks
+#### Rust フレームワーク
 ```bash
-# Check Cargo.toml
+# Cargo.toml をチェック
 grep -E '(actix|axum|rocket|warp)' Cargo.toml 2>/dev/null
 ```
 
-#### PHP Frameworks
+#### PHP フレームワーク
 ```bash
-# Check composer.json
+# composer.json をチェック
 grep -E '(laravel|symfony|slim|laminas)' composer.json 2>/dev/null
 ```
 
-| Dependency | Framework | Category |
-|------------|-----------|----------|
-| `laravel/framework` | Laravel | Full-stack |
-| `symfony/framework-bundle` | Symfony | Full-stack |
-| `slim/slim` | Slim | Backend |
+| 依存関係 | フレームワーク | カテゴリ |
+|---------|---------------|---------|
+| `laravel/framework` | Laravel | フルスタック |
+| `symfony/framework-bundle` | Symfony | フルスタック |
+| `slim/slim` | Slim | バックエンド |
 | `wordpress` | WordPress | CMS |
 
-#### Ruby Frameworks
+#### Ruby フレームワーク
 ```bash
-# Check Gemfile
+# Gemfile をチェック
 grep -E '(rails|sinatra|hanami)' Gemfile 2>/dev/null
 ```
 
-| Dependency | Framework | Category |
-|------------|-----------|----------|
-| `rails` | Ruby on Rails | Full-stack |
-| `sinatra` | Sinatra | Backend |
-| `hanami` | Hanami | Full-stack |
+| 依存関係 | フレームワーク | カテゴリ |
+|---------|---------------|---------|
+| `rails` | Ruby on Rails | フルスタック |
+| `sinatra` | Sinatra | バックエンド |
+| `hanami` | Hanami | フルスタック |
 
-#### C# / .NET Frameworks
+#### C# / .NET フレームワーク
 ```bash
-# Check *.csproj for PackageReference
+# *.csproj の PackageReference をチェック
 grep -E '(Microsoft.AspNetCore|Blazor)' *.csproj 2>/dev/null
 ```
 
-| Dependency | Framework | Category |
-|------------|-----------|----------|
-| `Microsoft.AspNetCore` | ASP.NET Core | Backend |
-| `Microsoft.AspNetCore.Components` | Blazor | Frontend |
-| `Microsoft.Maui` | .NET MAUI | Mobile |
+| 依存関係 | フレームワーク | カテゴリ |
+|---------|---------------|---------|
+| `Microsoft.AspNetCore` | ASP.NET Core | バックエンド |
+| `Microsoft.AspNetCore.Components` | Blazor | フロントエンド |
+| `Microsoft.Maui` | .NET MAUI | モバイル |
 
-#### Kotlin Frameworks
+#### Kotlin フレームワーク
 ```bash
-# Check build.gradle.kts
+# build.gradle.kts をチェック
 grep -E '(ktor|spring)' build.gradle.kts 2>/dev/null
 ```
 
-| Dependency | Framework | Category |
-|------------|-----------|----------|
-| `io.ktor` | Ktor | Backend |
-| `org.springframework.boot` | Spring Boot | Backend |
-| Android SDK | Android | Mobile |
+| 依存関係 | フレームワーク | カテゴリ |
+|---------|---------------|---------|
+| `io.ktor` | Ktor | バックエンド |
+| `org.springframework.boot` | Spring Boot | バックエンド |
+| Android SDK | Android | モバイル |
 
-#### Swift Frameworks
+#### Swift フレームワーク
 ```bash
-# Check Package.swift or project for frameworks
+# Package.swift またはプロジェクトのフレームワークをチェック
 grep -E '(vapor|perfect|kitura)' Package.swift 2>/dev/null
 ```
 
-| Dependency | Framework | Category |
-|------------|-----------|----------|
-| `vapor` | Vapor | Backend |
-| SwiftUI | SwiftUI | Frontend |
-| UIKit | UIKit | Frontend |
+| 依存関係 | フレームワーク | カテゴリ |
+|---------|---------------|---------|
+| `vapor` | Vapor | バックエンド |
+| SwiftUI | SwiftUI | フロントエンド |
+| UIKit | UIKit | フロントエンド |
 
-### Step 4: Detect Database/ORM
+### ステップ 4: データベース/ORM の検出
 
-| Indicator | Technology |
-|-----------|------------|
+| 指標 | 技術 |
+|------|------|
 | `prisma/schema.prisma` | Prisma ORM |
 | `drizzle.config.ts` | Drizzle ORM |
 | `typeorm` in deps | TypeORM |
@@ -190,10 +190,10 @@ grep -E '(vapor|perfect|kitura)' Package.swift 2>/dev/null
 | `gorm` in go.mod | GORM |
 | `diesel` in Cargo.toml | Diesel |
 
-### Step 5: Detect Testing Framework
+### ステップ 5: テストフレームワークの検出
 
-| Config/Dependency | Testing Framework |
-|-------------------|-------------------|
+| 設定/依存関係 | テストフレームワーク |
+|-------------|-------------------|
 | `vitest.config.*` | Vitest |
 | `jest.config.*` | Jest |
 | `pytest` in deps | pytest |
@@ -202,34 +202,34 @@ grep -E '(vapor|perfect|kitura)' Package.swift 2>/dev/null
 | `cypress.config.*` | Cypress |
 | `playwright.config.*` | Playwright |
 
-### Step 6: Detect CI/CD
+### ステップ 6: CI/CD の検出
 
-| File | CI/CD Platform |
-|------|----------------|
+| ファイル | CI/CD プラットフォーム |
+|---------|---------------------|
 | `.github/workflows/` | GitHub Actions |
 | `.gitlab-ci.yml` | GitLab CI |
 | `Jenkinsfile` | Jenkins |
 | `.circleci/config.yml` | CircleCI |
 | `azure-pipelines.yml` | Azure DevOps |
 
-### Step 7: Detect Infrastructure
+### ステップ 7: インフラの検出
 
-| File | Infrastructure |
-|------|----------------|
+| ファイル | インフラ |
+|---------|---------|
 | `Dockerfile` | Docker |
 | `docker-compose.yml` | Docker Compose |
 | `*.tf` | Terraform |
 | `kubernetes/`, `k8s/` | Kubernetes |
 | `serverless.yml` | Serverless Framework |
 
-## Output Format
+## 出力形式
 
-After detection, output a stack profile:
+検出後、スタックプロファイルを出力:
 
 ```yaml
 Stack Profile:
-  language: [Primary language]
-  runtime: [Runtime version if detectable]
+  language: [主要言語]
+  runtime: [検出可能な場合のランタイムバージョン]
   package_manager: [npm|yarn|pip|cargo|etc]
 
   frontend:
@@ -257,46 +257,46 @@ Stack Profile:
     - [skill-name-2]
 ```
 
-## Skill Recommendations
+## スキル推奨
 
-Based on detected stack, recommend loading these task-oriented skills:
+検出されたスタックに基づいて、以下のタスク指向スキルの読み込みを推奨:
 
-| Context | Recommended Skills |
-|---------|-------------------|
-| Any project | `code-quality`, `testing` |
-| With Prisma/SQL | `migration` |
-| With Docker/K8s | (use `devops-sre` agent) |
-| API Development | `api-design` |
-| Production Systems | `observability` |
-| New features | `spec-philosophy`, `interview` |
-| Security-sensitive | `security-fundamentals` |
+| コンテキスト | 推奨スキル |
+|-------------|-----------|
+| すべてのプロジェクト | `code-quality`, `testing` |
+| Prisma/SQL あり | `migration` |
+| Docker/K8s あり | （`devops-sre` エージェントを使用） |
+| API 開発 | `api-design` |
+| 本番システム | `observability` |
+| 新機能 | `spec-philosophy`, `interview` |
+| セキュリティ重要 | `security-fundamentals` |
 
-## Usage
+## 使用方法
 
-This skill is typically invoked automatically by other agents:
+このスキルは通常、他のエージェントによって自動的に呼び出される:
 
-1. Agent receives task
-2. Agent loads `stack-detector`
-3. Stack profile is generated
-4. Agent proceeds with stack-specific patterns (Claude already knows language best practices)
+1. エージェントがタスクを受信
+2. エージェントが `stack-detector` を読み込む
+3. スタックプロファイルが生成される
+4. エージェントがスタック固有のパターンで処理を進行（Claude は言語のベストプラクティスを既に知っている）
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-Critical for accurate detection.
+正確な検出にとって重要。
 
-- NEVER assume stack without evidence (inaccurate recommendations)
+- NEVER: 証拠なしにスタックを推測しない（不正確な推奨になる）
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-Important for reliable detection. Override with reasoning when appropriate.
+信頼性の高い検出にとって重要。適切な理由がある場合はオーバーライド可能。
 
-- Check multiple indicators (don't rely on single file)
-- Report uncertainty if mixed signals
-- List detected tools in output
+- 複数の指標をチェックする（単一のファイルに依存しない）
+- 混合シグナルの場合は不確実性を報告
+- 検出されたツールを出力にリスト化
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-Recommendations for thorough detection.
+徹底的な検出のための推奨事項。
 
-- Consider checking recent git history for technology changes
-- Prefer checking actual source files over just config when ambiguous
+- consider: 技術変更について最近の git 履歴をチェックすることを検討
+- recommend: 曖昧な場合は設定ファイルだけでなく実際のソースファイルのチェックを推奨

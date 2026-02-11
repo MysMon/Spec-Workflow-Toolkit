@@ -1,145 +1,145 @@
-# Specification Template Reference
+# 仕様テンプレートリファレンス
 
-Full specification template for SDD workflow.
+SDD ワークフロー用の完全な仕様テンプレート。
 
-## Complete Template
+## 完全テンプレート
 
 ```markdown
-# Feature: [Name]
+# 機能: [名前]
 
-## Document Info
-- **Version**: 1.0
-- **Status**: Draft | In Review | Approved | Implemented
-- **Created**: YYYY-MM-DD
-- **Last Updated**: YYYY-MM-DD
+## ドキュメント情報
+- **バージョン**: 1.0
+- **ステータス**: ドラフト | レビュー中 | 承認済み | 実装済み
+- **作成日**: YYYY-MM-DD
+- **最終更新日**: YYYY-MM-DD
 
-## Overview
-[2-3 sentence business value summary. What problem does this solve?]
+## 概要
+[2-3 文のビジネス価値の要約。どのような問題を解決するか？]
 
-## Background
-[Why is this needed? What is the current state?]
+## 背景
+[なぜこれが必要か？現在の状態は？]
 
-## User Stories
+## ユーザーストーリー
 
-### Primary Users
-- **Persona 1**: [Description]
-- **Persona 2**: [Description]
+### 主要ユーザー
+- **ペルソナ 1**: [説明]
+- **ペルソナ 2**: [説明]
 
-### Stories
-| ID | Story | Priority |
-|----|-------|----------|
-| US-001 | As a [user], I want [goal] so that [benefit] | P0 |
-| US-002 | As a [user], I want [goal] so that [benefit] | P1 |
+### ストーリー
+| ID | ストーリー | 優先度 |
+|----|-----------|--------|
+| US-001 | [ユーザー] として、[ゴール] したい。[メリット] のために | P0 |
+| US-002 | [ユーザー] として、[ゴール] したい。[メリット] のために | P1 |
 
-## Functional Requirements
+## 機能要件
 
-| ID | Requirement | Priority | Acceptance Criteria |
-|----|-------------|----------|---------------------|
-| FR-001 | System SHALL [action] | P0 | GIVEN [context] WHEN [action] THEN [result] |
-| FR-002 | System SHALL [action] | P1 | GIVEN [context] WHEN [action] THEN [result] |
+| ID | 要件 | 優先度 | 受け入れ基準 |
+|----|------|--------|-------------|
+| FR-001 | システムは [アクション] する | P0 | GIVEN [コンテキスト] WHEN [アクション] THEN [結果] |
+| FR-002 | システムは [アクション] する | P1 | GIVEN [コンテキスト] WHEN [アクション] THEN [結果] |
 
-### Priority Legend
-- **P0**: Must have (launch blocker)
-- **P1**: Should have (important)
-- **P2**: Nice to have (if time permits)
-- **P3**: Future consideration
+### 優先度の凡例
+- **P0**: 必須（リリースブロッカー）
+- **P1**: 重要（あるべき）
+- **P2**: あれば良い（時間が許せば）
+- **P3**: 将来の検討事項
 
-## Non-Functional Requirements
+## 非機能要件
 
-| ID | Category | Requirement | Measurement |
-|----|----------|-------------|-------------|
-| NFR-001 | Performance | Response time < 200ms | p95 latency |
-| NFR-002 | Security | All inputs validated | Audit scan |
-| NFR-003 | Scalability | Support 1000 concurrent users | Load test |
-| NFR-004 | Availability | 99.9% uptime | Monitoring |
-| NFR-005 | Accessibility | WCAG 2.1 AA compliant | axe-core |
+| ID | カテゴリ | 要件 | 測定方法 |
+|----|----------|------|----------|
+| NFR-001 | パフォーマンス | レスポンスタイム < 200ms | p95 レイテンシ |
+| NFR-002 | セキュリティ | すべての入力をバリデーション | 監査スキャン |
+| NFR-003 | スケーラビリティ | 1000 同時ユーザーをサポート | 負荷テスト |
+| NFR-004 | 可用性 | 99.9% アップタイム | モニタリング |
+| NFR-005 | アクセシビリティ | WCAG 2.1 AA 準拠 | axe-core |
 
-## Technical Design
+## 技術設計
 
-### Architecture
-[High-level architecture description or diagram reference]
+### アーキテクチャ
+[ハイレベルのアーキテクチャ説明またはダイアグラム参照]
 
-### Data Model
-[Key entities and relationships]
+### データモデル
+[主要なエンティティと関係]
 
-### API Contracts
-[Endpoint definitions or OpenAPI reference]
+### API 契約
+[エンドポイント定義または OpenAPI リファレンス]
 
-### Dependencies
-- [External service 1]
-- [Library 1]
+### 依存関係
+- [外部サービス 1]
+- [ライブラリ 1]
 
-## Edge Cases
+## エッジケース
 
-| Scenario | Expected Behavior |
-|----------|-------------------|
-| User has no network | Show cached data with offline indicator |
-| Invalid input | Display validation error, don't submit |
-| Concurrent edit | Last-write-wins with conflict notification |
+| シナリオ | 期待される動作 |
+|----------|---------------|
+| ユーザーにネットワークがない | キャッシュデータをオフラインインジケーター付きで表示 |
+| 無効な入力 | バリデーションエラーを表示、送信しない |
+| 同時編集 | 競合通知付きの Last-write-wins |
 
-## Out of Scope
-- [Explicitly excluded item 1]
-- [Explicitly excluded item 2]
+## スコープ外
+- [明示的に除外された項目 1]
+- [明示的に除外された項目 2]
 
-## Security Considerations
-- [ ] Authentication required
-- [ ] Authorization checks
-- [ ] Input validation
-- [ ] Output encoding
-- [ ] Rate limiting
-- [ ] Audit logging
+## セキュリティ考慮事項
+- [ ] 認証が必要
+- [ ] 認可チェック
+- [ ] 入力バリデーション
+- [ ] 出力エンコーディング
+- [ ] レート制限
+- [ ] 監査ロギング
 
-## Testing Strategy
-- Unit tests for business logic
-- Integration tests for API endpoints
-- E2E tests for critical user journeys
+## テスト戦略
+- ビジネスロジックのユニットテスト
+- API エンドポイントの統合テスト
+- クリティカルなユーザージャーニーの E2E テスト
 
-## Rollout Plan
-1. Feature flag deployment
-2. Internal testing
-3. Beta users (10%)
-4. General availability
+## ロールアウト計画
+1. フィーチャーフラグでデプロイ
+2. 内部テスト
+3. ベータユーザー（10%）
+4. 一般公開
 
-## Metrics & Success Criteria
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| User adoption | 80% within 2 weeks | Analytics |
-| Error rate | < 0.1% | Error tracking |
-| Performance | p95 < 200ms | APM |
+## 指標と成功基準
+| 指標 | 目標 | 測定方法 |
+|------|------|----------|
+| ユーザー採用率 | 2 週間以内に 80% | アナリティクス |
+| エラー率 | < 0.1% | エラートラッキング |
+| パフォーマンス | p95 < 200ms | APM |
 
-## Open Questions
-- [ ] [Question that needs resolution]
+## 未解決の質問
+- [ ] [解決が必要な質問]
 
-## Approval
+## 承認
 
-| Role | Name | Date | Signature |
-|------|------|------|-----------|
-| Product Owner | | | [ ] Approved |
-| Tech Lead | | | [ ] Approved |
-| Security | | | [ ] Approved |
+| 役割 | 名前 | 日付 | 署名 |
+|------|------|------|------|
+| プロダクトオーナー | | | [ ] 承認済み |
+| テックリード | | | [ ] 承認済み |
+| セキュリティ | | | [ ] 承認済み |
 ```
 
-## Minimal Template (Quick Specs)
+## 最小テンプレート（クイック仕様）
 
-For smaller changes:
+小規模な変更向け:
 
 ```markdown
-# Feature: [Name]
+# 機能: [名前]
 
-## Problem
-[What problem does this solve?]
+## 課題
+[どのような問題を解決するか？]
 
-## Solution
-[Proposed solution summary]
+## ソリューション
+[提案するソリューションの要約]
 
-## Requirements
-- [ ] FR-001: [Requirement]
-- [ ] FR-002: [Requirement]
+## 要件
+- [ ] FR-001: [要件]
+- [ ] FR-002: [要件]
 
-## Acceptance Criteria
-- [ ] [Testable condition 1]
-- [ ] [Testable condition 2]
+## 受け入れ基準
+- [ ] [テスト可能な条件 1]
+- [ ] [テスト可能な条件 2]
 
-## Out of Scope
-- [Excluded item]
+## スコープ外
+- [除外項目]
 ```

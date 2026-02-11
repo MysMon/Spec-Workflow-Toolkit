@@ -1,242 +1,242 @@
 ---
 name: interview
 description: |
-  Structured requirements interview framework for clarifying vague requests. Use when:
-  - User requirements are unclear or incomplete
-  - Starting a new feature and need to gather requirements
-  - Need to understand user needs, constraints, or priorities
-  - Translating business requests into technical specifications
-  - User says "I want" or "can you add" without details
+  曖昧なリクエストを明確にするための構造化された要件インタビューフレームワーク。使用場面:
+  - ユーザー要件が不明確または不完全な場合
+  - 新機能を開始し要件を収集する必要がある場合
+  - ユーザーのニーズ、制約、優先順位を理解する必要がある場合
+  - ビジネスリクエストを技術仕様に変換する場合
+  - ユーザーが詳細なしに「～したい」「～を追加して」と言う場合
   Trigger phrases: gather requirements, clarify request, what do you need, interview user, requirements gathering, unclear request
 allowed-tools: AskUserQuestion, Read, Write
 model: sonnet
 user-invocable: true
 ---
 
-# Requirements Interview
+# 要件インタビュー
 
-A structured framework for transforming vague requests into actionable specifications.
+曖昧なリクエストを実行可能な仕様に変換するための構造化フレームワーク。
 
-## Interview Framework
+## インタビューフレームワーク
 
-### Phase 1: Context Understanding
+### フェーズ 1: コンテキストの理解
 
-Start with open questions to understand the big picture:
-
-```
-1. Goal: "What problem are you trying to solve?"
-2. Users: "Who will use this feature?"
-3. Success: "How will you know this is successful?"
-4. Motivation: "Why is this needed now?"
-```
-
-### Phase 2: Functional Requirements
-
-Use trade-off questions (not open-ended):
-
-**Bad Question:**
-> "What features do you want?"
-
-**Good Question:**
-> "For user authentication, would you prefer:
-> - Social login (faster to implement, depends on third parties)
-> - Custom auth (more control, longer to build)
-> - Both (most flexibility, highest complexity)"
-
-### Question Templates
-
-#### Technology Decisions
-```
-For [feature], would you prefer:
-A) [Option A] - [Pros] but [Cons]
-B) [Option B] - [Pros] but [Cons]
-C) Let me recommend based on your constraints
-```
-
-#### Scope Boundaries
-```
-Should [feature] include:
-- [Sub-feature 1]: Yes / No / Later
-- [Sub-feature 2]: Yes / No / Later
-- [Sub-feature 3]: Yes / No / Later
-```
-
-#### Priority
-```
-Rank these by importance (1-5):
-- [ ] Feature A
-- [ ] Feature B
-- [ ] Feature C
-```
-
-### Phase 3: Non-Functional Requirements
-
-Gather constraints with specific options:
-
-**Performance**
-```
-What response time is acceptable?
-- Real-time (<100ms)
-- Interactive (<500ms)
-- Background (<2s)
-- Async (minutes-hours)
-```
-
-**Scale**
-```
-How many concurrent users do you expect?
-- Team (10-50)
-- Departmental (50-500)
-- Organization (500-5000)
-- Public (5000+)
-```
-
-**Availability**
-```
-What uptime is required?
-- Best effort (95%)
-- Business hours (99%)
-- Always available (99.9%)
-- Critical (99.99%)
-```
-
-**Security**
-```
-What data sensitivity level?
-- Public (no restrictions)
-- Internal (employees only)
-- Confidential (need-to-know)
-- Restricted (regulated data)
-```
-
-### Phase 4: Edge Cases
-
-Ask about boundaries:
+全体像を理解するためにオープンな質問から始める:
 
 ```
-What should happen when:
-- User has no internet connection?
-- Data is invalid or malformed?
-- User doesn't have permission?
-- System is under heavy load?
-- User cancels mid-operation?
-- Concurrent edits occur?
+1. ゴール: 「どのような問題を解決しようとしていますか？」
+2. ユーザー: 「この機能を使うのは誰ですか？」
+3. 成功: 「これが成功したとどのように判断しますか？」
+4. 動機: 「なぜ今これが必要ですか？」
 ```
 
-### Phase 5: Existing Constraints
+### フェーズ 2: 機能要件
 
-Identify limitations:
+トレードオフ質問を使用する（オープンエンドではなく）:
+
+**悪い質問:**
+> 「どのような機能が欲しいですか？」
+
+**良い質問:**
+> 「ユーザー認証について、どちらを希望しますか？
+> - ソーシャルログイン（実装が速い、サードパーティに依存）
+> - カスタム認証（コントロールが多い、構築に時間がかかる）
+> - 両方（柔軟性が最大、複雑さも最大）」
+
+### 質問テンプレート
+
+#### 技術的な判断
+```
+[機能] について、どちらを希望しますか？
+A) [選択肢 A] - [利点] ただし [欠点]
+B) [選択肢 B] - [利点] ただし [欠点]
+C) 制約に基づいて推奨してほしい
+```
+
+#### スコープの境界
+```
+[機能] に以下を含めるべきですか？
+- [サブ機能 1]: はい / いいえ / 後で
+- [サブ機能 2]: はい / いいえ / 後で
+- [サブ機能 3]: はい / いいえ / 後で
+```
+
+#### 優先順位
+```
+重要度順にランク付けしてください（1-5）:
+- [ ] 機能 A
+- [ ] 機能 B
+- [ ] 機能 C
+```
+
+### フェーズ 3: 非機能要件
+
+具体的な選択肢で制約を収集:
+
+**パフォーマンス**
+```
+許容できるレスポンスタイムは？
+- リアルタイム（<100ms）
+- インタラクティブ（<500ms）
+- バックグラウンド（<2s）
+- 非同期（数分～数時間）
+```
+
+**スケール**
+```
+想定する同時接続ユーザー数は？
+- チーム（10-50）
+- 部門（50-500）
+- 組織（500-5000）
+- パブリック（5000+）
+```
+
+**可用性**
+```
+必要な稼働率は？
+- ベストエフォート（95%）
+- 営業時間（99%）
+- 常時利用可能（99.9%）
+- クリティカル（99.99%）
+```
+
+**セキュリティ**
+```
+データの機密性レベルは？
+- パブリック（制限なし）
+- 社内（従業員のみ）
+- 機密（関係者のみ）
+- 制限付き（規制対象データ）
+```
+
+### フェーズ 4: エッジケース
+
+境界について質問:
 
 ```
-Are there any constraints we need to work within?
-- Existing systems to integrate with?
-- Technology restrictions?
-- Budget or time limits?
-- Compliance requirements (GDPR, HIPAA, SOC2)?
-- Team skill constraints?
+次の場合はどうすべきですか？
+- ユーザーにインターネット接続がない場合
+- データが無効または不正な場合
+- ユーザーに権限がない場合
+- システムが高負荷の場合
+- ユーザーが操作を途中でキャンセルした場合
+- 同時編集が発生した場合
 ```
 
-## Interview Checklist
+### フェーズ 5: 既存の制約
 
-Before concluding, verify:
+制限を特定:
 
-- [ ] User personas identified
-- [ ] Primary use cases documented
-- [ ] Success metrics defined
-- [ ] Functional requirements listed
-- [ ] Non-functional requirements specified
-- [ ] Edge cases considered
-- [ ] Constraints documented
-- [ ] Out-of-scope items clarified
-- [ ] Dependencies identified
+```
+考慮すべき制約はありますか？
+- 統合が必要な既存システム？
+- 技術的な制限？
+- 予算や時間の制限？
+- コンプライアンス要件（GDPR, HIPAA, SOC2）？
+- チームのスキル制約？
+```
 
-## Output Format
+## インタビューチェックリスト
 
-After interview, produce this summary:
+終了前に確認:
+
+- [ ] ユーザーペルソナを特定
+- [ ] 主要なユースケースを文書化
+- [ ] 成功指標を定義
+- [ ] 機能要件をリスト化
+- [ ] 非機能要件を指定
+- [ ] エッジケースを検討
+- [ ] 制約を文書化
+- [ ] スコープ外の項目を明確化
+- [ ] 依存関係を特定
+
+## 出力形式
+
+インタビュー後、以下の要約を作成:
 
 ```markdown
-# Requirements Summary: [Feature Name]
+# 要件サマリー: [機能名]
 
-## Context
-- **Problem**: [What problem this solves]
-- **Users**: [Target users]
-- **Success Metric**: [How success is measured]
+## コンテキスト
+- **課題**: [この機能が解決する問題]
+- **ユーザー**: [対象ユーザー]
+- **成功指標**: [成功の測定方法]
 
-## Functional Requirements
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| FR-001 | User can... | P0 |
-| FR-002 | System should... | P1 |
+## 機能要件
+| ID | 要件 | 優先度 |
+|----|------|--------|
+| FR-001 | ユーザーは～できる | P0 |
+| FR-002 | システムは～すべき | P1 |
 
-## Non-Functional Requirements
-| Category | Requirement |
-|----------|-------------|
-| Performance | [Target] |
-| Security | [Requirements] |
-| Scalability | [Expectations] |
+## 非機能要件
+| カテゴリ | 要件 |
+|----------|------|
+| パフォーマンス | [目標] |
+| セキュリティ | [要件] |
+| スケーラビリティ | [期待値] |
 
-## Constraints
-- [Constraint 1]
-- [Constraint 2]
+## 制約
+- [制約 1]
+- [制約 2]
 
-## Out of Scope
-- [Item 1]
-- [Item 2]
+## スコープ外
+- [項目 1]
+- [項目 2]
 
-## Open Questions
-- [Any remaining ambiguities]
+## 未解決の質問
+- [残っている曖昧さ]
 
-## Next Steps
-1. Review and approve requirements
-2. Create detailed specification
-3. Begin implementation planning
+## 次のステップ
+1. 要件をレビューし承認
+2. 詳細な仕様を作成
+3. 実装計画を開始
 ```
 
-## Tips for Effective Interviews
+## 効果的なインタビューのコツ
 
-1. **Listen First**: Let the user explain before asking specific questions
-2. **Summarize Often**: "So what I'm hearing is..." to confirm understanding
-3. **Avoid Jargon**: Use plain language unless user is technical
-4. **Document Everything**: Even "obvious" requirements
-5. **Ask "Why"**: Understand motivation, not just requests
-6. **Offer Trade-offs**: Present options with pros/cons
-7. **Be Patient**: Good requirements take time
+1. **まず聞く**: 具体的な質問の前にユーザーの説明を聞く
+2. **頻繁に要約**: 「つまり～ということですね」で理解を確認
+3. **専門用語を避ける**: ユーザーが技術者でない限り平易な言葉を使用
+4. **すべてを文書化**: 「当然」の要件も含めて
+5. **「なぜ」を聞く**: リクエストだけでなく動機を理解
+6. **トレードオフを提示**: 長所/短所を含む選択肢を提示
+7. **辛抱強く**: 良い要件には時間がかかる
 
-## Common Pitfalls to Avoid
+## 避けるべき一般的な落とし穴
 
-| Pitfall | Why It's Bad | Instead |
-|---------|--------------|---------|
-| Leading questions | Biases answers | Ask neutrally |
-| Yes/No only | Misses nuance | Ask for context |
-| Assuming expertise | Confuses users | Define terms |
-| Skipping NFRs | Incomplete spec | Always ask |
-| Rushing | Misses details | Take time |
+| 落とし穴 | 問題点 | 代替案 |
+|----------|--------|--------|
+| 誘導質問 | 回答にバイアスがかかる | 中立的に質問する |
+| はい/いいえのみ | ニュアンスを見逃す | コンテキストを求める |
+| 専門知識を前提とする | ユーザーを混乱させる | 用語を定義する |
+| NFR のスキップ | 不完全な仕様 | 常に質問する |
+| 急ぐ | 詳細を見逃す | 時間をかける |
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-Critical for requirements accuracy. Violations lead to incorrect implementations.
+要件の正確性にとって重要。違反すると不正確な実装につながる。
 
-- ALWAYS use AskUserQuestion tool when gathering requirements (prevents assumptions)
-- NEVER assume requirements that weren't stated (assumptions cause rework)
-- NEVER skip non-functional requirements (incomplete spec)
-- ALWAYS get explicit scope confirmation before proceeding
-- NEVER proceed with open questions (ambiguity causes wrong decisions)
-- MUST invoke AskUserQuestion for each interview phase (Context, Functional, Non-Functional, Edge Cases, Constraints)
+- ALWAYS: 要件収集時は AskUserQuestion ツールを使用する（推測を防ぐ）
+- NEVER: 明示されていない要件を推測しない（推測は手戻りの原因）
+- NEVER: 非機能要件をスキップしない（不完全な仕様になる）
+- ALWAYS: 進める前にスコープの明示的な確認を得る
+- NEVER: 未解決の質問があるまま進めない（曖昧さは誤った判断の原因）
+- MUST: 各インタビューフェーズ（コンテキスト、機能、非機能、エッジケース、制約）で AskUserQuestion を使用する
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-Important for quality. Override with reasoning when appropriate.
+品質にとって重要。適切な理由がある場合はオーバーライド可能。
 
-- Document trade-offs discussed during the interview
-- Summarize understanding back to user before concluding
-- Use structured question templates (can adapt for context)
-- Produce requirements summary in the specified format
+- インタビュー中に議論したトレードオフを文書化する
+- 結論前にユーザーに理解を要約して返す
+- 構造化された質問テンプレートを使用する（コンテキストに応じて適応可能）
+- 指定された形式で要件サマリーを作成する
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-Recommendations for better interviews.
+より良いインタビューのための推奨事項。
 
-- Consider asking "why" to understand motivation, not just requests
-- Prefer trade-off questions over open-ended ones
-- Consider documenting even "obvious" requirements
-- Use plain language unless user is technical
+- consider: リクエストだけでなく動機を理解するために「なぜ」を聞くことを検討
+- prefer: オープンエンドの質問よりトレードオフ質問を推奨
+- consider: 「当然」の要件も文書化することを検討
+- recommend: ユーザーが技術者でない限り平易な言葉を使用

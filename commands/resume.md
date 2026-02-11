@@ -1,10 +1,10 @@
 ---
-description: "Resume work from progress files - restore context and continue from last checkpoint"
-argument-hint: "[optional: 'list' | workspace-id | project-name]"
+description: "進捗ファイルから作業を再開する - コンテキストを復元し、最後のチェックポイントから継続"
+argument-hint: "[任意: 'list' | workspace-id | project-name]"
 allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
 ---
 
-# /resume - Session Resumption Command
+# /resume - セッション再開コマンド
 
 ## Language Mode
 
@@ -12,127 +12,127 @@ allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
 
 ---
 
-Resume long-running autonomous work from progress files, restoring context and continuing from the last checkpoint.
+進捗ファイルから長時間の自律的作業を再開し、コンテキストを復元して最後のチェックポイントから継続する。
 
-## Purpose
+## 目的
 
-Based on Anthropic's Initializer + Coding Agent pattern from Effective Harnesses for Long-Running Agents.
+Anthropic の Effective Harnesses for Long-Running Agents における Initializer + Coding Agent パターンに基づく。
 
-**The Problem:** Context windows are limited. Complex tasks cannot be completed in a single session. When starting fresh, the agent has no memory of previous work.
+**課題:** コンテキストウィンドウには制限がある。複雑なタスクは単一セッションで完了できない。新規開始時、エージェントには過去の作業の記憶がない。
 
-**The Solution:** This command reads structured progress files to restore context and continue from exactly where work stopped.
+**解決策:** このコマンドは構造化された進捗ファイルを読み取り、コンテキストを復元して作業が停止した正確な位置から継続する。
 
-## Multi-Project Workspace Isolation
+## マルチプロジェクトのワークスペース分離
 
-Progress files are now isolated per workspace to support concurrent projects and git worktrees.
+並行プロジェクトと git worktree をサポートするため、進捗ファイルはワークスペースごとに分離される。
 
-### Workspace Structure
+### ワークスペース構造
 
 ```
 .claude/workspaces/
-├── main_a1b2c3d4/              # main branch workspace
+├── main_a1b2c3d4/              # main ブランチのワークスペース
 │   ├── claude-progress.json
 │   ├── feature-list.json
 │   └── logs/
 │       ├── subagent_activity.log
 │       └── sessions/
-└── feature-auth_e5f6g7h8/      # feature branch worktree
+└── feature-auth_e5f6g7h8/      # feature ブランチの worktree
     ├── claude-progress.json
     └── logs/
 ```
 
-### Workspace ID Format
+### ワークスペース ID 形式
 
-`{branch}_{path-hash}` where:
-- `branch`: Current git branch (e.g., `main`, `feature-auth`)
-- `path-hash`: MD5 hash of working directory path (8 chars)
+`{branch}_{path-hash}` 形式:
+- `branch`: 現在の git ブランチ（例: `main`, `feature-auth`）
+- `path-hash`: 作業ディレクトリパスの MD5 ハッシュ（8文字）
 
-## When to Use
+## 使用タイミング
 
-- Starting a new session after `/spec-plan`, `/spec-review`, or `/spec-implement` was interrupted
-- Continuing multi-day development work
-- Recovering after context compaction
-- Resuming after explicit `/clear`
-- Checking status of in-progress work
-- Switching between workspaces/worktrees
+- `/spec-plan`、`/spec-review`、`/spec-implement` が中断された後の新しいセッション開始時
+- 複数日にわたる開発作業の継続
+- コンテキストコンパクション後の復旧
+- 明示的な `/clear` 後の再開
+- 進行中の作業状態の確認
+- ワークスペース/worktree 間の切り替え
 
 ---
 
-## Execution Instructions
+## 実行手順
 
-### Phase 1: Workspace Detection
+### フェーズ 1: ワークスペース検出
 
-**Goal:** Find and validate available workspaces and progress files.
+**目的:** 利用可能なワークスペースと進捗ファイルを検出・検証する。
 
-**If argument is "list":**
+**引数が "list" の場合:**
 
 ```bash
-# List all available workspaces
+# 利用可能なすべてのワークスペースを一覧表示
 ls -la .claude/workspaces/ 2>/dev/null
 ```
 
-For each workspace found, display:
-- Workspace ID
-- Project name (from progress file)
-- Status (in_progress, completed, blocked)
-- Last updated timestamp
-- Current position
+見つかった各ワークスペースについて以下を表示する:
+- ワークスペース ID
+- プロジェクト名（進捗ファイルから）
+- ステータス（in_progress, completed, blocked）
+- 最終更新タイムスタンプ
+- 現在の位置
 
-Example output:
+出力例:
 ```markdown
-## Available Workspaces
+## 利用可能なワークスペース
 
-| Workspace ID | Project | Status | Last Updated | Position |
-|--------------|---------|--------|--------------|----------|
+| ワークスペース ID | プロジェクト | ステータス | 最終更新 | 位置 |
+|-------------------|-------------|------------|----------|------|
 | main_a1b2c3d4 | auth-feature | in_progress | 2025-01-16 | impl-in-progress |
-| feature-api_e5f6g7h8 | api-refactor | completed | 2025-01-15 | Done |
+| feature-api_e5f6g7h8 | api-refactor | completed | 2025-01-15 | 完了 |
 ```
 
-**If argument is a workspace ID:**
-- Look for `.claude/workspaces/{workspace-id}/claude-progress.json`
-- If not found, report error
+**引数がワークスペース ID の場合:**
+- `.claude/workspaces/{workspace-id}/claude-progress.json` を検索する
+- 見つからない場合、エラーを報告する
 
-**If argument is a project name:**
-- Search all workspaces for matching project name
-- If multiple matches, list and ask user to choose
+**引数がプロジェクト名の場合:**
+- すべてのワークスペースで一致するプロジェクト名を検索する
+- 複数一致する場合、一覧を表示しユーザーに選択させる
 
-**If no argument:**
-1. Use the workspace ID shown in SessionStart hook output (format: `{branch}_{path-hash}`)
-2. Check for workspace progress file at `.claude/workspaces/{workspace-id}/claude-progress.json`
+**引数なしの場合:**
+1. SessionStart フック出力に表示されたワークスペース ID を使用する（形式: `{branch}_{path-hash}`）
+2. `.claude/workspaces/{workspace-id}/claude-progress.json` でワークスペース進捗ファイルを確認する
 
-**If no progress files found:**
-- Report: "No progress files found for this workspace."
-- List available workspaces if any exist
-- Suggest: "Use `/spec-plan` to start planning."
-- Exit
+**進捗ファイルが見つからない場合:**
+- 報告: 「このワークスペースの進捗ファイルが見つかりません。」
+- 利用可能なワークスペースがあれば一覧表示する
+- 提案: 「`/spec-plan` で計画を開始してください。」
+- 終了
 
-### Phase 2: State Analysis
+### フェーズ 2: 状態分析
 
-**Goal:** Understand current state from progress files.
+**目的:** 進捗ファイルから現在の状態を理解する。
 
-**Read and analyze progress file:**
+**進捗ファイルの読み取りと分析:**
 
 ```json
-// Key fields to extract from claude-progress.json:
+// claude-progress.json から抽出する主要フィールド:
 {
   "workspaceId": "main_a1b2c3d4",
   "project": "...",
   "status": "in_progress | completed | blocked",
   "currentTask": "...",
   "resumptionContext": {
-    "position": "Where we stopped",
-    "nextAction": "What to do next",
-    "keyFiles": ["file:line references"],
-    "decisions": ["Past decisions"],
+    "position": "停止した場所",
+    "nextAction": "次にすべきこと",
+    "keyFiles": ["file:line の参照"],
+    "decisions": ["過去の判断"],
     "blockers": []
   }
 }
 ```
 
-**Read feature list if exists:**
+**機能リストが存在する場合は読み取る:**
 
 ```json
-// Key fields from feature-list.json:
+// feature-list.json の主要フィールド:
 {
   "workspaceId": "main_a1b2c3d4",
   "features": [
@@ -143,210 +143,210 @@ Example output:
 }
 ```
 
-**Calculate progress:**
-- Total features
-- Completed features
-- Current in-progress feature
-- Remaining features
+**進捗の計算:**
+- 総機能数
+- 完了した機能数
+- 現在進行中の機能
+- 残りの機能数
 
-### Phase 3: Git State Check
+### フェーズ 3: Git 状態チェック
 
-**Goal:** Verify git state matches expectations.
+**目的:** git の状態が期待と一致するか検証する。
 
-**Why this is acceptable (not delegated):**
-- Git metadata commands (`status`, `branch`, `log --oneline`) return minimal output
-- This is state validation, not content analysis
-- Quick execution is critical for resumption workflow
-- Minimal context consumption (typically <50 lines)
+**親コンテキストでの実行が許容される理由:**
+- git メタデータコマンド（`status`, `branch`, `log --oneline`）は出力が最小限
+- これは状態の検証であり、コンテンツの分析ではない
+- 再開ワークフローでは迅速な実行が重要
+- コンテキスト消費が最小限（通常50行未満）
 
 ```bash
-# Check for uncommitted changes
+# コミットされていない変更の確認
 git status --porcelain
 
-# Check recent commits
+# 最近のコミットを確認
 git log --oneline -5
 
-# Check current branch
+# 現在のブランチを確認
 git branch --show-current
 
-# Check if in a worktree
+# worktree 内かどうかを確認
 git worktree list
 ```
 
-**If uncommitted changes exist:**
-- Warn user about uncommitted work
-- Ask if they want to continue or commit first
+**コミットされていない変更がある場合:**
+- 未コミットの作業についてユーザーに警告する
+- 続行するかコミットを先にするか確認する
 
-**If git state differs from progress file:**
-- Report discrepancy
-- Ask user how to proceed
+**git の状態が進捗ファイルと異なる場合:**
+- 不一致を報告する
+- ユーザーに対応方法を確認する
 
-**If current branch doesn't match workspace:**
-- Warn: "Current branch `X` doesn't match workspace `Y`"
-- Ask if user wants to switch workspace or continue
+**現在のブランチがワークスペースと一致しない場合:**
+- 警告: 「現在のブランチ `X` はワークスペース `Y` と一致しません」
+- ワークスペースを切り替えるか続行するか確認する
 
-### Phase 4: Context Restoration Display
+### フェーズ 4: コンテキスト復元の表示
 
-**Goal:** Present clear resumption context to user.
+**目的:** 明確な再開コンテキストをユーザーに提示する。
 
-**Display resumption summary:**
+**再開サマリーを表示する:**
 
 ```markdown
-## Resuming: [Project Name]
+## 再開中: [プロジェクト名]
 
-### Workspace
+### ワークスペース
 **ID**: `main_a1b2c3d4`
-**Branch**: `main`
-**Path**: `/path/to/project`
+**ブランチ**: `main`
+**パス**: `/path/to/project`
 
-### Progress
-[====>     ] 4/10 features (40%)
+### 進捗
+[====>     ] 4/10 機能 (40%)
 
-### Current Position
-**Phase:** [Phase from progress file]
-**Task:** [Current task]
+### 現在の位置
+**フェーズ:** [進捗ファイルからのフェーズ]
+**タスク:** [現在のタスク]
 
-### Last Session Summary
-[Summary from last session entry]
+### 前回のセッションサマリー
+[最後のセッションエントリからのサマリー]
 
-### Key Decisions Made
-- [Decision 1]
-- [Decision 2]
+### 過去の主要な判断
+- [判断 1]
+- [判断 2]
 
-### Key Files
-- `src/services/auth.ts:45` - AuthService implementation
-- `prisma/schema.prisma:12` - User model
+### 主要ファイル
+- `src/services/auth.ts:45` - AuthService の実装
+- `prisma/schema.prisma:12` - User モデル
 
-### Blockers
-[List any blockers, or "None"]
+### ブロッカー
+[ブロッカーの一覧、またはなし]
 
-### Next Action
-> [Specific next action from resumption context]
+### 次のアクション
+> [再開コンテキストからの具体的な次のアクション]
 ```
 
-### Phase 5: User Confirmation
+### フェーズ 5: ユーザー確認
 
-**Goal:** Get user approval before continuing.
+**目的:** 続行前にユーザーの承認を得る。
 
-**Ask user:**
+**ユーザーに確認する:**
 
 ```
-Question: "How would you like to proceed?"
-Header: "Resume"
+Question: "どのように進めますか？"
+Header: "再開"
 Options:
-- "Continue from checkpoint" (Recommended)
-- "Show more details first"
-- "Start fresh (reset progress)"
-- "Just checking status (exit)"
+- "チェックポイントから続行する"（推奨）
+- "まず詳細を確認する"
+- "最初からやり直す（進捗をリセット）"
+- "状態確認のみ（終了）"
 ```
 
-**If "Continue from checkpoint":**
-- Proceed to Phase 6
+**「チェックポイントから続行」の場合:**
+- フェーズ 6 に進む
 
-**If "Show more details":**
-- Display full progress log
-- Delegate key file summarization to code-explorer agent (do NOT read files directly):
+**「詳細を確認」の場合:**
+- 完全な進捗ログを表示する
+- 主要ファイルのサマリーを code-explorer エージェントに委任する（ファイルを直接読み取らないこと）:
   ```
-  Launch code-explorer agent:
-  Task: Summarize key files for detailed status review
-  Inputs: List of file:line references from progress file
+  code-explorer エージェントを起動:
+  タスク: 詳細ステータスレビュー用に主要ファイルをサマリー化
+  入力: 進捗ファイルからの file:line 参照リスト
   Thoroughness: quick
-  Output: Brief summary of each file's current state
+  出力: 各ファイルの現在の状態の簡潔なサマリー
   ```
-- Display agent's summary
-- Return to confirmation
+- エージェントのサマリーを表示する
+- 確認画面に戻る
 
-**If "Start fresh":**
-- Confirm: "This will archive current progress. Are you sure?"
-- If confirmed: Move progress files to `.claude/workspaces/{id}/archived/{timestamp}/`
-  - Archive path format: `.claude/workspaces/{id}/archived/{YYYY-MM-DD_HH-MM-SS}/`
-  - Move all progress files (claude-progress.json, feature-list.json, etc.) to this directory
-- Exit with suggestion to run `/spec-plan`
+**「最初からやり直す」の場合:**
+- 確認: 「現在の進捗がアーカイブされます。よろしいですか？」
+- 確認された場合: 進捗ファイルを `.claude/workspaces/{id}/archived/{timestamp}/` に移動する
+  - アーカイブパス形式: `.claude/workspaces/{id}/archived/{YYYY-MM-DD_HH-MM-SS}/`
+  - すべての進捗ファイル（claude-progress.json, feature-list.json 等）をこのディレクトリに移動する
+- `/spec-plan` の実行を提案して終了する
 
-**If "Just checking status":**
-- Exit cleanly
+**「状態確認のみ」の場合:**
+- 正常に終了する
 
-### Phase 6: Work Resumption
+### フェーズ 6: 作業再開
 
-**Goal:** Resume work from checkpoint with appropriate agent.
+**目的:** チェックポイントから適切なエージェントで作業を再開する。
 
-**Initialize TodoWrite from feature list:**
-
-```
-Sync TodoWrite with feature-list.json:
-- Mark completed features as completed
-- Mark current feature as in_progress
-- Add pending features as pending
-```
-
-**Context Restoration via Subagent:**
-
-**CRITICAL: Do NOT read key files directly. Delegate to subagent.**
+**機能リストから TodoWrite を初期化する:**
 
 ```
-Launch code-explorer agent:
-Task: Summarize key files for resumption context
-Inputs: List of file:line references from `keyFiles`
+TodoWrite を feature-list.json と同期:
+- 完了した機能を completed としてマーク
+- 現在の機能を in_progress としてマーク
+- 保留中の機能を pending として追加
+```
+
+**サブエージェントによるコンテキスト復元:**
+
+**重要: 主要ファイルを直接読み取らないこと。サブエージェントに委任する。**
+
+```
+code-explorer エージェントを起動:
+タスク: 再開コンテキスト用に主要ファイルをサマリー化
+入力: `keyFiles` からの file:line 参照リスト
 Thoroughness: quick
-Output: Concise summary of each file's role and current state
+出力: 各ファイルの役割と現在の状態の簡潔なサマリー
 ```
 
-Use the agent's summary output for context restoration. Do NOT read key files directly.
+エージェントのサマリー出力をコンテキスト復元に使用する。主要ファイルを直接読み取らないこと。
 
-**Error Handling for code-explorer:**
-If code-explorer fails or times out:
-1. Display available resumption context from progress file (position, nextAction, decisions)
-2. Show key file list with file:line references (without summaries)
-3. Warn user: "Key file context could not be loaded. Using progress file data only."
-4. Ask user:
+**code-explorer のエラーハンドリング:**
+code-explorer が失敗またはタイムアウトした場合:
+1. 進捗ファイルから利用可能な再開コンテキストを表示する（position, nextAction, decisions）
+2. file:line 参照付きの主要ファイルリストを表示する（サマリーなし）
+3. ユーザーに警告: 「主要ファイルのコンテキストを読み込めませんでした。進捗ファイルのデータのみ使用しています。」
+4. ユーザーに確認する:
    ```
-   Question: "Context restoration partially failed. How would you like to proceed?"
-   Header: "Proceed"
+   Question: "コンテキスト復元が部分的に失敗しました。どのように進めますか？"
+   Header: "続行"
    Options:
-   - "Continue with limited context (progress file only)"
-   - "Review key files manually first"
-   - "Retry context restoration"
+   - "限定的なコンテキストで続行する（進捗ファイルのみ）"
+   - "まず主要ファイルを手動でレビューする"
+   - "コンテキスト復元をリトライする"
    ```
 
-**Determine appropriate workflow:**
+**適切なワークフローを判定する:**
 
-| Current Phase | Action |
-|---------------|--------|
-| `plan-discovery` / `plan-discovery-complete` | Resume requirements gathering via `/spec-plan` |
-| `plan-exploration-complete` | Resume spec drafting via `/spec-plan` |
-| `plan-spec-approved` | Resume architecture design via `/spec-plan` |
-| `plan-complete` | Proceed to `/spec-review` |
-| `review-complete` | Proceed to `/spec-implement` |
-| `impl-starting` / `impl-in-progress` | Resume implementation via `/spec-implement` |
-| `impl-review-complete` | Finalize implementation |
-| Blocked | Address blocker first |
+| 現在のフェーズ | アクション |
+|----------------|-----------|
+| `plan-discovery` / `plan-discovery-complete` | `/spec-plan` で要件収集を再開 |
+| `plan-exploration-complete` | `/spec-plan` で仕様書作成を再開 |
+| `plan-spec-approved` | `/spec-plan` でアーキテクチャ設計を再開 |
+| `plan-complete` | `/spec-review` に進む |
+| `review-complete` | `/spec-implement` に進む |
+| `impl-starting` / `impl-in-progress` | `/spec-implement` で実装を再開 |
+| `impl-review-complete` | 実装を最終化 |
+| Blocked | まずブロッカーに対処 |
 
-**Delegate to appropriate agent based on context:**
+**コンテキストに基づいて適切なエージェントに委任する:**
 
-For implementation work:
+実装作業の場合:
 ```
-Identify the current feature's domain:
-- Frontend work → delegate to frontend-specialist
-- Backend work → delegate to backend-specialist
-- Testing work → delegate to qa-engineer
-- Documentation → delegate to technical-writer
+現在の機能のドメインを特定する:
+- フロントエンド作業 → frontend-specialist に委任
+- バックエンド作業 → backend-specialist に委任
+- テスト作業 → qa-engineer に委任
+- ドキュメント作成 → technical-writer に委任
 ```
 
-**Update progress file:**
+**進捗ファイルを更新する:**
 
 ```json
-// Add new session entry
+// 新しいセッションエントリを追加
 {
   "id": "[session-id]",
-  "started": "[current timestamp]",
-  "summary": "Resumed from checkpoint",
+  "started": "[現在のタイムスタンプ]",
+  "summary": "チェックポイントから再開",
   "continuing": true
 }
 ```
 
 ---
 
-## Progress File Schemas
+## 進捗ファイルスキーマ
 
 ### claude-progress.json
 
@@ -354,39 +354,39 @@ Identify the current feature's domain:
 {
   "workspaceId": "main_a1b2c3d4",
   "project": "project-name",
-  "started": "ISO timestamp",
-  "lastUpdated": "ISO timestamp",
+  "started": "ISO タイムスタンプ",
+  "lastUpdated": "ISO タイムスタンプ",
   "status": "in_progress | completed | blocked",
-  "currentTask": "Current task description",
+  "currentTask": "現在のタスク説明",
   "sessions": [
     {
       "id": "20250116_100000_abc1",
-      "started": "ISO timestamp",
-      "ended": "ISO timestamp",
-      "summary": "What was accomplished",
+      "started": "ISO タイムスタンプ",
+      "ended": "ISO タイムスタンプ",
+      "summary": "達成した内容",
       "filesModified": ["file1.ts", "file2.ts"],
-      "nextSteps": ["Step 1", "Step 2"]
+      "nextSteps": ["ステップ 1", "ステップ 2"]
     }
   ],
   "log": [
     {
-      "timestamp": "ISO timestamp",
-      "action": "What was done",
+      "timestamp": "ISO タイムスタンプ",
+      "action": "実行した内容",
       "status": "success | failed",
-      "files": ["affected files"]
+      "files": ["影響を受けたファイル"]
     }
   ],
   "resumptionContext": {
-    "position": "Phase and step description",
-    "nextAction": "Specific next action",
+    "position": "フェーズとステップの説明",
+    "nextAction": "具体的な次のアクション",
     "keyFiles": ["file:line", "file:line"],
-    "decisions": ["Decision 1", "Decision 2"],
+    "decisions": ["判断 1", "判断 2"],
     "blockers": []
   },
   "compactionHistory": [
     {
-      "timestamp": "ISO timestamp",
-      "positionAtCompaction": "Where we were",
+      "timestamp": "ISO タイムスタンプ",
+      "positionAtCompaction": "コンパクション時の位置",
       "workspaceId": "main_a1b2c3d4"
     }
   ]
@@ -404,12 +404,12 @@ Identify the current feature's domain:
   "features": [
     {
       "id": "F001",
-      "name": "Feature name",
-      "description": "What this feature does",
+      "name": "機能名",
+      "description": "この機能の説明",
       "status": "pending | in_progress | completed | blocked",
-      "startedAt": "ISO timestamp (if started)",
-      "completedAt": "ISO timestamp (if completed)",
-      "files": ["files created/modified"]
+      "startedAt": "ISO タイムスタンプ（開始済みの場合）",
+      "completedAt": "ISO タイムスタンプ（完了済みの場合）",
+      "files": ["作成/修正されたファイル"]
     }
   ]
 }
@@ -417,120 +417,120 @@ Identify the current feature's domain:
 
 ---
 
-## Handling Special Cases
+## 特殊ケースの処理
 
-### After Context Compaction
+### コンテキストコンパクション後
 
-When the PreCompact hook fires, it saves state automatically. After compaction:
+PreCompact フックが発火すると、状態が自動保存される。コンパクション後:
 
-1. This command detects compaction history
-2. Reports: "Context was compacted at [timestamp]"
-3. Reads full resumption context
-4. Continues normally
+1. このコマンドがコンパクション履歴を検出する
+2. 報告: 「コンテキストが [タイムスタンプ] にコンパクションされました」
+3. 完全な再開コンテキストを読み取る
+4. 通常通り続行する
 
-### Blocked State
+### ブロック状態
 
-If status is "blocked":
+ステータスが "blocked" の場合:
 
-1. Display blocker details prominently
-2. Ask user to resolve blocker
-3. Once resolved, update progress file
-4. Continue work
+1. ブロッカーの詳細を目立つように表示する
+2. ユーザーにブロッカーの解決を依頼する
+3. 解決後、進捗ファイルを更新する
+4. 作業を続行する
 
-### Completed State
+### 完了状態
 
-If status is "completed":
+ステータスが "completed" の場合:
 
-1. Report: "This project was marked complete on [date]"
-2. Display completion summary
-3. Ask if user wants to:
-   - Review what was done
-   - Start new related work
-   - Archive and close
+1. 報告: 「このプロジェクトは [日付] に完了としてマークされています」
+2. 完了サマリーを表示する
+3. ユーザーに以下を確認する:
+   - 実施内容をレビューする
+   - 関連する新しい作業を開始する
+   - アーカイブして終了する
 
 ---
 
-## Usage Examples
+## 使用例
 
 ```bash
-# Resume work in current workspace
+# 現在のワークスペースで作業を再開
 /resume
 
-# List all tracked workspaces
+# 追跡されているすべてのワークスペースを一覧表示
 /resume list
 
-# Resume specific workspace
+# 特定のワークスペースを再開
 /resume main_a1b2c3d4
 
-# Resume by project name (searches all workspaces)
+# プロジェクト名で再開（すべてのワークスペースを検索）
 /resume auth-feature
 
-# Check status without continuing
-/resume  # then choose "Just checking status"
+# 続行せずに状態を確認
+/resume  # その後「状態確認のみ」を選択
 ```
 
-## Integration with Other Commands
+## 他のコマンドとの連携
 
-| After | Use /resume when |
-|-------|------------------|
-| `/spec-plan` | Planning was interrupted mid-workflow |
-| `/spec-review` | Review was interrupted mid-workflow |
-| `/spec-implement` | Implementation was interrupted mid-workflow |
-| `/clear` | Cleared context but want to continue |
-| Compaction | Context was automatically compacted |
-| Session end | Starting new session next day |
-| `git worktree add` | Switching to different worktree |
+| 実行後 | /resume を使用するタイミング |
+|--------|------------------------------|
+| `/spec-plan` | 計画がワークフロー途中で中断された場合 |
+| `/spec-review` | レビューがワークフロー途中で中断された場合 |
+| `/spec-implement` | 実装がワークフロー途中で中断された場合 |
+| `/clear` | コンテキストをクリアしたが続行したい場合 |
+| コンパクション | コンテキストが自動的にコンパクションされた場合 |
+| セッション終了 | 翌日に新しいセッションを開始する場合 |
+| `git worktree add` | 別の worktree に切り替える場合 |
 
-## Tips for Best Results
+## 最良の結果を得るためのヒント
 
-1. **Keep progress files updated**: The better the resumption context, the smoother the resume
-2. **Commit frequently**: Git history supplements progress files
-3. **Document decisions**: Future sessions need to understand past choices
-4. **Update nextAction**: Be specific about what comes next
-5. **List key files**: Include file:line references for quick context loading
-6. **Use workspace IDs**: They uniquely identify branch + directory combinations
+1. **進捗ファイルを最新に保つ**: 再開コンテキストが良いほど、スムーズに再開できる
+2. **頻繁にコミットする**: git 履歴が進捗ファイルを補完する
+3. **判断を記録する**: 将来のセッションが過去の選択を理解する必要がある
+4. **nextAction を更新する**: 次にすべきことを具体的に記載する
+5. **主要ファイルをリストする**: 素早いコンテキスト読み込みのために file:line 参照を含める
+6. **ワークスペース ID を使用する**: ブランチ + ディレクトリの組み合わせを一意に識別する
 
-## Comparison with --continue Flag
+## --continue フラグとの比較
 
-| Aspect | `claude --continue` | `/resume` |
-|--------|---------------------|-----------|
-| Restores | Conversation history | Structured progress state |
-| Scope | Last session in directory | Multi-session project state |
-| Context | Full message history | Curated resumption context |
-| Workspace aware | No | Yes |
-| Best for | Recent interruptions | Long-running projects |
+| 側面 | `claude --continue` | `/resume` |
+|------|---------------------|-----------|
+| 復元対象 | 会話履歴 | 構造化された進捗状態 |
+| スコープ | ディレクトリ内の最後のセッション | マルチセッションのプロジェクト状態 |
+| コンテキスト | 完全なメッセージ履歴 | 厳選された再開コンテキスト |
+| ワークスペース対応 | なし | あり |
+| 最適な用途 | 直近の中断 | 長期間のプロジェクト |
 
 ---
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-Critical for safe and accurate session resumption.
+安全かつ正確なセッション再開のために重要。
 
-- ALWAYS validate git state before resuming (prevents silent data conflicts)
-- MUST warn user if uncommitted changes exist
-- MUST warn user if current branch doesn't match workspace
-- NEVER proceed without user confirmation when git state differs from progress file
-- MUST use AskUserQuestion when:
-  - Uncommitted changes exist (ask: continue or commit first?)
-  - Branch mismatch detected (ask: switch workspace or continue?)
-  - Multiple workspaces match (ask: which one to resume?)
-  - User requests "Start fresh" (confirm archival)
-- NEVER silently discard progress — always archive before reset
-- ALWAYS read progress files before any resumption work
+- MUST: 再開前に git 状態を検証する（サイレントなデータコンフリクトを防止）
+- MUST: コミットされていない変更がある場合はユーザーに警告する
+- MUST: 現在のブランチがワークスペースと一致しない場合はユーザーに警告する
+- NEVER: git 状態が進捗ファイルと異なる場合、ユーザー確認なしに進行する
+- MUST: 以下の場合は AskUserQuestion を使用する:
+  - コミットされていない変更がある場合（確認: 続行するかコミットを先にするか）
+  - ブランチの不一致が検出された場合（確認: ワークスペースを切り替えるか続行するか）
+  - 複数のワークスペースが一致する場合（確認: どれを再開するか）
+  - ユーザーが「最初からやり直す」を選択した場合（アーカイブの確認）
+- NEVER: 進捗を無断で破棄する — リセット前にアーカイブする
+- MUST: 再開作業の前に進捗ファイルを読み取る
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-Important for quality resumption. Override with reasoning when appropriate.
+品質の高い再開のために重要。適切な理由がある場合はオーバーライド可能。
 
-- Sync TodoWrite with feature-list.json on resume
-- Delegate key file reading to `code-explorer` agent for context summary
-- Display progress bar with feature completion percentage
-- Show last session summary for context
+- 再開時に TodoWrite を feature-list.json と同期する
+- 主要ファイルの読み取りはコンテキストサマリーのために `code-explorer` エージェントに委任する
+- 機能完了率のプログレスバーを表示する
+- コンテキストのために前回のセッションサマリーを表示する
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-Recommendations for effective session resumption.
+効果的なセッション再開のための推奨事項。
 
-- Consider showing compaction history if context was compacted
-- Prefer displaying blockers prominently when status is "blocked"
-- Consider offering workspace switching when multiple projects exist
+- consider: コンテキストがコンパクションされた場合、コンパクション履歴を表示する
+- prefer: ステータスが "blocked" の場合、ブロッカーを目立つように表示する
+- consider: 複数のプロジェクトが存在する場合、ワークスペース切り替えを提案する

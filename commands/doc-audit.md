@@ -1,10 +1,10 @@
 ---
-description: "Audit documentation for drift from code - detect outdated docs, missing sections, and inconsistencies"
-argument-hint: "[path or --scope api|readme|all]"
+description: "ドキュメントとコードの乖離を監査 - 古くなったドキュメント、欠落セクション、不整合を検出"
+argument-hint: "[パス or --scope api|readme|all]"
 allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
 ---
 
-# /doc-audit - Documentation Drift Detection
+# /doc-audit - ドキュメント乖離検出
 
 ## Language Mode
 
@@ -12,361 +12,361 @@ allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
 
 ---
 
-Systematically audit documentation against code to detect outdated content, missing sections, and inconsistencies.
+ドキュメントをコードと照合して体系的に監査し、古くなった内容、欠落セクション、不整合を検出する。
 
-## Design Principles
+## 設計原則
 
-1. **Code is truth**: Code behavior is the source of truth, docs should match
-2. **Scope appropriately**: Focus audit on high-impact documentation
-3. **Actionable findings**: Report specific issues with clear fixes
-4. **Prioritize by impact**: User-facing docs take priority
+1. **コードが正**: コードの動作が唯一の正（Source of Truth）であり、ドキュメントはそれと一致すべき
+2. **適切なスコープ**: 影響の大きいドキュメントに監査を集中させる
+3. **実行可能な指摘**: 明確な修正案付きの具体的な問題を報告する
+4. **影響度による優先順位**: ユーザー向けドキュメントを優先する
 
 ---
 
-## When to Use
+## 使用するとき
 
-- Before release to ensure docs are current
-- After significant refactoring
-- As part of PR review process
-- Periodic documentation health checks
+- リリース前にドキュメントが最新であることを確認
+- 大規模なリファクタリング後
+- PR レビュープロセスの一環として
+- 定期的なドキュメントヘルスチェック
 
-## Input Formats
+## 入力形式
 
 ```bash
-# Audit specific documentation file
+# 特定のドキュメントファイルを監査
 /doc-audit docs/API.md
 
-# Audit by scope
-/doc-audit --scope api       # API documentation
-/doc-audit --scope readme    # README files
-/doc-audit --scope all       # All documentation
+# スコープ別に監査
+/doc-audit --scope api       # API ドキュメント
+/doc-audit --scope readme    # README ファイル
+/doc-audit --scope all       # すべてのドキュメント
 
-# Audit documentation for specific code
+# 特定のコードに対するドキュメントを監査
 /doc-audit --for src/services/auth.ts
 ```
 
 ---
 
-## Execution Instructions
+## 実行手順
 
-### Phase 1: Documentation Discovery
+### フェーズ 1: ドキュメント探索
 
-**Goal:** Identify documentation files to audit.
+**ゴール:** 監査対象のドキュメントファイルを特定する。
 
-**Delegate documentation discovery to code-explorer:**
-
-```
-Launch code-explorer agent:
-Task: Discover documentation files in the codebase
-Analyze:
-- All markdown files (excluding .git/, node_modules/)
-- Common documentation locations (README.md, docs/, CONTRIBUTING.md, CHANGELOG.md, API.md)
-- Documentation structure and organization
-Thoroughness: quick
-Output: List of documentation files with categories (user-facing, API, contributing, etc.)
-```
-
-Use the agent's output for categorization. Do NOT run find/ls commands manually.
-
-**Categorize documentation:**
-
-| Category | Files | Priority |
-|----------|-------|----------|
-| **User-facing** | README.md, docs/getting-started.md | High |
-| **API** | API.md, docs/api/*.md, OpenAPI specs | High |
-| **Contributing** | CONTRIBUTING.md, docs/development.md | Medium |
-| **Architecture** | docs/architecture/*.md, ADRs | Medium |
-| **Changelog** | CHANGELOG.md, HISTORY.md | Low |
-
-**Create audit scope** based on input or ask user:
+**code-explorer にドキュメント探索を委任する:**
 
 ```
-Question: "Which documentation should I audit?"
-Header: "Scope"
+code-explorer エージェントを起動:
+タスク: コードベース内のドキュメントファイルを探索
+分析内容:
+- すべてのマークダウンファイル（.git/、node_modules/ を除く）
+- 一般的なドキュメント配置場所（README.md、docs/、CONTRIBUTING.md、CHANGELOG.md、API.md）
+- ドキュメントの構造と構成
+網羅度: quick
+出力: カテゴリ別のドキュメントファイルリスト（ユーザー向け、API、コントリビューション等）
+```
+
+エージェントの出力をカテゴリ分けに使用する。find/ls コマンドを手動で実行してはならない。
+
+**ドキュメントのカテゴリ分け:**
+
+| カテゴリ | ファイル | 優先度 |
+|---------|---------|--------|
+| **ユーザー向け** | README.md、docs/getting-started.md | 高 |
+| **API** | API.md、docs/api/*.md、OpenAPI スペック | 高 |
+| **コントリビューション** | CONTRIBUTING.md、docs/development.md | 中 |
+| **アーキテクチャ** | docs/architecture/*.md、ADR | 中 |
+| **変更履歴** | CHANGELOG.md、HISTORY.md | 低 |
+
+**監査スコープの作成**（入力に基づくか、ユーザーに確認）:
+
+```
+Question: "どのドキュメントを監査しますか？"
+Header: "スコープ"
 Options:
-- "All documentation" (Recommended for releases)
-- "README and user guides only"
-- "API documentation only"
-- "Let me specify files"
+- "すべてのドキュメント"（リリース前に推奨）
+- "README とユーザーガイドのみ"
+- "API ドキュメントのみ"
+- "ファイルを指定します"
 ```
 
-### Phase 2: Code-Documentation Mapping
+### フェーズ 2: コードとドキュメントのマッピング
 
-**Goal:** Map documentation sections to corresponding code.
+**ゴール:** ドキュメントのセクションを対応するコードにマッピングする。
 
-**Pre-mapping context (orchestrator reads section structure only):**
+**事前マッピングコンテキスト（オーケストレーターがセクション構造のみ読み取り）:**
 
-For each documentation file to audit (≤200 lines per file, respecting `subagent-contract` limits):
-1. Read the documentation file directly (section headers and structure only)
-2. Extract top-level headings (e.g., "## Installation", "## API Reference", "## Configuration")
-3. This gives orchestrator awareness of document structure for subsequent verification
+監査対象の各ドキュメントファイルについて（ファイルあたり200行以下、`subagent-contract` リミットに従う）:
+1. ドキュメントファイルを直接読み取る（セクション見出しと構造のみ）
+2. トップレベルの見出しを抽出（例: "## インストール"、"## API リファレンス"、"## 設定"）
+3. これによりオーケストレーターが後続の検証のためにドキュメント構造を把握
 
-**Present document structure to user:**
+**ドキュメント構造をユーザーに提示:**
 ```markdown
-## Document: [filename]
+## ドキュメント: [ファイル名]
 
-### Sections Identified:
-1. [Section heading 1]
-2. [Section heading 2]
+### 検出されたセクション:
+1. [セクション見出し 1]
+2. [セクション見出し 2]
 ...
 
-### Audit Scope:
-[Which sections will be verified against code]
+### 監査スコープ:
+[どのセクションをコードと照合して検証するか]
 ```
 
-Use AskUserQuestion to confirm:
+AskUserQuestion で確認する:
 ```
-Question: "I found these sections in the documentation. Which should I prioritize for drift detection?"
-Header: "Prioritize"
+Question: "ドキュメント内のこれらのセクションを検出しました。乖離検出でどのセクションを優先しますか？"
+Header: "優先順位"
 Options:
-- "Audit all sections"
-- "Focus on [high-priority sections like Installation, API]"
-- "Let me specify sections"
+- "すべてのセクションを監査"
+- "[インストール、API などの高優先度セクション] に集中"
+- "セクションを指定します"
 ```
 
-**For each documentation file, launch code-explorer:**
+**各ドキュメントファイルについて code-explorer を起動:**
 
 ```
-Launch code-explorer agent:
+code-explorer エージェントを起動:
 
-Analyze this documentation and identify corresponding code:
+このドキュメントを分析し、対応するコードを特定:
 
-Documentation: [file content or path]
+ドキュメント: [ファイルの内容またはパス]
 
-Tasks:
-1. Extract all code references (file paths, function names, classes)
-2. Identify setup/installation commands mentioned
-3. Find API endpoints or interfaces documented
-4. List configuration options mentioned
-5. Note any version numbers or dependencies
+タスク:
+1. すべてのコード参照を抽出（ファイルパス、関数名、クラス）
+2. 記載されたセットアップ/インストールコマンドを特定
+3. ドキュメント化された API エンドポイントまたはインターフェースを検出
+4. 記載された設定オプションをリスト化
+5. バージョン番号や依存関係を記録
 
-Return a mapping table in this format:
-| Doc Section | Code Reference | File Path | Status |
-|-------------|---------------|-----------|--------|
-| [section] | [reference] | [path] | TBD |
+以下の形式でマッピングテーブルを返すこと:
+| ドキュメントセクション | コード参照 | ファイルパス | ステータス |
+|---------------------|-----------|-----------|---------|
+| [セクション] | [参照] | [パス] | 未確認 |
 
-Thoroughness: medium
+網羅度: medium
 ```
 
-Use the agent's mapping table output directly. Do NOT build mapping tables manually.
+エージェントのマッピングテーブル出力をそのまま使用する。手動でマッピングテーブルを作成してはならない。
 
-### Phase 3: Drift Detection
+### フェーズ 3: 乖離検出
 
-**Goal:** Compare documentation claims against actual code.
+**ゴール:** ドキュメントの記述を実際のコードと照合する。
 
-**For each mapping, verify accuracy:**
+**各マッピングについて正確性を検証する:**
 
-**Installation/Setup Drift:**
+**インストール/セットアップの乖離:**
 ```
-Launch code-explorer:
+code-explorer を起動:
 
-Verify these setup instructions are accurate:
+以下のセットアップ手順が正確か検証:
 
-Instructions from docs:
-[setup steps]
+ドキュメントの手順:
+[セットアップステップ]
 
-Check:
-1. Do the commands work?
-2. Are dependencies correct and current?
-3. Are environment variables documented?
-4. Is the order of steps correct?
-```
-
-**API Drift:**
-```
-Launch code-explorer:
-
-Compare documented API with implementation:
-
-Documented endpoint:
-[API doc section]
-
-Check:
-1. Does endpoint exist?
-2. Do parameters match?
-3. Are response types accurate?
-4. Are error codes documented?
+確認内容:
+1. コマンドが動作するか？
+2. 依存関係が正しく最新か？
+3. 環境変数がドキュメント化されているか？
+4. ステップの順序が正しいか？
 ```
 
-**Configuration Drift:**
+**API の乖離:**
 ```
-Verify configuration options:
+code-explorer を起動:
 
-Documented options:
-[config section]
+ドキュメント化された API と実装を比較:
 
-Check:
-1. Do all options exist in code?
-2. Are defaults accurate?
-3. Are any options missing from docs?
+ドキュメントのエンドポイント:
+[API ドキュメントセクション]
+
+確認内容:
+1. エンドポイントが存在するか？
+2. パラメータが一致するか？
+3. レスポンス型が正確か？
+4. エラーコードがドキュメント化されているか？
 ```
 
-### Phase 4: Finding Classification
+**設定の乖離:**
+```
+設定オプションを検証:
 
-**Goal:** Categorize and prioritize findings.
+ドキュメントのオプション:
+[設定セクション]
 
-**Classify each finding:**
+確認内容:
+1. すべてのオプションがコードに存在するか？
+2. デフォルト値が正確か？
+3. ドキュメントに欠落しているオプションがないか？
+```
 
-| Severity | Description | Examples |
-|----------|-------------|----------|
-| **Critical** | Docs mislead users, cause errors | Wrong install command, deprecated API |
-| **High** | Significant inaccuracy | Missing required step, wrong parameter |
-| **Medium** | Minor inaccuracy | Outdated example, typo in code |
-| **Low** | Cosmetic or enhancement | Style inconsistency, could be clearer |
+### フェーズ 4: 指摘の分類
 
-**Confidence scoring (0-100):**
-- 90-100: Definite drift, verified in code
-- 70-89: Likely drift, strong evidence
-- 50-69: Possible drift, needs verification
-- Below 50: Uncertain, may be false positive
+**ゴール:** 指摘をカテゴリ分けし優先順位付けする。
 
-**Filter findings:** Report only >= 80 confidence by default.
+**各指摘の分類:**
 
-### Phase 5: Report Generation
+| 深刻度 | 説明 | 例 |
+|--------|------|------|
+| **重大** | ドキュメントがユーザーを誤誘導し、エラーを引き起こす | 誤ったインストールコマンド、廃止された API |
+| **高** | 重大な不正確さ | 必要なステップの欠落、誤ったパラメータ |
+| **中** | 軽微な不正確さ | 古い例、コード内のタイプミス |
+| **低** | 外観的または改善の余地 | スタイルの不整合、より明確にできる箇所 |
 
-**Goal:** Present actionable audit results.
+**信頼度スコアリング（0-100）:**
+- 90-100: 確実な乖離、コードで検証済み
+- 70-89: 乖離の可能性が高い、強い根拠あり
+- 50-69: 乖離の可能性あり、要検証
+- 50未満: 不確実、誤検知の可能性
+
+**指摘のフィルタリング:** デフォルトでは信頼度80以上のみ報告。
+
+### フェーズ 5: レポート生成
+
+**ゴール:** 実行可能な監査結果を提示する。
 
 ```markdown
-## Documentation Audit Report
+## ドキュメント監査レポート
 
-### Summary
-- **Files Audited**: [N]
-- **Drift Detected**: [N] issues
-- **Critical**: [N] | **High**: [N] | **Medium**: [N] | **Low**: [N]
+### サマリー
+- **監査ファイル数**: [N]
+- **検出された乖離**: [N] 件
+- **重大**: [N] | **高**: [N] | **中**: [N] | **低**: [N]
 
-### Critical Issues (Must Fix)
+### 重大な問題（要修正）
 
-#### Issue 1: [Title] (Confidence: 95)
-**File**: `README.md`, Line 45
-**Type**: Installation drift
-**Current Doc**:
+#### 問題 1: [タイトル]（信頼度: 95）
+**ファイル**: `README.md`、45行目
+**タイプ**: インストール手順の乖離
+**現在のドキュメント**:
 ```
 npm install -g old-cli-name
 ```
-**Actual**:
+**実際**:
 ```
 npm install -g new-cli-name
 ```
-**Fix**: Update package name to `new-cli-name`
+**修正案**: パッケージ名を `new-cli-name` に更新
 
 ---
 
-### High Priority Issues
+### 高優先度の問題
 
-#### Issue 2: [Title] (Confidence: 88)
+#### 問題 2: [タイトル]（信頼度: 88）
 ...
 
-### Medium Priority Issues
+### 中優先度の問題
 ...
 
-### Recommendations
+### 推奨事項
 
-1. Update installation instructions in README.md
-2. Regenerate API documentation from OpenAPI spec
-3. Add missing configuration options to docs/config.md
+1. README.md のインストール手順を更新
+2. OpenAPI スペックから API ドキュメントを再生成
+3. docs/config.md に欠落している設定オプションを追加
 
-### Verification Checklist
+### 検証チェックリスト
 
-After updates, verify:
-- [ ] Installation steps work on clean environment
-- [ ] API examples return expected responses
-- [ ] Configuration options match code defaults
+更新後に確認:
+- [ ] インストール手順がクリーン環境で動作する
+- [ ] API の例が期待どおりのレスポンスを返す
+- [ ] 設定オプションがコードのデフォルト値と一致する
 ```
 
-### Phase 6: User Decision
+### フェーズ 6: ユーザーの判断
 
-**Goal:** Determine next steps.
+**ゴール:** 次のステップを決定する。
 
 ```
-Question: "Audit complete. Found [N] issues. What would you like to do?"
-Header: "Action"
+Question: "監査完了。[N] 件の問題が見つかりました。どうしますか？"
+Header: "アクション"
 Options:
-- "Fix all issues automatically" (Recommended for <10 issues)
-- "Fix critical issues only"
-- "Show detailed report and let me decide"
-- "Export report to file"
+- "すべての問題を自動修正"（10件未満の場合に推奨）
+- "重大な問題のみ修正"
+- "詳細レポートを表示して判断する"
+- "レポートをファイルにエクスポート"
 ```
 
-**If fixing automatically:**
+**自動修正の場合:**
 
 ```
-DELEGATE to technical-writer agent:
+technical-writer エージェントに委任:
 
-Update this documentation to fix the identified issues:
+特定された問題を修正してこのドキュメントを更新:
 
-File: [path]
-Current content: [content]
+ファイル: [パス]
+現在の内容: [内容]
 
-Issues to fix:
-[list of issues with fixes]
+修正すべき問題:
+[修正案付きの問題リスト]
 
-Requirements:
-- Preserve document structure
-- Maintain consistent style
-- Update only the identified sections
-```
-
----
-
-## Audit Patterns
-
-### README.md Audit
-
-Check these common drift points:
-- Installation commands and dependencies
-- Quick start examples
-- Feature list vs actual features
-- Badge links and versions
-- License information
-
-### API Documentation Audit
-
-Check these elements:
-- Endpoint paths and methods
-- Request/response schemas
-- Authentication requirements
-- Rate limits and quotas
-- Error codes and messages
-
-### Configuration Documentation Audit
-
-Check these elements:
-- Environment variable names
-- Default values
-- Required vs optional settings
-- Valid value ranges
-- Deprecated options
-
----
-
-## Integration with /code-review
-
-This command can be invoked as part of `/code-review` for documentation-heavy PRs:
-
-```
-If PR modifies documentation or documented code:
-  Consider running /doc-audit --for [modified-files]
+要件:
+- ドキュメントの構造を維持
+- 一貫したスタイルを維持
+- 特定されたセクションのみ更新
 ```
 
 ---
 
-## Rules (L1 - Hard)
+## 監査パターン
 
-- ALWAYS verify drift against actual code, not assumptions
-- NEVER report issues without code evidence
-- ALWAYS include specific fix recommendations
-- NEVER auto-fix without user confirmation for critical docs
+### README.md 監査
 
-## Defaults (L2 - Soft)
+よくある乖離ポイントを確認:
+- インストールコマンドと依存関係
+- クイックスタートの例
+- 機能リスト vs 実際の機能
+- バッジリンクとバージョン
+- ライセンス情報
 
-- Use 80% confidence threshold for reporting
-- Prioritize user-facing documentation (README, guides)
-- Delegate analysis to code-explorer for accuracy
-- Generate actionable fix recommendations
+### API ドキュメント監査
 
-## Guidelines (L3)
+以下の要素を確認:
+- エンドポイントのパスとメソッド
+- リクエスト/レスポンススキーマ
+- 認証要件
+- レート制限とクォータ
+- エラーコードとメッセージ
 
-- Consider running before major releases
-- Prefer fixing docs near the code that changed
-- Consider adding doc drift checks to CI/CD
-- Keep audit scope focused for faster results
+### 設定ドキュメント監査
+
+以下の要素を確認:
+- 環境変数名
+- デフォルト値
+- 必須 vs 任意の設定
+- 有効な値の範囲
+- 廃止されたオプション
+
+---
+
+## /code-review との連携
+
+このコマンドはドキュメント関連の変更が多い PR で `/code-review` の一環として呼び出せる:
+
+```
+PR がドキュメントまたはドキュメント化されたコードを変更する場合:
+  /doc-audit --for [変更されたファイル] の実行を検討
+```
+
+---
+
+## ルール（L1 - ハード）
+
+- ALWAYS: 乖離の検証は想定ではなく実際のコードに対して行う
+- NEVER: コード根拠なしに問題を報告してはならない
+- ALWAYS: 具体的な修正推奨を含める
+- NEVER: 重要なドキュメントについてユーザーの確認なしに自動修正してはならない
+
+## デフォルト（L2 - ソフト）
+
+- 報告の信頼度しきい値は80%
+- ユーザー向けドキュメント（README、ガイド）を優先
+- 正確性のため分析を code-explorer に委任
+- 実行可能な修正推奨を生成
+
+## ガイドライン（L3）
+
+- consider: メジャーリリース前の実行を検討
+- prefer: 変更されたコードの近くでドキュメントを修正する
+- consider: CI/CD にドキュメント乖離チェックの追加を検討
+- consider: 高速な結果のため監査スコープを絞る

@@ -1,216 +1,216 @@
-# Agent-Specific Result Format Examples
+# エージェント固有の結果フォーマット例
 
-This file contains detailed examples for each agent type. Reference these when implementing subagent output formatting.
+このファイルには各エージェントタイプの詳細な例を含む。サブエージェント出力のフォーマット実装時にこれらを参照。
 
-## Exploration Agents (code-explorer, Explore)
+## 探索エージェント（code-explorer, Explore）
 
 ```markdown
-## Code Explorer Result
+## Code Explorer 結果
 
-### Status
+### ステータス
 SUCCESS
 
-### Summary
-Traced authentication flow from login endpoint through JWT validation to session creation.
+### サマリー
+ログインエンドポイントから JWT バリデーション、セッション作成までの認証フローをトレース。
 
-### Findings
+### 調査結果
 
-#### Entry Points
-| Entry | File:Line | Type |
-|-------|-----------|------|
-| POST /auth/login | `src/api/auth.ts:45` | REST endpoint |
-| POST /auth/refresh | `src/api/auth.ts:89` | REST endpoint |
+#### エントリーポイント
+| エントリ | File:Line | タイプ |
+|---------|-----------|--------|
+| POST /auth/login | `src/api/auth.ts:45` | REST エンドポイント |
+| POST /auth/refresh | `src/api/auth.ts:89` | REST エンドポイント |
 
-#### Execution Flow
-1. Request → `src/api/auth.ts:45` (loginHandler)
-2. Validation → `src/validators/auth.ts:23` (validateLogin)
-3. Service → `src/services/auth.ts:67` (authenticate)
-4. Repository → `src/repositories/user.ts:34` (findByEmail)
-5. Response ← Token generated
+#### 実行フロー
+1. リクエスト → `src/api/auth.ts:45` (loginHandler)
+2. バリデーション → `src/validators/auth.ts:23` (validateLogin)
+3. サービス → `src/services/auth.ts:67` (authenticate)
+4. リポジトリ → `src/repositories/user.ts:34` (findByEmail)
+5. レスポンス ← トークン生成
 
-#### Architecture Patterns
-- Pattern: Repository + Service + Controller
-- Evidence: `src/services/auth.ts:8`, `src/repositories/user.ts:5`
+#### アーキテクチャパターン
+- パターン: Repository + Service + Controller
+- 証拠: `src/services/auth.ts:8`, `src/repositories/user.ts:5`
 
-#### Dependencies
-- Internal: UserRepository, SessionService
-- External: bcrypt, jsonwebtoken
+#### 依存関係
+- 内部: UserRepository, SessionService
+- 外部: bcrypt, jsonwebtoken
 
-### Key References
-| Item | Location | Relevance |
-|------|----------|-----------|
-| AuthService | `src/services/auth.ts:8` | Core authentication logic |
-| JWTMiddleware | `src/middleware/jwt.ts:15` | Token validation |
-| UserRepository | `src/repositories/user.ts:5` | User data access |
+### 主要な参照
+| 項目 | 場所 | 関連性 |
+|------|------|--------|
+| AuthService | `src/services/auth.ts:8` | コア認証ロジック |
+| JWTMiddleware | `src/middleware/jwt.ts:15` | トークンバリデーション |
+| UserRepository | `src/repositories/user.ts:5` | ユーザーデータアクセス |
 
-### Confidence
-92 - Clear patterns, all paths traced to completion
+### 信頼度
+92 - 明確なパターン、すべてのパスを完了までトレース
 
-### Next Steps
-1. Read `src/services/auth.ts` for implementation details
-2. Review `src/config/jwt.ts` for token configuration
+### 次のステップ
+1. 実装の詳細は `src/services/auth.ts` を読む
+2. トークン設定は `src/config/jwt.ts` をレビュー
 ```
 
-## Design Agents (code-architect, system-architect)
+## 設計エージェント（code-architect, system-architect）
 
 ```markdown
-## Code Architect Result
+## Code Architect 結果
 
-### Status
+### ステータス
 SUCCESS
 
-### Summary
-Designed OAuth integration following existing auth patterns. Single recommended approach with implementation map.
+### サマリー
+既存の認証パターンに従って OAuth 統合を設計。単一の推奨アプローチと実装マップ付き。
 
-### Findings
+### 調査結果
 
-#### Pattern Analysis
-| Pattern | Example | Recommendation |
-|---------|---------|----------------|
-| Service layer | `src/services/auth.ts:8` | Extend with OAuthService |
-| Repository | `src/repositories/user.ts:5` | Add OAuthCredential model |
-| Config | `src/config/auth.ts:12` | Add OAuth provider config |
+#### パターン分析
+| パターン | 例 | 推奨 |
+|---------|-----|------|
+| サービスレイヤー | `src/services/auth.ts:8` | OAuthService で拡張 |
+| リポジトリ | `src/repositories/user.ts:5` | OAuthCredential モデルを追加 |
+| 設定 | `src/config/auth.ts:12` | OAuth プロバイダー設定を追加 |
 
-#### Recommended Architecture
+#### 推奨アーキテクチャ
 
-**Approach**: Extend existing AuthService with OAuth capabilities
+**アプローチ**: 既存の AuthService を OAuth 機能で拡張
 
-**Rationale**:
-- Aligns with existing service pattern at `src/services/auth.ts:8`
-- Minimal changes to existing code
-- Reuses JWT infrastructure at `src/middleware/jwt.ts:15`
+**根拠**:
+- `src/services/auth.ts:8` の既存サービスパターンと整合
+- 既存コードへの変更が最小限
+- `src/middleware/jwt.ts:15` の JWT インフラを再利用
 
-#### Implementation Map
+#### 実装マップ
 
-| Component | File | Action |
-|-----------|------|--------|
-| OAuthService | `src/services/oauth.ts` | Create |
-| OAuthConfig | `src/config/oauth.ts` | Create |
-| AuthService | `src/services/auth.ts:145` | Modify (add OAuth methods) |
-| routes | `src/routes/auth.ts:78` | Modify (add OAuth routes) |
+| コンポーネント | ファイル | アクション |
+|------------|------|----------|
+| OAuthService | `src/services/oauth.ts` | 作成 |
+| OAuthConfig | `src/config/oauth.ts` | 作成 |
+| AuthService | `src/services/auth.ts:145` | 変更（OAuth メソッド追加） |
+| routes | `src/routes/auth.ts:78` | 変更（OAuth ルート追加） |
 
-#### Build Sequence
-1. Create OAuthConfig with provider settings
-2. Create OAuthService with provider handling
-3. Extend AuthService with OAuth flow
-4. Add OAuth routes
-5. Write integration tests
+#### ビルド順序
+1. プロバイダー設定で OAuthConfig を作成
+2. プロバイダー処理で OAuthService を作成
+3. OAuth フローで AuthService を拡張
+4. OAuth ルートを追加
+5. 統合テストを作成
 
-### Key References
-| Item | Location | Relevance |
-|------|----------|-----------|
-| AuthService | `src/services/auth.ts:8` | Base to extend |
-| JWTConfig | `src/config/jwt.ts:5` | Token pattern to follow |
-| UserModel | `src/models/user.ts:12` | May need OAuth link |
+### 主要な参照
+| 項目 | 場所 | 関連性 |
+|------|------|--------|
+| AuthService | `src/services/auth.ts:8` | 拡張のベース |
+| JWTConfig | `src/config/jwt.ts:5` | 従うべきトークンパターン |
+| UserModel | `src/models/user.ts:12` | OAuth リンクが必要な可能性 |
 
-### Confidence
-88 - Clear patterns, one assumption about user model
+### 信頼度
+88 - 明確なパターン、ユーザーモデルについて 1 つの仮定あり
 
-### Trade-offs Considered
-- Separate OAuth microservice: Rejected (overhead for this scale)
-- Direct provider SDK: Rejected (less abstraction)
+### 検討したトレードオフ
+- 別の OAuth マイクロサービス: 却下（このスケールではオーバーヘッド）
+- プロバイダー SDK の直接使用: 却下（抽象化が不足）
 ```
 
-## Review Agents (qa-engineer, security-auditor)
+## レビューエージェント（qa-engineer, security-auditor）
 
 ```markdown
-## Security Auditor Result
+## Security Auditor 結果
 
-### Status
+### ステータス
 PARTIAL
 
-### Summary
-Reviewed authentication module. Found 2 critical issues and 3 recommendations.
+### サマリー
+認証モジュールをレビュー。2 つのクリティカルな問題と 3 つの推奨事項を発見。
 
-### Findings
+### 調査結果
 
-#### Issues Detected
+#### 検出された問題
 
-| ID | Issue | File:Line | Severity | Confidence |
-|----|-------|-----------|----------|------------|
-| SEC-001 | Hardcoded JWT secret | `src/config/jwt.ts:8` | Critical | 98 |
-| SEC-002 | Missing rate limiting | `src/api/auth.ts:45` | Critical | 95 |
-| SEC-003 | Verbose error messages | `src/services/auth.ts:89` | Important | 85 |
+| ID | 問題 | File:Line | 重大度 | 信頼度 |
+|----|------|-----------|--------|--------|
+| SEC-001 | ハードコードされた JWT シークレット | `src/config/jwt.ts:8` | Critical | 98 |
+| SEC-002 | レート制限の欠如 | `src/api/auth.ts:45` | Critical | 95 |
+| SEC-003 | 冗長なエラーメッセージ | `src/services/auth.ts:89` | Important | 85 |
 
-#### Issue Details
+#### 問題の詳細
 
-**SEC-001: Hardcoded JWT Secret**
+**SEC-001: ハードコードされた JWT シークレット**
 ```typescript
 // src/config/jwt.ts:8
 const JWT_SECRET = 'hardcoded-secret-key-123'; // CRITICAL
 ```
-**Risk**: Token forgery, complete auth bypass
-**Fix**: Use environment variable `process.env.JWT_SECRET`
+**リスク**: トークン偽造、認証の完全バイパス
+**修正**: 環境変数 `process.env.JWT_SECRET` を使用
 
-**SEC-002: Missing Rate Limiting**
+**SEC-002: レート制限の欠如**
 ```typescript
-// src/api/auth.ts:45 - No rate limiting
+// src/api/auth.ts:45 - レート制限なし
 router.post('/login', loginHandler);
 ```
-**Risk**: Brute force attacks on login
-**Fix**: Add express-rate-limit middleware
+**リスク**: ログインへのブルートフォース攻撃
+**修正**: express-rate-limit ミドルウェアを追加
 
-**SEC-003: Verbose Error Messages**
+**SEC-003: 冗長なエラーメッセージ**
 ```typescript
 // src/services/auth.ts:89
 throw new Error(`User ${email} not found in database`);
 ```
-**Risk**: Information disclosure (confirms email existence)
-**Fix**: Generic "Invalid credentials" message
+**リスク**: 情報漏洩（メールの存在を確認可能）
+**修正**: 汎用的な「無効な認証情報」メッセージ
 
-#### Compliance Check
-| Standard | Status | Notes |
-|----------|--------|-------|
-| OWASP A07 Auth Failures | FAIL | SEC-001, SEC-002 |
-| OWASP A01 Access Control | PASS | Proper authorization checks |
+#### コンプライアンスチェック
+| 基準 | ステータス | 備考 |
+|------|----------|------|
+| OWASP A07 認証の失敗 | FAIL | SEC-001, SEC-002 |
+| OWASP A01 アクセス制御 | PASS | 適切な認可チェック |
 
-### Key References
-| Item | Location | Relevance |
-|------|----------|-----------|
-| JWT Config | `src/config/jwt.ts:8` | Contains hardcoded secret |
-| Login Handler | `src/api/auth.ts:45` | Missing rate limit |
+### 主要な参照
+| 項目 | 場所 | 関連性 |
+|------|------|--------|
+| JWT Config | `src/config/jwt.ts:8` | ハードコードされたシークレットを含む |
+| Login Handler | `src/api/auth.ts:45` | レート制限が欠如 |
 
-### Confidence
-94 - Issues verified with code evidence
+### 信頼度
+94 - コード証拠で問題を検証済み
 
-### Severity Summary
+### 重大度サマリー
 - Critical: 2
 - Important: 1
 - Minor: 0
 
-### Next Steps
-1. Fix SEC-001 immediately (security critical)
-2. Add rate limiting before deployment
-3. Review all error messages for information disclosure
+### 次のステップ
+1. SEC-001 を直ちに修正（セキュリティクリティカル）
+2. デプロイ前にレート制限を追加
+3. 情報漏洩についてすべてのエラーメッセージをレビュー
 ```
 
-## Implementation Agents (frontend-specialist, backend-specialist)
+## 実装エージェント（frontend-specialist, backend-specialist）
 
 ```markdown
-## Backend Specialist Result
+## Backend Specialist 結果
 
-### Status
+### ステータス
 SUCCESS
 
-### Summary
-Implemented UserService with registration, login, and password reset. All tests passing.
+### サマリー
+登録、ログイン、パスワードリセットを含む UserService を実装。すべてのテストが合格。
 
-### Findings
+### 調査結果
 
-#### Files Created
-| File | Purpose | Lines |
-|------|---------|-------|
-| `src/services/user.ts` | User business logic | 145 |
-| `src/repositories/user.ts` | Data access | 78 |
-| `tests/services/user.test.ts` | Unit tests | 234 |
+#### 作成されたファイル
+| ファイル | 目的 | 行数 |
+|---------|------|------|
+| `src/services/user.ts` | ユーザービジネスロジック | 145 |
+| `src/repositories/user.ts` | データアクセス | 78 |
+| `tests/services/user.test.ts` | ユニットテスト | 234 |
 
-#### Files Modified
-| File | Change | Lines Changed |
-|------|--------|---------------|
-| `src/routes/index.ts:45` | Added user routes | +5 |
-| `src/services/index.ts:8` | Export UserService | +1 |
+#### 変更されたファイル
+| ファイル | 変更内容 | 変更行数 |
+|---------|---------|---------|
+| `src/routes/index.ts:45` | ユーザールートを追加 | +5 |
+| `src/services/index.ts:8` | UserService をエクスポート | +1 |
 
-#### Test Results
+#### テスト結果
 ```
 PASS tests/services/user.test.ts
   UserService
@@ -226,61 +226,61 @@ Tests: 5 passed, 5 total
 Coverage: 94%
 ```
 
-#### Implementation Notes
-- Followed repository pattern from `src/repositories/product.ts:8`
-- Used bcrypt with cost factor 12 (matches existing)
-- JWT tokens expire in 24h (configurable via env)
+#### 実装メモ
+- `src/repositories/product.ts:8` のリポジトリパターンに従った
+- コストファクター 12 の bcrypt を使用（既存と一致）
+- JWT トークンの有効期限は 24 時間（環境変数で設定可能）
 
-### Key References
-| Item | Location | Relevance |
-|------|----------|-----------|
-| UserService | `src/services/user.ts:8` | Main implementation |
-| createUser | `src/services/user.ts:45` | Registration logic |
-| login | `src/services/user.ts:89` | Auth logic |
+### 主要な参照
+| 項目 | 場所 | 関連性 |
+|------|------|--------|
+| UserService | `src/services/user.ts:8` | メイン実装 |
+| createUser | `src/services/user.ts:45` | 登録ロジック |
+| login | `src/services/user.ts:89` | 認証ロジック |
 
-### Confidence
-96 - Tests passing, patterns followed
+### 信頼度
+96 - テスト合格、パターンに従った
 
-### Next Steps
-1. Review implementation for approval
-2. Run integration tests if available
-3. Update API documentation
+### 次のステップ
+1. 承認のために実装をレビュー
+2. 利用可能であれば統合テストを実行
+3. API ドキュメントを更新
 ```
 
-## Error Result Format
+## エラー結果フォーマット
 
-When a subagent encounters errors:
+サブエージェントがエラーに遭遇した場合:
 
 ```markdown
-## [Agent Name] Result
+## [エージェント名] 結果
 
-### Status
+### ステータス
 FAILED
 
-### Summary
-Unable to complete task due to [error category].
+### サマリー
+[エラーカテゴリ] のためタスクを完了できず。
 
-### Error Details
-| Aspect | Value |
-|--------|-------|
-| Type | [ErrorType] |
-| Message | [Error message] |
-| Occurred At | [file:line or step] |
-| Recoverable | [true/false] |
+### エラー詳細
+| 項目 | 値 |
+|------|-----|
+| タイプ | [ErrorType] |
+| メッセージ | [エラーメッセージ] |
+| 発生場所 | [file:line またはステップ] |
+| 回復可能 | [true/false] |
 
-### Attempted Actions
-1. [What was tried first]
-2. [What was tried second]
-3. [Final attempt before failure]
+### 試行したアクション
+1. [最初に試したこと]
+2. [次に試したこと]
+3. [失敗前の最後の試行]
 
-### Root Cause Analysis
-[Analysis of why the error occurred]
+### 根本原因分析
+[エラーが発生した理由の分析]
 
-### Recovery Options
-1. [Option 1]: [Description]
-2. [Option 2]: [Description]
+### 回復オプション
+1. [オプション 1]: [説明]
+2. [オプション 2]: [説明]
 
-### Blockers
-- [Description of what's blocking progress]
-  Resolution: [What's needed to unblock]
+### ブロッカー
+- [進行を妨げているものの説明]
+  解決策: [ブロック解除に必要なこと]
 ```

@@ -1,239 +1,239 @@
 ---
 name: migration
 description: |
-  Safe database schema migration patterns applicable to any ORM/database stack. Use when:
-  - Making database schema changes (add/remove columns, tables)
-  - Running migrations safely
-  - Managing database versioning and rollbacks
-  - Assessing migration risk or planning safe deployment
-  - Dealing with schema drift or migration conflicts
+  任意の ORM/データベーススタックに適用可能な安全なデータベーススキーママイグレーションパターン。以下の場合に使用:
+  - データベーススキーマの変更（カラム・テーブルの追加/削除）
+  - 安全なマイグレーションの実行
+  - データベースのバージョニングとロールバックの管理
+  - マイグレーションリスクの評価や安全なデプロイの計画
+  - スキーマドリフトやマイグレーションの競合への対処
   Trigger phrases: database migration, schema change, add column, migration rollback, schema drift
 allowed-tools: Bash, Read, AskUserQuestion, Write, Glob, Grep, WebSearch, WebFetch
 model: sonnet
 user-invocable: true
 ---
 
-# Database Migration
+# データベースマイグレーション
 
-Safe schema migration patterns applicable to any ORM and database. This skill defines **migration principles and safety patterns**, not specific ORM commands.
+任意の ORM とデータベースに適用可能な安全なスキーママイグレーションパターン。このスキルは**マイグレーションの原則と安全パターン**を定義するものであり、特定の ORM コマンドを定義するものではない。
 
-## Design Principles
+## 設計原則
 
-1. **Discover project tools**: Detect which ORM/migration tool the project uses
-2. **Research commands**: Use WebSearch for current ORM command syntax
-3. **Safety first**: Follow safe migration patterns regardless of tool
-4. **Always have rollback**: Plan for reverting changes
-
----
-
-## Migration Safety Checklist
-
-Before any migration:
-
-- [ ] Backup exists or can be restored
-- [ ] Migration is reversible (down migration defined)
-- [ ] No data loss risk identified
-- [ ] Tested in non-production environment
-- [ ] Schema drift checked
+1. **プロジェクトのツールを発見**: プロジェクトが使用する ORM/マイグレーションツールを検出
+2. **コマンドをリサーチ**: WebSearch で現在の ORM コマンド構文を調査
+3. **安全第一**: ツールに関係なく安全なマイグレーションパターンに従う
+4. **常にロールバック可能に**: 変更の取り消しを計画
 
 ---
 
-## Tool Discovery
+## マイグレーション安全チェックリスト
 
-### Step 1: Detect Migration Tool
+マイグレーション実行前:
 
-Look for migration-related configuration without assuming specific tools:
+- [ ] バックアップが存在するか復元可能
+- [ ] マイグレーションが可逆（ダウンマイグレーション定義済み）
+- [ ] データ損失リスクを特定済み
+- [ ] 非本番環境でテスト済み
+- [ ] スキーマドリフトを確認済み
+
+---
+
+## ツール発見
+
+### ステップ 1: マイグレーションツールの検出
+
+特定のツールを前提とせずにマイグレーション関連の設定を探す:
 
 ```bash
-# Check for migration directories and configs
+# マイグレーションディレクトリと設定を確認
 ls -la migrations/ db/migrate/ alembic/ prisma/ drizzle/ 2>/dev/null
 ls -la *migrate* *migration* *.prisma diesel.toml 2>/dev/null
 
-# Check for migration tools in dependencies
+# 依存関係でマイグレーションツールを確認
 grep -E 'prisma|drizzle|alembic|django|sequelize|typeorm|knex|goose|diesel|flyway' \
   package.json pyproject.toml requirements.txt go.mod Cargo.toml pom.xml 2>/dev/null
 ```
 
-### Step 2: Find Project Commands
+### ステップ 2: プロジェクトコマンドを見つける
 
 ```bash
-# Check for migration scripts
+# マイグレーションスクリプトを確認
 grep -E 'migrate|migration|db:' package.json 2>/dev/null
 grep -E '^(migrate|db)' Makefile 2>/dev/null
 ```
 
-### Step 3: Research Current Commands
+### ステップ 3: 現在のコマンドをリサーチ
 
-If tool is detected but commands are unfamiliar:
-
-```
-WebSearch: "[ORM/tool name] migration commands [year]"
-WebFetch: [official docs] → "Extract migration CLI commands"
-```
-
----
-
-## Safe Migration Patterns
-
-These patterns apply to **any** database and migration tool:
-
-### Adding a Column
-
-**Safe approach (2-step for NOT NULL):**
+ツールが検出されたがコマンドが不慣れな場合:
 
 ```
-Step 1: Add column as nullable
-Step 2: Backfill data if needed
-Step 3: Add NOT NULL constraint (if required)
-```
-
-**Why**: Adding NOT NULL column directly fails on existing rows.
-
-### Removing a Column
-
-**Safe approach (3-step):**
-
-```
-Step 1: Stop using column in application code
-Step 2: Deploy application change
-Step 3: Remove column in migration
-```
-
-**Why**: Removing column while code uses it causes errors.
-
-### Renaming a Column
-
-**Safe approach (4-step):**
-
-```
-Step 1: Add new column (copy of old)
-Step 2: Copy data from old to new
-Step 3: Update code to use new column
-Step 4: Remove old column
-```
-
-**Why**: Renaming directly breaks running code during deployment.
-
-### Adding an Index
-
-**Safe approach:**
-
-```
-- For small tables: Direct index creation
-- For large tables: Use concurrent/online index creation
-```
-
-**Why**: Index creation locks table; concurrent creation avoids downtime.
-
-Note: Concurrent index syntax varies by database - research for your specific database.
-
----
-
-## Risk Assessment
-
-| Change Type | Risk Level | Mitigation |
-|-------------|------------|------------|
-| Add nullable column | Low | None needed |
-| Add column with default | Low | Check default value |
-| Add NOT NULL column | Medium | Add nullable first, backfill, then constrain |
-| Drop column | High | Ensure code doesn't use it |
-| Rename column | High | Use add/copy/drop pattern |
-| Change column type | High | Test data compatibility |
-| Add index (small table) | Low | None needed |
-| Add index (large table) | Medium | Use concurrent creation |
-| Drop index | Low | Verify not needed for queries |
-
----
-
-## Rollback Strategy
-
-**Always plan for rollback:**
-
-1. **Reversible migrations**: Define both up and down migrations
-2. **Test rollback**: Verify down migration works before deploying
-3. **Keep rollback scripts**: Store manual rollback SQL if needed
-4. **Document rollback steps**: Include in deployment checklist
-
-### Rollback Commands
-
-Discover the rollback command for your migration tool:
-
-```
-WebSearch: "[migration tool] rollback command"
+WebSearch: "[ORM/ツール名] migration commands [year]"
+WebFetch: [公式ドキュメント] → "Extract migration CLI commands"
 ```
 
 ---
 
-## Production Checklist
+## 安全なマイグレーションパターン
 
-Before deploying migrations to production:
+これらのパターンは**任意の**データベースとマイグレーションツールに適用:
 
-1. [ ] Migration tested locally
-2. [ ] Migration tested in staging/preview
-3. [ ] Database backup created/verified
-4. [ ] Rollback plan documented and tested
-5. [ ] Downtime window scheduled (if needed)
-6. [ ] Team notified of migration
-7. [ ] Monitoring ready for issues
-8. [ ] Application code compatible with both old and new schema
+### カラムの追加
+
+**安全なアプローチ（NOT NULL の場合は 2 ステップ）:**
+
+```
+ステップ 1: nullable としてカラムを追加
+ステップ 2: 必要に応じてデータをバックフィル
+ステップ 3: NOT NULL 制約を追加（必要な場合）
+```
+
+**理由**: NOT NULL カラムを直接追加すると既存の行で失敗する。
+
+### カラムの削除
+
+**安全なアプローチ（3 ステップ）:**
+
+```
+ステップ 1: アプリケーションコードでカラムの使用を停止
+ステップ 2: アプリケーション変更をデプロイ
+ステップ 3: マイグレーションでカラムを削除
+```
+
+**理由**: コードが使用中のカラムを削除するとエラーが発生する。
+
+### カラムのリネーム
+
+**安全なアプローチ（4 ステップ）:**
+
+```
+ステップ 1: 新しいカラムを追加（旧のコピー）
+ステップ 2: 旧から新にデータをコピー
+ステップ 3: 新しいカラムを使用するようにコードを更新
+ステップ 4: 旧カラムを削除
+```
+
+**理由**: 直接リネームするとデプロイ中に実行中のコードが壊れる。
+
+### インデックスの追加
+
+**安全なアプローチ:**
+
+```
+- 小さなテーブル: 直接インデックス作成
+- 大きなテーブル: コンカレント/オンラインインデックス作成を使用
+```
+
+**理由**: インデックス作成はテーブルをロックする。コンカレント作成はダウンタイムを回避。
+
+注: コンカレントインデックスの構文はデータベースによって異なる - 特定のデータベースについてリサーチすること。
 
 ---
 
-## Common Issues
+## リスク評価
 
-### Schema Drift
+| 変更タイプ | リスクレベル | 軽減策 |
+|-----------|-----------|--------|
+| nullable カラム追加 | 低 | 不要 |
+| デフォルト値付きカラム追加 | 低 | デフォルト値を確認 |
+| NOT NULL カラム追加 | 中 | まず nullable で追加、バックフィル、制約追加 |
+| カラム削除 | 高 | コードが使用していないことを確認 |
+| カラムリネーム | 高 | 追加/コピー/削除パターンを使用 |
+| カラム型変更 | 高 | データ互換性をテスト |
+| インデックス追加（小テーブル） | 低 | 不要 |
+| インデックス追加（大テーブル） | 中 | コンカレント作成を使用 |
+| インデックス削除 | 低 | クエリに不要であることを確認 |
 
-When database differs from migrations:
+---
 
-1. Compare current schema to expected schema
-2. Identify divergent changes
-3. Either:
-   - Generate migration to match current state
-   - Reset to migration state (dev only)
+## ロールバック戦略
 
-### Migration Conflicts
+**常にロールバックを計画する:**
 
-When multiple migrations conflict:
+1. **可逆マイグレーション**: アップとダウンの両方のマイグレーションを定義
+2. **ロールバックをテスト**: デプロイ前にダウンマイグレーションが動作することを確認
+3. **ロールバックスクリプトを保管**: 必要に応じて手動ロールバック SQL を保存
+4. **ロールバック手順を文書化**: デプロイチェックリストに含める
 
-1. Pull latest migrations
-2. Check for ordering issues
-3. Resolve conflicts in migration files
-4. Re-run migrations
+### ロールバックコマンド
 
-### Failed Migration
+マイグレーションツールのロールバックコマンドを発見する:
 
-When migration fails mid-way:
+```
+WebSearch: "[マイグレーションツール] rollback command"
+```
 
-1. Check what was applied
-2. Manually fix or rollback partial changes
-3. Fix migration and re-attempt
-4. Mark migration as resolved (tool-specific)
+---
+
+## 本番チェックリスト
+
+本番環境にマイグレーションをデプロイする前:
+
+1. [ ] ローカルでマイグレーションをテスト済み
+2. [ ] ステージング/プレビューでマイグレーションをテスト済み
+3. [ ] データベースバックアップを作成/確認済み
+4. [ ] ロールバック計画を文書化・テスト済み
+5. [ ] ダウンタイムウィンドウをスケジュール済み（必要な場合）
+6. [ ] チームにマイグレーションを通知済み
+7. [ ] 問題に対するモニタリング準備完了
+8. [ ] アプリケーションコードが旧スキーマと新スキーマの両方に互換性あり
+
+---
+
+## よくある問題
+
+### スキーマドリフト
+
+データベースがマイグレーションと異なる場合:
+
+1. 現在のスキーマと期待されるスキーマを比較
+2. 乖離した変更を特定
+3. いずれかを実施:
+   - 現在の状態に合わせるマイグレーションを生成
+   - マイグレーション状態にリセット（開発環境のみ）
+
+### マイグレーションの競合
+
+複数のマイグレーションが競合する場合:
+
+1. 最新のマイグレーションを pull
+2. 順序の問題を確認
+3. マイグレーションファイルの競合を解決
+4. マイグレーションを再実行
+
+### 失敗したマイグレーション
+
+マイグレーションが途中で失敗した場合:
+
+1. 何が適用されたかを確認
+2. 部分的な変更を手動で修正またはロールバック
+3. マイグレーションを修正して再試行
+4. マイグレーションを解決済みとしてマーク（ツール固有）
 
 ---
 
 ## Rules (L1 - Hard)
 
-Critical for data safety. Violations can cause data loss.
+データの安全性に不可欠。違反はデータ損失を引き起こす可能性。
 
-- ALWAYS backup before migration (recovery requirement)
-- NEVER run destructive migrations without explicit confirmation
-- NEVER run reset/drop commands in production
-- NEVER assume migrations are automatically reversible
+- ALWAYS: マイグレーション前にバックアップ（リカバリ要件）
+- NEVER: 明示的な確認なしに破壊的マイグレーションを実行しない
+- NEVER: 本番環境で reset/drop コマンドを実行しない
+- NEVER: マイグレーションが自動的に可逆であると仮定しない
 
 ## Defaults (L2 - Soft)
 
-Important for safe operations. Override with reasoning when appropriate.
+安全な操作に重要。適切な理由がある場合はオーバーライド可。
 
-- Test migrations in non-production first
-- Have a rollback plan documented
-- Discover the project's migration tool before running commands
-- Use WebSearch to verify current command syntax
-- Never hardcode ORM-specific commands (discover them)
+- まず非本番環境でマイグレーションをテスト
+- ロールバック計画を文書化
+- コマンド実行前にプロジェクトのマイグレーションツールを発見
+- WebSearch で現在のコマンド構文を確認
+- ORM 固有のコマンドをハードコードしない（発見する）
 
 ## Guidelines (L3)
 
-Recommendations for robust migration practices.
+堅牢なマイグレーション実践のための推奨事項。
 
-- Consider using the add/copy/drop pattern for column renames
-- Prefer concurrent index creation for large tables
-- Consider schema drift checks before migrations
+- consider: カラムリネームには追加/コピー/削除パターンの使用を検討
+- prefer: 大きなテーブルにはコンカレントインデックス作成を推奨
+- consider: マイグレーション前のスキーマドリフトチェックを検討

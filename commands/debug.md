@@ -1,10 +1,10 @@
 ---
-description: "Systematic debugging workflow - analyze errors, trace root causes, and implement fixes with subagent delegation"
-argument-hint: "<error-message or --test 'TestName' or --file 'path'>"
+description: "体系的なデバッグワークフロー - エラー分析、根本原因の追跡、サブエージェント委任による修正実施"
+argument-hint: "<エラーメッセージ or --test 'テスト名' or --file 'パス'>"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
 ---
 
-# /debug - Systematic Debugging Command
+# /debug - 体系的デバッグコマンド
 
 ## Language Mode
 
@@ -12,399 +12,399 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion, Task, TodoW
 
 ---
 
-A structured debugging workflow that leverages subagent delegation to analyze errors, trace root causes, and implement verified fixes.
+サブエージェント委任を活用してエラーを分析し、根本原因を追跡し、検証済みの修正を実施する構造化デバッグワークフロー。
 
-## Design Principles
+## 設計原則
 
-1. **Stack-agnostic**: Works for any language/framework
-2. **Discover before assuming**: Detect project's test/build commands
-3. **Root cause first**: Identify cause before implementing fix
-4. **Verify fixes**: Always test that the fix works
+1. **スタック非依存**: あらゆる言語/フレームワークで動作
+2. **推測する前に発見する**: プロジェクトのテスト/ビルドコマンドを検出
+3. **まず根本原因を特定**: 修正を実施する前に原因を特定
+4. **修正を検証する**: 修正が機能することを必ずテスト
 
 ---
 
-## When to Use
+## 使用するとき
 
-- Runtime errors with stack traces
-- Test failures
-- Unexpected behavior
-- Performance issues
-- Build/compilation errors
+- スタックトレース付きのランタイムエラー
+- テスト失敗
+- 予期しない動作
+- パフォーマンスの問題
+- ビルド/コンパイルエラー
 
-## Input Formats
+## 入力形式
 
 ```bash
-# Error message
+# エラーメッセージ
 /debug "Error: Something went wrong"
 
-# Stack trace (paste directly)
+# スタックトレース（直接貼り付け）
 /debug
-[paste stack trace]
+[スタックトレースを貼り付け]
 
-# Failing test
+# 失敗するテスト
 /debug --test "TestName"
 
-# Suspicious file
+# 疑わしいファイル
 /debug --file path/to/file
 
-# Behavior description
-/debug "Expected X but got Y"
+# 動作の説明
+/debug "X が期待されるが Y が返る"
 ```
 
 ---
 
-## Execution Instructions
+## 実行手順
 
-### Phase 1: Error Classification
+### フェーズ 1: エラー分類
 
-**Goal:** Understand the type and scope of the error.
+**ゴール:** エラーの種類と範囲を把握する。
 
-**Parse input to identify:**
+**入力を解析して以下を特定する:**
 
-| Input Type | Indicators | Analysis Approach |
-|------------|------------|-------------------|
-| Stack trace | File paths, line numbers, function calls | Trace execution path |
-| Error message | Error type, message text | Search for similar patterns |
-| Test failure | Test name, assertion | Run test, analyze failure |
-| Behavior | Description of expected vs actual | Explore related code |
+| 入力タイプ | 指標 | 分析アプローチ |
+|-----------|------|--------------|
+| スタックトレース | ファイルパス、行番号、関数呼び出し | 実行パスを追跡 |
+| エラーメッセージ | エラータイプ、メッセージテキスト | 類似パターンを検索 |
+| テスト失敗 | テスト名、アサーション | テストを実行し失敗を分析 |
+| 動作 | 期待値と実際の動作の説明 | 関連コードを探索 |
 
-**Classify error category:**
-
-```
-Categories:
-1. Runtime Error - Code crashes during execution
-2. Logic Error - Wrong result, no crash
-3. Test Failure - Automated test fails
-4. Build Error - Compilation/bundling fails
-5. Integration Error - External service interaction fails
-6. Performance - Slow or resource-intensive
-```
-
-### Phase 2: Context Gathering
-
-**Goal:** Gather relevant context using subagent delegation.
-
-**DELEGATE to `code-explorer` agent:**
+**エラーカテゴリの分類:**
 
 ```
-Launch code-explorer agent to analyze:
-
-Error context: [error message/stack trace]
-Classification: [error category]
-
-Tasks:
-1. Locate the error source (file:line from stack trace if available)
-2. Trace the execution path leading to the error
-3. Identify related functions and data flow
-4. Find similar patterns in codebase that work correctly
-5. Check recent changes (git log) to affected files
-
-Thoroughness: medium
-Output:
-- Error location with file:line
-- Execution path
-- Related code patterns
-- Potential causes ranked by likelihood
+カテゴリ:
+1. ランタイムエラー - 実行中にコードがクラッシュ
+2. ロジックエラー - 結果が誤り、クラッシュなし
+3. テスト失敗 - 自動テストが失敗
+4. ビルドエラー - コンパイル/バンドルが失敗
+5. 連携エラー - 外部サービスとの連携が失敗
+6. パフォーマンス - 処理が遅い、またはリソース集約的
 ```
 
-**For test failures:**
+### フェーズ 2: コンテキスト収集
 
-Include test command discovery in the code-explorer task above. The agent should identify the project's test framework and commands.
+**ゴール:** サブエージェント委任により関連コンテキストを収集する。
 
-**Delegate environmental context collection to code-explorer:**
-
-```
-Launch code-explorer agent (if not already included above):
-Task: Collect environmental context for debugging
-Analyze:
-- Recent git changes (last 10 commits)
-- Uncommitted changes (git diff --stat)
-- Package manager and lock files
-- Dependency issues
-Thoroughness: quick
-Output: Environmental context summary
-```
-
-Use the agent's output for context. Do NOT run git/grep commands manually for context gathering.
-
-### Phase 3: Root Cause Analysis
-
-**Goal:** Isolate the root cause before attempting fixes.
-
-**Analyze code-explorer findings:**
-
-Based on the agent's output, identify:
-
-1. **Immediate Cause**: What directly triggered the error
-2. **Root Cause**: Why that situation occurred
-3. **Contributing Factors**: Other conditions that enabled the bug
-
-**CRITICAL (L1): MUST use AskUserQuestion when multiple root causes are possible:**
+**`code-explorer` エージェントに委任する:**
 
 ```
-Question: "I found potential causes. Which scenario matches your situation?"
-Header: "Root Cause"
+code-explorer エージェントを起動して分析:
+
+エラーコンテキスト: [エラーメッセージ/スタックトレース]
+分類: [エラーカテゴリ]
+
+タスク:
+1. エラーのソースを特定（利用可能ならスタックトレースの file:line）
+2. エラーに至る実行パスを追跡
+3. 関連する関数とデータフローを特定
+4. コードベースで正常に動作する類似パターンを検索
+5. 影響を受けるファイルの最近の変更（git log）を確認
+
+網羅度: medium
+出力:
+- file:line 付きのエラー箇所
+- 実行パス
+- 関連するコードパターン
+- 可能性の高い順に並べた潜在的原因
+```
+
+**テスト失敗の場合:**
+
+上記の code-explorer タスクにテストコマンドの探索を含める。エージェントはプロジェクトのテストフレームワークとコマンドを特定する。
+
+**環境コンテキストの収集を code-explorer に委任する:**
+
+```
+code-explorer エージェントを起動（上記に含まれていない場合）:
+タスク: デバッグ用の環境コンテキストを収集
+分析内容:
+- 最近の git 変更（直近10コミット）
+- 未コミットの変更（git diff --stat）
+- パッケージマネージャーとロックファイル
+- 依存関係の問題
+網羅度: quick
+出力: 環境コンテキストのサマリー
+```
+
+コンテキスト収集にはエージェントの出力を使用する。手動で git/grep コマンドを実行してはならない。
+
+### フェーズ 3: 根本原因分析
+
+**ゴール:** 修正を試みる前に根本原因を特定する。
+
+**code-explorer の調査結果を分析する:**
+
+エージェントの出力に基づき以下を特定する:
+
+1. **直接的原因**: エラーを直接引き起こしたもの
+2. **根本原因**: その状況が発生した理由
+3. **寄与要因**: バグを可能にしたその他の条件
+
+**CRITICAL (L1): 根本原因の候補が複数ある場合は必ず AskUserQuestion を使用する:**
+
+```
+Question: "潜在的な原因を見つけました。どのシナリオがあなたの状況に合致しますか？"
+Header: "根本原因"
 Options:
-- "[Cause A]: [Description]" (Most likely based on analysis)
-- "[Cause B]: [Description]"
-- "[Cause C]: [Description]"
-- "None of these / Need more investigation"
+- "[原因 A]: [説明]"（分析に基づき最も可能性が高い）
+- "[原因 B]: [説明]"
+- "[原因 C]: [説明]"
+- "いずれでもない / さらなる調査が必要"
 ```
 
-**NEVER guess which root cause is correct — always confirm with user.**
+**どの根本原因が正しいか推測してはならない — 必ずユーザーに確認する。**
 
-**Document root cause:**
+**根本原因を文書化する:**
 
 ```markdown
-## Root Cause Analysis
+## 根本原因分析
 
-### Immediate Cause
-[What directly caused the error]
-File: `[file:line]`
+### 直接的原因
+[エラーを直接引き起こしたもの]
+ファイル: `[file:line]`
 
-### Root Cause
-[Why the immediate cause happened]
+### 根本原因
+[直接的原因が発生した理由]
 
-### Evidence
-- [Evidence 1]
-- [Evidence 2]
+### 根拠
+- [根拠 1]
+- [根拠 2]
 ```
 
-### Phase 4: Fix Planning
+### フェーズ 4: 修正計画
 
-**Goal:** Design a fix strategy before implementation.
+**ゴール:** 実施前に修正戦略を設計する。
 
-**Determine fix approach based on cause, not technology:**
+**原因に基づいて修正アプローチを決定する（技術ではなく原因に基づく）:**
 
-| Root Cause Type | Fix Approach |
-|-----------------|--------------|
-| Missing validation | Add defensive check |
-| Wrong logic/algorithm | Correct the logic |
-| Missing error handling | Add error handling |
-| Type/data mismatch | Fix type or conversion |
-| Race condition | Add synchronization |
-| Missing dependency | Add import/installation |
-| Configuration error | Fix config values |
+| 根本原因の種類 | 修正アプローチ |
+|--------------|--------------|
+| バリデーション不足 | 防御的チェックを追加 |
+| ロジック/アルゴリズムの誤り | ロジックを修正 |
+| エラーハンドリング不足 | エラーハンドリングを追加 |
+| 型/データの不一致 | 型または変換を修正 |
+| レースコンディション | 同期処理を追加 |
+| 依存関係の不足 | インポート/インストールを追加 |
+| 設定エラー | 設定値を修正 |
 
-**Consider TDD approach:**
-
-```
-TDD Flow (Recommended for non-trivial bugs):
-
-1. Write a test that reproduces the bug
-2. Verify the test fails
-3. Implement the fix
-4. Verify the test passes
-5. Run full test suite for regressions
-```
-
-**Ask user about approach:**
+**TDD アプローチの検討:**
 
 ```
-Question: "How should I proceed with the fix?"
-Header: "Fix Approach"
+TDD フロー（非自明なバグに推奨）:
+
+1. バグを再現するテストを作成する
+2. テストが失敗することを確認する
+3. 修正を実施する
+4. テストが通ることを確認する
+5. リグレッションのためフルテストスイートを実行する
+```
+
+**ユーザーにアプローチを確認する:**
+
+```
+Question: "修正にどうアプローチしますか？"
+Header: "修正アプローチ"
 Options:
-- "TDD: Write reproducing test first" (Recommended)
-- "Direct fix: Implement fix immediately"
-- "Explore more: Need additional analysis"
-- "Explain only: Don't modify code"
+- "TDD: まず再現テストを作成する"（推奨）
+- "直接修正: すぐに修正を実施する"
+- "さらに探索: 追加分析が必要"
+- "説明のみ: コードは変更しない"
 ```
 
-### Phase 5: Fix Implementation
+### フェーズ 5: 修正の実施
 
-**Goal:** Implement the fix with appropriate agent delegation.
+**ゴール:** 適切なエージェント委任により修正を実施する。
 
-**DELEGATE to appropriate specialist based on code location, not assumed technology:**
-
-```
-DELEGATE to code-explorer first to determine:
-- What type of code is this? (frontend/backend/test/config)
-- What patterns does this codebase use?
-
-Then DELEGATE to appropriate specialist:
-- Frontend code → frontend-specialist
-- Backend code → backend-specialist
-- Infrastructure → devops-sre
-- Test code → qa-engineer
-```
-
-**For TDD approach:**
+**コードの場所に基づいて適切なスペシャリストに委任する（想定技術ではなくコードの場所に基づく）:**
 
 ```
-Step 1: DELEGATE to qa-engineer
-Task: Write a test that reproduces this bug
+まず code-explorer に委任して判断:
+- これはどの種類のコードか？（フロントエンド/バックエンド/テスト/設定）
+- このコードベースではどのパターンが使われているか？
 
-Step 2: Verify test fails
-Run the new test using project's test command
-
-Step 3: DELEGATE to appropriate specialist
-Task: Fix the bug to make this test pass
-
-Step 4: Verify fix
-Run the new test, confirm it PASSES
-Run full test suite, confirm no regressions
+次に適切なスペシャリストに委任:
+- フロントエンドコード → frontend-specialist
+- バックエンドコード → backend-specialist
+- インフラ → devops-sre
+- テストコード → qa-engineer
 ```
 
-### Phase 6: Verification
-
-**Goal:** Confirm the fix works.
-
-**Discover verification commands using code-explorer (do NOT run grep directly):**
+**TDD アプローチの場合:**
 
 ```
-Launch code-explorer agent:
-Task: Discover project verification commands
-Analyze:
-- Test command (package.json scripts, Makefile, pytest.ini, etc.)
-- Build command (package.json scripts, Makefile, etc.)
-- Lint command (package.json scripts, linter configs)
-Thoroughness: quick
-Output: List of available commands with their invocations
+ステップ 1: qa-engineer に委任
+タスク: このバグを再現するテストを作成する
+
+ステップ 2: テストが失敗することを確認
+プロジェクトのテストコマンドで新しいテストを実行
+
+ステップ 3: 適切なスペシャリストに委任
+タスク: このテストが通るようにバグを修正する
+
+ステップ 4: 修正を確認
+新しいテストを実行し、通ることを確認
+フルテストスイートを実行し、リグレッションがないことを確認
 ```
 
-Use the agent's output to determine available verification commands. Do NOT run grep commands directly in the parent context (per line 128 rule).
+### フェーズ 6: 検証
 
-**Run discovered commands to verify fix** (execution is OK, discovery is delegated).
+**ゴール:** 修正が機能することを確認する。
 
-**If tests fail after fix:**
+**検証コマンドを code-explorer で探索する（grep を直接実行してはならない）:**
 
-1. Analyze the new failure
-2. Determine if it's a regression or unrelated
-3. If regression: iterate on fix
-4. If unrelated: note for separate investigation
+```
+code-explorer エージェントを起動:
+タスク: プロジェクトの検証コマンドを探索
+分析内容:
+- テストコマンド（package.json scripts、Makefile、pytest.ini 等）
+- ビルドコマンド（package.json scripts、Makefile 等）
+- リントコマンド（package.json scripts、リンター設定）
+網羅度: quick
+出力: 利用可能なコマンドとその実行方法のリスト
+```
 
-### Phase 7: Summary
+利用可能な検証コマンドの判断にはエージェントの出力を使用する。親コンテキストで grep コマンドを直接実行してはならない（128行目のルールに従う）。
 
-**Goal:** Document what was done.
+**探索されたコマンドを実行して修正を検証する**（実行は可能、探索は委任）。
+
+**修正後にテストが失敗した場合:**
+
+1. 新しい失敗を分析する
+2. リグレッションか無関係かを判断する
+3. リグレッションの場合: 修正を反復する
+4. 無関係の場合: 別途調査として記録する
+
+### フェーズ 7: サマリー
+
+**ゴール:** 実施内容を文書化する。
 
 ```markdown
-## Debug Summary
+## デバッグサマリー
 
-### Bug
-[Original error/description]
+### バグ
+[元のエラー/説明]
 
-### Root Cause
-[What caused the bug]
-File: `[file:line]`
+### 根本原因
+[バグの原因]
+ファイル: `[file:line]`
 
-### Fix Applied
-[What was changed]
+### 適用した修正
+[変更内容]
 
-### Files Modified
-| File | Changes |
-|------|---------|
-| `[path]` | [description] |
+### 変更ファイル
+| ファイル | 変更内容 |
+|---------|---------|
+| `[パス]` | [説明] |
 
-### Verification
-- [ ] Reproducing test created (if TDD)
-- [ ] Test passes after fix
-- [ ] Full test suite passes
-- [ ] No regressions detected
+### 検証
+- [ ] 再現テスト作成済み（TDD の場合）
+- [ ] 修正後にテスト合格
+- [ ] フルテストスイート合格
+- [ ] リグレッション未検出
 
-### Recommendations
-[Any follow-up actions]
+### 推奨事項
+[フォローアップアクション]
 ```
 
-**Ask about commit:**
+**コミットについて確認する:**
 
 ```
-Question: "The fix is verified. Would you like to commit?"
-Header: "Commit"
+Question: "修正は検証済みです。コミットしますか？"
+Header: "コミット"
 Options:
-- "Yes, commit the fix"
-- "No, I'll review first"
-- "Show me the diff first"
+- "はい、修正をコミットする"
+- "いいえ、まずレビューします"
+- "差分を見せてください"
 ```
 
 ---
 
-## Error-Specific Workflows
+## エラー別ワークフロー
 
-### Stack Trace Debugging
-
-```
-1. Parse stack trace for:
-   - Error type and message
-   - File paths and line numbers
-   - Function call sequence
-
-2. Start from the top (most recent call)
-3. Read the code at each level
-4. Identify where expectation diverged from reality
-```
-
-### Test Failure Debugging
+### スタックトレースのデバッグ
 
 ```
-1. Discover and run test with verbose output
-2. Identify:
-   - Expected value
-   - Actual value
-   - Assertion that failed
-3. Trace back from assertion to find divergence
-4. Check test setup/teardown
-5. Verify mocks are correct
+1. スタックトレースを解析:
+   - エラータイプとメッセージ
+   - ファイルパスと行番号
+   - 関数呼び出しの順序
+
+2. 最上位（最新の呼び出し）から開始
+3. 各レベルのコードを読む
+4. 期待と実際の動作が乖離した箇所を特定
 ```
 
-### "It Works Locally" Debugging
+### テスト失敗のデバッグ
 
 ```
-1. Compare environments:
-   - Runtime version
-   - Dependency versions
-   - Environment variables
-   - Database/service state
-
-2. Check for:
-   - Hardcoded paths
-   - Missing env vars
-   - Platform-specific code
+1. テストを探索し詳細出力で実行
+2. 以下を特定:
+   - 期待値
+   - 実際の値
+   - 失敗したアサーション
+3. アサーションから遡って乖離箇所を検出
+4. テストのセットアップ/ティアダウンを確認
+5. モックが正しいか検証
 ```
 
-### Performance Debugging
+### 「ローカルでは動く」問題のデバッグ
 
 ```
-1. Identify the slow operation
-2. Add timing measurements
-3. Check for profiling tools in project
-4. Look for common issues:
-   - N+1 queries
-   - Unnecessary loops
-   - Memory leaks
-   - Blocking operations
+1. 環境を比較:
+   - ランタイムバージョン
+   - 依存関係のバージョン
+   - 環境変数
+   - データベース/サービスの状態
+
+2. 以下を確認:
+   - ハードコードされたパス
+   - 欠落した環境変数
+   - プラットフォーム固有のコード
+```
+
+### パフォーマンスのデバッグ
+
+```
+1. 遅い操作を特定
+2. タイミング計測を追加
+3. プロジェクトにプロファイリングツールがないか確認
+4. よくある問題を確認:
+   - N+1 クエリ
+   - 不要なループ
+   - メモリリーク
+   - ブロッキング操作
 ```
 
 ---
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-Critical for effective debugging and avoiding damage.
+効果的なデバッグと損害回避のために不可欠。
 
-- ALWAYS identify root cause before implementing fix (prevents wrong fixes)
-- NEVER skip root cause analysis (surface symptoms mislead)
-- NEVER commit without verification (may introduce more bugs)
-- NEVER ignore regressions (compounds problems)
-- NEVER assume specific framework commands (discover them)
-- MUST use AskUserQuestion when:
-  - Root cause has multiple possible interpretations
-  - Multiple fix approaches are available
-  - Clarification is needed on expected behavior
-  - User needs to choose between fix strategies (TDD vs direct)
-- NEVER guess which root cause is correct — ask user to confirm
-- MUST delegate to code-explorer first to determine code domain before choosing specialist
+- ALWAYS: 修正を実施する前に根本原因を特定する（誤った修正を防ぐ）
+- NEVER: 根本原因分析をスキップしてはならない（表面的な症状は誤誘導する）
+- NEVER: 検証なしでコミットしてはならない（さらなるバグを導入する可能性）
+- NEVER: リグレッションを無視してはならない（問題が複合化する）
+- NEVER: 特定のフレームワークコマンドを仮定してはならない（探索すること）
+- MUST: 以下の場合に AskUserQuestion を使用する:
+  - 根本原因に複数の解釈がある場合
+  - 複数の修正アプローチが利用可能な場合
+  - 期待される動作について明確化が必要な場合
+  - ユーザーが修正戦略を選択する必要がある場合（TDD vs 直接修正）
+- NEVER: どの根本原因が正しいか推測してはならない — ユーザーに確認を求める
+- MUST: スペシャリストを選ぶ前に code-explorer に委任してコードドメインを判定する
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-Important for quality debugging. Override with reasoning when appropriate.
+品質の高いデバッグのために重要。適切な理由がある場合はオーバーライド可。
 
-- Discover project's test/build commands before running them
-- Verify fix with tests
-- Delegate implementation to appropriate specialist
-- Document root cause analysis for future reference
+- テスト/ビルドコマンドは実行前に探索する
+- テストで修正を検証する
+- 実装は適切なスペシャリストに委任する
+- 将来の参考のため根本原因分析を文書化する
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-Recommendations for thorough debugging.
+徹底的なデバッグのための推奨事項。
 
-- Consider using TDD approach (write failing test first)
-- Prefer examining recent git changes when investigating
+- consider: TDD アプローチの使用（まず失敗するテストを作成）
+- prefer: 調査時に最近の git 変更を確認する

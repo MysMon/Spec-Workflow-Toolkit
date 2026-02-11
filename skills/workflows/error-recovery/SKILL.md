@@ -1,15 +1,15 @@
 ---
 name: error-recovery
 description: |
-  Error handling, checkpoint management, and recovery patterns for resilient agent workflows.
-  Based on Anthropic's guidance for long-running agents and graceful degradation.
+  レジリエントなエージェントワークフローのためのエラーハンドリング、チェックポイント管理、リカバリパターン。
+  Anthropic のロングランニングエージェントガイダンスとグレースフルデグラデーションに基づく。
 
-  Use when:
-  - Implementing complex workflows that may fail
-  - Need checkpoint/resume capabilities
-  - Handling tool failures gracefully
-  - Managing agent errors and retries
-  - Building robust automation
+  以下の場合に使用:
+  - 失敗する可能性のある複雑なワークフローの実装
+  - チェックポイント/再開機能が必要な場合
+  - ツール障害のグレースフルハンドリング
+  - エージェントエラーとリトライの管理
+  - 堅牢な自動化の構築
 
   Trigger phrases: error handling, recovery, checkpoint, resume, graceful degradation, retry, fallback
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
@@ -17,43 +17,43 @@ model: sonnet
 user-invocable: true
 ---
 
-# Error Recovery Patterns
+# エラーリカバリパターン
 
-Strategies for building resilient agent workflows that handle errors gracefully, checkpoint progress, and enable recovery from failures.
+エラーをグレースフルに処理し、進捗をチェックポイントし、障害からのリカバリを可能にするレジリエントなエージェントワークフロー構築のための戦略。
 
-From Building Effective Agents:
+Building Effective Agents より:
 
-> "Agents should gain ground truth from the environment at each step (such as tool call results or code execution) to assess its progress."
+> 「エージェントは各ステップで環境からグラウンドトゥルースを取得し（ツール呼び出し結果やコード実行など）、進捗を評価すべきである。」
 
-> "Agents can then pause for human feedback at checkpoints or when encountering blockers."
+> 「エージェントはチェックポイントで一時停止してフィードバックを求めたり、ブロッカーに遭遇した場合に停止できる。」
 
-## Core Principles
+## 基本原則
 
-### 1. Fail Fast, Recover Quickly
+### 1. 早期失敗、迅速回復
 
-Detect errors early, checkpoint frequently, resume from last known good state.
+エラーを早期に検出し、頻繁にチェックポイントし、最後に正常だった状態から再開する。
 
-### 2. Ground Truth Verification
+### 2. グラウンドトゥルース検証
 
-Always verify the result of each action before proceeding to the next.
+次に進む前に、各アクションの結果を必ず検証する。
 
-### 3. Graceful Degradation
+### 3. グレースフルデグラデーション
 
-When ideal path fails, fall back to alternative approaches rather than complete failure.
+理想的なパスが失敗した場合、完全な失敗ではなく代替アプローチにフォールバックする。
 
-## Checkpoint System
+## チェックポイントシステム
 
-### When to Checkpoint
+### チェックポイントのタイミング
 
-| Event | Checkpoint Action |
-|-------|------------------|
-| Feature completed | Update feature-list.json, commit |
-| Significant file change | Update progress log |
-| Before risky operation | Document current state |
-| After successful test | Record passing state |
-| Before external API calls | Save request context |
+| イベント | チェックポイントアクション |
+|---------|-------------------------|
+| 機能完了 | feature-list.json を更新、コミット |
+| 重要なファイル変更 | 進捗ログを更新 |
+| リスクのある操作の前 | 現在の状態を記録 |
+| テスト成功後 | パス状態を記録 |
+| 外部 API 呼び出し前 | リクエストコンテキストを保存 |
 
-### Checkpoint Format
+### チェックポイント形式
 
 ```json
 {
@@ -77,40 +77,40 @@ When ideal path fails, fall back to alternative approaches rather than complete 
 }
 ```
 
-### Checkpoint Implementation
+### チェックポイントの実装
 
 ```markdown
-## After each significant action:
+## 各重要アクション後に:
 
-1. **Verify Success**
-   - Check tool output for errors
-   - Run quick validation (lint, type check)
-   - Confirm file was written correctly
+1. **成功を検証**
+   - ツール出力にエラーがないか確認
+   - 簡易バリデーションを実行（lint、型チェック）
+   - ファイルが正しく書き込まれたことを確認
 
-2. **Record State**
-   - Update .claude/workspaces/{workspace-id}/claude-progress.json
-   - Add entry to progress log
-   - Note files modified
+2. **状態を記録**
+   - .claude/workspaces/{workspace-id}/claude-progress.json を更新
+   - 進捗ログにエントリを追加
+   - 変更されたファイルを記録
 
-3. **Document Recovery Path**
-   - What to do if next step fails
-   - How to roll back if needed
-   - Dependencies for resumption
+3. **リカバリパスを記録**
+   - 次のステップが失敗した場合の対処
+   - 必要に応じたロールバック方法
+   - 再開に必要な依存関係
 ```
 
-## Error Categories and Responses
+## エラーカテゴリと対応
 
-### Category 1: Transient Errors
+### カテゴリ 1: 一時的エラー
 
-Temporary failures that may succeed on retry.
+リトライで成功する可能性がある一時的な障害。
 
-| Error Type | Example | Response |
-|------------|---------|----------|
-| Network timeout | API call failed | Retry with exponential backoff |
-| Rate limiting | Too many requests | Wait and retry |
-| Temporary file lock | File in use | Wait briefly, retry |
+| エラータイプ | 例 | 対応 |
+|------------|-----|------|
+| ネットワークタイムアウト | API 呼び出し失敗 | 指数バックオフでリトライ |
+| レート制限 | リクエスト過多 | 待機してリトライ |
+| 一時的なファイルロック | ファイル使用中 | 短時間待機、リトライ |
 
-**Retry Strategy with Exponential Backoff + Jitter:**
+**指数バックオフ + ジッターによるリトライ戦略:**
 
 ```
 max_retries = 3
@@ -120,151 +120,151 @@ for attempt in 1..max_retries:
     result = try_operation()
     if success:
         return result
-    # Exponential backoff with jitter prevents thundering herd
+    # 指数バックオフ + ジッターでサンダリングハード問題を防止
     jitter = random(0, 0.5 * base_delay)
     wait(base_delay * 2^attempt + jitter)
 
 escalate_to_user("Operation failed after 3 retries")
 ```
 
-**Why Jitter Matters**: Without jitter, multiple agents retrying simultaneously can overwhelm the system at the same intervals (thundering herd problem). Adding randomness spreads retry attempts.
+**ジッターが重要な理由**: ジッターがないと、同時にリトライする複数のエージェントが同じ間隔でシステムを圧迫する可能性がある（サンダリングハード問題）。ランダム性を加えることでリトライの試行を分散できる。
 
-### Category 2: Recoverable Errors
+### カテゴリ 2: 回復可能なエラー
 
-Errors that require different approach but can be handled.
+異なるアプローチが必要だが、処理可能なエラー。
 
-| Error Type | Example | Response |
-|------------|---------|----------|
-| File not found | Expected file missing | Search for alternatives |
-| Permission denied | Can't write to directory | Request user permission |
-| Dependency missing | Package not installed | Install or use alternative |
-| Test failure | New code breaks test | Analyze failure, fix code |
+| エラータイプ | 例 | 対応 |
+|------------|-----|------|
+| ファイル未発見 | 期待されるファイルがない | 代替を検索 |
+| 権限拒否 | ディレクトリに書き込めない | ユーザーに権限を要求 |
+| 依存関係不足 | パッケージ未インストール | インストールまたは代替を使用 |
+| テスト失敗 | 新コードがテストを破壊 | 障害を分析、コードを修正 |
 
-**Recovery Strategy:**
-
-```markdown
-1. Log the error with full context
-2. Analyze root cause
-3. Determine alternative approach
-4. If alternative exists:
-   - Document deviation from original plan
-   - Execute alternative
-   - Verify success
-5. If no alternative:
-   - Document blocker
-   - Ask user for guidance
-```
-
-### Category 3: Fatal Errors
-
-Errors that require human intervention.
-
-| Error Type | Example | Response |
-|------------|---------|----------|
-| Authentication required | Missing API key | Ask user to provide |
-| Data corruption | Invalid state | Stop and alert user |
-| Security concern | Suspicious operation | Halt and report |
-| Scope creep | Request exceeds boundaries | Clarify with user |
-
-**Fatal Error Protocol:**
+**リカバリ戦略:**
 
 ```markdown
-1. STOP all operations immediately
-2. Checkpoint current state
-3. Document error with full context:
-   - What was attempted
-   - What failed
-   - Current state of files
-   - Potential impact
-4. Present clear options to user:
-   - Fix and continue
-   - Roll back and retry
-   - Abort workflow
+1. 完全なコンテキストでエラーをログ記録
+2. 根本原因を分析
+3. 代替アプローチを決定
+4. 代替が存在する場合:
+   - 元の計画からの逸脱を記録
+   - 代替を実行
+   - 成功を検証
+5. 代替がない場合:
+   - ブロッカーを記録
+   - ユーザーにガイダンスを求める
 ```
 
-## Graceful Degradation Patterns
+### カテゴリ 3: 致命的エラー
 
-### Pattern 1: Fallback Chain
+人間の介入が必要なエラー。
 
-Try primary approach, fall back to alternatives.
+| エラータイプ | 例 | 対応 |
+|------------|-----|------|
+| 認証が必要 | API キー不足 | ユーザーに提供を依頼 |
+| データ破損 | 無効な状態 | 停止してユーザーに通知 |
+| セキュリティ懸念 | 不審な操作 | 停止して報告 |
+| スコープの逸脱 | リクエストが境界を超えている | ユーザーと確認 |
+
+**致命的エラープロトコル:**
+
+```markdown
+1. 全操作を即座に停止
+2. 現在の状態をチェックポイント
+3. 完全なコンテキストでエラーを記録:
+   - 何を試みたか
+   - 何が失敗したか
+   - ファイルの現在の状態
+   - 潜在的な影響
+4. ユーザーに明確な選択肢を提示:
+   - 修正して続行
+   - ロールバックしてリトライ
+   - ワークフローを中止
+```
+
+## グレースフルデグラデーションパターン
+
+### パターン 1: フォールバックチェイン
+
+主要なアプローチを試み、代替にフォールバック。
 
 ```
-Primary: Use preferred library
+主要: 推奨ライブラリを使用
    │
-   └─ (failed) ─▶ Fallback 1: Use alternative library
-                      │
-                      └─ (failed) ─▶ Fallback 2: Manual implementation
-                                          │
-                                          └─ (failed) ─▶ Ask user
+   └─ (失敗) ─▶ フォールバック 1: 代替ライブラリを使用
+                    │
+                    └─ (失敗) ─▶ フォールバック 2: 手動実装
+                                        │
+                                        └─ (失敗) ─▶ ユーザーに問い合わせ
 ```
 
-### Pattern 2: Partial Success
+### パターン 2: 部分的成功
 
-Complete what's possible, report what's not.
+可能なものを完了し、できなかったものを報告。
 
 ```markdown
-## Partial Success Report
+## 部分的成功レポート
 
-### Completed (3/5 features)
-- [x] User registration
-- [x] User login
-- [x] Password reset
+### 完了（5 機能中 3 機能）
+- [x] ユーザー登録
+- [x] ユーザーログイン
+- [x] パスワードリセット
 
-### Failed (2/5 features)
-- [ ] OAuth integration - Error: Missing client_id
-- [ ] 2FA - Error: SMS provider not configured
+### 失敗（5 機能中 2 機能）
+- [ ] OAuth 統合 - エラー: client_id が不足
+- [ ] 2FA - エラー: SMS プロバイダー未設定
 
-### Next Steps
-1. Provide OAuth client_id in .env
-2. Configure SMS provider in settings
-3. Re-run /spec-plan for remaining features
+### 次のステップ
+1. .env に OAuth client_id を提供
+2. 設定で SMS プロバイダーを構成
+3. 残りの機能に対して /spec-plan を再実行
 ```
 
-### Pattern 3: Safe Mode
+### パターン 3: セーフモード
 
-Continue with reduced functionality when errors occur.
+エラー発生時に機能を縮小して続行。
 
 ```markdown
-Normal Mode:
-- Full implementation with all features
-- Complete test coverage
-- Performance optimization
+通常モード:
+- 全機能の完全実装
+- 完全なテストカバレッジ
+- パフォーマンス最適化
 
-Safe Mode (on error):
-- Core functionality only
-- Basic tests
-- Skip optimization
-- Document what was skipped for later
+セーフモード（エラー時）:
+- コア機能のみ
+- 基本テスト
+- 最適化をスキップ
+- スキップした内容を後で対応するよう記録
 ```
 
-### Pattern 4: Circuit Breaker
+### パターン 4: サーキットブレイカー
 
-Prevent cascading failures by stopping requests to failing services.
+障害が発生しているサービスへのリクエストを停止し、連鎖障害を防止。
 
-From AI Agent Best Practices:
+AI Agent Best Practices より:
 
-> "Retries and fallbacks try to recover from failures. Circuit breakers prevent a bad situation from spiraling further."
+> 「リトライとフォールバックは障害からの回復を試みる。サーキットブレイカーは悪い状況がさらに悪化するのを防ぐ。」
 
-**States:**
+**状態:**
 
 ```
-CLOSED (normal) ──[failures >= threshold]──▶ OPEN (blocking)
+CLOSED（通常） ──[failures >= threshold]──▶ OPEN（ブロック中）
      ▲                                           │
      │                                    [timeout expires]
      │                                           ▼
-     └────────[success]────────── HALF-OPEN (testing)
+     └────────[success]────────── HALF-OPEN（テスト中）
                                            │
                                     [failure]
                                            ▼
-                                      OPEN (blocking)
+                                      OPEN（ブロック中）
 ```
 
-**Implementation:**
+**実装:**
 
 ```
 circuit_breaker:
-  failure_threshold: 3       # Consecutive failures to open
-  timeout: 30s               # Time before testing again
+  failure_threshold: 3       # OPEN にするための連続失敗数
+  timeout: 30s               # 再テストまでの待機時間
   state: CLOSED
 
 on_operation():
@@ -289,90 +289,90 @@ on_operation():
     return error
 ```
 
-**When to Use:**
+**使用場面:**
 
-| Scenario | Use Circuit Breaker |
-|----------|---------------------|
-| External API calls | Yes - prevents overwhelming failing API |
-| Database operations | Yes - prevents connection exhaustion |
-| File system operations | Maybe - depends on failure mode |
-| In-memory operations | No - failures are immediate |
+| シナリオ | サーキットブレイカーを使用 |
+|---------|-------------------------|
+| 外部 API 呼び出し | はい - 障害中の API への過負荷を防止 |
+| データベース操作 | はい - コネクション枯渇を防止 |
+| ファイルシステム操作 | 場合による - 障害モードに依存 |
+| インメモリ操作 | いいえ - 障害は即座に発生 |
 
-**Agent-Specific Considerations:**
+**エージェント固有の考慮事項:**
 
-When chaining multiple AI agents:
-- If each agent is 95% reliable, 3 agents = 86% overall reliability
-- Circuit breakers at each stage prevent cascading failures
-- Use partial results when possible instead of complete failure
+複数の AI エージェントをチェインする場合:
+- 各エージェントの信頼性が 95% なら、3 エージェントで全体は 86%
+- 各段階のサーキットブレイカーで連鎖障害を防止
+- 完全な失敗ではなく、可能な場合は部分的な結果を使用
 
-### Subagent Circuit Breaker Thresholds
+### サブエージェントのサーキットブレイカー閾値
 
-Production-tested thresholds for autonomous agent loops (from Claude Code engineering best practices):
+自律エージェントループの実績ある閾値（Claude Code エンジニアリングベストプラクティスより）:
 
-| Threshold | Value | Action |
-|-----------|-------|--------|
-| NO_PROGRESS | 3 loops | Stop after 3 loops with no file changes |
-| SAME_ERROR | 5 times | Escalate after 5 identical errors |
-| OUTPUT_DECLINE | 70% | Pause if output quality drops >70% |
+| 閾値 | 値 | アクション |
+|------|-----|----------|
+| NO_PROGRESS | 3 ループ | ファイル変更なしで 3 ループ後に停止 |
+| SAME_ERROR | 5 回 | 同一エラー 5 回でエスカレーション |
+| OUTPUT_DECLINE | 70% | 出力品質が 70% 以上低下したら一時停止 |
 
-**Application:** Track `files_changed`, `error_messages`, and `output_quality` for each subagent invocation. When thresholds are hit, stop retrying and communicate clearly with the user about the situation and options.
+**適用:** 各サブエージェント呼び出しで `files_changed`、`error_messages`、`output_quality` を追跡する。閾値に達したらリトライを停止し、状況と選択肢についてユーザーに明確に伝える。
 
-## Recovery Workflows
+## リカバリワークフロー
 
-### Workflow 1: Resume After Crash
-
-```markdown
-1. Identify current workspace ID (branch + path hash)
-2. Read .claude/workspaces/{workspace-id}/claude-progress.json
-3. Identify last checkpoint:
-   - Position: "Phase 5, Feature F003, step 2"
-   - Last action: "Created AuthService class"
-   - Next action: "Add login method"
-4. Verify file state:
-   - Run `git status` to check uncommitted changes
-   - Compare files to checkpoint expectation
-5. If state is valid:
-   - Continue from documented next action
-6. If state is corrupted:
-   - Roll back to last commit: `git checkout -- .`
-   - Resume from that checkpoint
-```
-
-### Workflow 2: Test Failure Recovery
+### ワークフロー 1: クラッシュ後の再開
 
 ```markdown
-1. Test fails after implementation
-2. Analyze failure:
-   - Read error message
-   - Identify failing assertion
-   - Trace to code change
-3. Determine fix:
-   - If bug in new code: Fix and re-run
-   - If bug in test: Review test expectations
-   - If design issue: Consult architect
-4. Apply fix
-5. Run full test suite
-6. Update checkpoint only when all tests pass
+1. 現在のワークスペース ID を特定（ブランチ + パスハッシュ）
+2. .claude/workspaces/{workspace-id}/claude-progress.json を読む
+3. 最後のチェックポイントを特定:
+   - 位置: "Phase 5, Feature F003, step 2"
+   - 最後のアクション: "Created AuthService class"
+   - 次のアクション: "Add login method"
+4. ファイル状態を検証:
+   - `git status` でコミットされていない変更を確認
+   - ファイルをチェックポイントの期待値と比較
+5. 状態が有効な場合:
+   - 記録された次のアクションから続行
+6. 状態が破損している場合:
+   - 最後のコミットにロールバック: `git checkout -- .`
+   - そのチェックポイントから再開
 ```
 
-### Workflow 3: Merge Conflict Recovery
+### ワークフロー 2: テスト失敗のリカバリ
 
 ```markdown
-1. Conflict detected during pull/merge
-2. Checkpoint current branch state
-3. Analyze conflicts:
-   - List conflicting files
-   - Understand both versions
-4. Resolve conflicts:
-   - For each file, decide correct version
-   - Test resolution locally
-5. Commit resolution
-6. Continue workflow
+1. 実装後にテストが失敗
+2. 障害を分析:
+   - エラーメッセージを読む
+   - 失敗しているアサーションを特定
+   - コード変更まで追跡
+3. 修正を決定:
+   - 新コードのバグの場合: 修正して再実行
+   - テストのバグの場合: テストの期待値をレビュー
+   - 設計問題の場合: アーキテクトに相談
+4. 修正を適用
+5. 全テストスイートを実行
+6. 全テスト合格時のみチェックポイントを更新
 ```
 
-## Integration with Progress Tracking
+### ワークフロー 3: マージコンフリクトのリカバリ
 
-### Error Logging in Progress File
+```markdown
+1. pull/merge 中にコンフリクトを検出
+2. 現在のブランチ状態をチェックポイント
+3. コンフリクトを分析:
+   - 競合ファイルを一覧
+   - 両バージョンを理解
+4. コンフリクトを解決:
+   - 各ファイルで正しいバージョンを決定
+   - ローカルで解決をテスト
+5. 解決をコミット
+6. ワークフローを続行
+```
+
+## 進捗トラッキングとの統合
+
+### 進捗ファイルのエラーログ
 
 ```json
 {
@@ -400,87 +400,87 @@ Production-tested thresholds for autonomous agent loops (from Claude Code engine
 }
 ```
 
-### Blocker Management
+### ブロッカー管理
 
 ```markdown
-## Blocker Protocol
+## ブロッカープロトコル
 
-1. **Detect**: Identify that progress is blocked
-2. **Document**: Add to blockers array in progress file
-3. **Notify**: Inform user with clear description
-4. **Wait**: Do not proceed past blocker
-5. **Resolve**: Once user provides resolution:
-   - Mark blocker as resolved
-   - Log resolution action
-   - Continue workflow
+1. **検出**: 進捗がブロックされていることを特定
+2. **記録**: 進捗ファイルのブロッカー配列に追加
+3. **通知**: 明確な説明でユーザーに通知
+4. **待機**: ブロッカーを超えて進まない
+5. **解決**: ユーザーが解決策を提供したら:
+   - ブロッカーを解決済みとしてマーク
+   - 解決アクションをログ記録
+   - ワークフローを続行
 
-## Blocker States
+## ブロッカー状態
 
-| State | Meaning |
-|-------|---------|
-| waiting_for_user | User input/action required |
-| investigating | Analyzing potential solutions |
-| resolved | Blocker cleared |
-| escalated | Requires external help |
+| 状態 | 意味 |
+|------|------|
+| waiting_for_user | ユーザーの入力/アクションが必要 |
+| investigating | 潜在的な解決策を分析中 |
+| resolved | ブロッカー解消 |
+| escalated | 外部の支援が必要 |
 ```
 
-## Claude Code Specific Features
+## Claude Code 固有の機能
 
-### Using Checkpoints
+### チェックポイントの使用
 
-Claude Code automatically creates checkpoints before each edit.
+Claude Code は各編集前に自動的にチェックポイントを作成する。
 
-- **Safe experimentation**: Try approaches without fear
-- **Use `/rewind`**: Roll back to previous state if needed
-- **Esc twice**: Cancel current operation and discuss
+- **安全な実験**: 恐れずにアプローチを試せる
+- **`/rewind` を使用**: 必要に応じて以前の状態にロールバック
+- **Esc を 2 回押す**: 現在の操作をキャンセルして相談
 
-### Recovery Commands
+### リカバリコマンド
 
-| Command | Use When |
+| コマンド | 使用場面 |
 |---------|----------|
-| `/rewind` | Need to undo recent changes |
-| `/clear` | Context too polluted, restart clean |
-| `git checkout -- file` | Discard specific file changes |
-| `git stash` | Temporarily save work in progress |
+| `/rewind` | 最近の変更を元に戻す必要がある時 |
+| `/clear` | コンテキストが汚染されすぎた場合、クリーンに再開 |
+| `git checkout -- file` | 特定ファイルの変更を破棄 |
+| `git stash` | 作業中の内容を一時保存 |
 
-## Anti-Patterns
+## アンチパターン
 
-| Anti-Pattern | Why Bad | Instead |
+| アンチパターン | 悪い理由 | 代わりに |
 |--------------|---------|---------|
-| Ignoring errors | Problems compound | Handle immediately |
-| No checkpoints | Can't recover | Checkpoint frequently |
-| Retry without backoff | May worsen issue | Use exponential backoff |
-| Silent failures | Problems hidden | Always log and report |
-| Continuing past blockers | Invalid state | Stop and resolve |
+| エラーを無視 | 問題が複合化 | 即座に対処 |
+| チェックポイントなし | リカバリできない | 頻繁にチェックポイント |
+| バックオフなしのリトライ | 問題を悪化させる可能性 | 指数バックオフを使用 |
+| サイレント障害 | 問題が隠れる | 常にログと報告 |
+| ブロッカーを超えて続行 | 無効な状態になる | 停止して解決 |
 
 ## Rules (L1 - Hard)
 
-Critical for reliable recovery and data safety.
+信頼性のあるリカバリとデータ安全性に不可欠。
 
-- ALWAYS checkpoint before risky operations (enables rollback)
-- ALWAYS verify success after each significant action (ground truth)
-- NEVER ignore error messages or warnings (problems compound)
-- NEVER continue past a blocker without user confirmation
-- NEVER lose work - commit early and often
-- ALWAYS apply circuit breaker thresholds for autonomous agent loops:
-  - NO_PROGRESS: Stop after 3 loops with no file changes
-  - SAME_ERROR: Escalate to user after 5 identical errors
-  - OUTPUT_DECLINE: Pause if output quality drops >70%
-- MUST escalate to user when any circuit breaker threshold is reached
+- ALWAYS: リスクのある操作の前にチェックポイント（ロールバックを可能にする）
+- ALWAYS: 各重要アクション後に成功を検証（グラウンドトゥルース）
+- NEVER: エラーメッセージや警告を無視しない（問題が複合化）
+- NEVER: ユーザーの確認なしにブロッカーを超えて続行しない
+- NEVER: 作業を失わない - 早期に頻繁にコミット
+- ALWAYS: 自律エージェントループにサーキットブレイカー閾値を適用:
+  - NO_PROGRESS: ファイル変更なしで 3 ループ後に停止
+  - SAME_ERROR: 同一エラー 5 回でユーザーにエスカレーション
+  - OUTPUT_DECLINE: 出力品質が 70% 以上低下したら一時停止
+- MUST: サーキットブレイカー閾値に達したらユーザーにエスカレーション
 
 ## Defaults (L2 - Soft)
 
-Important for operational quality. Override with reasoning when appropriate.
+運用品質に重要。適切な理由がある場合はオーバーライド可。
 
-- Document errors with full context (aids debugging)
-- Provide recovery options when reporting errors
-- Use exponential backoff for retries
-- Log all failure attempts with timestamps
+- 完全なコンテキストでエラーを記録する（デバッグを支援）
+- エラー報告時にリカバリオプションを提供する
+- リトライには指数バックオフを使用する
+- タイムスタンプ付きで全失敗試行をログ記録する
 
 ## Guidelines (L3)
 
-Recommendations for robust error handling.
+堅牢なエラーハンドリングのための推奨事項。
 
-- Consider testing recovery paths during development
-- Prefer graceful degradation over complete failure
-- Consider using Claude Code's `/rewind` for quick rollbacks
+- consider: 開発中にリカバリパスのテストを検討
+- prefer: 完全な失敗よりグレースフルデグラデーションを推奨
+- consider: 迅速なロールバックに Claude Code の `/rewind` の使用を検討

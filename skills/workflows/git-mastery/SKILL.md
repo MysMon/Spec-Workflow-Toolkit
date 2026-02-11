@@ -1,120 +1,120 @@
 ---
 name: git-mastery
 description: |
-  Semantic commit messages following Conventional Commits, changelog management, and git workflows. Use when:
-  - Committing changes and need proper commit message format
-  - Managing changelog or release notes
-  - Working with git branches, merges, or rebases
-  - Creating pull requests or reviewing git history
-  - Need semantic versioning guidance
+  Conventional Commits に基づくセマンティックコミットメッセージ、変更ログ管理、git ワークフロー。以下の場合に使用:
+  - 変更のコミット時に適切なコミットメッセージ形式が必要
+  - 変更ログやリリースノートの管理
+  - git ブランチ、マージ、リベースの操作
+  - プルリクエストの作成や git 履歴のレビュー
+  - セマンティックバージョニングのガイダンスが必要
   Trigger phrases: commit message, conventional commits, changelog, git workflow, semantic version, feat:, fix:, pull request
 allowed-tools: Bash, Read, Write, Edit, AskUserQuestion
 model: haiku
 user-invocable: true
 ---
 
-# Git Mastery
+# Git マスタリー
 
-Semantic commit messages and git best practices.
+セマンティックコミットメッセージと git のベストプラクティス。
 
 ## Conventional Commits
 
-### Format
+### 形式
 
 ```
 <type>(<scope>): <description>
 
-[optional body]
+[オプションの本文]
 
-[optional footer(s)]
+[オプションのフッター]
 ```
 
-### Types
+### タイプ
 
-| Type | Description | Example |
-|------|-------------|---------|
-| `feat` | New feature | `feat(auth): add OAuth2 login` |
-| `fix` | Bug fix | `fix(api): handle null response` |
-| `docs` | Documentation | `docs: update README setup` |
-| `style` | Formatting (no logic change) | `style: fix indentation` |
-| `refactor` | Code change (no feature/fix) | `refactor: extract helper` |
-| `perf` | Performance improvement | `perf: optimize query` |
-| `test` | Add/fix tests | `test: add user service tests` |
-| `chore` | Maintenance | `chore: update dependencies` |
-| `ci` | CI/CD changes | `ci: add GitHub Actions` |
-| `build` | Build system | `build: update webpack config` |
+| タイプ | 説明 | 例 |
+|-------|------|-----|
+| `feat` | 新機能 | `feat(auth): add OAuth2 login` |
+| `fix` | バグ修正 | `fix(api): handle null response` |
+| `docs` | ドキュメント | `docs: update README setup` |
+| `style` | フォーマット（ロジック変更なし） | `style: fix indentation` |
+| `refactor` | コード変更（機能/修正なし） | `refactor: extract helper` |
+| `perf` | パフォーマンス改善 | `perf: optimize query` |
+| `test` | テストの追加/修正 | `test: add user service tests` |
+| `chore` | メンテナンス | `chore: update dependencies` |
+| `ci` | CI/CD の変更 | `ci: add GitHub Actions` |
+| `build` | ビルドシステム | `build: update webpack config` |
 
-### Scope Examples
+### スコープの例
 
-- `auth`, `api`, `ui`, `db`, `config`
-- Feature name or component name
-- Optional but recommended
+- `auth`、`api`、`ui`、`db`、`config`
+- 機能名やコンポーネント名
+- オプションだが推奨
 
-### Description Rules
+### 説明のルール
 
-- Imperative mood: "add" not "added"
-- No period at end
-- Max 50 characters
-- Lowercase start
+- 命令形: "added" ではなく "add"
+- 末尾にピリオドなし
+- 最大 50 文字
+- 小文字で開始
 
-## Workflow
+## ワークフロー
 
-### Step 1: Review Changes
+### ステップ 1: 変更のレビュー
 
 ```bash
-# See what's changed
+# 変更内容を確認
 git status
 git diff --staged
 git diff
 
-# Recent commit style
+# 最近のコミットスタイル
 git log --oneline -10
 ```
 
-### Step 2: Stage Changes
+### ステップ 2: 変更のステージング
 
 ```bash
-# Stage specific files
+# 特定のファイルをステージング
 git add path/to/file
 
-# Stage all changes
+# 全変更をステージング
 git add .
 
-# Interactive staging
+# インタラクティブステージング
 git add -p
 ```
 
-### Step 3: Generate Commit Message
+### ステップ 3: コミットメッセージの生成
 
-Analyze changes and create semantic message:
+変更を分析してセマンティックメッセージを作成:
 
 ```bash
-# Single feature
+# 単一機能
 git commit -m "feat(users): add email verification flow"
 
-# Bug fix with body
+# 本文付きバグ修正
 git commit -m "fix(api): handle timeout on external calls
 
 - Add retry logic with exponential backoff
 - Set 30s timeout for external API
 - Log failures for monitoring"
 
-# Breaking change
+# 破壊的変更
 git commit -m "feat(auth)!: require MFA for admin users
 
 BREAKING CHANGE: Admin users must now configure MFA before accessing admin panel."
 ```
 
-### Step 4: Verify
+### ステップ 4: 確認
 
 ```bash
 git log --oneline -1
 git show --stat
 ```
 
-## Changelog Management
+## 変更ログ管理
 
-### Keep a Changelog Format
+### Keep a Changelog 形式
 
 ```markdown
 # Changelog
@@ -124,36 +124,36 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- New feature X (#123)
+- 新機能 X (#123)
 
 ### Changed
-- Updated behavior Y
+- 動作 Y を更新
 
 ### Fixed
-- Bug in component Z (#456)
+- コンポーネント Z のバグ (#456)
 
 ## [1.2.0] - 2024-01-15
 
 ### Added
-- Feature A
-- Feature B
+- 機能 A
+- 機能 B
 
 ### Fixed
-- Critical bug C
+- 重大バグ C
 ```
 
-### Update Changelog
+### 変更ログの更新
 
-When making changes:
+変更を行う際:
 
-1. Add entry under `[Unreleased]`
-2. Use appropriate category (Added, Changed, Fixed, etc.)
-3. Reference issue/PR numbers
-4. Keep entries concise
+1. `[Unreleased]` の下にエントリを追加
+2. 適切なカテゴリを使用（Added、Changed、Fixed 等）
+3. Issue/PR 番号を参照
+4. エントリは簡潔に
 
-## Git Best Practices
+## Git ベストプラクティス
 
-### Branch Naming
+### ブランチ命名
 
 ```
 feature/user-authentication
@@ -162,154 +162,154 @@ docs/api-reference
 refactor/database-layer
 ```
 
-### Commit Hygiene
+### コミットの衛生
 
-- One logical change per commit
-- Commit early, commit often
-- Never commit secrets
-- Review diff before committing
+- 1 コミットにつき 1 つの論理的変更
+- 早く頻繁にコミット
+- シークレットをコミットしない
+- コミット前に diff をレビュー
 
-### Interactive Rebase (for cleanup)
+### インタラクティブリベース（整理用）
 
 ```bash
-# Squash last 3 commits
+# 最後の 3 コミットをスカッシュ
 git rebase -i HEAD~3
 
-# In editor:
+# エディタ内:
 pick abc123 First commit
 squash def456 Second commit
 squash ghi789 Third commit
 ```
 
-## Commit Message Templates
+## コミットメッセージテンプレート
 
-### Feature
+### 機能
 
 ```
-feat(<scope>): <what the feature does>
+feat(<scope>): <機能の内容>
 
-- Implementation detail 1
-- Implementation detail 2
+- 実装の詳細 1
+- 実装の詳細 2
 
 Closes #<issue>
 ```
 
-### Bug Fix
+### バグ修正
 
 ```
-fix(<scope>): <what was fixed>
+fix(<scope>): <修正内容>
 
-<Why the bug occurred and how it was fixed>
+<バグの原因と修正方法>
 
 Fixes #<issue>
 ```
 
-### Breaking Change
+### 破壊的変更
 
 ```
-feat(<scope>)!: <breaking change description>
+feat(<scope>)!: <破壊的変更の説明>
 
-BREAKING CHANGE: <detailed explanation of what breaks>
+BREAKING CHANGE: <何が壊れるかの詳細説明>
 
-Migration: <how to migrate>
+Migration: <移行方法>
 ```
 
-## Undo & Recovery Patterns
+## 取り消しとリカバリパターン
 
-### Scenario-Based Recovery
+### シナリオ別リカバリ
 
-| Situation | Command | Risk Level |
-|-----------|---------|------------|
-| Undo last commit (keep changes) | `git reset --soft HEAD~1` | Safe |
-| Undo last commit (discard changes) | `git reset --hard HEAD~1` | Destructive |
-| Undo specific commit (public) | `git revert <hash>` | Safe |
-| Discard unstaged changes | `git checkout -- <file>` | Destructive |
-| Discard all local changes | `git reset --hard HEAD` | Destructive |
-| Recover deleted branch | `git reflog` + `git checkout -b <branch> <hash>` | Safe |
+| 状況 | コマンド | リスクレベル |
+|------|---------|------------|
+| 最後のコミットを取り消す（変更を保持） | `git reset --soft HEAD~1` | 安全 |
+| 最後のコミットを取り消す（変更を破棄） | `git reset --hard HEAD~1` | 破壊的 |
+| 特定のコミットを取り消す（公開済み） | `git revert <hash>` | 安全 |
+| ステージしていない変更を破棄 | `git checkout -- <file>` | 破壊的 |
+| ローカル変更を全て破棄 | `git reset --hard HEAD` | 破壊的 |
+| 削除されたブランチを復元 | `git reflog` + `git checkout -b <branch> <hash>` | 安全 |
 
-### Safe Rollback Workflow
+### 安全なロールバックワークフロー
 
 ```bash
-# 1. Check current state
+# 1. 現在の状態を確認
 git status
 git log --oneline -5
 
-# 2. Create backup branch (always!)
+# 2. バックアップブランチを作成（必ず！）
 git branch backup-$(date +%Y%m%d-%H%M%S)
 
-# 3. Perform rollback
-git revert <commit-hash>  # For pushed commits
-# OR
-git reset --soft HEAD~1   # For unpushed commits
+# 3. ロールバックを実行
+git revert <commit-hash>  # プッシュ済みコミットの場合
+# または
+git reset --soft HEAD~1   # 未プッシュコミットの場合
 
-# 4. Verify
+# 4. 確認
 git log --oneline -5
 git diff HEAD~1
 ```
 
-### Stash for Temporary Storage
+### 一時保存用の Stash
 
 ```bash
-# Save current work
+# 現在の作業を保存
 git stash push -m "WIP: feature description"
 
-# List stashes
+# スタッシュ一覧
 git stash list
 
-# Restore latest
+# 最新を復元
 git stash pop
 
-# Restore specific
+# 特定のスタッシュを復元
 git stash apply stash@{2}
 
-# Drop stash
+# スタッシュを削除
 git stash drop stash@{0}
 ```
 
-### Emergency Recovery
+### 緊急リカバリ
 
 ```bash
-# Find lost commits
+# 失われたコミットを見つける
 git reflog
 
-# Recover lost commit
+# 失われたコミットを復元
 git cherry-pick <hash>
 
-# Recover deleted file from history
+# 履歴から削除されたファイルを復元
 git checkout <commit-hash> -- path/to/file
 ```
 
-### What NOT to Do
+### やってはいけないこと
 
-| Dangerous Action | Why | Safe Alternative |
-|------------------|-----|------------------|
-| `git push --force` on shared branch | Overwrites others' work | `git revert` + regular push |
-| `git reset --hard` without backup | Permanent data loss | Create backup branch first |
-| `git clean -fd` without review | Deletes untracked files | `git clean -fdn` (dry-run) first |
+| 危険な操作 | 理由 | 安全な代替 |
+|-----------|------|----------|
+| 共有ブランチで `git push --force` | 他者の作業を上書き | `git revert` + 通常のプッシュ |
+| バックアップなしの `git reset --hard` | 永久的なデータ損失 | まずバックアップブランチを作成 |
+| レビューなしの `git clean -fd` | 追跡外ファイルを削除 | まず `git clean -fdn`（ドライラン） |
 
 ## Rules (L1 - Hard)
 
-Critical for data safety and team collaboration. Violations can cause data loss or disrupt others.
+データの安全性とチーム協業に不可欠。違反はデータ損失や他者への影響を引き起こす可能性。
 
-- NEVER force push to shared branches (overwrites others' work)
-- ALWAYS create backup branch before destructive operations
-- NEVER use `--hard` reset without understanding consequences
-- NEVER commit secrets or credentials
+- NEVER: 共有ブランチにフォースプッシュしない（他者の作業を上書き）
+- ALWAYS: 破壊的操作の前にバックアップブランチを作成する
+- NEVER: `--hard` リセットの影響を理解せずに使用しない
+- NEVER: シークレットや認証情報をコミットしない
 
 ## Defaults (L2 - Soft)
 
-Important for consistency and quality. Override with reasoning when appropriate.
+一貫性と品質に重要。適切な理由がある場合はオーバーライド可。
 
-- Use conventional commit format for semantic versioning
-- Check git status before committing
-- Avoid committing unrelated changes together
-- Write meaningful descriptions in commit messages
-- Update changelog for user-facing changes
+- セマンティックバージョニングのために Conventional Commit 形式を使用
+- コミット前に git status を確認
+- 無関係な変更を一緒にコミットしない
+- コミットメッセージに意味のある説明を記述
+- ユーザー向け変更には変更ログを更新
 
 ## Guidelines (L3)
 
-Recommendations for better git hygiene.
+より良い git 運用のための推奨事項。
 
-- Consider using `git add -p` for partial staging
-- Prefer rebase for linear history on feature branches
-- Consider signing commits for verified authorship
+- consider: 部分的なステージングに `git add -p` の使用を検討
+- prefer: フィーチャーブランチではリベースで線形履歴を推奨
+- consider: 検証済みの作者確認のためにコミット署名を検討

@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 """
-PreToolUse hook for security-auditor agent.
-Validates that Bash commands are read-only audit commands only.
+security-auditor エージェント用の PreToolUse フック。
+Bash コマンドが読み取り専用の監査コマンドのみであることを検証する。
 
-Based on Claude Code hooks specification:
-https://code.claude.com/docs/en/hooks
-
-Uses JSON decision control (exit 0 + hookSpecificOutput) for proper blocking.
-This ensures consistent behavior with other hooks in this toolkit.
+適切なブロックのために JSON decision control（exit 0 + hookSpecificOutput）を使用。
+このツールキットの他のフックと一貫した動作を保証。
 """
 
 import json
@@ -15,9 +12,9 @@ import sys
 import re
 
 
-# Allowed read-only audit commands
+# 許可された読み取り専用の監査コマンド
 ALLOWED_PATTERNS = [
-    # Dependency audits
+    # 依存関係の監査
     r'^npm\s+audit',
     r'^yarn\s+audit',
     r'^pip-audit',
@@ -27,7 +24,7 @@ ALLOWED_PATTERNS = [
     r'^bundle\s+audit',
     r'^mvn\s+dependency-check',
 
-    # Package listing (read-only)
+    # パッケージ一覧（読み取り専用）
     r'^npm\s+list',
     r'^pip\s+list',
     r'^pip\s+show',
@@ -35,7 +32,7 @@ ALLOWED_PATTERNS = [
     r'^cargo\s+tree',
     r'^bundle\s+list',
 
-    # Git history (read-only)
+    # Git 履歴（読み取り専用）
     r'^git\s+log',
     r'^git\s+blame',
     r'^git\s+show',
@@ -44,7 +41,7 @@ ALLOWED_PATTERNS = [
     r'^git\s+branch',
     r'^git\s+tag',
 
-    # File inspection (read-only)
+    # ファイル検査（読み取り専用）
     r'^file\s+',
     r'^cat\s+',
     r'^head\s+',
@@ -56,15 +53,15 @@ ALLOWED_PATTERNS = [
     r'^grep\s+',
     r'^rg\s+',  # ripgrep
 
-    # Environment inspection
+    # 環境検査
     r'^env$',
     r'^printenv',
-    r'^echo\s+\$',  # Only echo of environment variables
+    r'^echo\s+\$',  # 環境変数の echo のみ
 ]
 
-# Explicitly blocked dangerous patterns
+# 明示的にブロックされた危険なパターン
 BLOCKED_PATTERNS = [
-    # File modification
+    # ファイル変更
     r'\brm\s+',
     r'\bmv\s+',
     r'\bcp\s+',
@@ -74,7 +71,7 @@ BLOCKED_PATTERNS = [
     r'\brmdir\s+',
     r'\btouch\s+',
 
-    # Package modification
+    # パッケージ変更
     r'\bnpm\s+install',
     r'\bnpm\s+uninstall',
     r'\bnpm\s+update',
@@ -85,22 +82,22 @@ BLOCKED_PATTERNS = [
     r'\bcargo\s+install',
     r'\bbundle\s+install',
 
-    # Network requests
+    # ネットワークリクエスト
     r'\bcurl\s+',
     r'\bwget\s+',
     r'\bfetch\s+',
 
-    # System commands
+    # システムコマンド
     r'\bsudo\s+',
     r'\bsu\s+',
     r'\bsystemctl\s+',
     r'\bservice\s+',
 
-    # Dangerous redirects
-    r'>\s*[^&]',  # Output redirect (but not 2>&1)
-    r'>>\s*',     # Append redirect
+    # 危険なリダイレクト
+    r'>\s*[^&]',  # 出力リダイレクト（ただし 2>&1 は除外）
+    r'>>\s*',     # 追記リダイレクト
 
-    # Process manipulation
+    # プロセス操作
     r'\bkill\s+',
     r'\bpkill\s+',
 ]
@@ -108,84 +105,83 @@ BLOCKED_PATTERNS = [
 
 def validate_command(command: str) -> tuple[bool, str]:
     """
-    Validate if a command is allowed for security audit.
+    コマンドがセキュリティ監査で許可されるかを検証。
 
-    Returns:
+    戻り値:
         (allowed, reason)
     """
     command = command.strip()
 
-    # Check for blocked patterns first
+    # まずブロックパターンをチェック
     for pattern in BLOCKED_PATTERNS:
         if re.search(pattern, command, re.IGNORECASE):
-            return False, f"Blocked pattern detected: {pattern}"
+            return False, f"ブロックパターンを検出: {pattern}"
 
-    # Check if command matches any allowed pattern
+    # コマンドが許可パターンに一致するかチェック
     for pattern in ALLOWED_PATTERNS:
         if re.match(pattern, command, re.IGNORECASE):
-            return True, f"Allowed: matches {pattern}"
+            return True, f"許可: パターン {pattern} に一致"
 
-    # Default: block unknown commands
-    return False, "Command not in allowed list for security audit mode"
+    # デフォルト: 不明なコマンドをブロック
+    return False, "セキュリティ監査モードの許可リストにないコマンド"
 
 
 def main():
     try:
-        # Read input from stdin (JSON format)
+        # stdin から入力を読み取り（JSON 形式）
         input_data = sys.stdin.read()
         data = json.loads(input_data)
 
-        # Extract the command from tool_input
+        # tool_input からコマンドを抽出
         tool_input = data.get('tool_input', {})
         command = tool_input.get('command', '')
 
         if not command:
-            # No command to validate
+            # 検証するコマンドなし
             sys.exit(0)
 
         allowed, reason = validate_command(command)
 
         if allowed:
-            # Command is allowed
+            # コマンドは許可
             sys.exit(0)
         else:
-            # Use JSON decision control to properly block the command
-            # Based on: https://code.claude.com/docs/en/hooks
+            # JSON decision control でコマンドを適切にブロック
             allowed_cmds = (
-                "Allowed commands for security audit: "
-                "Dependency audits (npm audit, pip-audit, cargo audit), "
-                "Git history (git log, git blame, git show), "
-                "File inspection (cat, head, tail, ls, find, grep), "
-                "Package listing (npm list, pip list, go list)"
+                "セキュリティ監査で許可されるコマンド: "
+                "依存関係の監査 (npm audit, pip-audit, cargo audit)、"
+                "Git 履歴 (git log, git blame, git show)、"
+                "ファイル検査 (cat, head, tail, ls, find, grep)、"
+                "パッケージ一覧 (npm list, pip list, go list)"
             )
             output = {
                 "hookSpecificOutput": {
                     "hookEventName": "PreToolUse",
                     "permissionDecision": "deny",
-                    "permissionDecisionReason": f"Security Audit Mode: {reason}. {allowed_cmds}"
+                    "permissionDecisionReason": f"セキュリティ監査モード: {reason}。{allowed_cmds}"
                 }
             }
             print(json.dumps(output))
-            sys.exit(0)  # Exit 0 with JSON decision control
+            sys.exit(0)  # JSON decision control で exit 0
 
     except json.JSONDecodeError as e:
-        # Use JSON decision control to deny on parse errors (fail-safe)
+        # パースエラー時はフェイルセーフで拒否
         output = {
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
                 "permissionDecision": "deny",
-                "permissionDecisionReason": f"Security Audit Mode: Invalid JSON input - {e}"
+                "permissionDecisionReason": f"セキュリティ監査モード: 無効な JSON 入力 - {e}"
             }
         }
         print(json.dumps(output))
         sys.exit(0)
     except Exception as e:
-        # Use JSON decision control to deny on errors (fail-safe)
+        # エラー時はフェイルセーフで拒否
         output = {
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
                 "permissionDecision": "deny",
-                "permissionDecisionReason": f"Security Audit Mode: Validation error - {e}"
+                "permissionDecisionReason": f"セキュリティ監査モード: 検証エラー - {e}"
             }
         }
         print(json.dumps(output))

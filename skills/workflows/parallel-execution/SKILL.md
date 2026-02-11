@@ -1,12 +1,12 @@
 ---
 name: parallel-execution
 description: |
-  Patterns for parallel subagent execution to maximize efficiency and reduce context usage.
-  Use when:
-  - Multiple independent analyses or reviews are needed
-  - Tasks can run concurrently without dependencies
-  - Code review requires multiple perspectives
-  - Exploration of codebase from different angles
+  効率を最大化しコンテキスト使用量を削減するための並列サブエージェント実行パターン。
+  以下の場合に使用:
+  - 複数の独立した分析やレビューが必要な場合
+  - 依存関係なしで同時実行可能なタスク
+  - 複数の視点からのコードレビュー
+  - 異なる角度からのコードベース探索
   Trigger phrases: parallel review, concurrent agents, multi-agent, independent analysis, run simultaneously
 allowed-tools: Read, Glob, Grep, Task
 model: sonnet
@@ -15,254 +15,254 @@ context: fork
 agent: general-purpose
 ---
 
-# Parallel Agent Execution
+# 並列エージェント実行
 
-Techniques for running multiple subagents concurrently to maximize efficiency and minimize main context usage.
+複数のサブエージェントを同時実行し、効率を最大化しメインコンテキスト使用量を最小化するテクニック。
 
-## Core Principles
+## 基本原則
 
-From Claude Code Best Practices:
+Claude Code Best Practices より:
 
-1. **Subagents preserve context** - Exploration happens in isolation
-2. **Only results return** - Main context stays clean
-3. **Independence enables parallelism** - No dependencies = run together
-4. **Aggregation happens in main** - Combine results intelligently
+1. **サブエージェントはコンテキストを保持** - 探索は分離して実行
+2. **結果のみが返る** - メインコンテキストはクリーンに保たれる
+3. **独立性が並列性を可能にする** - 依存関係なし = 同時実行
+4. **集約はメインで実行** - 結果をインテリジェントに統合
 
-## When to Use Parallel Execution
+## 並列実行の使用場面
 
-### Suitable Tasks
+### 適したタスク
 
-| Task Type | Agents | Why Parallel |
-|-----------|--------|--------------|
-| Code review | qa, security, style | Independent perspectives |
-| Codebase exploration | Multiple Explore | Different search angles |
-| Test coverage | unit, integration, e2e | Independent scopes |
-| Documentation | API docs, user guide, changelog | Different audiences |
-| Architecture analysis | frontend, backend, infra | Different domains |
+| タスクタイプ | エージェント | 並列が有効な理由 |
+|------------|-----------|-----------------|
+| コードレビュー | qa、security、style | 独立した視点 |
+| コードベース探索 | 複数の Explore | 異なる検索角度 |
+| テストカバレッジ | unit、integration、e2e | 独立したスコープ |
+| ドキュメント | API ドキュメント、ユーザーガイド、変更ログ | 異なる対象読者 |
+| アーキテクチャ分析 | フロントエンド、バックエンド、インフラ | 異なるドメイン |
 
-### Not Suitable
+### 適さない場合
 
-- Tasks with dependencies (must be sequential)
-- Tasks that modify same files (conflicts)
-- Tasks requiring shared state
-- Simple single-file operations
+- 依存関係のあるタスク（順次実行が必要）
+- 同じファイルを変更するタスク（競合）
+- 共有状態が必要なタスク
+- シンプルな単一ファイル操作
 
-## Parallel Review Pattern
+## 並列レビューパターン
 
-### Multi-Perspective Code Review
+### 多角的コードレビュー
 
 ```
-Run these checks in parallel where possible:
+可能な限り並列でこれらのチェックを実行:
 
-1. qa-engineer agent
-   Task: Review test coverage for [files]
-   Output: Test gap report with confidence scores
+1. qa-engineer エージェント
+   タスク: [ファイル] のテストカバレッジをレビュー
+   出力: 確信度スコア付きテストギャップレポート
 
-2. security-auditor agent
-   Task: Security audit for [files]
-   Output: Vulnerability findings (confidence >= 70)
+2. security-auditor エージェント
+   タスク: [ファイル] のセキュリティ監査
+   出力: 脆弱性の発見（確信度 >= 70）
 
-3. code-quality skill (run in main context)
-   Task: Lint and style check for [files]
-   Output: Quality issues and fixes
+3. code-quality スキル（メインコンテキストで実行）
+   タスク: [ファイル] のリントとスタイルチェック
+   出力: 品質の問題と修正
 
-4. verification-specialist agent
-   Task: Validate findings from other parallel agents
-   Output: Verification status (VERIFIED/PARTIAL/UNVERIFIED) with file:line cross-checks
+4. verification-specialist エージェント
+   タスク: 他の並列エージェントの発見を検証
+   出力: 検証ステータス（VERIFIED/PARTIAL/UNVERIFIED）と file:line のクロスチェック
 ```
 
-### Execution
+### 実行
 
-The orchestrator:
-1. Launches all agents simultaneously
-2. Each runs in isolated context
-3. Results stream back as agents complete
-4. Main context aggregates findings
+オーケストレーターは:
+1. 全エージェントを同時に起動
+2. 各エージェントが分離されたコンテキストで実行
+3. エージェント完了順に結果がストリーム
+4. メインコンテキストが発見を集約
 
-### Result Aggregation
+### 結果の集約
 
-After parallel completion:
+並列完了後:
 
 ```markdown
-## Combined Review Results
+## 統合レビュー結果
 
-### Critical Issues (must fix)
-- [From security-auditor] SQL injection in auth.ts:45 (confidence: 95) [VERIFIED]
-- [From qa-engineer] Missing test for payment flow (confidence: 92) [VERIFIED]
+### 重大な問題（修正必須）
+- [security-auditor より] auth.ts:45 の SQL インジェクション（確信度: 95）[VERIFIED]
+- [qa-engineer より] 支払いフローのテスト不足（確信度: 92）[VERIFIED]
 
-### Important Issues (should fix)
-- [From code-quality] Unused import in utils.ts [VERIFIED]
-- [From qa-engineer] Edge case not covered in validation [PARTIAL]
+### 重要な問題（修正推奨）
+- [code-quality より] utils.ts の未使用インポート [VERIFIED]
+- [qa-engineer より] バリデーションのエッジケース未カバー [PARTIAL]
 
-### Suggestions (consider)
-- [From code-quality] Could use early return pattern [UNVERIFIED]
+### 提案（検討）
+- [code-quality より] 早期リターンパターンの使用検討 [UNVERIFIED]
 
-### Verification Summary
-- [From verification-specialist] 3 VERIFIED, 1 PARTIAL, 1 UNVERIFIED
+### 検証サマリー
+- [verification-specialist より] 3 VERIFIED、1 PARTIAL、1 UNVERIFIED
 ```
 
-## Parallel Exploration Pattern
+## 並列探索パターン
 
-### Codebase Discovery
+### コードベース発見
 
-When understanding unfamiliar codebase:
+不慣れなコードベースの理解時:
 
 ```
-Launch exploration agents in parallel:
+探索エージェントを並列で起動:
 
-1. Explore agent
-   Task: Find all API endpoints and their handlers
+1. Explore エージェント
+   タスク: 全 API エンドポイントとそのハンドラーを検索
 
-2. Explore agent
-   Task: Trace authentication flow from login to session
+2. Explore エージェント
+   タスク: ログインからセッションまでの認証フローを追跡
 
-3. Explore agent
-   Task: Map database models and their relationships
+3. Explore エージェント
+   タスク: データベースモデルとその関連をマッピング
 ```
 
-### Combining Insights
+### インサイトの統合
 
-Results create comprehensive picture without consuming main context on exploration:
+結果がメインコンテキストの探索消費なしに包括的な全体像を作成:
 
 ```markdown
-## Codebase Understanding
+## コードベースの理解
 
-### API Layer (from Agent 1)
-- 23 REST endpoints in /api/
-- Uses Express with middleware pattern
-- Auth middleware on /api/protected/*
+### API 層（エージェント 1 より）
+- /api/ に 23 の REST エンドポイント
+- ミドルウェアパターンの Express を使用
+- /api/protected/* に認証ミドルウェア
 
-### Authentication (from Agent 2)
-- JWT-based auth
-- Refresh token rotation
-- Session stored in Redis
+### 認証（エージェント 2 より）
+- JWT ベースの認証
+- リフレッシュトークンローテーション
+- Redis にセッションを保存
 
-### Data Layer (from Agent 3)
-- PostgreSQL with Prisma
-- 15 models, User is central
-- Soft deletes on most entities
+### データ層（エージェント 3 より）
+- Prisma を使用した PostgreSQL
+- 15 モデル、User が中心
+- ほとんどのエンティティでソフトデリート
 ```
 
-## Sequential vs Parallel Decision
+## 順次 vs 並列の判断
 
-### Use Sequential When
+### 順次を使用する場合
 
 ```
-Task A: Create database schema
+タスク A: データベーススキーマの作成
     ↓
-Task B: Generate Prisma client (depends on A)
+タスク B: Prisma クライアントの生成（A に依存）
     ↓
-Task C: Write repository layer (depends on B)
+タスク C: リポジトリ層の作成（B に依存）
 ```
 
-### Use Parallel When
+### 並列を使用する場合
 
 ```
-Task A: Review frontend code ──┐
-Task B: Review backend code   ──┼── Aggregate results
-Task C: Review infrastructure ──┘
+タスク A: フロントエンドコードのレビュー ──┐
+タスク B: バックエンドコードのレビュー   ──┼── 結果を集約
+タスク C: インフラのレビュー           ──┘
 ```
 
-## Confidence Score Aggregation
+## 確信度スコアの集約
 
-When multiple agents report on same issue:
+複数のエージェントが同じ問題を報告した場合:
 
-| Agent Count | Confidence Adjustment |
-|-------------|----------------------|
-| 1 agent reports | Use agent's score |
-| 2 agents agree | Boost score +10 |
-| 3+ agents agree | Treat as confirmed |
-| Agents disagree | Average scores, flag for review |
+| エージェント数 | 確信度の調整 |
+|-------------|-------------|
+| 1 エージェントが報告 | エージェントのスコアを使用 |
+| 2 エージェントが一致 | スコアを +10 ブースト |
+| 3+ エージェントが一致 | 確認済みとして扱う |
+| エージェント間で不一致 | スコアを平均し、レビュー用にフラグ |
 
-## Implementation Checklist
+## 実装チェックリスト
 
-Before launching parallel agents:
+並列エージェント起動前:
 
-- [ ] Tasks are truly independent
-- [ ] No shared file modifications
-- [ ] Each agent has clear scope
-- [ ] Output format is consistent
-- [ ] Aggregation criteria defined
+- [ ] タスクが本当に独立している
+- [ ] 共有ファイルの変更なし
+- [ ] 各エージェントが明確なスコープを持つ
+- [ ] 出力形式が一貫している
+- [ ] 集約基準を定義済み
 
-## Background Agent Pattern
+## バックグラウンドエージェントパターン
 
-For long-running analyses:
+長時間の分析:
 
 ```
-Launch in background:
-- Full security audit (may take time)
-- Complete test suite run
-- Dependency vulnerability scan
+バックグラウンドで起動:
+- フルセキュリティ監査（時間がかかる可能性）
+- 完全なテストスイートの実行
+- 依存関係の脆弱性スキャン
 
-Continue with:
-- Implementation work
-- Documentation
-- Other reviews
+同時に続行:
+- 実装作業
+- ドキュメント
+- 他のレビュー
 
-Check background results when ready.
+準備ができたらバックグラウンド結果を確認。
 ```
 
-## Anti-Patterns
+## アンチパターン
 
-| Anti-Pattern | Why Bad | Instead |
+| アンチパターン | 悪い理由 | 代わりに |
 |--------------|---------|---------|
-| Parallel with dependencies | Race conditions, wrong order | Sequence dependent tasks |
-| Too many parallel agents | Overwhelming, hard to aggregate | Max 3-4 for reviews |
-| Same files, parallel writes | Conflicts, lost changes | Coordinate file access |
-| No aggregation plan | Scattered insights | Define merge strategy |
+| 依存関係のある並列 | 競合状態、誤った順序 | 依存タスクは順次実行 |
+| 多すぎる並列エージェント | 圧倒的、集約困難 | レビューは最大 3-4 |
+| 同じファイルの並列書き込み | 競合、変更の喪失 | ファイルアクセスを調整 |
+| 集約計画なし | インサイトが散乱 | マージ戦略を定義 |
 
-## Example: Full Feature Review
+## 例: フル機能レビュー
 
 ```markdown
-## Launching Parallel Review for: User Dashboard Feature
+## 並列レビュー起動: ユーザーダッシュボード機能
 
-### Agents to Launch
+### 起動するエージェント
 
-1. **code-explorer** (background)
-   - Trace all data flows in dashboard components
-   - Map component hierarchy
+1. **code-explorer**（バックグラウンド）
+   - ダッシュボードコンポーネントの全データフローを追跡
+   - コンポーネント階層をマッピング
 
-2. **qa-engineer** (parallel)
-   - Review test coverage
-   - Identify missing edge cases
+2. **qa-engineer**（並列）
+   - テストカバレッジのレビュー
+   - 不足しているエッジケースの特定
 
-3. **security-auditor** (parallel)
-   - Check for XSS vulnerabilities
-   - Verify auth on all endpoints
+3. **security-auditor**（並列）
+   - XSS 脆弱性のチェック
+   - 全エンドポイントの認証を検証
 
-4. **architect** (parallel)
-   - Evaluate component structure
-   - Check for coupling issues
+4. **architect**（並列）
+   - コンポーネント構造の評価
+   - 結合の問題をチェック
 
-### Aggregation Strategy
+### 集約戦略
 
-- Critical issues from ANY agent → Must address
-- Performance concerns → Prioritize by impact
-- Style issues → Bundle into single cleanup PR
-- Architecture suggestions → Discuss with team
+- 任意のエージェントからの重大な問題 → 対処必須
+- パフォーマンスの懸念 → 影響度で優先順位付け
+- スタイルの問題 → 1 つのクリーンアップ PR にまとめる
+- アーキテクチャの提案 → チームと議論
 ```
 
 ## Rules (L1 - Hard)
 
-Critical for conflict-free parallel execution.
+競合のない並列実行に不可欠。
 
-- ALWAYS verify tasks are independent before parallelizing (prevent race conditions)
-- NEVER run parallel agents that modify same files (causes conflicts)
-- NEVER skip result aggregation (scattered insights are useless)
+- ALWAYS: 並列化の前にタスクが独立していることを確認する（競合状態の防止）
+- NEVER: 同じファイルを変更する並列エージェントを実行しない（競合の原因）
+- NEVER: 結果の集約をスキップしない（散乱したインサイトは無用）
 
 ## Defaults (L2 - Soft)
 
-Important for effective parallelism. Override with reasoning when appropriate.
+効果的な並列処理に重要。適切な理由がある場合はオーバーライド可。
 
-- Define aggregation strategy before launching
-- Include confidence scores in agent outputs
-- Limit to 3-4 parallel agents for manageability
-- Use consistent output format across agents
+- 起動前に集約戦略を定義する
+- エージェント出力に確信度スコアを含める
+- 管理性のため並列エージェントは 3-4 に制限
+- エージェント間で一貫した出力形式を使用
 
 ## Guidelines (L3)
 
-Recommendations for optimal parallel execution.
+最適な並列実行のための推奨事項。
 
-- Consider using background agents for long-running analyses
-- Prefer boosting confidence scores when multiple agents agree
-- Consider flagging conflicting findings for human review
+- consider: 長時間の分析にはバックグラウンドエージェントの使用を検討
+- prefer: 複数のエージェントが一致した場合の確信度スコアのブーストを推奨
+- consider: 対立する発見を人間のレビュー用にフラグすることを検討

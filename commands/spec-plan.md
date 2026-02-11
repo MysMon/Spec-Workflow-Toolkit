@@ -1,10 +1,10 @@
 ---
-description: "Plan a feature with spec-first methodology - discovery, exploration, clarification, and architecture design with iterative refinement"
-argument-hint: "[optional: feature description]"
+description: "仕様書ファーストの方法論で機能を計画する - 発見、探索、明確化、アーキテクチャ設計を反復的改善で実施"
+argument-hint: "[任意: 機能の説明]"
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite
 ---
 
-# /spec-plan - Specification-First Planning
+# /spec-plan - 仕様書ファーストの計画
 
 ## Language Mode
 
@@ -12,122 +12,122 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoW
 
 ---
 
-Plan a feature through 4 phases with iterative refinement at each gate. Produces a specification and design document ready for `/spec-review` and `/spec-implement`.
+4つのフェーズを通じて、各ゲートで反復的改善を行いながら機能を計画する。`/spec-review` と `/spec-implement` に備えた仕様書と設計書を生成する。
 
-## Attribution
+## 帰属
 
-Based on official feature-dev plugin, Claude Code Best Practices, Effective Harnesses for Long-Running Agents, and Building Effective Agents (6 Composable Patterns).
+公式の feature-dev プラグイン、Claude Code Best Practices、Effective Harnesses for Long-Running Agents、Building Effective Agents（6 Composable Patterns）に基づく。
 
-## Why Separate Planning from Implementation?
+## 計画と実装を分離する理由
 
-Anthropic's "Effective Harnesses for Long-Running Agents" found that agents "fall short when attempting to one-shot" complex work. The solution: an **Initializer** (planning) phase separate from incremental **Coding** sessions.
+Anthropic の「Effective Harnesses for Long-Running Agents」では、エージェントが複雑な作業を「ワンショットで試みると不十分」になることが判明した。解決策: **イニシャライザー**（計画）フェーズをインクリメンタルな**コーディング**セッションから分離する。
 
-Benefits:
-- Full context window available for planning (no implementation artifacts consuming tokens)
-- Natural checkpoint for human review before costly implementation
-- `/spec-review` can validate the plan between planning and implementation
-- Claude Code creator's workflow: "Plan Mode → refine plan → Auto-Accept for implementation"
+利点:
+- 計画にフルコンテキストウィンドウを使用可能（実装アーティファクトによるトークン消費なし）
+- コストのかかる実装前にヒューマンレビューの自然なチェックポイント
+- `/spec-review` で計画と実装の間にプランを検証可能
+- Claude Code 開発者のワークフロー: 「Plan Mode → プランの改善 → 自動承認で実装」
 
-## Phase Overview
+## フェーズ概要
 
-1. **Discovery** - Understand what needs to be built
-2. **Codebase Exploration** - Understand existing code and patterns (parallel agents)
-3. **Specification Drafting** - Fill gaps, resolve ambiguities, draft and refine spec
-4. **Architecture Design** - Analyze from multiple angles, synthesize and refine one approach
+1. **発見** - 何を構築すべきかを理解する
+2. **コードベース探索** - 既存のコードとパターンを理解する（並列エージェント）
+3. **仕様書作成** - ギャップを埋め、曖昧さを解消し、仕様を起草して改善
+4. **アーキテクチャ設計** - 複数の角度から分析し、1つのアプローチに統合して改善
 
-Each phase with user interaction includes a **refinement loop** — not just approve/reject, but iterative revision based on user feedback.
+各フェーズのユーザーインタラクションには**改善ループ**が含まれる — 単純な承認/却下ではなく、ユーザーフィードバックに基づく反復的な修正。
 
-## Execution Instructions
-
----
-
-## ORCHESTRATOR-ONLY RULES (NON-NEGOTIABLE)
-
-**YOU ARE THE ORCHESTRATOR. YOU DO NOT DO THE WORK YOURSELF.**
-
-Load the `subagent-contract` skill for detailed orchestration protocols.
-
-### Absolute Prohibitions
-
-1. **MUST delegate bulk Grep/Glob operations to `code-explorer`** - Use directly only for single targeted lookups
-2. **For bulk reading (>3 files)**: Delegate to subagents. Quick lookups (1-3 files for specific sections) are allowed.
-3. **NEVER implement code yourself** - This is a planning command
-4. **NEVER skip to implementation** - Output is a plan, not code
-
-### Your ONLY Responsibilities
-
-1. **Orchestrate** - Launch and coordinate subagents
-2. **Synthesize** - Combine subagent outputs into coherent summaries
-3. **Communicate** - Present findings and ask user questions
-4. **Track Progress** - Update TodoWrite and progress files
-5. **Read Specific Files** - Only files identified by subagents (max 3 at a time)
+## 実行手順
 
 ---
 
-### Agent Selection
+## オーケストレーター専用ルール（絶対遵守）
 
-| Agent | Model | Use For |
+**あなたはオーケストレーターである。自分で作業を行ってはならない。**
+
+詳細なオーケストレーションプロトコルは `subagent-contract` スキルを読み込むこと。
+
+### 絶対禁止事項
+
+1. **大量の Grep/Glob 操作は `code-explorer` に委任すること** - 単発の特定検索のみ直接使用可
+2. **大量読み込み（3ファイル超）**: サブエージェントに委任。クイックルックアップ（特定セクションの1-3ファイル）は許可。
+3. **自分でコードを実装してはならない** - これは計画コマンド
+4. **実装に飛んではならない** - 出力は計画であり、コードではない
+
+### あなたの唯一の責務
+
+1. **オーケストレート** - サブエージェントの起動と調整
+2. **統合** - サブエージェント出力を一貫したサマリーに統合
+3. **コミュニケーション** - 発見事項を提示し、ユーザーに質問
+4. **進捗管理** - TodoWrite と進捗ファイルの更新
+5. **特定ファイルの読み取り** - サブエージェントが特定したファイルのみ（一度に最大3つ）
+
+---
+
+### エージェント選択
+
+| エージェント | モデル | 用途 |
 |-------|-------|---------|
-| `code-explorer` | Sonnet | Deep codebase analysis (4-phase exploration) |
-| Built-in `Explore` | Haiku | Quick lookups and simple searches |
-| `code-architect` | Sonnet | Feature-level implementation blueprints |
-| `product-manager` | Opus | Specification drafting (high-quality PRD) |
-| `verification-specialist` | Sonnet | Reference validation |
+| `code-explorer` | Sonnet | 深いコードベース分析（4フェーズ探索） |
+| ビルトイン `Explore` | Haiku | クイックルックアップと簡単な検索 |
+| `code-architect` | Sonnet | 機能レベルの実装ブループリント |
+| `product-manager` | Opus | 仕様書作成（高品質 PRD） |
+| `verification-specialist` | Sonnet | 参照の検証 |
 
 ---
 
-### Phase 1: Discovery
+### フェーズ 1: 発見
 
-**Goal:** Understand what needs to be built and why.
+**目標:** 何を構築すべきか、その理由を理解する。
 
-#### CRITICAL: Check for Existing Progress (L1 - MUST DO FIRST)
+#### 重要: 既存の進捗を確認（L1 - 最初に必ず実行）
 
-**Before creating new progress files, check if work already exists for this project.**
+**新しい進捗ファイルを作成する前に、このプロジェクトの作業が既に存在するか確認する。**
 
-**Why progress file reading is acceptable (not delegated):**
-Progress files are orchestrator state metadata, not project content. See `subagent-contract` skill "Orchestrator Exceptions Reference" for full justification of the Progress/Metadata Read exception.
+**進捗ファイルの読み取りが許容される理由（委任不要）:**
+進捗ファイルはオーケストレーターの状態メタデータであり、プロジェクトコンテンツではない。Progress/Metadata Read 例外の完全な正当性は `subagent-contract` スキルの「オーケストレーター例外リファレンス」を参照。
 
-1. **Check for existing progress file:**
-   - Generate workspace ID: `{branch}_{path-hash}` (from SessionStart hook context)
-   - Look for `.claude/workspaces/{workspace-id}/claude-progress.json`
+1. **既存の進捗ファイルを確認:**
+   - ワークスペース ID を生成: `{branch}_{path-hash}`（SessionStart フックコンテキストから）
+   - `.claude/workspaces/{workspace-id}/claude-progress.json` を探す
 
-2. **If progress file exists and status is NOT "completed":**
+2. **進捗ファイルが存在し、ステータスが "completed" でない場合:**
    ```
-   EXISTING PROGRESS DETECTED
+   既存の進捗を検出
 
-   Project: [project name from progress file]
-   Current Phase: [currentPhase from progress file]
-   Last Activity: [lastUpdated from progress file]
-   Status: [status from progress file]
+   プロジェクト: [進捗ファイルからのプロジェクト名]
+   現在のフェーズ: [進捗ファイルからの currentPhase]
+   最終更新: [進捗ファイルからの lastUpdated]
+   ステータス: [進捗ファイルからの status]
 
-   Options:
-   1. Continue existing work → Use /resume command
-   2. Start fresh → Existing progress will be archived
-   3. Cancel → Do nothing
+   オプション:
+   1. 既存の作業を継続 → /resume コマンドを使用
+   2. 新規開始 → 既存の進捗はアーカイブされます
+   3. キャンセル → 何もしない
 
-   What would you like to do?
+   どうしますか？
    ```
 
-3. **If user chooses "Start fresh":**
-   - Create archive directory: `.claude/workspaces/{id}/archived/{YYYY-MM-DD_HH-MM-SS}/`
-   - Move all progress files to archive directory:
+3. **ユーザーが「新規開始」を選択した場合:**
+   - アーカイブディレクトリを作成: `.claude/workspaces/{id}/archived/{YYYY-MM-DD_HH-MM-SS}/`
+   - すべての進捗ファイルをアーカイブディレクトリに移動:
      - `claude-progress.json` → `archived/{timestamp}/claude-progress.json`
      - `feature-list.json` → `archived/{timestamp}/feature-list.json`
-   - This format matches `/resume` command's archive convention
-   - Proceed to create new progress files
+   - この形式は `/resume` コマンドのアーカイブ規約と一致
+   - 新しい進捗ファイルの作成に進む
 
-4. **If progress file doesn't exist or status is "completed":**
-   - Proceed directly to Progress File Initialization
+4. **進捗ファイルが存在しない、またはステータスが "completed" の場合:**
+   - 進捗ファイルの初期化に直接進む
 
-#### CRITICAL: Progress File Initialization (L1 - MUST DO AFTER CHECK)
+#### 重要: 進捗ファイルの初期化（L1 - 確認後に必ず実行）
 
-**NEVER skip this step. The progress file MUST be created before ANY other Phase 1 work.**
+**このステップをスキップしてはならない。フェーズ 1 の他の作業の前に進捗ファイルを作成すること。**
 
-1. **Generate workspace ID**: Use format `{branch}_{path-hash}` (from SessionStart hook context)
-2. **Create directory**: `.claude/workspaces/{workspace-id}/`
-3. **Create progress file**: `.claude/workspaces/{workspace-id}/claude-progress.json`
+1. **ワークスペース ID の生成**: `{branch}_{path-hash}` 形式を使用（SessionStart フックコンテキストから）
+2. **ディレクトリの作成**: `.claude/workspaces/{workspace-id}/`
+3. **進捗ファイルの作成**: `.claude/workspaces/{workspace-id}/claude-progress.json`
 
-**Initial progress file structure:**
+**初期進捗ファイル構造:**
 ```json
 {
   "workspaceId": "{generated-workspace-id}",
@@ -148,430 +148,430 @@ Progress files are orchestrator state metadata, not project content. See `subage
 }
 ```
 
-**Note:** Write tool success confirms file creation. No additional verification needed.
+**注:** Write ツールの成功でファイル作成が確認される。追加の検証は不要。
 
-#### Discovery Work
+#### 発見作業
 
-If the user provided a feature description (`$ARGUMENTS`), perform a **quick clarity assessment** based on the provided text only:
+ユーザーが機能の説明を提供した場合（`$ARGUMENTS`）、提供されたテキストのみに基づいて**簡易明確度評価**を実行:
 
-**What "quick clarity assessment" means:**
-- Review ONLY the user's input string (no file reads, no codebase exploration)
-- Check if basic information is present or missing
-- Takes seconds, not minutes — pure text analysis of the argument
+**「簡易明確度評価」の意味:**
+- ユーザーの入力文字列のみを確認（ファイル読み取りなし、コードベース探索なし）
+- 基本情報の有無を確認
+- 数秒で完了（分単位ではない）— 引数の純粋なテキスト分析
 
-**Assess these 3 criteria:**
-1. **Problem statement:** Can you understand what problem to solve from the text alone?
-2. **Target users:** Are intended users mentioned or inferable?
-3. **Constraints:** Are there obvious scope limits or requirements stated?
+**以下の3つの基準を評価:**
+1. **問題文:** テキストだけから解決すべき問題を理解できるか？
+2. **対象ユーザー:** 対象ユーザーが言及されている、または推測可能か？
+3. **制約:** 明確なスコープ制限や要件が記載されているか？
 
-**What to do next:**
-- If all 3 are clear: Use AskUserQuestion to confirm your understanding
-- If 1+ are unclear: Use AskUserQuestion to fill the gaps before proceeding
+**次のアクション:**
+- 3つすべて明確な場合: AskUserQuestion で理解を確認
+- 1つ以上不明確な場合: 進行前に AskUserQuestion でギャップを埋める
 
-**CRITICAL:** Do NOT read files or explore codebase at this point. Codebase exploration happens in Phase 2 after requirements are understood.
+**重要:** この時点ではファイルの読み取りやコードベースの探索を行わない。コードベース探索は要件理解後のフェーズ 2 で実施。
 
-**CRITICAL: Use AskUserQuestion when request is vague or ambiguous.**
+**重要: リクエストが曖昧または不明確な場合は AskUserQuestion を使用すること。**
 
-If the request is vague or missing:
-1. **MUST use AskUserQuestion** to clarify:
-   - What problem is being solved?
-   - Who are the target users?
-   - What does success look like?
-2. Identify stakeholders and use cases
-3. Document initial understanding
+リクエストが曖昧または不足している場合:
+1. **AskUserQuestion を使用**して明確化:
+   - どの問題を解決するのか？
+   - 対象ユーザーは誰か？
+   - 成功とは何か？
+2. ステークホルダーとユースケースを特定
+3. 初期理解を文書化
 
-Example triggers for AskUserQuestion:
-| User Says | Ask About |
+AskUserQuestion のトリガー例:
+| ユーザーの発言 | 確認すべき内容 |
 |-----------|-----------|
-| "Add a feature" | What feature? For whom? Why? |
-| "Improve performance" | Which operation? What's the target? |
-| "Make it better" | Better how? Faster? Easier? More reliable? |
+| 「機能を追加して」 | どの機能？誰のため？なぜ？ |
+| 「パフォーマンスを改善して」 | どの操作？目標は？ |
+| 「もっと良くして」 | どう良くする？速く？簡単に？信頼性高く？ |
 
-**Domain Knowledge Injection:** Ask the user:
+**ドメイン知識の注入:** ユーザーに確認:
 ```
-Before I explore the codebase, is there any context I should know?
-- Internal design guidelines or conventions?
-- Reference implementations to follow?
-- Constraints not visible in the code?
+コードベースを探索する前に、知っておくべきコンテキストはありますか？
+- 内部設計ガイドラインや規約？
+- 参考にすべきリファレンス実装？
+- コードからは見えない制約？
 
-(Skip if none)
+（なければスキップ）
 ```
 
-**Output:** Summary of understanding and confirmation from user.
+**出力:** 理解のサマリーとユーザーからの確認。
 
-**Progress Update:** currentPhase: "plan-discovery-complete"
+**進捗更新:** currentPhase: "plan-discovery-complete"
 
 ---
 
-### Phase 2: Codebase Exploration
+### フェーズ 2: コードベース探索
 
-**Goal:** Understand relevant existing code and patterns.
+**目標:** 関連する既存コードとパターンを理解する。
 
-**LAUNCH 2-3 `code-explorer` AGENTS IN PARALLEL:**
+**2-3体の `code-explorer` エージェントを並列起動:**
 
 ```
-Launch these code-explorer agents in parallel:
+以下の code-explorer エージェントを並列で起動:
 
-1. code-explorer (similar features)
-   Task: Explore existing implementations of similar features
-   Thoroughness: medium
-   Output: Entry points, execution flow, key files
+1. code-explorer（類似機能）
+   タスク: 類似機能の既存実装を探索
+   徹底度: medium
+   出力: エントリーポイント、実行フロー、主要ファイル
 
-2. code-explorer (architecture)
-   Task: Map the overall architecture and patterns used
-   Thoroughness: medium
-   Output: Layers, boundaries, conventions
+2. code-explorer（アーキテクチャ）
+   タスク: 全体アーキテクチャと使用パターンをマッピング
+   徹底度: medium
+   出力: レイヤー、境界、規約
 
-3. code-explorer (UI patterns) - if frontend work
-   Task: Trace UI component patterns and state management
-   Thoroughness: medium
-   Output: Component hierarchy, data flow
+3. code-explorer（UI パターン）- フロントエンド作業がある場合
+   タスク: UI コンポーネントパターンと状態管理をトレース
+   徹底度: medium
+   出力: コンポーネント階層、データフロー
 ```
 
-**Wait for all agents to complete.**
+**全エージェントの完了を待機。**
 
-**Error Handling:**
-If any agent fails or times out:
-1. Check the agent's partial output for usable findings
-2. If critical agent failed, retry once with reduced scope
-3. If retry fails, proceed with available results and document the gap
-4. Add to progress file: `"warnings": ["Agent X failed, results may be incomplete"]`
+**エラーハンドリング:**
+エージェントが失敗またはタイムアウトした場合:
+1. エージェントの部分出力で使用可能な発見事項を確認
+2. 重要なエージェントが失敗した場合、スコープを縮小してリトライ
+3. リトライも失敗した場合、利用可能な結果で続行しギャップを記録
+4. 進捗ファイルに追加: `"warnings": ["Agent X failed, results may be incomplete"]`
 
-**CRITICAL: Do NOT read files directly after exploration. Use agent output.**
+**重要: 探索後にファイルを直接読み取らないこと。エージェントの出力を使用する。**
 
-The `code-explorer` agents already read and summarize the files. Use their output directly.
+`code-explorer` エージェントが既にファイルを読み取り要約している。その出力を直接使用すること。
 
-If specific file details are needed for clarification, delegate to `code-explorer` with a focused query.
+明確化のために特定のファイルの詳細が必要な場合は、`code-explorer` に集中的なクエリで委任する。
 
-#### Consolidating Multiple Agent Outputs
+#### 複数エージェント出力の統合
 
-When all code-explorer agents complete, consolidate their findings as follows:
+すべての code-explorer エージェントが完了したら、発見事項を以下のように統合:
 
-1. **Combine by category:**
-   - Entry points and execution flows (from similar features agent)
-   - Architecture patterns and conventions (from architecture agent)
-   - UI patterns and data flow (from UI patterns agent, if applicable)
+1. **カテゴリ別に統合:**
+   - エントリーポイントと実行フロー（類似機能エージェントから）
+   - アーキテクチャパターンと規約（アーキテクチャエージェントから）
+   - UI パターンとデータフロー（UI パターンエージェントから、該当する場合）
 
-2. **Identify overlaps:** If multiple agents mention the same file or pattern, note it as high-relevance
+2. **重複の特定:** 複数のエージェントが同じファイルやパターンに言及している場合、高関連度として記録
 
-3. **Create structured summary:**
+3. **構造化サマリーの作成:**
    ```markdown
-   ## Codebase Exploration Summary
+   ## コードベース探索サマリー
 
-   ### Key Files
-   - [file path]: [relevance] (reported by: [agent(s)])
+   ### 主要ファイル
+   - [ファイルパス]: [関連性]（報告元: [エージェント名]）
 
-   ### Patterns Identified
-   - [pattern]: [description]
+   ### 特定されたパターン
+   - [パターン]: [説明]
 
-   ### Constraints Discovered
-   - [constraint]: [impact on design]
+   ### 発見された制約
+   - [制約]: [設計への影響]
    ```
 
-4. **Pass to Phase 3:** Use this consolidated summary as input for product-manager spec drafting
+4. **フェーズ 3 へ渡す:** この統合サマリーを product-manager の仕様書作成の入力として使用
 
-**Present comprehensive summary of findings to user (using agent outputs).**
+**発見事項の包括的サマリーをユーザーに提示（エージェント出力を使用）。**
 
-**Progress Update:** currentPhase: "plan-exploration-complete"
+**進捗更新:** currentPhase: "plan-exploration-complete"
 
 ---
 
-### Phase 3: Specification Drafting
+### フェーズ 3: 仕様書作成
 
-**Goal:** Fill in gaps, resolve ambiguities, draft and refine the specification.
+**目標:** ギャップを埋め、曖昧さを解消し、仕様書を起草して改善する。
 
-Based on discovery and exploration, identify:
-- Edge cases
-- Error handling requirements
-- Integration points
-- Backward compatibility needs
-- Performance requirements
+発見と探索に基づいて、以下を特定:
+- エッジケース
+- エラーハンドリング要件
+- 統合ポイント
+- 後方互換性の必要性
+- パフォーマンス要件
 
-**Ask clarifying questions using AskUserQuestion.**
+**AskUserQuestion で明確化質問を行う。**
 
-**CRITICAL: Wait for user answers before proceeding.**
+**重要: ユーザーの回答を待ってから進行すること。**
 
-**Draft the specification:**
+**仕様書の起草:**
 
-**CRITICAL: ALL spec work must be delegated to `product-manager` agent.**
+**重要: すべての仕様書作業は `product-manager` エージェントに委任すること。**
 
-Whether reviewing/updating an existing spec or drafting a new one, delegate to `product-manager`.
-
-```
-Launch product-manager agent to draft the spec:
-Specification target: docs/specs/[feature-name].md
-Template: docs/specs/SPEC-TEMPLATE.md
-Inputs: Clarified requirements + exploration findings + user domain knowledge
-Output: Draft spec for user review
-```
-
-**Error Handling for product-manager:**
-If product-manager fails or times out:
-1. Check the agent's partial output for usable draft content
-2. Retry once with reduced scope (focus on core requirements only)
-3. If retry fails, inform user and offer options:
-   - "Proceed with partial spec and refine manually"
-   - "Retry with simplified requirements"
-   - "Cancel and investigate the failure"
-4. Add to progress file: `"warnings": ["product-manager failed, spec may be incomplete"]`
-
-#### Specification Refinement Loop (max 3 iterations)
-
-Present the draft spec to the user and ask:
+既存の仕様書の確認・更新であれ、新規作成であれ、`product-manager` に委任する。
 
 ```
-Here is the draft specification. Please review it.
-
-Options:
-1. Approve as-is → proceed to Architecture Design
-2. Request changes → tell me what to modify (I'll revise and re-present)
-3. Add requirements → provide additional context or constraints
-4. Reject and restart → re-gather requirements
+product-manager エージェントを起動して仕様書を起草:
+仕様書ターゲット: docs/specs/[feature-name].md
+テンプレート: docs/specs/SPEC-TEMPLATE.md
+入力: 明確化された要件 + 探索の発見事項 + ユーザーのドメイン知識
+出力: ユーザーレビュー用のドラフト仕様書
 ```
 
-**If the user requests changes (option 2 or 3):**
-1. Incorporate the user's feedback
-2. Re-launch `product-manager` with updated inputs to revise the spec
-3. Present the revised spec (using agent output)
-4. Repeat until approved or max 3 iterations reached
+**product-manager のエラーハンドリング:**
+product-manager が失敗またはタイムアウトした場合:
+1. エージェントの部分出力で使用可能なドラフト内容を確認
+2. スコープを縮小してリトライ（コア要件のみに集中）
+3. リトライも失敗した場合、ユーザーに通知しオプションを提示:
+   - 「部分的な仕様書で続行し、手動で改善」
+   - 「簡略化した要件でリトライ」
+   - 「キャンセルして障害を調査」
+4. 進捗ファイルに追加: `"warnings": ["product-manager failed, spec may be incomplete"]`
 
-**CRITICAL:** Always delegate spec revision to `product-manager`. Do NOT edit spec files directly.
+#### 仕様書改善ループ（最大3回反復）
 
-**If max iterations reached without approval:**
-Ask user: "We've iterated 3 times. Would you like to approve the current version, continue refining manually, or start over?"
+ドラフト仕様書をユーザーに提示して確認:
 
-**Output:** Approved specification at `docs/specs/[feature-name].md`
+```
+ドラフト仕様書ができました。レビューしてください。
 
-**Progress Update:** currentPhase: "plan-spec-approved"
+オプション:
+1. このまま承認 → アーキテクチャ設計に進む
+2. 変更を依頼 → 修正箇所を教えてください（修正して再提示します）
+3. 要件を追加 → 追加のコンテキストや制約を提供してください
+4. 却下して再開 → 要件の再収集
+```
+
+**ユーザーが変更を依頼した場合（オプション 2 または 3）:**
+1. ユーザーのフィードバックを反映
+2. 更新された入力で `product-manager` を再起動して仕様書を修正
+3. 修正された仕様書を提示（エージェント出力を使用）
+4. 承認されるか最大3回の反復に達するまで繰り返す
+
+**重要:** 仕様書の修正は常に `product-manager` に委任する。仕様書ファイルを直接編集しないこと。
+
+**最大反復に達しても承認されない場合:**
+ユーザーに確認: 「3回反復しました。現在のバージョンを承認するか、手動で改善を続けるか、最初からやり直しますか？」
+
+**出力:** `docs/specs/[feature-name].md` に承認済み仕様書
+
+**進捗更新:** currentPhase: "plan-spec-approved"
 
 ---
 
-### Phase 4: Architecture Design
+### フェーズ 4: アーキテクチャ設計
 
-**Goal:** Design the implementation approach based on codebase patterns and approved spec.
+**目標:** コードベースのパターンと承認済み仕様書に基づいて実装アプローチを設計する。
 
-**LAUNCH 2-3 `code-architect` AGENTS IN PARALLEL with different analysis focuses:**
-
-```
-Launch these code-architect agents in parallel:
-
-1. code-architect (reuse analysis)
-   Analyze: How existing patterns and code can be reused
-   Context: [Exploration findings], [Approved spec]
-   Output: Reuse opportunities with file:line evidence
-
-2. code-architect (extensibility analysis)
-   Analyze: Clean abstraction opportunities for future growth
-   Context: [Exploration findings], [Approved spec]
-   Output: Abstraction recommendations with file:line evidence
-
-3. code-architect (performance analysis) - if relevant
-   Analyze: Performance implications and optimizations
-   Context: [Exploration findings], [Approved spec]
-   Output: Performance considerations with file:line evidence
-```
-
-**Wait for all agents to complete.**
-
-**Error Handling for code-architect agents:**
-If any code-architect agent fails or times out:
-1. Check the agent's partial output for usable analysis
-2. If critical analysis failed (reuse analysis), retry once with reduced scope
-3. If non-critical analysis failed (performance), proceed with available results
-4. Add to progress file: `"warnings": ["code-architect [type] failed, design may be incomplete"]`
-
-**Delegate design synthesis to product-manager agent:**
+**2-3体の `code-architect` エージェントを異なる分析フォーカスで並列起動:**
 
 ```
-Launch product-manager agent:
-Task: Synthesize code-architect outputs into ONE design document
-Inputs:
-- Reuse analysis output from code-architect #1
-- Extensibility analysis output from code-architect #2
-- Performance analysis output from code-architect #3 (if applicable)
-- Approved spec file path
-Template sections:
-- Pattern Analysis from Codebase (with file:line references)
-- Recommended Approach (architecture summary, rationale)
-- Implementation Map (component → file → action)
-- Build Sequence (ordered tasks)
-- Trade-offs Considered
-- Rejected Approaches
-Output: Draft design document content
+以下の code-architect エージェントを並列で起動:
+
+1. code-architect（再利用分析）
+   分析: 既存パターンとコードの再利用方法
+   コンテキスト: [探索の発見事項]、[承認済み仕様書]
+   出力: file:line エビデンス付きの再利用機会
+
+2. code-architect（拡張性分析）
+   分析: 将来の成長に向けたクリーンな抽象化機会
+   コンテキスト: [探索の発見事項]、[承認済み仕様書]
+   出力: file:line エビデンス付きの抽象化推奨
+
+3. code-architect（パフォーマンス分析）- 関連する場合
+   分析: パフォーマンスへの影響と最適化
+   コンテキスト: [探索の発見事項]、[承認済み仕様書]
+   出力: file:line エビデンス付きのパフォーマンス考慮事項
 ```
 
-Use the agent's output for the design document. Do NOT synthesize manually.
+**全エージェントの完了を待機。**
 
-**Error Handling for design synthesis:**
-If product-manager fails during synthesis:
-1. Check partial output for usable design elements
-2. Retry once with summarized code-architect outputs
-3. If retry fails, inform user and offer options:
-   - "Use available code-architect outputs directly (less integrated)"
-   - "Retry synthesis with simplified inputs"
-   - "Cancel and investigate"
-4. Add to progress file: `"warnings": ["design synthesis failed"]`
+**code-architect エージェントのエラーハンドリング:**
+code-architect エージェントが失敗またはタイムアウトした場合:
+1. エージェントの部分出力で使用可能な分析を確認
+2. 重要な分析（再利用分析）が失敗した場合、スコープを縮小してリトライ
+3. 重要でない分析（パフォーマンス）が失敗した場合、利用可能な結果で続行
+4. 進捗ファイルに追加: `"warnings": ["code-architect [type] failed, design may be incomplete"]`
 
-#### Architecture Refinement Loop (max 3 iterations)
-
-Present the design to the user and ask:
+**設計の統合を product-manager エージェントに委任:**
 
 ```
-Here is the proposed architecture. Please review it.
-
-Options:
-1. Approve → save design and complete planning
-2. Request changes → tell me what to modify (e.g., "use session-based auth instead of JWT")
-3. Explore alternative → re-analyze with different constraints
-4. Go back to spec → revise the specification first
+product-manager エージェントを起動:
+タスク: code-architect の出力を1つの設計書に統合
+入力:
+- code-architect #1 の再利用分析出力
+- code-architect #2 の拡張性分析出力
+- code-architect #3 のパフォーマンス分析出力（該当する場合）
+- 承認済み仕様書ファイルパス
+テンプレートセクション:
+- コードベースからのパターン分析（file:line 参照付き）
+- 推奨アプローチ（アーキテクチャサマリー、根拠）
+- 実装マップ（コンポーネント → ファイル → アクション）
+- ビルド順序（順序付きタスク）
+- 考慮されたトレードオフ
+- 却下されたアプローチ
+出力: ドラフト設計書の内容
 ```
 
-**If the user requests changes (option 2):**
-1. Re-launch relevant `code-architect` agent(s) with updated constraints
-2. Delegate design revision to product-manager with updated code-architect outputs
-3. Present the revised design (using agent output)
-4. Repeat until approved or max 3 iterations
+設計書にはエージェントの出力を使用する。手動で統合しないこと。
 
-**If the user wants to explore an alternative (option 3):**
-1. Launch `code-architect` with the alternative approach
-2. Present comparison: original vs alternative with trade-offs
-3. Let user choose
+**設計統合のエラーハンドリング:**
+統合中に product-manager が失敗した場合:
+1. 部分出力で使用可能な設計要素を確認
+2. 要約された code-architect 出力でリトライ
+3. リトライも失敗した場合、ユーザーに通知しオプションを提示:
+   - 「利用可能な code-architect 出力を直接使用（統合度は低い）」
+   - 「簡略化した入力で統合をリトライ」
+   - 「キャンセルして調査」
+4. 進捗ファイルに追加: `"warnings": ["design synthesis failed"]`
 
-**If the user wants to go back to spec (option 4):**
-1. Return to Phase 3 Specification Refinement Loop
-2. After spec is re-approved, re-run Phase 4
+#### アーキテクチャ改善ループ（最大3回反復）
 
-**Output:** Approved design saved to `docs/specs/[feature-name]-design.md`
+設計をユーザーに提示して確認:
+
+```
+アーキテクチャ案ができました。レビューしてください。
+
+オプション:
+1. 承認 → 設計を保存して計画を完了
+2. 変更を依頼 → 修正箇所を教えてください（例: 「JWT ではなくセッションベース認証を使用」）
+3. 代替案を探索 → 異なる制約で再分析
+4. 仕様書に戻る → まず仕様書を修正
+```
+
+**ユーザーが変更を依頼した場合（オプション 2）:**
+1. 更新された制約で関連する `code-architect` エージェントを再起動
+2. 更新された code-architect 出力で product-manager に設計修正を委任
+3. 修正された設計を提示（エージェント出力を使用）
+4. 承認されるか最大3回の反復に達するまで繰り返す
+
+**ユーザーが代替案の探索を希望した場合（オプション 3）:**
+1. 代替アプローチで `code-architect` を起動
+2. オリジナル vs 代替案のトレードオフを比較提示
+3. ユーザーに選択させる
+
+**ユーザーが仕様書に戻りたい場合（オプション 4）:**
+1. フェーズ 3 の仕様書改善ループに戻る
+2. 仕様書が再承認された後、フェーズ 4 を再実行
+
+**出力:** `docs/specs/[feature-name]-design.md` に承認済み設計を保存
 
 ---
 
-### Self-Review Gate
+### セルフレビューゲート
 
-**After Phase 4 design is approved, run the self-review gate before presenting the final output.**
+**フェーズ 4 の設計が承認された後、最終出力を提示する前にセルフレビューゲートを実行する。**
 
-**Delegate to `verification-specialist` agent:**
+**`verification-specialist` エージェントに委任:**
 
 ```
-Launch verification-specialist agent:
-Task: Run 13-item self-review checklist
-Skill: plan-self-review
-Inputs: Spec file path + Design file path
-Output: Checklist results with pass/flag status
+verification-specialist エージェントを起動:
+タスク: 13項目のセルフレビューチェックリストを実行
+スキル: plan-self-review
+入力: 仕様書ファイルパス + 設計書ファイルパス
+出力: パス/フラグステータス付きのチェックリスト結果
 ```
 
-**Error Handling for verification-specialist (Self-Review):**
-If verification-specialist fails or times out:
-1. Retry once with reduced scope (focus on critical checklist items: requirement coverage, file references, build sequence)
-2. If retry fails, inform user:
+**verification-specialist（セルフレビュー）のエラーハンドリング:**
+verification-specialist が失敗またはタイムアウトした場合:
+1. スコープを縮小してリトライ（重要なチェックリスト項目に集中: 要件カバレッジ、ファイル参照、ビルド順序）
+2. リトライも失敗した場合、ユーザーに通知:
    ```
-   Self-review check could not be completed.
+   セルフレビューチェックを完了できませんでした。
 
-   Options:
-   1. Present plan without self-review (manual review recommended)
-   2. Retry self-review
-   3. Cancel and investigate the failure
+   オプション:
+   1. セルフレビューなしでプランを提示（手動レビュー推奨）
+   2. セルフレビューをリトライ
+   3. キャンセルして障害を調査
    ```
-3. If user chooses option 1: Present plan with warning "Self-review incomplete"
-4. Add to progress file: `"warnings": ["Self-review failed, manual review recommended"]`
+3. ユーザーがオプション 1 を選択した場合: 「セルフレビュー未完了」の警告付きでプランを提示
+4. 進捗ファイルに追加: `"warnings": ["Self-review failed, manual review recommended"]`
 
-**Based on self-review results:**
+**セルフレビュー結果に基づくアクション:**
 
-The verification-specialist returns a checklist with items marked as PASS or FLAG. Count total FLAGS:
+verification-specialist は PASS または FLAG でマークされた項目を含むチェックリストを返す。FLAG の合計数をカウント:
 
-| Result | Action |
+| 結果 | アクション |
 |--------|--------|
-| ALL CLEAR (0 flags) | Present plan to user as-is |
-| MINOR FLAGS (1-2 flags) | Present plan with flags noted; user decides if acceptable |
-| NEEDS ATTENTION (3+ flags) | Delegate fixes to product-manager, re-run checklist once, then present |
+| ALL CLEAR（0 フラグ） | プランをそのままユーザーに提示 |
+| MINOR FLAGS（1-2 フラグ） | フラグを記載してプランを提示。許容するかはユーザーが判断 |
+| NEEDS ATTENTION（3以上のフラグ） | product-manager に修正を委任し、チェックリストを1回再実行してから提示 |
 
-**Note:** Flags are items the verification-specialist marked as incomplete or inconsistent in the 13-item checklist (see `plan-self-review` skill).
+**注:** フラグは verification-specialist が13項目のチェックリスト（`plan-self-review` スキル参照）で不完全または不整合としてマークした項目。
 
-Include self-review results in the final output so the user sees what was checked.
+ユーザーが確認内容を把握できるよう、最終出力にセルフレビュー結果を含める。
 
 ---
 
-**Progress Update:**
-Update `claude-progress.json`:
+**進捗更新:**
+`claude-progress.json` を更新:
 - currentPhase: "plan-complete"
 - currentTask: "Planning complete - ready for user review"
 - resumptionContext.nextAction: "Run /spec-review for user feedback, then /spec-implement"
 
-## Planning Complete - Next Steps
+## 計画完了 - 次のステップ
 
-After self-review gate, present:
+セルフレビューゲート後に提示:
 
 ```markdown
-## Planning Complete
+## 計画完了
 
-### Outputs
-- Specification: `docs/specs/[feature-name].md`
-- Design: `docs/specs/[feature-name]-design.md`
-- Progress: `.claude/workspaces/{id}/claude-progress.json`
+### 出力
+- 仕様書: `docs/specs/[feature-name].md`
+- 設計書: `docs/specs/[feature-name]-design.md`
+- 進捗: `.claude/workspaces/{id}/claude-progress.json`
 
-### Self-Review
-[ALL CLEAR / MINOR FLAGS / results summary]
+### セルフレビュー
+[ALL CLEAR / MINOR FLAGS / 結果サマリー]
 
-### Next Step
-Run `/spec-review docs/specs/[feature-name].md` to review the plan
-interactively — give feedback, request changes, or approve.
-Then run `/spec-implement` to build it.
+### 次のステップ
+`/spec-review docs/specs/[feature-name].md` を実行して
+プランをインタラクティブにレビュー — フィードバック、変更依頼、承認が可能。
+その後 `/spec-implement` を実行して構築。
 ```
 
-## Usage Examples
+## 使用例
 
 ```bash
-# Start planning a feature
-/spec-plan Add user authentication with OAuth support
+# 機能の計画を開始
+/spec-plan OAuth 対応のユーザー認証を追加
 
-# Start interactively
+# インタラクティブに開始
 /spec-plan
 
-# Plan from existing requirements
-/spec-plan Implement the feature specified in docs/specs/user-dashboard.md
+# 既存の要件から計画
+/spec-plan docs/specs/user-dashboard.md に記載された機能を実装
 ```
 
-## When NOT to Use
+## 使うべきでない場合
 
-- Single-line bug fixes (just fix it directly)
-- Trivial changes with clear scope (use `/quick-impl`)
-- Urgent hotfixes (use `/hotfix`)
-- Already have an approved spec (go straight to `/spec-implement`)
+- 1行のバグ修正（直接修正する）
+- スコープが明確な些細な変更（`/quick-impl` を使用）
+- 緊急ホットフィックス（`/hotfix` を使用）
+- 承認済み仕様書がある場合（直接 `/spec-implement` へ）
 
 ---
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-Critical for orchestration and planning quality.
+オーケストレーションと計画品質に不可欠。
 
-- MUST delegate bulk Grep/Glob operations to `code-explorer` (use directly only for single targeted lookups)
-- MUST delegate bulk reading (>3 files) to subagents (quick lookups of 1-3 files are allowed)
-- NEVER implement code yourself — this is a planning command
-- NEVER skip to implementation — output is a plan, not code
-- NEVER include code snippets in specification documents — specs define WHAT, not HOW
-- NEVER include pseudocode, function signatures, or algorithm details in specs
-- ALWAYS use file:line references instead of copying code (e.g., "Follow pattern at `src/auth.ts:23`")
-- MUST use AskUserQuestion when:
-  - User request is vague or missing critical details
-  - Multiple interpretations of requirements are possible
-  - Clarification is needed before proceeding to next phase
-  - User feedback during refinement loop is ambiguous
-- NEVER guess user intent — ask first using AskUserQuestion
-- ALWAYS create progress file before any Phase 1 work
-- ALWAYS update progress file at each phase completion
+- MUST: 大量の Grep/Glob 操作は `code-explorer` に委任する（単発の特定検索のみ直接使用可）
+- MUST: 大量読み込み（3ファイル超）はサブエージェントに委任する（1-3ファイルのクイックルックアップは許可）
+- NEVER: 自分でコードを実装する — これは計画コマンド
+- NEVER: 実装に飛ぶ — 出力は計画であり、コードではない
+- NEVER: 仕様書にコードスニペットを含める — 仕様書は「何を」を定義し、「どうやって」は定義しない
+- NEVER: 仕様書に擬似コード、関数シグネチャ、アルゴリズム詳細を含める
+- ALWAYS: コードのコピーではなく file:line 参照を使用する（例: 「`src/auth.ts:23` のパターンに従う」）
+- MUST: 以下の場合は AskUserQuestion を使用する:
+  - ユーザーのリクエストが曖昧、または重要な詳細が不足
+  - 要件の解釈が複数可能
+  - 次のフェーズに進む前に明確化が必要
+  - 改善ループ中のユーザーフィードバックが曖昧
+- NEVER: ユーザーの意図を推測する — まず AskUserQuestion で確認
+- MUST: フェーズ 1 の作業開始前に進捗ファイルを作成する
+- MUST: 各フェーズ完了時に進捗ファイルを更新する
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-Important for quality planning. Override with reasoning when appropriate.
+品質の高い計画に重要。適切な理由がある場合はオーバーライド可。
 
-- Launch 2-3 parallel agents per exploration/design phase
-- Use refinement loops (max 3 iterations) for spec and design approval
-- Document trade-offs and rejected approaches in design file
-- Present findings to user before proceeding to next phase
+- 探索/設計フェーズごとに2-3体の並列エージェントを起動
+- 仕様書と設計の承認に改善ループ（最大3回反復）を使用
+- トレードオフと却下されたアプローチを設計書に記録
+- 次のフェーズに進む前に発見事項をユーザーに提示
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-Recommendations for effective planning.
+効果的な計画のための推奨事項。
 
-- Consider asking for domain knowledge before codebase exploration
-- Prefer presenting options with trade-offs rather than single recommendations
-- Consider running self-review gate before presenting final output
+- consider: コードベース探索前にドメイン知識を確認する
+- recommend: 単一の推奨ではなく、トレードオフ付きのオプションを提示する
+- consider: 最終出力提示前にセルフレビューゲートを実行する

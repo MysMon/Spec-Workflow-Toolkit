@@ -1,15 +1,15 @@
 ---
 name: evaluator-optimizer
 description: |
-  Iterative improvement pattern using evaluator-optimizer feedback loops.
-  One of Anthropic's 6 composable patterns for building effective agents.
+  エバリュエーター・オプティマイザーのフィードバックループによる反復的改善パターン。
+  Anthropic の 6 つのコンポーザブルパターンの 1 つ。
 
-  Use when:
-  - Output quality matters and iteration improves results
-  - Clear evaluation criteria exist
-  - User wants "refine", "improve", "iterate"
-  - Complex outputs like documentation, designs, or algorithms
-  - Multi-round optimization is acceptable (latency trade-off)
+  以下の場合に使用:
+  - 出力品質が重要で、反復により結果が改善する場合
+  - 明確な評価基準がある場合
+  - ユーザーが「改善」「洗練」「反復」を望む場合
+  - ドキュメント、設計、アルゴリズムなどの複雑な出力
+  - 複数ラウンドの最適化が許容される場合（レイテンシーのトレードオフ）
 
   Trigger phrases: iterate, refine, improve quality, feedback loop, evaluate and optimize, keep improving
 allowed-tools: Read, Write, Edit, Glob, Grep, Task, TodoWrite, AskUserQuestion
@@ -17,15 +17,15 @@ model: sonnet
 user-invocable: true
 ---
 
-# Evaluator-Optimizer Pattern
+# エバリュエーター・オプティマイザーパターン
 
-An iterative improvement pattern where one agent generates output while another evaluates and provides feedback, continuing until quality criteria are met.
+一方のエージェントが出力を生成し、もう一方が評価してフィードバックを提供し、品質基準が満たされるまで繰り返す反復的改善パターン。
 
-From Building Effective Agents:
+Building Effective Agents より:
 
-> "One LLM generates responses while another evaluates and provides feedback iteratively. Effective for literary translation refinement and multi-round search tasks requiring judgment on whether further investigation is warranted."
+> 「一方の LLM がレスポンスを生成し、もう一方が評価してフィードバックを反復的に提供する。文芸翻訳の洗練や、さらなる調査が必要かどうかの判断を要する複数ラウンド検索タスクに効果的。」
 
-## Core Concept
+## コアコンセプト
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -33,108 +33,108 @@ From Building Effective Agents:
 │  ┌───────────┐    output    ┌───────────┐                      │
 │  │           │─────────────▶│           │                      │
 │  │ GENERATOR │              │ EVALUATOR │                      │
-│  │  (Agent)  │◀─────────────│  (Agent)  │                      │
+│  │ (エージェント) │◀─────────────│ (エージェント) │                      │
 │  │           │   feedback   │           │                      │
 │  └───────────┘              └───────────┘                      │
 │       │                           │                            │
-│       │ (if approved)             │                            │
+│       │ (承認された場合)              │                            │
 │       ▼                           │                            │
 │  ┌─────────┐                      │                            │
 │  │ FINAL   │◀─────────────────────┘                            │
-│  │ OUTPUT  │     (pass/fail + score)                           │
+│  │ OUTPUT  │     (合格/不合格 + スコア)                           │
 │  └─────────┘                                                   │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## When to Use
+## 使用場面
 
-### Good Fit
+### 適している場合
 
-| Scenario | Why Evaluator-Optimizer Works |
-|----------|------------------------------|
-| Documentation | Clarity, completeness can be iteratively improved |
-| Code refactoring | Quality metrics guide optimization |
-| API design | Usability and consistency refinable |
-| UI/UX copy | Tone, clarity, engagement tunable |
-| Complex algorithms | Performance/correctness verifiable |
+| シナリオ | エバリュエーター・オプティマイザーが有効な理由 |
+|---------|------------------------------------------|
+| ドキュメント | 明確さ、完全性を反復的に改善可能 |
+| コードリファクタリング | 品質メトリクスが最適化をガイド |
+| API 設計 | ユーザビリティと一貫性が洗練可能 |
+| UI/UX コピー | トーン、明確さ、エンゲージメントが調整可能 |
+| 複雑なアルゴリズム | パフォーマンス/正確性が検証可能 |
 
-### Poor Fit
+### 適さない場合
 
-| Scenario | Why Not |
-|----------|---------|
-| Simple CRUD | Overhead not justified |
-| Time-critical tasks | Iteration adds latency |
-| No clear criteria | Can't evaluate effectively |
-| Binary correct/incorrect | Single pass sufficient |
+| シナリオ | 適さない理由 |
+|---------|-------------|
+| シンプルな CRUD | オーバーヘッドが正当化されない |
+| 時間が重要なタスク | 反復がレイテンシーを追加 |
+| 明確な基準がない | 効果的に評価できない |
+| 正解/不正解が二値 | 1 パスで十分 |
 
-## Implementation Pattern
+## 実装パターン
 
-### 1. Generator Agent
+### 1. ジェネレーターエージェント
 
-Creates initial output based on requirements.
-
-```markdown
-## Generator Task
-
-Create: [description of output]
-Requirements: [specific requirements]
-Format: [expected format]
-
-## Output Format
-
-Provide your output with clear sections:
-- Main content
-- Self-assessment of quality
-- Areas of uncertainty
-```
-
-### 2. Evaluator Agent
-
-Reviews output against criteria and provides actionable feedback.
+要件に基づいて初期出力を作成。
 
 ```markdown
-## Evaluator Task
+## ジェネレータータスク
 
-Review the following output:
-[generator output]
+作成: [出力の説明]
+要件: [具体的な要件]
+形式: [期待される形式]
 
-Evaluation Criteria:
-1. Correctness: Does it meet the requirements?
-2. Completeness: Are all aspects covered?
-3. Clarity: Is it understandable?
-4. Quality: Does it follow best practices?
+## 出力形式
 
-## Output Format
-
-Score: [0-100]
-Pass: [true/false] (threshold: 80)
-
-Strengths:
-- [what works well]
-
-Issues:
-- [Issue 1]: [specific problem]
-  Fix: [actionable improvement]
-- [Issue 2]: [specific problem]
-  Fix: [actionable improvement]
-
-Verdict: [PASS / NEEDS_REVISION]
+明確なセクションで出力を提供:
+- メインコンテンツ
+- 品質の自己評価
+- 不確実な領域
 ```
 
-### 3. Optimization Loop
+### 2. エバリュエーターエージェント
+
+基準に対して出力をレビューし、アクション可能なフィードバックを提供。
+
+```markdown
+## エバリュエータータスク
+
+以下の出力をレビュー:
+[ジェネレーター出力]
+
+評価基準:
+1. 正確性: 要件を満たしているか？
+2. 完全性: 全側面がカバーされているか？
+3. 明確さ: 理解しやすいか？
+4. 品質: ベストプラクティスに従っているか？
+
+## 出力形式
+
+スコア: [0-100]
+合格: [true/false]（閾値: 80）
+
+強み:
+- [うまくいっている点]
+
+問題点:
+- [問題 1]: [具体的な問題]
+  修正: [アクション可能な改善策]
+- [問題 2]: [具体的な問題]
+  修正: [アクション可能な改善策]
+
+判定: [PASS / NEEDS_REVISION]
+```
+
+### 3. 最適化ループ
 
 ```python
-# Conceptual flow
+# 概念的なフロー
 max_iterations = 3
 iteration = 0
 passed = False
 
 while iteration < max_iterations and not passed:
-    # Generate
+    # 生成
     output = generator.create(requirements, feedback)
 
-    # Evaluate
+    # 評価
     evaluation = evaluator.review(output, criteria)
 
     if evaluation.score >= threshold:
@@ -146,35 +146,35 @@ while iteration < max_iterations and not passed:
 return output, evaluation
 ```
 
-## Subagent Configuration
+## サブエージェント設定
 
-### Generator Subagent
+### ジェネレーターサブエージェント
 
 ```yaml
 name: generator
-model: sonnet  # or inherit for complex tasks
+model: sonnet  # 複雑なタスクでは inherit
 tools: Read, Write, Edit, Glob, Grep
 permissionMode: acceptEdits
 ```
 
-### Evaluator Subagent
+### エバリュエーターサブエージェント
 
 ```yaml
 name: evaluator
-model: sonnet  # Use same or stronger model
-tools: Read, Glob, Grep  # Read-only evaluation
+model: sonnet  # 同等以上のモデルを使用
+tools: Read, Glob, Grep  # 読み取り専用の評価
 permissionMode: plan
 disallowedTools: Write, Edit, Bash
 ```
 
-## Practical Examples
+## 実践例
 
-### Example 1: Documentation Optimization
+### 例 1: ドキュメント最適化
 
 ```markdown
-## Iteration 1
+## 反復 1
 
-### Generator Output
+### ジェネレーター出力
 ```typescript
 /**
  * Creates a user
@@ -183,30 +183,30 @@ disallowedTools: Write, Edit, Bash
 function createUser(data: UserData): User { ... }
 ```
 
-### Evaluator Feedback
-Score: 65
-Issues:
-- Missing: Parameter documentation incomplete
-- Missing: Return value description
-- Missing: Error conditions
-- Missing: Example usage
+### エバリュエーターフィードバック
+スコア: 65
+問題点:
+- 不足: パラメータドキュメントが不完全
+- 不足: 戻り値の説明
+- 不足: エラー条件
+- 不足: 使用例
 
-### Iteration 2
+### 反復 2
 
-### Generator Output (Improved)
+### ジェネレーター出力（改善版）
 ```typescript
 /**
- * Creates a new user account with the provided data.
+ * 提供されたデータで新しいユーザーアカウントを作成する。
  *
- * @param data - The user creation data
- * @param data.email - Valid email address (must be unique)
- * @param data.password - Password (min 8 chars, hashed before storage)
- * @param data.name - Display name (optional)
+ * @param data - ユーザー作成データ
+ * @param data.email - 有効なメールアドレス（一意である必要あり）
+ * @param data.password - パスワード（最低8文字、保存前にハッシュ化）
+ * @param data.name - 表示名（オプション）
  *
- * @returns The created User object with generated ID
+ * @returns 生成された ID を持つ作成済み User オブジェクト
  *
- * @throws {DuplicateEmailError} If email already exists
- * @throws {ValidationError} If data fails validation
+ * @throws {DuplicateEmailError} メールが既に存在する場合
+ * @throws {ValidationError} データがバリデーションに失敗した場合
  *
  * @example
  * const user = await createUser({
@@ -217,17 +217,17 @@ Issues:
 function createUser(data: UserData): Promise<User> { ... }
 ```
 
-### Evaluator Feedback
-Score: 92
-Verdict: PASS
+### エバリュエーターフィードバック
+スコア: 92
+判定: PASS
 ```
 
-### Example 2: Algorithm Optimization
+### 例 2: アルゴリズム最適化
 
 ```markdown
-## Iteration 1
+## 反復 1
 
-### Generator Output
+### ジェネレーター出力
 function findDuplicates(arr) {
   const duplicates = [];
   for (let i = 0; i < arr.length; i++) {
@@ -240,16 +240,16 @@ function findDuplicates(arr) {
   return duplicates;
 }
 
-### Evaluator Feedback
-Score: 55
-Issues:
-- Performance: O(n²) time complexity, O(n) for includes
-- Correctness: Works but inefficient
-Fix: Use Set or Map for O(n) solution
+### エバリュエーターフィードバック
+スコア: 55
+問題点:
+- パフォーマンス: O(n²) の時間計算量、includes で O(n)
+- 正確性: 動作するが非効率
+修正: Set または Map で O(n) の解法にする
 
-### Iteration 2
+### 反復 2
 
-### Generator Output (Improved)
+### ジェネレーター出力（改善版）
 function findDuplicates(arr) {
   const seen = new Set();
   const duplicates = new Set();
@@ -265,174 +265,174 @@ function findDuplicates(arr) {
   return [...duplicates];
 }
 
-### Evaluator Feedback
-Score: 95
-Verdict: PASS
-Strengths:
-- O(n) time complexity
-- O(n) space complexity (optimal for this problem)
-- Clean, readable implementation
+### エバリュエーターフィードバック
+スコア: 95
+判定: PASS
+強み:
+- O(n) の時間計算量
+- O(n) の空間計算量（この問題では最適）
+- クリーンで読みやすい実装
 ```
 
-## Integration with Plan/Review/Implement Workflow
+## Plan/Review/Implement ワークフローとの統合
 
-During `/spec-plan` (Architecture Design) and `/spec-implement` (Quality Review):
+`/spec-plan`（アーキテクチャ設計）と `/spec-implement`（品質レビュー）での使用:
 
-### Architecture Design Optimization (`/spec-plan`)
-
-```
-1. code-architect generates initial design
-2. Evaluator checks against:
-   - Codebase patterns
-   - Scalability requirements
-   - Security considerations
-3. Iterate until design scores >= 85
-```
-
-### Quality Review Optimization (`/spec-implement`)
+### アーキテクチャ設計の最適化（`/spec-plan`）
 
 ```
-1. Implementation complete
-2. qa-engineer evaluates test coverage
-3. If coverage < 80%, iterate:
-   - Identify gaps
-   - Add tests
-   - Re-evaluate
+1. code-architect が初期設計を生成
+2. エバリュエーターが以下に対してチェック:
+   - コードベースのパターン
+   - スケーラビリティ要件
+   - セキュリティ考慮事項
+3. 設計スコアが >= 85 になるまで反復
 ```
 
-## Stopping Conditions
-
-### Must Stop When
-
-| Condition | Action |
-|-----------|--------|
-| Score >= threshold | Accept output |
-| Max iterations reached | Return best attempt with warning |
-| Evaluator stuck in loop | Break with human review request |
-| Fundamental flaw detected | Escalate to user |
-
-### Recommended Limits
-
-| Context | Max Iterations | Score Threshold |
-|---------|----------------|-----------------|
-| Documentation | 3 | 80 |
-| Code quality | 3 | 85 |
-| Algorithm | 4 | 90 |
-| Security-critical | 5 | 95 |
-
-## Evaluation Metrics
-
-From Anthropic's "Demystifying evals for AI agents" engineering blog:
-
-### Key Metrics for Non-Deterministic Evaluation
-
-| Metric | Formula | Use Case |
-|--------|---------|----------|
-| **pass@k** | P(at least 1 success in k trials) | "Can it succeed?" |
-| **pass^k** | P(all k trials succeed) | "Is it consistent?" |
-
-### Interpreting Metrics
+### 品質レビューの最適化（`/spec-implement`）
 
 ```
-pass@k = 1 - (1 - p)^k  where p = per-trial success rate
-
-Example with p = 0.7:
-- pass@1 = 0.70  (70% chance of success on single try)
-- pass@3 = 0.97  (97% chance at least one succeeds)
-- pass^3 = 0.34  (34% chance all three succeed)
+1. 実装完了
+2. qa-engineer がテストカバレッジを評価
+3. カバレッジ < 80% の場合、反復:
+   - ギャップを特定
+   - テストを追加
+   - 再評価
 ```
 
-**Use pass@k** for evaluating capability (can the agent do this task?)
-**Use pass^k** for evaluating reliability (will the agent consistently do this?)
+## 停止条件
 
-### Three Types of Graders
+### 停止すべき場合
 
-| Grader Type | Pros | Cons | Best For |
-|-------------|------|------|----------|
-| **Code-based** | Fast, cheap, objective | Brittle to valid variations | Format validation, syntax checks |
-| **Model-based** | Flexible, scalable | Non-deterministic, needs calibration | Nuanced quality assessment |
-| **Human** | Gold-standard quality | Expensive, slow | Final validation, edge cases |
+| 条件 | アクション |
+|------|----------|
+| スコア >= 閾値 | 出力を承認 |
+| 最大反復回数に到達 | 警告付きでベスト結果を返す |
+| エバリュエーターがループに陥る | 人間のレビューを要求して中断 |
+| 根本的な欠陥を検出 | ユーザーにエスカレーション |
 
-### Grader Selection Strategy
+### 推奨上限値
+
+| コンテキスト | 最大反復回数 | スコア閾値 |
+|------------|------------|----------|
+| ドキュメント | 3 | 80 |
+| コード品質 | 3 | 85 |
+| アルゴリズム | 4 | 90 |
+| セキュリティクリティカル | 5 | 95 |
+
+## 評価メトリクス
+
+Anthropic の "Demystifying evals for AI agents" エンジニアリングブログより:
+
+### 非決定的評価の主要メトリクス
+
+| メトリクス | 計算式 | 使用場面 |
+|----------|--------|---------|
+| **pass@k** | P(k 回の試行で少なくとも 1 回成功) | 「成功できるか？」 |
+| **pass^k** | P(k 回全ての試行が成功) | 「一貫して成功するか？」 |
+
+### メトリクスの解釈
 
 ```
-1. Start with code-based graders for objective criteria
-   - JSON schema validation
-   - Required field presence
-   - Format compliance
+pass@k = 1 - (1 - p)^k  ここで p = 試行あたりの成功率
 
-2. Add model-based graders for subjective criteria
-   - Code quality assessment
-   - Documentation clarity
-   - Design appropriateness
-
-3. Reserve human graders for:
-   - Calibrating model-based graders
-   - Edge case evaluation
-   - Final sign-off on critical outputs
+p = 0.7 の例:
+- pass@1 = 0.70  (1回の試行で70%の成功確率)
+- pass@3 = 0.97  (少なくとも1回成功する97%の確率)
+- pass^3 = 0.34  (3回全て成功する34%の確率)
 ```
 
-### Evaluation Best Practices
+**pass@k を使用**: 能力の評価（エージェントはこのタスクをできるか？）
+**pass^k を使用**: 信頼性の評価（エージェントは一貫してこれをできるか？）
 
-| Practice | Description |
-|----------|-------------|
-| Start early | Begin with 20-50 tasks from real failures, not 100+ perfect tasks |
-| Grade outcomes | Evaluate results, not specific solution paths |
-| Avoid class imbalance | Balance positive and negative cases |
-| Read transcripts | Regularly verify graders measure what matters |
-| Monitor saturation | Add harder tasks when current ones are consistently passed |
+### 3 種類のグレーダー
 
-## Anti-Patterns
+| グレーダータイプ | 利点 | 欠点 | 最適な用途 |
+|---------------|------|------|----------|
+| **コードベース** | 高速、安価、客観的 | 有効なバリエーションに脆弱 | 形式バリデーション、構文チェック |
+| **モデルベース** | 柔軟、スケーラブル | 非決定的、キャリブレーションが必要 | ニュアンスのある品質評価 |
+| **人間** | ゴールドスタンダードの品質 | 高コスト、遅い | 最終バリデーション、エッジケース |
 
-| Anti-Pattern | Why Bad | Instead |
+### グレーダー選択戦略
+
+```
+1. 客観的基準にはコードベースグレーダーから開始
+   - JSON スキーマバリデーション
+   - 必須フィールドの存在確認
+   - 形式準拠
+
+2. 主観的基準にはモデルベースグレーダーを追加
+   - コード品質評価
+   - ドキュメントの明確さ
+   - 設計の適切性
+
+3. 以下には人間のグレーダーを確保:
+   - モデルベースグレーダーのキャリブレーション
+   - エッジケースの評価
+   - 重要な出力の最終承認
+```
+
+### 評価のベストプラクティス
+
+| プラクティス | 説明 |
+|-----------|------|
+| 早期に開始 | 100以上の完璧なタスクではなく、実際の障害から20-50タスクで開始 |
+| 結果を評価 | 特定の解法パスではなく結果を評価 |
+| クラスの不均衡を避ける | 正例と負例のバランスを取る |
+| トランスクリプトを読む | グレーダーが重要なものを測定しているか定期的に検証 |
+| 飽和を監視 | 現在のタスクが一貫してパスされたらより難しいタスクを追加 |
+
+## アンチパターン
+
+| アンチパターン | 悪い理由 | 代わりに |
 |--------------|---------|---------|
-| No stopping condition | Infinite loop risk | Set max iterations |
-| Same model evaluates own output | Bias toward approval | Use separate agent |
-| Vague criteria | Can't converge | Define specific rubrics |
-| Ignoring feedback | No improvement | Generator must address issues |
-| Over-optimizing | Diminishing returns | Accept "good enough" |
+| 停止条件なし | 無限ループのリスク | 最大反復回数を設定 |
+| 同じモデルが自分の出力を評価 | 承認へのバイアス | 別のエージェントを使用 |
+| 曖昧な基準 | 収束できない | 具体的なルーブリックを定義 |
+| フィードバックを無視 | 改善されない | ジェネレーターは問題に対処必須 |
+| 過度な最適化 | 収穫逓減 | 「十分に良い」を受け入れる |
 
-## Advanced: Multi-Evaluator
+## 上級: マルチエバリュエーター
 
-For complex outputs, use multiple specialized evaluators:
+複雑な出力には、専門化された複数のエバリュエーターを使用:
 
 ```
-Generator Output
+ジェネレーター出力
       │
-      ├──▶ Correctness Evaluator
+      ├──▶ 正確性エバリュエーター
       │
-      ├──▶ Style Evaluator
+      ├──▶ スタイルエバリュエーター
       │
-      ├──▶ Performance Evaluator
+      ├──▶ パフォーマンスエバリュエーター
       │
-      └──▶ Security Evaluator
+      └──▶ セキュリティエバリュエーター
 
-Combined Score = weighted average
-Feedback = aggregated from all evaluators
+合計スコア = 加重平均
+フィードバック = 全エバリュエーターから集約
 ```
 
 ## Rules (L1 - Hard)
 
-Critical for effective optimization loops.
+効果的な最適化ループに不可欠。
 
-- ALWAYS define clear evaluation criteria before starting (otherwise cannot converge)
-- ALWAYS set maximum iteration limits (prevent infinite loops)
-- NEVER let generator evaluate its own output (bias toward approval)
-- NEVER ignore evaluation feedback in subsequent iterations
+- ALWAYS: 開始前に明確な評価基準を定義する（そうでなければ収束できない）
+- ALWAYS: 最大反復回数の上限を設定する（無限ループの防止）
+- NEVER: ジェネレーターに自分の出力を評価させない（承認へのバイアス）
+- NEVER: 後続の反復で評価フィードバックを無視しない
 
 ## Defaults (L2 - Soft)
 
-Important for quality results. Override with reasoning when appropriate.
+品質の高い結果に重要。適切な理由がある場合はオーバーライド可。
 
-- Provide actionable feedback (not just "needs improvement")
-- Track iteration count and score progression
-- Return best attempt if max iterations reached
-- Use separate agent instances for generator and evaluator
+- アクション可能なフィードバックを提供する（「改善が必要」だけではなく）
+- 反復回数とスコア推移を追跡する
+- 最大反復回数に達した場合はベスト結果を返す
+- ジェネレーターとエバリュエーターに別のエージェントインスタンスを使用する
 
 ## Guidelines (L3)
 
-Recommendations for better optimization.
+より良い最適化のための推奨事項。
 
-- Consider using multiple specialized evaluators for complex outputs
-- Prefer score thresholds of 80+ for production-quality outputs
-- Consider diminishing returns beyond 3-4 iterations
+- consider: 複雑な出力には専門化された複数のエバリュエーターの使用を検討
+- prefer: 本番品質の出力にはスコア閾値 80 以上を推奨
+- consider: 3-4 反復を超えると収穫逓減になることを考慮

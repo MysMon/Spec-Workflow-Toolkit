@@ -1,10 +1,10 @@
 ---
-description: "Quick implementation for well-defined, small tasks that don't need the full plan→review→implement flow"
-argument-hint: "<task description>"
+description: "完全な plan→review→implement フローが不要な、明確で小規模なタスクの迅速な実装"
+argument-hint: "<タスクの説明>"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite
 ---
 
-# /quick-impl - Quick Implementation
+# /quick-impl - クイック実装
 
 ## Language Mode
 
@@ -12,275 +12,275 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoW
 
 ---
 
-For small, well-defined tasks that don't require the full plan→review→implement flow. Use when:
-- Task is clearly defined (not vague)
-- Scope is small (1-3 files)
-- No architectural decisions needed
-- Risk is low
+完全な plan→review→implement フローが不要な、小規模で明確に定義されたタスク向け。以下の場合に使用する:
+- タスクが明確に定義されている（曖昧でない）
+- スコープが小さい（1〜3ファイル）
+- アーキテクチャの判断が不要
+- リスクが低い
 
-## Guardrails
+## ガードレール
 
-Even quick implementations follow core principles:
+クイック実装でもコア原則は遵守する:
 
-1. **Understand before coding** - Read related files first
-2. **Test your changes** - Run existing tests, add if needed
-3. **Security check** - No secrets, no vulnerabilities
-4. **Quality check** - Lint/format after changes
+1. **コーディング前に理解する** - まず関連ファイルを読む
+2. **変更をテストする** - 既存テストを実行し、必要に応じて追加する
+3. **セキュリティチェック** - シークレットなし、脆弱性なし
+4. **品質チェック** - 変更後にリント/フォーマットを実行
 
-## Execution Instructions
+## 実行手順
 
-### Step 1: Validate Scope (MUST DO BEFORE ANY IMPLEMENTATION)
+### ステップ 1: スコープの検証（実装開始前に必ず実施）
 
-**CRITICAL (L1): Validate scope BEFORE starting any work.**
+**重要（L1）: 作業開始前にスコープを検証すること。**
 
-Check if this is actually a quick task:
+これがクイックタスクに該当するか確認する:
 
-**Proceed ONLY if ALL criteria are met:**
-- [ ] Task is clearly defined in `$ARGUMENTS`
-- [ ] Affects 3 or fewer files
-- [ ] No database schema changes
-- [ ] No API contract changes
-- [ ] No security-sensitive code
+**すべての基準を満たす場合のみ進行する:**
+- [ ] `$ARGUMENTS` でタスクが明確に定義されている
+- [ ] 影響するファイルが3つ以下
+- [ ] データベーススキーマの変更なし
+- [ ] API コントラクトの変更なし
+- [ ] セキュリティに関わるコードなし
 
-**MUST escalate to /spec-plan if ANY of these apply:**
-- Task is vague or ambiguous
-- Multiple components affected
-- Architectural decisions needed
-- Security implications
+**/spec-plan にエスカレーションが必要な場合:**
+- タスクが曖昧または不明確
+- 複数のコンポーネントに影響
+- アーキテクチャの判断が必要
+- セキュリティへの影響あり
 
-**MUST use AskUserQuestion if task is unclear:**
+**タスクが不明確な場合は AskUserQuestion を使用すること:**
 
-| User Says | Ask About |
-|-----------|-----------|
-| "Fix the bug" | Which bug? Where? What's the expected behavior? |
-| "Add validation" | Which field? What rules? What error messages? |
-| "Improve this" | Improve what aspect? Performance? UX? Readability? |
-| "Make it work" | What's broken? What's the expected behavior? |
+| ユーザーの発言 | 確認すべき内容 |
+|----------------|----------------|
+| 「バグを直して」 | どのバグか？どこで発生？期待される動作は？ |
+| 「バリデーションを追加」 | どのフィールド？どのルール？エラーメッセージは？ |
+| 「改善して」 | どの側面？パフォーマンス？UX？可読性？ |
+| 「動くようにして」 | 何が壊れている？期待される動作は？ |
 
-**NEVER proceed with vague tasks — clarify first.**
+**曖昧なタスクで進行しないこと — まず明確化する。**
 
-### Step 2: Context Gathering
+### ステップ 2: コンテキスト収集
 
-**Always delegate to Explore agent first** — even for clearly scoped tasks.
+**常に最初に Explore エージェントに委任する** — スコープが明確なタスクでも同様。
 
 ```
-Launch Task tool with subagent_type=Explore (quick mode):
-Task: Gather context for quick implementation
-Target: [user-specified file or task description]
-Find:
-- Project stack detection (from config files)
-- Files related to [task]
-- Existing patterns for similar functionality
-- Test files to update
-Output: Stack info, related files, patterns to follow, test file paths
+Task ツールを subagent_type=Explore で起動（quick モード）:
+タスク: クイック実装のためのコンテキスト収集
+対象: [ユーザーが指定したファイルまたはタスク説明]
+検出:
+- プロジェクトスタック検出（設定ファイルから）
+- [タスク]に関連するファイル
+- 類似機能の既存パターン
+- 更新が必要なテストファイル
+出力: スタック情報、関連ファイル、従うべきパターン、テストファイルパス
 ```
 
-**Why delegation-first (not direct-read-first):**
-1. **Context Protection**: Agent reads don't consume orchestrator context
-2. **Consistency**: Same pattern as spec-implement, spec-review, spec-revise
-3. **Expertise**: Agent applies stack-detector and pattern recognition
-4. **Fallback Safety**: Direct read is safety net, not primary path
+**委任優先（直接読み取り優先でない）理由:**
+1. **コンテキスト保護**: エージェントの読み取りはオーケストレーターのコンテキストを消費しない
+2. **一貫性**: spec-implement, spec-review, spec-revise と同じパターン
+3. **専門性**: エージェントが stack-detector とパターン認識を適用する
+4. **フォールバック安全性**: 直接読み取りはセーフティネットであり、主要パスではない
 
-**Decision criteria:**
-| Scenario | Action |
-|----------|--------|
-| User specified exact file path | Delegate to Explore (quick mode) with file hint |
-| User specified function/class name | Delegate to Explore (quick mode) to locate |
-| Task is vague ("fix the bug") | Delegate to Explore (discovery mode) |
-| Multiple files potentially affected | Delegate to Explore (medium thoroughness) |
+**判断基準:**
+| シナリオ | アクション |
+|----------|-----------|
+| ユーザーが正確なファイルパスを指定 | Explore（quick モード）にファイルヒント付きで委任 |
+| ユーザーが関数/クラス名を指定 | Explore（quick モード）に特定を委任 |
+| タスクが曖昧（「バグを直して」） | Explore（discovery モード）に委任 |
+| 影響を受けるファイルが複数 | Explore（medium thoroughness）に委任 |
 
-**Error Handling for Explore agent (Fallback):**
-If Explore agent fails or times out:
-1. Check the agent's partial output for usable context
-2. **Fallback: Read directly** (if file < 200 lines):
-   - Read the user-specified file directly
-   - Warn user: "Using direct file read (agent timed out)"
-3. Proceed with implementation using available context
-4. Document in summary: "Context gathered via fallback (agent timeout)"
+**Explore エージェントのエラーハンドリング（フォールバック）:**
+Explore エージェントが失敗またはタイムアウトした場合:
+1. エージェントの部分的な出力に使用可能なコンテキストがないか確認する
+2. **フォールバック: 直接読み取り**（ファイルが200行未満の場合）:
+   - ユーザーが指定したファイルを直接読み取る
+   - ユーザーに警告: 「直接ファイル読み取りを使用（エージェントがタイムアウト）」
+3. 利用可能なコンテキストで実装を進行する
+4. サマリーに記録: 「フォールバックでコンテキスト収集（エージェントタイムアウト）」
 
-**Note on patterns:** When Explore agent returns patterns, pass them to the specialist in Step 3. If fallback was used, specialist will discover patterns during implementation.
+**パターンについて:** Explore エージェントがパターンを返した場合、ステップ 3 のスペシャリストに渡す。フォールバックを使用した場合、スペシャリストが実装中にパターンを発見する。
 
-**CRITICAL: Present discovery results to user before implementation:**
+**重要: 実装前に発見結果をユーザーに提示すること:**
 
-After Explore agent completes (or fallback completes), present findings to user:
+Explore エージェント完了後（またはフォールバック完了後）、ユーザーに調査結果を提示する:
 
 ```markdown
-## Context Discovery Results
+## コンテキスト調査結果
 
-**Stack Detected:** [e.g., React + TypeScript, Node.js + Express]
+**検出されたスタック:** [例: React + TypeScript, Node.js + Express]
 
-**Related Files:**
-- `path/to/file1.ts` - [brief description]
-- `path/to/file2.ts` - [brief description]
+**関連ファイル:**
+- `path/to/file1.ts` - [簡単な説明]
+- `path/to/file2.ts` - [簡単な説明]
 
-**Patterns to Follow:**
-- [Pattern 1 from codebase]
-- [Pattern 2 from codebase]
+**従うべきパターン:**
+- [コードベースのパターン 1]
+- [コードベースのパターン 2]
 
-**Test Files to Update:**
+**更新が必要なテストファイル:**
 - `path/to/test.spec.ts`
 ```
 
-Use AskUserQuestion to confirm:
+AskUserQuestion で確認する:
 ```
-Question: "I found these related files and patterns. Shall I proceed with implementation?"
-Header: "Confirm Context"
+Question: "これらの関連ファイルとパターンを見つけました。実装を進めてよいですか？"
+Header: "コンテキスト確認"
 Options:
-- "Yes, proceed with implementation"
-- "Add more context (specify files)"
-- "This isn't what I expected, let me clarify"
+- "はい、実装を進めてください"
+- "追加コンテキストが必要（ファイルを指定）"
+- "期待と異なるので、説明を修正します"
 ```
 
-If user chooses "Add more context" or "This isn't what I expected", gather additional information before proceeding.
+ユーザーが「追加コンテキストが必要」または「期待と異なる」を選んだ場合、進行前に追加情報を収集する。
 
-### Step 3: Implementation
+### ステップ 3: 実装
 
-**IMPORTANT:** ALWAYS delegate implementation to appropriate specialist agent.
+**重要:** 常に適切なスペシャリストエージェントに実装を委任すること。
 
 ```
-Launch Task tool with appropriate specialist (model: haiku for simple tasks):
+Task ツールで適切なスペシャリストを起動（単純なタスクには model: haiku）:
 
-- Frontend code → frontend-specialist
-- Backend code → backend-specialist
-- Tests → qa-engineer
+- フロントエンドコード → frontend-specialist
+- バックエンドコード → backend-specialist
+- テスト → qa-engineer
 
-Prompt:
-Quick implementation task.
-Task: [task description]
-Files: [related files]
-Patterns: [existing patterns to follow]
-Test file: [path if applicable]
+プロンプト:
+クイック実装タスク。
+タスク: [タスク説明]
+ファイル: [関連ファイル]
+パターン: [従うべき既存パターン]
+テストファイル: [パス（該当する場合）]
 
-Constraints:
-- Follow existing code patterns
-- Minimal change scope
+制約:
+- 既存のコードパターンに従う
+- 変更スコープを最小限に保つ
 ```
 
-**Error Handling for specialist agent:**
-If specialist agent fails or times out:
-1. Check the agent's partial output for usable code
-2. Retry once with simplified scope (single file focus)
-3. If retry fails, inform user with specific error and offer options:
-   - "Try again with different approach"
-   - "Switch to /spec-plan for proper planning"
-   - "I'll handle manually (understanding the risks)"
+**スペシャリストエージェントのエラーハンドリング:**
+スペシャリストエージェントが失敗またはタイムアウトした場合:
+1. エージェントの部分的な出力に使用可能なコードがないか確認する
+2. スコープを簡略化して1回リトライする（単一ファイルにフォーカス）
+3. リトライも失敗した場合、具体的なエラーとともにユーザーに通知し、選択肢を提示する:
+   - 「別のアプローチで再試行する」
+   - 「/spec-plan に切り替えて適切に計画する」
+   - 「リスクを理解した上で手動で対応する」
 
-**Direct modification allowed ONLY for TRIVIAL changes:**
-See `subagent-contract` skill "TRIVIAL Edit Definition" for criteria. Quick summary:
-- Single-line typo fixes in comments or strings
-- Import statement additions (single line)
+**TRIVIAL な変更に限り直接修正が許可される:**
+基準は `subagent-contract` スキル「TRIVIAL Edit Definition」を参照。概要:
+- コメントや文字列内の一行タイプミス修正
+- インポート文の追加（一行）
 
-**Note:** Config value changes (e.g., timeout: 30 → timeout: 60) are NOT TRIVIAL per `subagent-contract` - they may affect behavior.
+**注意:** 設定値の変更（例: timeout: 30 → timeout: 60）は `subagent-contract` の定義では TRIVIAL ではない — 動作に影響する可能性がある。
 
-**Examples of what requires delegation:**
-- Any logic changes (even "simple" ones)
-- Multiple file modifications
-- New functions, classes, or modules
-- API or interface changes
-- Numeric config value changes
+**委任が必要な例:**
+- あらゆるロジック変更（「単純」なものでも）
+- 複数ファイルの修正
+- 新しい関数、クラス、モジュール
+- API やインターフェースの変更
+- 数値設定値の変更
 
-### Step 4: Verification
+### ステップ 4: 検証
 
-Quick verification checklist:
+クイック検証チェックリスト:
 
 ```bash
-# Run linters (auto-detected)
-# Run tests
-npm test  # or pytest, go test, cargo test, etc.
+# リンターを実行（自動検出）
+# テストを実行
+npm test  # または pytest, go test, cargo test 等
 
-# Check for secrets
-# (automatic via prevent_secret_leak hook)
+# シークレットの確認
+# （prevent_secret_leak フックにより自動）
 ```
 
-### Step 5: Summary
+### ステップ 5: サマリー
 
-Brief summary:
-- What was changed
-- Files modified
-- Tests status
-- Any follow-up needed
+簡潔なサマリー:
+- 変更内容
+- 修正されたファイル
+- テスト状況
+- フォローアップの必要性
 
-## Usage Examples
+## 使用例
 
 ```bash
-# Fix a typo
-/quick-impl Fix typo in README.md - "recieve" should be "receive"
+# タイプミスの修正
+/quick-impl README.md のタイプミスを修正 - "recieve" を "receive" に
 
-# Add a config value
-/quick-impl Add CACHE_TTL environment variable with default 3600
+# 設定値の追加
+/quick-impl CACHE_TTL 環境変数をデフォルト値 3600 で追加
 
-# Simple refactor
-/quick-impl Rename getUserById to findUserById across the codebase
+# 簡単なリファクタリング
+/quick-impl コードベース全体で getUserById を findUserById にリネーム
 
-# Add a simple utility
-/quick-impl Add formatCurrency utility function that formats numbers as USD
+# 簡単なユーティリティの追加
+/quick-impl 数値を USD 形式にフォーマットする formatCurrency ユーティリティ関数を追加
 ```
 
-## Escalation Triggers
+## エスカレーショントリガー
 
-**CRITICAL (L1): STOP immediately if any of these occur during implementation:**
+**重要（L1）: 実装中に以下のいずれかが発生した場合、直ちに停止すること:**
 
-- Scope is larger than expected (more files affected)
-- Architectural questions arise
-- Security concerns emerge
-- Requirements become unclear
+- スコープが想定より大きい（影響ファイルが多い）
+- アーキテクチャに関する疑問が生じた
+- セキュリティ上の懸念が出現した
+- 要件が不明確になった
 
-**MUST inform the user using AskUserQuestion:**
+**AskUserQuestion を使用してユーザーに通知すること:**
 
 ```
-Question: "This task is more complex than initially expected because [reason]. How should we proceed?"
-Header: "Escalate"
+Question: "このタスクは当初の想定より複雑です。理由: [理由]。どのように進めますか？"
+Header: "エスカレーション"
 Options:
-- "Switch to /spec-plan for proper planning"
-- "Proceed anyway (I understand the risks)"
-- "Abandon and reassess requirements"
+- "/spec-plan に切り替えて適切に計画する"
+- "リスクを理解した上でそのまま進行する"
+- "中断して要件を再検討する"
 ```
 
-**NEVER continue implementing when scope becomes unclear.**
+**スコープが不明確になった場合は実装を続行しないこと。**
 
-## Comparison with /spec-plan
+## /spec-plan との比較
 
-| Aspect | /quick-impl | /spec-plan |
-|--------|-------------|------------|
-| When | Clear, small tasks | Vague or complex features |
-| Phases | 1 (implement) | Plan→Review→Implement |
-| Spec | Not required | Required |
-| Review | Basic checks | Interactive + optional auto review |
-| Time | Minutes | Hours to days |
-| Risk | Low scope only | Any complexity |
+| 側面 | /quick-impl | /spec-plan |
+|------|-------------|------------|
+| 適用場面 | 明確で小規模なタスク | 曖昧または複雑な機能 |
+| フェーズ | 1（実装のみ） | 計画→レビュー→実装 |
+| 仕様書 | 不要 | 必要 |
+| レビュー | 基本チェック | インタラクティブ + オプションの自動レビュー |
+| 所要時間 | 数分 | 数時間〜数日 |
+| リスク | 低スコープのみ | あらゆる複雑さ |
 
 ---
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-Critical for preventing scope creep and ensuring safe quick implementations.
+スコープクリープを防止し、安全なクイック実装を確保するために重要。
 
-- MUST validate scope BEFORE starting implementation (check all criteria in Step 1)
-- MUST escalate to `/spec-plan` if:
-  - Task is vague or ambiguous
-  - Affects more than 3 files
-  - Requires architectural decisions
-  - Involves security-sensitive code
-  - Database schema or API contract changes needed
-- NEVER start implementation if scope is ambiguous — use AskUserQuestion first
-- MUST use AskUserQuestion when:
-  - Task description contains vague terms ("improve", "fix", "make it work")
-  - Multiple interpretations of the task are possible
-  - Scope boundaries are unclear
-- NEVER guess user intent — ask first
-- ALWAYS run tests before completing
+- MUST: 実装開始前にスコープを検証する（ステップ 1 のすべての基準を確認）
+- MUST: 以下に該当する場合は `/spec-plan` にエスカレーションする:
+  - タスクが曖昧または不明確
+  - 3ファイルを超える影響
+  - アーキテクチャの判断が必要
+  - セキュリティに関わるコード
+  - データベーススキーマまたは API コントラクトの変更が必要
+- NEVER: スコープが曖昧な場合に実装を開始する — まず AskUserQuestion を使用する
+- MUST: 以下の場合は AskUserQuestion を使用する:
+  - タスク説明に曖昧な用語（「改善」「修正」「動くように」）が含まれる
+  - タスクに複数の解釈が可能
+  - スコープの境界が不明確
+- NEVER: ユーザーの意図を推測する — まず確認する
+- MUST: 完了前にテストを実行する
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-Important for quality. Override with reasoning when appropriate.
+品質のために重要。適切な理由がある場合はオーバーライド可能。
 
-- Delegate non-trivial changes to specialist agents
-- Run linter/formatter after changes
-- Provide brief summary of changes at completion
+- 非 TRIVIAL な変更はスペシャリストエージェントに委任する
+- 変更後にリンター/フォーマッターを実行する
+- 完了時に変更の簡潔なサマリーを提供する
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-Recommendations for effective quick implementations.
+効果的なクイック実装のための推奨事項。
 
-- Consider detecting stack before implementation
-- Prefer reading related files before making changes
+- consider: 実装前にスタック検出を行う
+- prefer: 変更を加える前に関連ファイルを読む

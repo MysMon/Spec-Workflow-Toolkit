@@ -1,58 +1,55 @@
 #!/usr/bin/env python3
 """
-Safety Check Hook - PreToolUse for Bash and MCP command execution tools
-Blocks dangerous shell commands or transforms them to safer alternatives.
-Stack-agnostic: works with any project type.
+安全性チェックフック - Bash および MCP コマンド実行ツール用の PreToolUse
+危険なシェルコマンドをブロックするか、より安全な代替に変換する。
+スタック非依存: あらゆるプロジェクトタイプで動作。
 
-Based on Claude Code hooks specification:
-https://code.claude.com/docs/en/hooks
+機能:
+- ブロック用の JSON decision control（exit 0 + hookSpecificOutput）
+- コマンドをより安全なバージョンに変換する入力変更（updatedInput）
+- v2.0.10+ の入力変更機能をサポート
+- MCP ツールサポート: MCP サーバーからのコマンドを検証（mcp__*__exec, mcp__*__shell 等）
 
-Features:
-- JSON decision control (exit 0 + hookSpecificOutput) for blocking
-- Input modification (updatedInput) for transforming commands to safer versions
-- Supports v2.0.10+ input modification capability
-- MCP tool support: Validates commands from MCP servers (mcp__*__exec, mcp__*__shell, etc.)
-
-Uses two strategies:
-1. BLOCK: Completely dangerous commands that cannot be made safe
-2. TRANSFORM: Commands that can be made safer with modifications
+2つの戦略を使用:
+1. ブロック: 安全にできない完全に危険なコマンド
+2. 変換: 修正によりより安全にできるコマンド
 """
 
 import sys
 import re
 import json
 
-# Read tool input from stdin (Claude Code passes JSON)
+# stdin からツール入力を読み取り（Claude Code が JSON を渡す）
 input_data = sys.stdin.read().strip()
 
 def extract_command_from_input(tool_name: str, tool_input: dict) -> str:
     """
-    Extract command string from tool input, handling both Bash and MCP tools.
-    MCP tools may use different field names for the command.
+    ツール入力からコマンド文字列を抽出。Bash と MCP ツールの両方に対応。
+    MCP ツールはコマンドに異なるフィールド名を使用する場合がある。
     """
-    # Standard Bash tool
+    # 標準の Bash ツール
     if tool_name == "Bash":
         return tool_input.get("command", "")
 
-    # MCP tools - try common field names for command execution
-    # Different MCP servers use different field names
+    # MCP ツール - コマンド実行の一般的なフィールド名を試行
+    # MCP サーバーごとに異なるフィールド名を使用
     command_fields = [
-        "command",      # Most common
-        "cmd",          # Short form
-        "script",       # For script execution
+        "command",      # 最も一般的
+        "cmd",          # 短縮形
+        "script",       # スクリプト実行用
         "shell_command",
         "bash_command",
         "exec",
         "run",
-        "code",         # Some servers use this
-        "input",        # Terminal tools may use this
+        "code",         # 一部のサーバーが使用
+        "input",        # ターミナルツールが使用する場合あり
     ]
 
     for field in command_fields:
         if field in tool_input and isinstance(tool_input[field], str):
             return tool_input[field]
 
-    # Some MCP tools pass command as first positional argument in an array
+    # 一部の MCP ツールはコマンドを配列の最初の位置引数として渡す
     if "args" in tool_input and isinstance(tool_input["args"], list) and len(tool_input["args"]) > 0:
         return str(tool_input["args"][0])
 
@@ -65,56 +62,56 @@ try:
     command = extract_command_from_input(tool_name, tool_input)
     is_mcp_tool = tool_name.startswith("mcp__")
 except json.JSONDecodeError:
-    # Fail-safe: deny on parse error (do not process raw input)
+    # フェイルセーフ: パースエラー時は拒否（生の入力を処理しない）
     output = {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
-            "permissionDecisionReason": "Safety check failed: Invalid JSON input format"
+            "permissionDecisionReason": "安全性チェックに失敗: 無効な JSON 入力形式"
         }
     }
     print(json.dumps(output))
     sys.exit(0)
 
-# Environment variable secret patterns - detect secret leakage via export
-# These are checked BEFORE dangerous patterns to provide more specific error messages
+# 環境変数のシークレットパターン - export によるシークレット漏洩を検出
+# より具体的なエラーメッセージを提供するため、危険なパターンの前にチェック
 #
-# Design decisions:
-# - Only block when a literal value (not $VAR reference) is being assigned
-# - Require minimum 20 chars for value to reduce false positives on test/dummy values
-# - Allow leading whitespace but anchor to line context
-# - Provider-specific patterns are more strict (any value blocked)
+# 設計上の判断:
+# - リテラル値（$VAR 参照ではなく）が代入される場合のみブロック
+# - テスト/ダミー値の誤検知を減らすため値に最小20文字を要求
+# - 先頭の空白を許容するが行コンテキストにアンカー
+# - プロバイダー固有パターンはより厳密（値の長さに関わらずブロック）
 ENV_SECRET_PATTERNS = [
-    # Provider-specific secrets - block regardless of value length (high confidence)
-    # These providers' API keys are always sensitive
-    (r"export\s+(?:ANTHROPIC|OPENAI)_(?:API_KEY|SECRET)[A-Z_]*\s*=\s*['\"]?(?!\$)[a-zA-Z0-9_-]{10,}", "Provider API key (Anthropic/OpenAI)"),
-    (r"export\s+AWS_(?:SECRET_ACCESS_KEY|SESSION_TOKEN)\s*=\s*['\"]?(?!\$)[a-zA-Z0-9_/+-]{20,}", "AWS secret credential"),
-    (r"export\s+(?:GITHUB|GITLAB)_(?:TOKEN|PAT|SECRET)[A-Z_]*\s*=\s*['\"]?(?!\$)[a-zA-Z0-9_-]{20,}", "GitHub/GitLab token"),
+    # プロバイダー固有のシークレット - 値の長さに関わらずブロック（高信頼度）
+    # これらのプロバイダーの API キーは常に機密
+    (r"export\s+(?:ANTHROPIC|OPENAI)_(?:API_KEY|SECRET)[A-Z_]*\s*=\s*['\"]?(?!\$)[a-zA-Z0-9_-]{10,}", "プロバイダー API キー (Anthropic/OpenAI)"),
+    (r"export\s+AWS_(?:SECRET_ACCESS_KEY|SESSION_TOKEN)\s*=\s*['\"]?(?!\$)[a-zA-Z0-9_/+-]{20,}", "AWS シークレット認証情報"),
+    (r"export\s+(?:GITHUB|GITLAB)_(?:TOKEN|PAT|SECRET)[A-Z_]*\s*=\s*['\"]?(?!\$)[a-zA-Z0-9_-]{20,}", "GitHub/GitLab トークン"),
 
-    # Generic secret patterns - require longer value (20+ chars) to reduce false positives
-    # The (?!\$) negative lookahead excludes variable references like $OTHER_VAR
-    (r"export\s+[A-Z_]*(?:API_KEY|APIKEY|API_SECRET)[A-Z_]*\s*=\s*['\"]?(?!\$)[a-zA-Z0-9_-]{20,}['\"]?", "API key in environment variable"),
-    (r"export\s+[A-Z_]*(?:SECRET_KEY|PRIVATE_KEY|ACCESS_KEY)[A-Z_]*\s*=\s*['\"]?(?!\$)[a-zA-Z0-9_/+-]{20,}['\"]?", "Secret/private key in environment variable"),
-    (r"export\s+[A-Z_]*(?:PASSWORD|PASSWD)[A-Z_]*\s*=\s*['\"]?(?!\$)[^\s'\"]{12,}['\"]?", "Password in environment variable"),
+    # 汎用シークレットパターン - 誤検知を減らすためより長い値（20文字以上）を要求
+    # (?!\$) の否定先読みで $OTHER_VAR のような変数参照を除外
+    (r"export\s+[A-Z_]*(?:API_KEY|APIKEY|API_SECRET)[A-Z_]*\s*=\s*['\"]?(?!\$)[a-zA-Z0-9_-]{20,}['\"]?", "環境変数内の API キー"),
+    (r"export\s+[A-Z_]*(?:SECRET_KEY|PRIVATE_KEY|ACCESS_KEY)[A-Z_]*\s*=\s*['\"]?(?!\$)[a-zA-Z0-9_/+-]{20,}['\"]?", "環境変数内のシークレット/秘密鍵"),
+    (r"export\s+[A-Z_]*(?:PASSWORD|PASSWD)[A-Z_]*\s*=\s*['\"]?(?!\$)[^\s'\"]{12,}['\"]?", "環境変数内のパスワード"),
 ]
 
-# Dangerous command patterns (stack-agnostic)
+# 危険なコマンドパターン（スタック非依存）
 DANGEROUS_PATTERNS = [
-    # Destructive file operations
+    # 破壊的なファイル操作
     r"rm\s+-rf\s+/",
     r"rm\s+-rf\s+\*",
     r"rm\s+-rf\s+~",
     r"rm\s+-rf\s+\$HOME",
     r"rmdir\s+/",
 
-    # Privilege escalation
+    # 権限昇格
     r"sudo\s+",
     r"su\s+-",
     r"chmod\s+777",
     r"chmod\s+-R\s+777",
     r"chown\s+-R\s+root",
 
-    # Dangerous downloads and remote execution
+    # 危険なダウンロードとリモート実行
     r"curl\s+.*\|\s*sh",
     r"curl\s+.*\|\s*bash",
     r"wget\s+.*\|\s*sh",
@@ -122,29 +119,29 @@ DANGEROUS_PATTERNS = [
     r"curl\s+.*>\s*/",
     r"wget\s+.*-O\s*/",
 
-    # Arbitrary code execution
+    # 任意コード実行
     r"\beval\s+",
     r"source\s+/dev/",
     r"source\s+<\(",
     r"\.\s+<\(",
     r"base64\s+.*-d.*\|\s*(sh|bash)",
 
-    # System modification
+    # システム変更
     r"mkfs\.",
     r"dd\s+if=.*of=/dev/",
     r">\s*/dev/(sd|hd|nvme|vd)[a-z0-9]*",
     r"echo\s+.*>\s*/etc/",
 
-    # Fork bombs and resource exhaustion
+    # フォーク爆弾とリソース枯渇
     r":\(\)\s*\{\s*:\|:\s*&\s*\}",
     r"while\s+true.*fork",
 
-    # History manipulation (hiding tracks)
+    # 履歴操作（痕跡の隠蔽）
     r"history\s+-c",
     r"unset\s+HISTFILE",
     r"export\s+HISTSIZE=0",
 
-    # Network attacks and reverse shells
+    # ネットワーク攻撃とリバースシェル
     r"nc\s+-l.*\|.*sh",
     r"ncat.*-e\s+/bin",
     r"bash\s+-i\s+.*>/dev/tcp/",
@@ -152,145 +149,145 @@ DANGEROUS_PATTERNS = [
     r"perl.*socket.*exec",
     r"php\s+-r.*fsockopen",
 
-    # Crontab manipulation
+    # crontab 操作
     r"crontab\s+-r",
     r"echo\s+.*>>\s*/var/spool/cron",
     r"echo\s+.*>>\s*/etc/cron",
 
-    # SSH key manipulation
+    # SSH 鍵操作
     r">\s*~/.ssh/authorized_keys",
     r">>\s*~/.ssh/authorized_keys",
     r"echo\s+.*>.*\.ssh/authorized_keys",
 
-    # Dangerous environment changes
-    # Block PATH hijacking (setting PATH to start with non-standard or tmp directories)
+    # 危険な環境変更
+    # PATH ハイジャックのブロック（非標準または tmp ディレクトリで始まる PATH の設定）
     r"export\s+PATH=['\"]?(/tmp|/var/tmp|\./|\.\./).*",
-    r"export\s+PATH=['\"]?[^$/]",  # PATH not starting with / or $
+    r"export\s+PATH=['\"]?[^$/]",  # / または $ で始まらない PATH
     r"export\s+LD_PRELOAD",
     r"export\s+LD_LIBRARY_PATH=/",
-    r"export\s+HISTCONTROL=ignorespace",  # Hide commands from history
+    r"export\s+HISTCONTROL=ignorespace",  # 履歴からコマンドを隠す
 
-    # Script injection patterns (write then execute)
+    # スクリプトインジェクションパターン（書き込んでから実行）
     r"echo\s+.*>\s*\S+\.sh\s*&&\s*(bash|sh|source)",
     r"cat\s+.*>\s*\S+\.sh\s*&&\s*(bash|sh|source)",
     r"printf\s+.*>\s*\S+\.sh\s*&&\s*(bash|sh|source)",
 
-    # Process substitution abuse
+    # プロセス置換の悪用
     r"bash\s+<\(",
     r"sh\s+<\(",
 
-    # Hex/octal encoded command execution
+    # 16進数/8進数エンコードされたコマンド実行
     r"\$'\\x[0-9a-fA-F]",
     r"echo\s+-e\s+.*\\\\x.*\|\s*(sh|bash)",
     r"printf\s+.*\\\\x.*\|\s*(sh|bash)",
 
-    # Octal encoding bypass (e.g., $'\057bin\057rm' = /bin/rm)
+    # 8進数エンコードバイパス（例: $'\057bin\057rm' = /bin/rm）
     r"\$'\\[0-7]{3}",
 
-    # Unicode encoding bypass (e.g., $'\u002f' or $'\U0000002f')
+    # Unicode エンコードバイパス（例: $'\u002f' または $'\U0000002f'）
     r"\$'\\u[0-9a-fA-F]+",
     r"\$'\\U[0-9a-fA-F]+",
 
-    # Python/Perl/Ruby one-liner execution with dangerous modules
+    # Python/Perl/Ruby ワンライナーの危険なモジュールを使用した実行
     r"python[3]?\s+-c\s+.*__import__.*subprocess",
     r"perl\s+-e\s+.*system\s*\(",
     r"ruby\s+-e\s+.*system\s*\(",
 
-    # Dangerous xargs patterns
+    # 危険な xargs パターン
     r"xargs\s+.*rm\s",
     r"xargs\s+.*-I.*sh\s+-c",
 
-    # Tar extraction to root or sensitive directories
+    # ルートまたは機密ディレクトリへの tar 展開
     r"tar\s+.*-[xz].*-C\s+/[^a-zA-Z]",
 
-    # Download and execute in one line (additional patterns)
+    # ダウンロードして1行で実行（追加パターン）
     r"(wget|curl)\s+.*-O\s+-\s*\|\s*(sh|bash)",
     r"(wget|curl)\s+.*--output-document=-\s*\|\s*(sh|bash)",
 
-    # Variable expansion obfuscation - rm with suspicious variables that could be /
-    # Block: rm -rf $P, rm -rf ${VAR}, etc. where variable could contain dangerous paths
+    # 変数展開の難読化 - 疑わしい変数を使った rm（/ を含む可能性）
+    # ブロック: rm -rf $P, rm -rf ${VAR} 等（変数が危険なパスを含む可能性）
     r"rm\s+-rf\s+\$[A-Z_]+\s*$",
     r"rm\s+-rf\s+\$\{[A-Z_]+\}",
 
-    # Command substitution in strings - potential code injection
-    # Block: strings containing $(...) which executes commands
+    # 文字列内のコマンド置換 - 潜在的なコードインジェクション
+    # ブロック: コマンドを実行する $(...) を含む文字列
     r'["\'][^"\']*\$\([^)]+\)[^"\']*["\']',
-    # Block: backticks inside quoted strings (legacy command substitution)
+    # ブロック: クォート文字列内のバッククォート（レガシーコマンド置換）
     r'["\'][^"\']*`[^`]+`[^"\']*["\']',
 
-    # Additional dangerous commands - in-place file editing on system paths
+    # 追加の危険なコマンド - システムパスでのインプレースファイル編集
     r"sed\s+-i[^\s]*\s+.*\s+/(etc|usr|bin|sbin|lib|boot|sys|proc)/",
     r"sed\s+--in-place[^\s]*\s+.*\s+/(etc|usr|bin|sbin|lib|boot|sys|proc)/",
 
-    # tee writing to system paths (can bypass redirects blocked by shells)
+    # tee によるシステムパスへの書き込み（シェルでブロックされたリダイレクトをバイパス可能）
     r"tee\s+/(etc|usr|bin|sbin|lib|boot|sys|proc|root)/",
     r"tee\s+-a\s+/(etc|usr|bin|sbin|lib|boot|sys|proc|root)/",
 
-    # dd writing to any device (broader than just of=/dev/)
+    # dd による任意のデバイスへの書き込み（of=/dev/ より広範）
     r"dd\s+.*\bof=/dev/",
     r"dd\s+.*\bof=/(etc|usr|bin|sbin|lib|boot)/",
 
-    # systemctl service manipulation (privilege escalation, persistence)
+    # systemctl サービス操作（権限昇格、永続化）
     r"systemctl\s+(enable|disable|start|stop|restart|mask)\s+",
 
-    # chmod dangerous patterns - recursive or overly permissive
+    # chmod の危険なパターン - 再帰的または過度に許容的
     r"chmod\s+-R\s+",
     r"chmod\s+[0-7]*7[0-7]*\s+/(etc|usr|bin|sbin|lib|boot|sys|var)/",
 
-    # chown on system directories (privilege escalation)
+    # システムディレクトリでの chown（権限昇格）
     r"chown\s+.*\s+/(etc|usr|bin|sbin|lib|boot|sys|proc)/",
     r"chown\s+-R\s+",
 
-    # Symlink attacks - creating symlinks to sensitive locations
-    # Block: ln -s targeting system directories or sensitive files
+    # シンボリックリンク攻撃 - 機密な場所へのシンボリックリンク作成
+    # ブロック: システムディレクトリや機密ファイルを対象とした ln -s
     r"ln\s+-[sf]+\s+.*/etc/",
     r"ln\s+-[sf]+\s+.*/root/",
     r"ln\s+-[sf]+\s+.*/.ssh/",
     r"ln\s+-[sf]+\s+/etc/",
     r"ln\s+-[sf]+\s+/root/",
     r"ln\s+-[sf]+\s+~/.ssh/",
-    # Block: creating symlink then reading/writing through it (TOCTOU pattern)
+    # ブロック: シンボリックリンクを作成してからそれを通じて読み書き（TOCTOU パターン）
     r"ln\s+-[sf]+\s+.*&&\s*(cat|head|tail|less|more|vim|nano|echo|tee)\s+",
-    # Block: force symlink overwrite to existing files
+    # ブロック: 既存ファイルへの強制シンボリックリンク上書き
     r"ln\s+-sf\s+.*\s+\./[^&|;]+$",
 ]
 
-# Transformable patterns - commands that can be made safer via modification
-# Format: (pattern, transform_function_name, description)
+# 変換可能なパターン - 修正によりより安全にできるコマンド
+# 形式: (pattern, transform_function_name, description)
 TRANSFORMABLE_PATTERNS = [
-    # rm commands that aren't targeting root - add -i (interactive) flag
-    (r"^rm\s+(?!-rf\s+/)(?!-rf\s+\*)(?!-rf\s+~)(.+)$", "add_interactive_flag", "Add interactive confirmation"),
-    # Long-running commands without timeout - add timeout wrapper
-    (r"^(npm\s+install|yarn\s+install|pip\s+install)", "add_timeout", "Add 5 minute timeout"),
-    # git push without -v - add verbose flag for better debugging
-    (r"^git\s+push\s+(?!.*-v)(.*)$", "add_verbose_git", "Add verbose flag"),
+    # ルートを対象としていない rm コマンド - -i（対話的）フラグを追加
+    (r"^rm\s+(?!-rf\s+/)(?!-rf\s+\*)(?!-rf\s+~)(.+)$", "add_interactive_flag", "対話的確認を追加"),
+    # タイムアウトなしの長時間実行コマンド - timeout ラッパーを追加
+    (r"^(npm\s+install|yarn\s+install|pip\s+install)", "add_timeout", "5分のタイムアウトを追加"),
+    # -v なしの git push - デバッグ改善のため verbose フラグを追加
+    (r"^git\s+push\s+(?!.*-v)(.*)$", "add_verbose_git", "verbose フラグを追加"),
 ]
 
 def add_interactive_flag(cmd: str) -> str:
-    """Add -i flag to rm commands for interactive confirmation."""
-    # Insert -i after rm
+    """rm コマンドに -i フラグを追加して対話的確認を有効化。"""
+    # rm の後に -i を挿入
     return re.sub(r"^rm\s+", "rm -i ", cmd)
 
 def add_timeout(cmd: str) -> str:
-    """Wrap command with timeout for long-running operations."""
+    """長時間実行操作にタイムアウトをラップ。"""
     return f"timeout 300 {cmd}"
 
 def add_verbose_git(cmd: str) -> str:
-    """Add verbose flag to git push for better debugging output."""
+    """デバッグ出力改善のため git push に verbose フラグを追加。"""
     return re.sub(r"^git\s+push\s+", "git push -v ", cmd)
 
-# Check for environment variable secrets (more specific, checked first)
+# 環境変数のシークレットをチェック（より具体的、最初にチェック）
 def check_env_secrets(cmd: str) -> tuple[bool, str]:
     """
-    Check if command exports secrets via environment variables.
-    Returns: (is_secret_export, description)
+    コマンドが環境変数経由でシークレットをエクスポートするかチェック。
+    戻り値: (is_secret_export, description)
     """
     for pattern, description in ENV_SECRET_PATTERNS:
         if re.search(pattern, cmd, re.IGNORECASE | re.MULTILINE):
             return True, description
     return False, ""
 
-# Check command against patterns
+# コマンドをパターンに対してチェック
 def is_dangerous(cmd: str) -> tuple[bool, str]:
     cmd_lower = cmd.lower()
     for pattern in DANGEROUS_PATTERNS:
@@ -300,68 +297,67 @@ def is_dangerous(cmd: str) -> tuple[bool, str]:
 
 def check_transformable(cmd: str) -> tuple[bool, str, str]:
     """
-    Check if command can be transformed to a safer version.
-    Returns: (is_transformable, transformed_command, description)
+    コマンドをより安全なバージョンに変換できるかチェック。
+    戻り値: (is_transformable, transformed_command, description)
     """
     for pattern, transform_name, description in TRANSFORMABLE_PATTERNS:
         if re.search(pattern, cmd, re.IGNORECASE):
             transform_func = globals().get(transform_name)
             if transform_func:
                 transformed = transform_func(cmd)
-                if transformed != cmd:  # Only return if actually transformed
+                if transformed != cmd:  # 実際に変換された場合のみ返す
                     return True, transformed, description
     return False, cmd, ""
 
-# Main check - wrapped in try/except for fail-closed behavior
-# This ensures any unexpected exception (regex backtracking, memory error, etc.)
-# results in denial rather than allowing potentially dangerous commands through
+# メインチェック - フェイルクローズド動作のため try/except でラップ
+# 予期しない例外（正規表現のバックトラッキング、メモリエラー等）が
+# 拒否となることを保証し、潜在的に危険なコマンドの実行を防止
 try:
-    # Check for environment variable secret exports first (more specific message)
+    # まず環境変数シークレットのエクスポートをチェック（より具体的なメッセージ）
     is_env_secret, secret_desc = check_env_secrets(command)
 
     if is_env_secret:
-        # Block secret exports with specific guidance
-        tool_type = f"MCP tool ({tool_name})" if is_mcp_tool else "Bash"
+        # 具体的なガイダンスとともにシークレットのエクスポートをブロック
+        tool_type = f"MCP ツール ({tool_name})" if is_mcp_tool else "Bash"
         output = {
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
                 "permissionDecision": "deny",
-                "permissionDecisionReason": f"Blocked {tool_type} command: {secret_desc}. Use .env files or a secrets manager instead of exporting secrets directly in shell commands."
+                "permissionDecisionReason": f"{tool_type} コマンドをブロック: {secret_desc}。シェルコマンドでシークレットを直接エクスポートする代わりに .env ファイルまたはシークレットマネージャーを使用してください。"
             }
         }
         print(json.dumps(output))
         sys.exit(0)
 
-    # Check dangerous patterns
+    # 危険なパターンをチェック
     dangerous, matched_pattern = is_dangerous(command)
 
     if dangerous:
-        # Use JSON decision control to properly block the command
-        # Based on: https://code.claude.com/docs/en/hooks
-        tool_type = f"MCP tool ({tool_name})" if is_mcp_tool else "Bash"
+        # JSON decision control でコマンドを適切にブロック
+        tool_type = f"MCP ツール ({tool_name})" if is_mcp_tool else "Bash"
         output = {
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
                 "permissionDecision": "deny",
-                "permissionDecisionReason": f"Blocked dangerous {tool_type} command matching pattern: {matched_pattern}"
+                "permissionDecisionReason": f"危険な {tool_type} コマンドをブロック（一致パターン: {matched_pattern}）"
             }
         }
         print(json.dumps(output))
-        sys.exit(0)  # Exit 0 with JSON decision control
+        sys.exit(0)  # JSON decision control で exit 0
 
-    # Check if command can be transformed to a safer version
-    # Note: Transformations only apply to Bash tool (we know its schema)
-    # MCP tools have varying schemas, so we only block dangerous commands
+    # コマンドをより安全なバージョンに変換できるかチェック
+    # 注: 変換は Bash ツールにのみ適用（スキーマが既知）
+    # MCP ツールはスキーマが様々なため、危険なコマンドのブロックのみ
     transformable, transformed_cmd, transform_desc = check_transformable(command)
 
     if transformable and not is_mcp_tool:
-        # Use input modification to transform command (v2.0.10+ feature)
-        # Include permissionDecisionReason for audit trail and transparency
+        # 入力変更でコマンドを変換（v2.0.10+ 機能）
+        # 監査証跡と透明性のため permissionDecisionReason を含める
         output = {
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
                 "permissionDecision": "allow",
-                "permissionDecisionReason": f"Transformed for safety: {transform_desc}. Original: {command[:50]}{'...' if len(command) > 50 else ''}",
+                "permissionDecisionReason": f"安全性のため変換: {transform_desc}。元のコマンド: {command[:50]}{'...' if len(command) > 50 else ''}",
                 "updatedInput": {
                     "command": transformed_cmd
                 }
@@ -370,7 +366,7 @@ try:
         print(json.dumps(output))
         sys.exit(0)
 
-    # Allow the command to proceed unchanged - explicit allow for audit consistency
+    # コマンドの変更なし続行を許可 - 監査の一貫性のため明示的な許可
     output = {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
@@ -381,14 +377,14 @@ try:
     sys.exit(0)
 
 except Exception as e:
-    # Fail-safe: deny on unexpected error to prevent dangerous commands from executing
-    # This ensures fail-closed behavior consistent with prevent_secret_leak.py
-    # and external_content_validator.py
+    # フェイルセーフ: 危険なコマンドの実行を防ぐため予期しないエラー時は拒否
+    # prevent_secret_leak.py および external_content_validator.py と一貫した
+    # フェイルクローズド動作を保証
     output = {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
-            "permissionDecisionReason": f"Safety check failed: {str(e)}"
+            "permissionDecisionReason": f"安全性チェックに失敗: {str(e)}"
         }
     }
     print(json.dumps(output))

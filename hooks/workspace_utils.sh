@@ -1,54 +1,50 @@
 #!/bin/bash
-# Workspace Utilities for Multi-Project Isolation
-# Provides functions for workspace ID generation and path management
+# マルチプロジェクト分離のためのワークスペースユーティリティ
+# ワークスペース ID の生成とパス管理のための関数を提供
 #
-# Usage: source this file in other hook scripts
+# 使用方法: 他のフックスクリプトでこのファイルを source する
 #   source "$(dirname "$0")/workspace_utils.sh"
-#
-# Based on:
-# - https://code.claude.com/docs/en/common-workflows (Git worktrees)
-# - https://github.com/anthropics/claude-code/issues/1985 (Session isolation)
 
 # ============================================================================
-# WORKSPACE ID GENERATION
+# ワークスペース ID 生成
 # ============================================================================
 
-# Generate a unique workspace ID based on git branch and working directory
-# Format: {branch}_{path-hash}
-# Example: main_a1b2c3d4, feature-auth_e5f6g7h8
+# Git ブランチと作業ディレクトリに基づいてユニークなワークスペース ID を生成
+# 形式: {branch}_{path-hash}
+# 例: main_a1b2c3d4, feature-auth_e5f6g7h8
 #
-# This ensures:
-# - Different worktrees of same repo get different IDs
-# - Same directory with different branches get different IDs
-# - Human-readable branch name for easy identification
+# これにより以下を保証:
+# - 同じリポジトリの異なるワークツリーが異なる ID を取得
+# - 異なるブランチの同じディレクトリが異なる ID を取得
+# - 人間が識別しやすいブランチ名
 get_workspace_id() {
     local branch=""
     local path_hash=""
 
-    # Get current git branch (sanitize for filesystem safety)
-    # Remove all characters except alphanumeric, dots, underscores, and hyphens
+    # 現在の Git ブランチを取得（ファイルシステム安全のためサニタイズ）
+    # 英数字、ドット、アンダースコア、ハイフン以外の全文字を除去
     if git rev-parse --git-dir > /dev/null 2>&1; then
         branch=$(git branch --show-current 2>/dev/null | tr '/' '-' | tr ' ' '-' | tr -dc 'a-zA-Z0-9._-')
-        # Fallback to HEAD if detached
+        # デタッチ状態の場合は HEAD にフォールバック
         if [ -z "$branch" ]; then
             branch="detached-$(git rev-parse --short HEAD 2>/dev/null || echo 'unknown')"
         fi
-        # Limit branch name length for filesystem compatibility (max 50 chars)
+        # ファイルシステム互換性のためブランチ名の長さを制限（最大50文字）
         branch=$(echo "$branch" | cut -c1-50)
     else
         branch="no-git"
     fi
 
-    # Generate hash of absolute working directory path
-    # Using md5sum for cross-platform compatibility
+    # 絶対作業ディレクトリパスのハッシュを生成
+    # クロスプラットフォーム互換性のため md5sum を使用
     if command -v md5sum &> /dev/null; then
-        # Linux: md5sum outputs "hash  filename", extract just the hash
+        # Linux: md5sum は "hash  filename" を出力、ハッシュ部分のみ抽出
         path_hash=$(pwd | md5sum | awk '{print $1}' | cut -c1-8)
     elif command -v md5 &> /dev/null; then
-        # macOS: md5 outputs just the hash (or "MD5 (...) = hash" with -r)
+        # macOS: md5 はハッシュのみを出力（または -r で "MD5 (...) = hash"）
         path_hash=$(pwd | md5 | awk '{print $NF}' | cut -c1-8)
     else
-        # Fallback: use simple hash
+        # フォールバック: 単純なハッシュを使用
         path_hash=$(pwd | cksum | awk '{print $1}' | head -c8)
     fi
 
@@ -56,64 +52,64 @@ get_workspace_id() {
 }
 
 # ============================================================================
-# PATH MANAGEMENT
+# パス管理
 # ============================================================================
 
-# Get the workspace directory path
-# Returns: .claude/workspaces/{workspace-id}/
+# ワークスペースディレクトリパスを取得
+# 戻り値: .claude/workspaces/{workspace-id}/
 get_workspace_dir() {
     local workspace_id="${1:-$(get_workspace_id)}"
     echo ".claude/workspaces/${workspace_id}"
 }
 
-# Get the progress file path for current workspace
-# Returns: .claude/workspaces/{workspace-id}/claude-progress.json
+# 現在のワークスペースの進捗ファイルパスを取得
+# 戻り値: .claude/workspaces/{workspace-id}/claude-progress.json
 get_progress_file() {
     local workspace_id="${1:-$(get_workspace_id)}"
     echo "$(get_workspace_dir "$workspace_id")/claude-progress.json"
 }
 
-# Get the feature list file path for current workspace
-# Returns: .claude/workspaces/{workspace-id}/feature-list.json
+# 現在のワークスペースのフィーチャーリストファイルパスを取得
+# 戻り値: .claude/workspaces/{workspace-id}/feature-list.json
 get_feature_file() {
     local workspace_id="${1:-$(get_workspace_id)}"
     echo "$(get_workspace_dir "$workspace_id")/feature-list.json"
 }
 
-# Get the session state file path for current workspace
-# Returns: .claude/workspaces/{workspace-id}/session-state.json
+# 現在のワークスペースのセッション状態ファイルパスを取得
+# 戻り値: .claude/workspaces/{workspace-id}/session-state.json
 get_session_state_file() {
     local workspace_id="${1:-$(get_workspace_id)}"
     echo "$(get_workspace_dir "$workspace_id")/session-state.json"
 }
 
-# Get the logs directory for current workspace
-# Returns: .claude/workspaces/{workspace-id}/logs/
+# 現在のワークスペースのログディレクトリを取得
+# 戻り値: .claude/workspaces/{workspace-id}/logs/
 get_logs_dir() {
     local workspace_id="${1:-$(get_workspace_id)}"
     echo "$(get_workspace_dir "$workspace_id")/logs"
 }
 
-# Get the subagent activity log path for current workspace
-# Returns: .claude/workspaces/{workspace-id}/logs/subagent_activity.log
+# 現在のワークスペースのサブエージェントアクティビティログパスを取得
+# 戻り値: .claude/workspaces/{workspace-id}/logs/subagent_activity.log
 get_subagent_log() {
     local workspace_id="${1:-$(get_workspace_id)}"
     echo "$(get_logs_dir "$workspace_id")/subagent_activity.log"
 }
 
-# Get the sessions directory for current workspace
-# Returns: .claude/workspaces/{workspace-id}/logs/sessions/
+# 現在のワークスペースのセッションディレクトリを取得
+# 戻り値: .claude/workspaces/{workspace-id}/logs/sessions/
 get_sessions_dir() {
     local workspace_id="${1:-$(get_workspace_id)}"
     echo "$(get_logs_dir "$workspace_id")/sessions"
 }
 
 # ============================================================================
-# WORKSPACE MANAGEMENT
+# ワークスペース管理
 # ============================================================================
 
-# Ensure workspace directory structure exists
-# Creates: .claude/workspaces/{workspace-id}/logs/sessions/
+# ワークスペースのディレクトリ構造が存在することを確認
+# 作成: .claude/workspaces/{workspace-id}/logs/sessions/
 ensure_workspace_exists() {
     local workspace_id="${1:-$(get_workspace_id)}"
     local workspace_dir="$(get_workspace_dir "$workspace_id")"
@@ -125,8 +121,8 @@ ensure_workspace_exists() {
     mkdir -p "$sessions_dir"
 }
 
-# List all workspaces in current project
-# Returns: list of workspace IDs (one per line)
+# 現在のプロジェクト内の全ワークスペースを一覧表示
+# 戻り値: ワークスペース ID のリスト（1行に1つ）
 list_workspaces() {
     local workspaces_dir=".claude/workspaces"
     if [ -d "$workspaces_dir" ]; then
@@ -134,17 +130,17 @@ list_workspaces() {
     fi
 }
 
-# Check if a workspace has progress files
-# Returns: 0 if has progress, 1 if not
+# ワークスペースに進捗ファイルがあるかチェック
+# 戻り値: 進捗がある場合 0、ない場合 1
 workspace_has_progress() {
     local workspace_id="${1:-$(get_workspace_id)}"
     local progress_file="$(get_progress_file "$workspace_id")"
     [ -f "$progress_file" ]
 }
 
-# Get workspace metadata (for display)
-# Returns: JSON with workspace info
-# Uses environment variables to safely pass data to Python
+# ワークスペースメタデータを取得（表示用）
+# 戻り値: ワークスペース情報の JSON
+# 環境変数を使用して Python にデータを安全に渡す
 get_workspace_info() {
     local workspace_id="${1:-$(get_workspace_id)}"
     local progress_file="$(get_progress_file "$workspace_id")"
@@ -178,7 +174,7 @@ if progress_file and os.path.exists(progress_file):
         ctx = data.get("resumptionContext", {})
         info["position"] = ctx.get("position", "unknown")
     except Exception:
-        pass  # Return partial info on read failure
+        pass  # 読み取り失敗時は部分的な情報を返す
 
 print(json.dumps(info, indent=2))
 PYEOF
@@ -188,18 +184,18 @@ PYEOF
 }
 
 # ============================================================================
-# SESSION MANAGEMENT
+# セッション管理
 # ============================================================================
 
-# Generate a session ID (timestamp + random suffix)
+# セッション ID を生成（タイムスタンプ + ランダムサフィックス）
 generate_session_id() {
     local timestamp=$(date '+%Y%m%d_%H%M%S')
     local random_suffix=$(head -c 4 /dev/urandom | od -An -tx1 | tr -d ' \n' | head -c4)
     echo "${timestamp}_${random_suffix}"
 }
 
-# Get or create current session ID
-# Stores in environment variable for consistency within session
+# 現在のセッション ID を取得または作成
+# セッション内の一貫性のために環境変数に保存
 get_session_id() {
     if [ -z "$CLAUDE_SESSION_ID" ]; then
         export CLAUDE_SESSION_ID="$(generate_session_id)"
@@ -207,8 +203,8 @@ get_session_id() {
     echo "$CLAUDE_SESSION_ID"
 }
 
-# Create session log file
-# Returns: path to session log file
+# セッションログファイルを作成
+# 戻り値: セッションログファイルのパス
 get_session_log() {
     local workspace_id="${1:-$(get_workspace_id)}"
     local session_id="${2:-$(get_session_id)}"
@@ -219,115 +215,115 @@ get_session_log() {
 }
 
 # ============================================================================
-# INSIGHT MANAGEMENT (Folder-Based Architecture)
+# インサイト管理（フォルダベースアーキテクチャ）
 # ============================================================================
 #
-# Directory structure:
+# ディレクトリ構造:
 #   .claude/workspaces/{id}/insights/
-#   ├── pending/    # New insights awaiting review (one JSON file per insight)
-#   ├── applied/    # Applied to CLAUDE.md or rules
-#   ├── rejected/   # Rejected by user
-#   └── archive/    # Old insights for reference
+#   ├── pending/    # レビュー待ちの新規インサイト（1インサイト1JSONファイル）
+#   ├── applied/    # CLAUDE.md またはルールに適用済み
+#   ├── rejected/   # ユーザーが却下
+#   └── archive/    # 参照用の古いインサイト
 
-# Get the insights base directory for current workspace
-# Returns: .claude/workspaces/{workspace-id}/insights/
+# 現在のワークスペースのインサイトベースディレクトリを取得
+# 戻り値: .claude/workspaces/{workspace-id}/insights/
 get_insights_dir() {
     local workspace_id="${1:-$(get_workspace_id)}"
     echo "$(get_workspace_dir "$workspace_id")/insights"
 }
 
-# Get the pending insights directory (folder-based)
-# Returns: .claude/workspaces/{workspace-id}/insights/pending/
+# 保留中のインサイトディレクトリを取得（フォルダベース）
+# 戻り値: .claude/workspaces/{workspace-id}/insights/pending/
 get_pending_insights_dir() {
     local workspace_id="${1:-$(get_workspace_id)}"
     echo "$(get_insights_dir "$workspace_id")/pending"
 }
 
-# Get the applied insights directory
-# Returns: .claude/workspaces/{workspace-id}/insights/applied/
+# 適用済みインサイトディレクトリを取得
+# 戻り値: .claude/workspaces/{workspace-id}/insights/applied/
 get_applied_insights_dir() {
     local workspace_id="${1:-$(get_workspace_id)}"
     echo "$(get_insights_dir "$workspace_id")/applied"
 }
 
-# Get the rejected insights directory
-# Returns: .claude/workspaces/{workspace-id}/insights/rejected/
+# 却下済みインサイトディレクトリを取得
+# 戻り値: .claude/workspaces/{workspace-id}/insights/rejected/
 get_rejected_insights_dir() {
     local workspace_id="${1:-$(get_workspace_id)}"
     echo "$(get_insights_dir "$workspace_id")/rejected"
 }
 
-# Get the archive insights directory
-# Returns: .claude/workspaces/{workspace-id}/insights/archive/
+# アーカイブインサイトディレクトリを取得
+# 戻り値: .claude/workspaces/{workspace-id}/insights/archive/
 get_archive_insights_dir() {
     local workspace_id="${1:-$(get_workspace_id)}"
     echo "$(get_insights_dir "$workspace_id")/archive"
 }
 
-# DEPRECATED: For backward compatibility only
-# Returns: empty string (deprecated - use get_pending_insights_dir instead)
+# 非推奨: 後方互換性のためのみ
+# 戻り値: 空文字列（非推奨 - 代わりに get_pending_insights_dir を使用）
 get_pending_insights_file() {
     echo ""
 }
 
-# DEPRECATED: For backward compatibility only
+# 非推奨: 後方互換性のためのみ
 get_approved_insights_file() {
     echo ""
 }
 
-# Validate workspace ID to prevent path traversal and injection
-# Returns: 0 if valid, 1 if invalid
-# Usage: validate_workspace_id "workspace-id" || exit 1
-# Note: Uses POSIX-compatible case statements for bash/zsh portability
+# ワークスペース ID を検証してパストラバーサルとインジェクションを防止
+# 戻り値: 有効な場合 0、無効な場合 1
+# 使用方法: validate_workspace_id "workspace-id" || exit 1
+# 注: bash/zsh の移植性のため POSIX 互換の case 文を使用
 validate_workspace_id() {
     local id="$1"
 
-    # Must be non-empty
+    # 空でないことが必須
     if [ -z "$id" ]; then
         return 1
     fi
 
-    # Must match allowed characters only (alphanumeric, dot, underscore, hyphen)
-    # Using case for POSIX compatibility (works in bash, zsh, sh)
+    # 許可された文字のみに一致すること（英数字、ドット、アンダースコア、ハイフン）
+    # POSIX 互換のため case を使用（bash, zsh, sh で動作）
     case "$id" in
         *[!a-zA-Z0-9._-]*) return 1 ;;
     esac
 
-    # Must not contain path traversal sequences
+    # パストラバーサルシーケンスを含まないこと
     case "$id" in
         *".."*) return 1 ;;
     esac
 
-    # Must not start with dot (hidden files) or hyphen (option injection)
+    # ドット（隠しファイル）またはハイフン（オプションインジェクション）で始まらないこと
     case "$id" in
         .*|-*) return 1 ;;
     esac
 
-    # Length check (reasonable limit)
+    # 長さチェック（妥当な制限）
     if [ ${#id} -gt 100 ]; then
         return 1
     fi
 
-    # Additional security: verify resolved path stays within expected directory
-    # This prevents symlink-based escapes
+    # 追加セキュリティ: 解決済みパスが期待するディレクトリ内に留まることを検証
+    # シンボリックリンクによるエスケープを防止
     local workspace_dir
     workspace_dir=".claude/workspaces/${id}"
 
-    # Only check if directory exists (creation is allowed)
+    # ディレクトリが存在する場合のみチェック（作成は許可）
     if [ -e "$workspace_dir" ]; then
         local resolved_path
         resolved_path=$(realpath "$workspace_dir" 2>/dev/null)
         local base_dir
         base_dir=$(realpath ".claude/workspaces" 2>/dev/null)
 
-        # Ensure resolved path is under base directory
+        # 解決済みパスがベースディレクトリ配下であることを確認
         if [ -n "$resolved_path" ] && [ -n "$base_dir" ]; then
             case "$resolved_path" in
                 "$base_dir"/*)
-                    # Path is valid - under base directory
+                    # パスは有効 - ベースディレクトリ配下
                     ;;
                 *)
-                    # Path escapes base directory (symlink attack)
+                    # パスがベースディレクトリから逃避（シンボリックリンク攻撃）
                     return 1
                     ;;
             esac
@@ -337,12 +333,12 @@ validate_workspace_id() {
     return 0
 }
 
-# Count pending insights for a workspace (counts files in pending/)
-# Returns: number of pending insights (0 if none)
+# ワークスペースの保留中インサイト数をカウント（pending/ 内のファイル数）
+# 戻り値: 保留中インサイト数（ない場合は 0）
 count_pending_insights() {
     local workspace_id="${1:-$(get_workspace_id)}"
 
-    # Validate workspace ID if provided externally
+    # 外部から提供されたワークスペース ID を検証
     if [ -n "$1" ] && ! validate_workspace_id "$1"; then
         echo "0"
         return
@@ -351,22 +347,22 @@ count_pending_insights() {
     local pending_dir="$(get_pending_insights_dir "$workspace_id")"
 
     if [ -d "$pending_dir" ]; then
-        # Count .json files in pending directory
+        # pending ディレクトリ内の .json ファイル数をカウント
         find "$pending_dir" -maxdepth 1 -name "*.json" -type f 2>/dev/null | wc -l | tr -d ' '
     else
         echo "0"
     fi
 }
 
-# Check if workspace has pending insights
-# Returns: 0 if has pending insights, 1 if not
+# ワークスペースに保留中のインサイトがあるかチェック
+# 戻り値: 保留中インサイトがある場合 0、ない場合 1
 workspace_has_pending_insights() {
     local workspace_id="${1:-$(get_workspace_id)}"
     local count=$(count_pending_insights "$workspace_id")
     [ "$count" -gt 0 ]
 }
 
-# Ensure insights directory structure exists
+# インサイトディレクトリ構造が存在することを確認
 ensure_insights_dir() {
     local workspace_id="${1:-$(get_workspace_id)}"
     local insights_dir="$(get_insights_dir "$workspace_id")"
@@ -377,8 +373,8 @@ ensure_insights_dir() {
     mkdir -p "$insights_dir/archive"
 }
 
-# List pending insight files
-# Returns: list of insight file paths (one per line)
+# 保留中のインサイトファイルを一覧表示
+# 戻り値: インサイトファイルパスのリスト（1行に1つ）
 list_pending_insights() {
     local workspace_id="${1:-$(get_workspace_id)}"
     local pending_dir="$(get_pending_insights_dir "$workspace_id")"
@@ -388,34 +384,34 @@ list_pending_insights() {
     fi
 }
 
-# Move insight to a different status directory
-# Usage: move_insight "insight-file-path" "applied|rejected|archive"
-# SECURITY: Validates source path is within expected insights directory
+# インサイトを別のステータスディレクトリに移動
+# 使用方法: move_insight "insight-file-path" "applied|rejected|archive"
+# セキュリティ: ソースパスが期待するインサイトディレクトリ内にあることを検証
 move_insight() {
     local insight_file="$1"
     local target_status="$2"
     local workspace_id="${3:-$(get_workspace_id)}"
 
     if [ ! -f "$insight_file" ]; then
-        echo "Error: Insight file not found: $insight_file" >&2
+        echo "エラー: インサイトファイルが見つかりません: $insight_file" >&2
         return 1
     fi
 
-    # SECURITY: Validate source file is within insights directory
-    # Resolve to absolute path to prevent path traversal
+    # セキュリティ: ソースファイルがインサイトディレクトリ内にあることを検証
+    # パストラバーサルを防ぐため絶対パスに解決
     local resolved_source
     resolved_source=$(realpath "$insight_file" 2>/dev/null)
     if [ -z "$resolved_source" ]; then
-        echo "Error: Could not resolve path: $insight_file" >&2
+        echo "エラー: パスを解決できませんでした: $insight_file" >&2
         return 1
     fi
 
-    # Verify source is within insights directory (pending, applied, rejected, or archive)
+    # ソースがインサイトディレクトリ内にあることを確認（pending, applied, rejected, archive）
     case "$resolved_source" in
         */insights/pending/*.json|*/insights/applied/*.json|*/insights/rejected/*.json|*/insights/archive/*.json)
             ;;
         *)
-            echo "Error: Source path not in expected insights directory: $resolved_source" >&2
+            echo "エラー: ソースパスが期待するインサイトディレクトリ内にありません: $resolved_source" >&2
             return 1
             ;;
     esac
@@ -428,7 +424,7 @@ move_insight() {
         rejected) target_dir="$insights_dir/rejected" ;;
         archive)  target_dir="$insights_dir/archive" ;;
         *)
-            echo "Error: Invalid target status: $target_status" >&2
+            echo "エラー: 無効なターゲットステータス: $target_status" >&2
             return 1
             ;;
     esac
@@ -440,8 +436,8 @@ move_insight() {
     mv "$resolved_source" "$target_dir/$filename"
 }
 
-# Read a single insight file and output its JSON
-# Usage: read_insight "insight-file-path"
+# 単一のインサイトファイルを読み取り JSON を出力
+# 使用方法: read_insight "insight-file-path"
 read_insight() {
     local insight_file="$1"
 
@@ -453,22 +449,22 @@ read_insight() {
 }
 
 # ============================================================================
-# LOG MANAGEMENT
+# ログ管理
 # ============================================================================
 
-# Get the insight capture log file path
-# Returns: .claude/workspaces/{workspace-id}/insights/capture.log
+# インサイトキャプチャログファイルパスを取得
+# 戻り値: .claude/workspaces/{workspace-id}/insights/capture.log
 get_insight_capture_log() {
     local workspace_id="${1:-$(get_workspace_id)}"
     echo "$(get_insights_dir "$workspace_id")/capture.log"
 }
 
-# Rotate log file if it exceeds size limit
-# Usage: rotate_log_if_needed "/path/to/log" 1048576  # 1MB
+# サイズ制限を超えた場合にログファイルをローテーション
+# 使用方法: rotate_log_if_needed "/path/to/log" 1048576  # 1MB
 rotate_log_if_needed() {
     local log_file="$1"
-    local max_size="${2:-1048576}"  # Default 1MB
-    local keep_count="${3:-5}"       # Keep last 5 rotations
+    local max_size="${2:-1048576}"  # デフォルト 1MB
+    local keep_count="${3:-5}"       # 最新の5つのローテーションを保持
 
     if [ ! -f "$log_file" ]; then
         return 0
@@ -482,23 +478,23 @@ rotate_log_if_needed() {
         timestamp=$(date '+%Y%m%d_%H%M%S')
         local rotated_file="${log_file}.${timestamp}"
 
-        # Rotate current log
+        # 現在のログをローテーション
         mv "$log_file" "$rotated_file" 2>/dev/null || return 1
 
-        # Compress rotated file if gzip is available
+        # gzip が利用可能な場合はローテーションしたファイルを圧縮
         if command -v gzip &> /dev/null; then
             gzip "$rotated_file" 2>/dev/null
         fi
 
-        # Remove old rotations beyond keep_count
+        # keep_count を超えた古いローテーションを削除
         local pattern="${log_file}.*"
         # shellcheck disable=SC2086
         ls -t $pattern 2>/dev/null | tail -n +$((keep_count + 1)) | xargs rm -f 2>/dev/null
     fi
 }
 
-# Clean up temporary files in workspace
-# Removes: .tmp files, .lock files older than 1 hour, empty directories
+# ワークスペース内の一時ファイルをクリーンアップ
+# 削除対象: .tmp ファイル、1時間以上経過した .lock ファイル、空ディレクトリ
 cleanup_workspace_temp_files() {
     local workspace_id="${1:-$(get_workspace_id)}"
     local workspace_dir="$(get_workspace_dir "$workspace_id")"
@@ -507,19 +503,19 @@ cleanup_workspace_temp_files() {
         return 0
     fi
 
-    # Remove .tmp files (leftover from interrupted atomic writes)
+    # .tmp ファイルを削除（中断されたアトミック書き込みの残り）
     find "$workspace_dir" -name "*.tmp" -type f -delete 2>/dev/null
 
-    # Remove stale .lock files (older than 1 hour)
+    # 古い .lock ファイルを削除（1時間以上経過したもの）
     find "$workspace_dir" -name "*.lock" -type f -mmin +60 -delete 2>/dev/null
 
-    # Remove empty directories (but not the main workspace dir)
+    # 空のディレクトリを削除（メインのワークスペースディレクトリは除く）
     find "$workspace_dir" -mindepth 1 -type d -empty -delete 2>/dev/null
 }
 
-# Archive old insights that have been processed
-# Moves insights from applied/ and rejected/ to archive/ directory
-# Folder-based: simply moves files between directories
+# 処理済みの古いインサイトをアーカイブ
+# applied/ と rejected/ のインサイトを archive/ ディレクトリに移動
+# フォルダベース: ディレクトリ間で単純にファイルを移動
 archive_processed_insights() {
     local workspace_id="${1:-$(get_workspace_id)}"
     local insights_dir="$(get_insights_dir "$workspace_id")"
@@ -528,10 +524,10 @@ archive_processed_insights() {
     local archive_dir="$insights_dir/archive"
     local archived_count=0
 
-    # Ensure archive directory exists
+    # アーカイブディレクトリの存在を確認
     mkdir -p "$archive_dir"
 
-    # Move applied insights to archive
+    # 適用済みインサイトをアーカイブに移動
     if [ -d "$applied_dir" ]; then
         for file in "$applied_dir"/*.json 2>/dev/null; do
             [ -f "$file" ] || continue
@@ -540,7 +536,7 @@ archive_processed_insights() {
         done
     fi
 
-    # Move rejected insights to archive
+    # 却下済みインサイトをアーカイブに移動
     if [ -d "$rejected_dir" ]; then
         for file in "$rejected_dir"/*.json 2>/dev/null; do
             [ -f "$file" ] || continue
@@ -550,18 +546,18 @@ archive_processed_insights() {
     fi
 
     if [ "$archived_count" -gt 0 ]; then
-        echo "Archived $archived_count processed insights"
+        echo "処理済みインサイト $archived_count 件をアーカイブしました"
     fi
 }
 
-# Get workspace statistics
-# Returns: JSON with counts of insights by directory, logs, etc.
-# Folder-based: counts files in pending/, applied/, rejected/, archive/ directories
+# ワークスペース統計を取得
+# 戻り値: ディレクトリ別のインサイト数、ログ等を含む JSON
+# フォルダベース: pending/, applied/, rejected/, archive/ ディレクトリのファイル数をカウント
 get_workspace_stats() {
     local workspace_id="${1:-$(get_workspace_id)}"
 
     if ! command -v python3 &> /dev/null; then
-        echo '{"error": "python3 not available"}'
+        echo '{"error": "python3 が利用できません"}'
         return
     fi
 
@@ -578,13 +574,13 @@ workspace_dir = os.environ.get('WORKSPACE_DIR_VAR', '')
 insights_dir = os.environ.get('INSIGHTS_DIR_VAR', '')
 
 def count_json_files(directory):
-    """Count .json files in a directory."""
+    """ディレクトリ内の .json ファイル数をカウント。"""
     if not directory or not os.path.isdir(directory):
         return 0
     return len(glob.glob(os.path.join(directory, '*.json')))
 
 def get_dir_size(directory):
-    """Get total size of files in a directory."""
+    """ディレクトリ内のファイルの合計サイズを取得。"""
     if not directory or not os.path.isdir(directory):
         return 0
     total = 0
@@ -595,7 +591,7 @@ def get_dir_size(directory):
             pass
     return total
 
-# Count insights in each directory (folder-based architecture)
+# 各ディレクトリのインサイト数をカウント（フォルダベースアーキテクチャ）
 pending_count = count_json_files(os.path.join(insights_dir, 'pending')) if insights_dir else 0
 applied_count = count_json_files(os.path.join(insights_dir, 'applied')) if insights_dir else 0
 rejected_count = count_json_files(os.path.join(insights_dir, 'rejected')) if insights_dir else 0
@@ -619,7 +615,7 @@ stats = {
 }
 
 if workspace_dir and os.path.isdir(workspace_dir):
-    # Count storage
+    # ストレージをカウント
     total_size = 0
     log_count = 0
     for root, dirs, files in os.walk(workspace_dir):
@@ -639,29 +635,29 @@ PYEOF
 }
 
 # ============================================================================
-# UTILITY FUNCTIONS
+# ユーティリティ関数
 # ============================================================================
 
-# Pretty print workspace info for user display
+# ユーザー表示用にワークスペース情報を整形出力
 print_workspace_info() {
     local workspace_id="${1:-$(get_workspace_id)}"
     local workspace_dir="$(get_workspace_dir "$workspace_id")"
 
-    echo "Workspace ID: $workspace_id"
-    echo "Workspace Dir: $workspace_dir"
-    echo "Branch: $(git branch --show-current 2>/dev/null || echo 'N/A')"
-    echo "Working Dir: $(pwd)"
+    echo "ワークスペース ID: $workspace_id"
+    echo "ワークスペースディレクトリ: $workspace_dir"
+    echo "ブランチ: $(git branch --show-current 2>/dev/null || echo 'N/A')"
+    echo "作業ディレクトリ: $(pwd)"
 
     if workspace_has_progress "$workspace_id"; then
-        echo "Status: Has progress files"
+        echo "ステータス: 進捗ファイルあり"
     else
-        echo "Status: No progress files"
+        echo "ステータス: 進捗ファイルなし"
     fi
 
-    # Show insight stats if available
+    # インサイト統計を表示（利用可能な場合）
     if workspace_has_pending_insights "$workspace_id"; then
         local count
         count=$(count_pending_insights "$workspace_id")
-        echo "Pending Insights: $count"
+        echo "保留中のインサイト: $count"
     fi
 }

@@ -1,247 +1,248 @@
-# SDD Workflow Examples
+# SDD ワークフロー例
 
-Real-world examples of Specification-Driven Development in action.
+仕様駆動開発の実際の使用例。
 
-## Example 1: User Authentication Feature
+## 例 1: ユーザー認証機能
 
-### Phase 1: Ambiguity Phase (User Request)
-
-```
-User: "Add user authentication"
-```
-
-This is vague. We need to clarify.
-
-### Phase 2: Clarification Phase (Interview)
+### フェーズ 1: 曖昧さフェーズ（ユーザーリクエスト）
 
 ```
-Claude: I'll help you add user authentication. Let me gather some requirements.
-
-Questions:
-1. What authentication methods do you need?
-   - Email/password only
-   - OAuth (Google, GitHub, etc.)
-   - Magic link / passwordless
-   - All of the above
-
-2. Do you need role-based access control?
-   - Yes, multiple roles (admin, user, etc.)
-   - No, just authenticated vs anonymous
-
-3. What's your session strategy?
-   - JWT tokens
-   - Server-side sessions
-   - No preference (recommend)
-
-User: OAuth with Google, simple auth (no roles), JWT tokens
+ユーザー: 「ユーザー認証を追加して」
 ```
 
-### Phase 3: Definition Phase (Specification)
+これは曖昧。明確化が必要。
+
+### フェーズ 2: 明確化フェーズ（インタビュー）
+
+```
+Claude: ユーザー認証の追加をお手伝いします。いくつか要件を確認させてください。
+
+質問:
+1. どの認証方式が必要ですか？
+   - メール/パスワードのみ
+   - OAuth（Google、GitHub 等）
+   - マジックリンク / パスワードレス
+   - 上記すべて
+
+2. ロールベースのアクセス制御は必要ですか？
+   - はい、複数のロール（管理者、ユーザー等）
+   - いいえ、認証済み vs 匿名のみ
+
+3. セッション戦略は？
+   - JWT トークン
+   - サーバーサイドセッション
+   - 特に希望なし（推奨してほしい）
+
+ユーザー: Google の OAuth、シンプルな認証（ロールなし）、JWT トークン
+```
+
+### フェーズ 3: 定義フェーズ（仕様書）
 
 ```markdown
-# Feature: User Authentication
+# 機能: ユーザー認証
 
-## Overview
-Enable users to authenticate via Google OAuth to access protected features.
+## 概要
+ユーザーが Google OAuth 経由で認証し、保護された機能にアクセスできるようにする。
 
-## User Stories
-| ID | Story | Priority |
-|----|-------|----------|
-| US-001 | As a user, I want to sign in with Google so I don't need another password | P0 |
-| US-002 | As a user, I want to stay logged in across browser sessions | P0 |
-| US-003 | As a user, I want to sign out to secure my account on shared devices | P0 |
+## ユーザーストーリー
+| ID | ストーリー | 優先度 |
+|----|-----------|--------|
+| US-001 | ユーザーとして、別のパスワードが不要なように Google でサインインしたい | P0 |
+| US-002 | ユーザーとして、ブラウザセッション間でログイン状態を維持したい | P0 |
+| US-003 | ユーザーとして、共有デバイスでアカウントを保護するためにサインアウトしたい | P0 |
 
-## Functional Requirements
-| ID | Requirement | Priority | Acceptance Criteria |
-|----|-------------|----------|---------------------|
-| FR-001 | System SHALL allow Google OAuth sign-in | P0 | User clicks "Sign in with Google" → redirected → returns authenticated |
-| FR-002 | System SHALL issue JWT on successful auth | P0 | JWT contains user ID, email, expiry |
-| FR-003 | System SHALL refresh tokens before expiry | P0 | Token refreshed within 5 min of expiry |
-| FR-004 | System SHALL allow sign out | P0 | Sign out clears tokens, returns to home |
+## 機能要件
+| ID | 要件 | 優先度 | 受け入れ基準 |
+|----|------|--------|-------------|
+| FR-001 | システムは Google OAuth サインインを許可する | P0 | ユーザーが「Google でサインイン」をクリック → リダイレクト → 認証済みで戻る |
+| FR-002 | システムは認証成功時に JWT を発行する | P0 | JWT にユーザー ID、メール、有効期限を含む |
+| FR-003 | システムは有効期限前にトークンを更新する | P0 | 有効期限の 5 分以内にトークンを更新 |
+| FR-004 | システムはサインアウトを許可する | P0 | サインアウトでトークンをクリアし、ホームに戻る |
 
-## Non-Functional Requirements
-| ID | Category | Requirement |
-|----|----------|-------------|
-| NFR-001 | Security | Tokens stored in httpOnly cookies |
-| NFR-002 | Security | CSRF protection enabled |
-| NFR-003 | Performance | Auth flow < 3 seconds |
+## 非機能要件
+| ID | カテゴリ | 要件 |
+|----|----------|------|
+| NFR-001 | セキュリティ | トークンを httpOnly Cookie に保存 |
+| NFR-002 | セキュリティ | CSRF 保護を有効化 |
+| NFR-003 | パフォーマンス | 認証フロー < 3 秒 |
 
-## Out of Scope
-- Email/password authentication
-- Role-based access control
-- Multi-factor authentication
-- Account linking (multiple providers)
+## スコープ外
+- メール/パスワード認証
+- ロールベースのアクセス制御
+- 多要素認証
+- アカウントリンク（複数プロバイダー）
 
-## Approval
-[x] Product Owner: Approved
-[x] Tech Lead: Approved
+## 承認
+[x] プロダクトオーナー: 承認済み
+[x] テックリード: 承認済み
 ```
 
-### Phase 4: Execution Phase
+### フェーズ 4: 実行フェーズ
 
 ```
-Claude: Delegating to backend-specialist for OAuth implementation...
+Claude: OAuth 実装のために backend-specialist に委任中...
 
-Backend-specialist implements:
-- /api/auth/google (initiates OAuth)
-- /api/auth/callback (handles OAuth callback)
-- /api/auth/refresh (refreshes tokens)
-- /api/auth/logout (clears session)
+backend-specialist が実装:
+- /api/auth/google（OAuth を開始）
+- /api/auth/callback（OAuth コールバックを処理）
+- /api/auth/refresh（トークンを更新）
+- /api/auth/logout（セッションをクリア）
 
-Claude: Delegating to frontend-specialist for UI...
+Claude: UI のために frontend-specialist に委任中...
 
-Frontend-specialist implements:
-- Sign in button component
-- Auth context/provider
-- Protected route wrapper
-- Sign out functionality
+frontend-specialist が実装:
+- サインインボタンコンポーネント
+- 認証コンテキスト/プロバイダー
+- 保護されたルートラッパー
+- サインアウト機能
 ```
 
-### Phase 5: Verification Phase
+### フェーズ 5: 検証フェーズ
 
 ```
-Claude: Delegating to qa-engineer for testing...
+Claude: テストのために qa-engineer に委任中...
 
-Tests created:
-- Unit: Token generation, validation
-- Integration: OAuth flow, refresh flow
-- E2E: Full sign-in journey
+作成されたテスト:
+- ユニット: トークン生成、バリデーション
+- 統合: OAuth フロー、リフレッシュフロー
+- E2E: 完全なサインインジャーニー
 
-Claude: Delegating to security-auditor for review...
+Claude: レビューのために security-auditor に委任中...
 
-Security audit:
-- Tokens in httpOnly cookies
-- CSRF protection
-- State parameter prevents CSRF on OAuth
-- Recommendation: Add rate limiting to auth endpoints
-```
-
----
-
-## Example 2: Spec Deviation Handling
-
-What happens when implementation reveals a spec gap:
-
-```
-Backend-specialist: While implementing FR-001, I discovered we need to handle
-the case where a user's Google account email changes. This wasn't specified.
-
-Options:
-A) Treat email as immutable (use Google ID only)
-B) Update email on each sign-in
-C) Flag for manual review
-
-Claude: This is a spec gap. Asking user for clarification...
-
-User: Use option A - treat email as immutable, use Google ID as identifier.
-
-Claude: Updating specification with FR-005: System SHALL use Google ID
-(not email) as the unique user identifier.
+セキュリティ監査:
+- httpOnly Cookie にトークン保存
+- CSRF 保護
+- State パラメータで OAuth の CSRF を防止
+- 推奨: 認証エンドポイントにレート制限を追加
 ```
 
 ---
 
-## Example 3: Handling "Just Build It"
+## 例 2: 仕様の逸脱処理
 
-When users want to skip specs:
+実装中に仕様のギャップが見つかった場合の対処:
 
 ```
-User: Just build the dashboard, I don't need a spec.
+backend-specialist: FR-001 の実装中に、ユーザーの Google アカウントの
+メールアドレスが変更された場合の処理が必要であることが判明しました。
+これは仕様に記載されていません。
 
-Claude: I understand you want to move fast. However, without a spec:
-- We might build the wrong thing
-- We'll likely need rework
-- We have no acceptance criteria
+選択肢:
+A) メールを不変として扱う（Google ID のみ使用）
+B) サインインごとにメールを更新
+C) 手動レビューのためにフラグを立てる
 
-Let me ask 3 quick questions to create a minimal spec:
+Claude: これは仕様のギャップです。ユーザーに確認中...
 
-1. What data should the dashboard show?
-2. Who is the primary user?
-3. How will you know it's successful?
+ユーザー: 選択肢 A を使用 - メールを不変として扱い、Google ID をユーザー識別子とする。
 
-This takes 5 minutes and saves hours of rework.
-
-User: OK. It should show sales metrics, for the sales team, success = they stop asking for reports.
-
-Claude: Great! Here's a minimal spec:
-
-# Feature: Sales Dashboard
-
-## Problem
-Sales team manually requests reports; need self-service dashboard.
-
-## Requirements
-- [ ] Show daily/weekly/monthly sales totals
-- [ ] Filter by product, region, rep
-- [ ] Export to CSV
-
-## Success Criteria
-- [ ] Sales team can answer their own questions
-- [ ] Report requests reduced by 80%
-
-Ready to proceed with this spec?
+Claude: 仕様を更新: FR-005: システムは Google ID（メールではなく）を
+一意のユーザー識別子として使用する。
 ```
 
 ---
 
-## Anti-Pattern Examples
+## 例 3: 「とにかく作って」への対処
 
-### Bad: Assuming Requirements
-
-```
-User: Add search functionality
-
-Claude: I'll add full-text search with Elasticsearch, faceted filtering,
-autocomplete suggestions, and search analytics...
-
-[WRONG: Never assumed all these requirements]
-```
-
-### Good: Clarifying Requirements
+ユーザーが仕様をスキップしたい場合:
 
 ```
-User: Add search functionality
+ユーザー: ダッシュボードを作って、仕様は不要。
 
-Claude: I'll help add search. Let me understand what you need:
+Claude: 素早く進めたいお気持ちは理解できます。しかし、仕様なしでは:
+- 間違ったものを作る可能性がある
+- 手戻りが発生する可能性が高い
+- 受け入れ基準がない
 
-1. What content should be searchable?
-   - Products only
-   - Products and blog posts
-   - Everything
+最小限の仕様を作るために 3 つの簡単な質問をさせてください:
 
-2. What search features do you need?
-   - Basic keyword search
-   - Filters (price, category, etc.)
-   - Autocomplete suggestions
-   - Full-text search with relevance ranking
+1. ダッシュボードに何のデータを表示すべきですか？
+2. 主なユーザーは誰ですか？
+3. 成功とは何ですか？
 
-3. What's your scale?
-   - < 1000 items (simple search is fine)
-   - 1000-100K items (need indexing)
-   - > 100K items (need dedicated search service)
+これは 5 分で完了し、何時間もの手戻りを節約します。
+
+ユーザー: OK。売上指標を表示、営業チーム向け、成功 = レポート依頼が来なくなること。
+
+Claude: 了解！最小限の仕様です:
+
+# 機能: 売上ダッシュボード
+
+## 課題
+営業チームが手動でレポートを依頼している。セルフサービスダッシュボードが必要。
+
+## 要件
+- [ ] 日次/週次/月次の売上合計を表示
+- [ ] 製品、地域、担当者でフィルタ
+- [ ] CSV エクスポート
+
+## 成功基準
+- [ ] 営業チームが自分で質問に回答できる
+- [ ] レポート依頼が 80% 削減
+
+この仕様で進めてよいですか？
 ```
 
-### Bad: Gold-Plating
+---
+
+## アンチパターン例
+
+### 悪い例: 要件の推測
 
 ```
-# Implementing FR-001: Display user name
+ユーザー: 検索機能を追加して
 
-Claude: I'll also add:
-- Avatar upload
-- Custom themes
-- Profile page
-- Social links
-- Bio editor
+Claude: Elasticsearch を使用した全文検索、ファセットフィルタリング、
+オートコンプリート候補、検索分析を追加します...
 
-[WRONG: Only FR-001 was requested]
+[誤り: これらの要件をすべて推測した]
 ```
 
-### Good: Scope Discipline
+### 良い例: 要件の明確化
 
 ```
-# Implementing FR-001: Display user name
+ユーザー: 検索機能を追加して
 
-Claude: Implementing FR-001 as specified.
-Note: I noticed we might want avatar support in the future.
-Should I add a placeholder requirement for the next iteration?
+Claude: 検索の追加をお手伝いします。必要なものを理解させてください:
+
+1. 何を検索対象にしますか？
+   - 製品のみ
+   - 製品とブログ記事
+   - すべて
+
+2. どの検索機能が必要ですか？
+   - 基本的なキーワード検索
+   - フィルタ（価格、カテゴリ等）
+   - オートコンプリート候補
+   - 関連性ランキング付き全文検索
+
+3. 規模は？
+   - < 1000 件（シンプルな検索で十分）
+   - 1000-100K 件（インデックスが必要）
+   - > 100K 件（専用の検索サービスが必要）
+```
+
+### 悪い例: ゴールドプレーティング
+
+```
+# FR-001 の実装: ユーザー名の表示
+
+Claude: 以下も追加します:
+- アバターアップロード
+- カスタムテーマ
+- プロフィールページ
+- ソーシャルリンク
+- 自己紹介エディタ
+
+[誤り: FR-001 のみが依頼された]
+```
+
+### 良い例: スコープ規律
+
+```
+# FR-001 の実装: ユーザー名の表示
+
+Claude: 仕様通りに FR-001 を実装します。
+注意: 将来アバターサポートが必要になる可能性に気付きました。
+次のイテレーションのプレースホルダー要件を追加しますか？
 ```

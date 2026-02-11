@@ -1,10 +1,10 @@
 ---
-description: "Implement a feature from an approved spec and design - builds, tests, and reviews code"
-argument-hint: "[optional: spec file path or feature name]"
+description: "承認済み仕様書と設計書に基づいて機能を実装する - ビルド、テスト、レビューを実施"
+argument-hint: "[任意: 仕様書ファイルパスまたは機能名]"
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite
 ---
 
-# /spec-implement - Specification-Based Implementation
+# /spec-implement - 仕様書ベースの実装
 
 ## Language Mode
 
@@ -12,567 +12,567 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoW
 
 ---
 
-Implement a feature from an approved specification and design document. This command handles the build phase: preparation, implementation, quality review, and summary.
+承認済みの仕様書と設計書に基づいて機能を実装する。このコマンドはビルドフェーズ（準備、実装、品質レビュー、サマリー）を担当する。
 
-## Prerequisites
+## 前提条件
 
-Before running this command, you should have:
-- A specification file (`docs/specs/[feature-name].md`) - produced by `/spec-plan`
-- A design document (`docs/specs/[feature-name]-design.md`) - produced by `/spec-plan`
-- Optionally: a review report (`docs/specs/[feature-name]-review.md`) - produced by `/spec-review`
+このコマンドを実行する前に、以下が必要:
+- 仕様書ファイル (`docs/specs/[feature-name].md`) - `/spec-plan` で作成
+- 設計書 (`docs/specs/[feature-name]-design.md`) - `/spec-plan` で作成
+- 任意: レビューレポート (`docs/specs/[feature-name]-review.md`) - `/spec-review` で作成
 
-If these don't exist, suggest running `/spec-plan` first.
+これらが存在しない場合は、先に `/spec-plan` の実行を提案する。
 
-## Attribution
+## 帰属
 
-Based on Anthropic's Initializer + Coding Agent pattern from Effective Harnesses for Long-Running Agents.
+Anthropic の Effective Harnesses for Long-Running Agents における Initializer + Coding Agent パターンに基づく。
 
-## Phase Overview
+## フェーズ概要
 
-1. **Preparation** - Load spec, design, review state; validate consistency
-2. **Implementation** - Build features one at a time with specialist agents
-3. **Quality Review** - Parallel review agents validate the implementation
-4. **Summary** - Document what was accomplished
+1. **準備** - 仕様書、設計書、レビュー状態を読み込み、整合性を検証
+2. **実装** - スペシャリストエージェントで機能を1つずつ構築
+3. **品質レビュー** - 並列レビューエージェントが実装を検証
+4. **サマリー** - 成果を文書化
 
-## Execution Instructions
-
----
-
-## ORCHESTRATOR-ONLY RULES (NON-NEGOTIABLE)
-
-**YOU ARE THE ORCHESTRATOR. YOU DO NOT DO THE WORK YOURSELF.**
-
-Load the `subagent-contract` skill for detailed orchestration protocols.
-
-### Absolute Prohibitions
-
-1. **MUST delegate bulk Grep/Glob operations to `code-explorer`** - Use directly only for single targeted lookups
-2. **For bulk reading (>3 files)**: Delegate to subagents. Quick lookups (1-3 files for specific sections) and fallbacks are allowed.
-3. **NEVER implement code yourself** - Delegate to `frontend-specialist` or `backend-specialist`
-4. **NEVER write tests yourself** - Delegate to `qa-engineer`
-5. **NEVER do security analysis yourself** - Delegate to `security-auditor`
+## 実行手順
 
 ---
 
-### Agent Selection
+## オーケストレーター専用ルール（絶対遵守）
 
-| Agent | Model | Use For |
+**あなたはオーケストレーターである。自分で作業を行ってはならない。**
+
+詳細なオーケストレーションプロトコルは `subagent-contract` スキルを読み込むこと。
+
+### 絶対禁止事項
+
+1. **大量の Grep/Glob 操作は `code-explorer` に委任すること** - 単発の特定検索のみ直接使用可
+2. **大量読み込み（3ファイル超）**: サブエージェントに委任。クイックルックアップ（特定セクションの1-3ファイル）およびフォールバックは許可。
+3. **自分でコードを実装してはならない** - `frontend-specialist` または `backend-specialist` に委任
+4. **自分でテストを書いてはならない** - `qa-engineer` に委任
+5. **自分でセキュリティ分析を行ってはならない** - `security-auditor` に委任
+
+---
+
+### エージェント選択
+
+| エージェント | モデル | 用途 |
 |-------|-------|---------|
-| `code-explorer` | Sonnet | Quick verification of codebase state |
-| `code-architect` | Sonnet | Design clarification if needed |
-| `frontend-specialist` | **inherit** | UI implementation |
-| `backend-specialist` | **inherit** | API implementation |
-| `qa-engineer` | Sonnet | Testing and quality review |
-| `security-auditor` | Sonnet | Security review (read-only) |
-| `verification-specialist` | Sonnet | Reference validation |
+| `code-explorer` | Sonnet | コードベースの状態を素早く確認 |
+| `code-architect` | Sonnet | 必要に応じた設計の明確化 |
+| `frontend-specialist` | **inherit** | UI の実装 |
+| `backend-specialist` | **inherit** | API の実装 |
+| `qa-engineer` | Sonnet | テストと品質レビュー |
+| `security-auditor` | Sonnet | セキュリティレビュー（読み取り専用） |
+| `verification-specialist` | Sonnet | 参照の検証 |
 
 ---
 
-### Phase 1: Preparation
+### フェーズ 1: 準備
 
-**Goal:** Load context, validate readiness, and check for consistency.
+**目標:** コンテキストを読み込み、実装準備の整合性を検証する。
 
-#### Locate Spec and Design
+#### 仕様書と設計書の特定
 
-If `$ARGUMENTS` is provided:
-- If it's a file path, verify the spec file exists and locate corresponding design file (use Glob, do NOT read content)
-- If it's a feature name, search in `docs/specs/` for matching files (use Glob)
+`$ARGUMENTS` が指定された場合:
+- ファイルパスの場合、仕様書ファイルの存在を確認し、対応する設計書を特定（Glob を使用、内容は読まない）
+- 機能名の場合、`docs/specs/` で一致するファイルを検索（Glob を使用）
 
-If no arguments:
-- Check progress file for current project spec
-- List available specs in `docs/specs/`
-- Ask user which to implement
+引数なしの場合:
+- 進捗ファイルから現在のプロジェクト仕様を確認
+- `docs/specs/` の利用可能な仕様書を一覧表示
+- どれを実装するかユーザーに確認
 
-#### Validate Prerequisites
+#### 前提条件の検証
 
-**Reading vs Editing distinction:**
-- **Reading for context**: Quick lookups allowed (see `subagent-contract` "Quick Lookup Definition")
-- **Editing/modifying**: ALWAYS delegate to appropriate agent
+**読み取りと編集の区別:**
+- **コンテキストのための読み取り**: クイックルックアップは許可（`subagent-contract` の「クイックルックアップ定義」を参照）
+- **編集・修正**: 必ず適切なエージェントに委任
 
-Refer to `subagent-contract` skill "Orchestrator Exceptions Reference" for all exception definitions including Quick Lookup limits (≤3 files, ≤200 lines/file, ≤300 total).
+すべての例外定義（クイックルックアップ制限: 3ファイル以下、200行/ファイル以下、合計300行以下）は `subagent-contract` スキルの「オーケストレーター例外リファレンス」を参照。
 
-**CRITICAL: The orchestrator never EDITS spec/design files directly.**
+**重要: オーケストレーターは仕様書/設計書を直接編集してはならない。**
 
-**Check existence:**
-1. **Locate spec file** - Use Glob to check if `docs/specs/[feature-name].md` exists
-2. **Locate design file** - Use Glob to check if `docs/specs/[feature-name]-design.md` exists
-3. **Locate review report** - Use Glob to check if `docs/specs/[feature-name]-review.md` exists
-4. **Locate progress file** - Use Glob to check if `.claude/workspaces/{id}/claude-progress.json` exists
+**存在確認:**
+1. **仕様書ファイルの特定** - Glob で `docs/specs/[feature-name].md` の存在を確認
+2. **設計書ファイルの特定** - Glob で `docs/specs/[feature-name]-design.md` の存在を確認
+3. **レビューレポートの特定** - Glob で `docs/specs/[feature-name]-review.md` の存在を確認
+4. **進捗ファイルの特定** - Glob で `.claude/workspaces/{id}/claude-progress.json` の存在を確認
 
-If spec or design is missing:
+仕様書または設計書が見つからない場合:
 ```
-Missing prerequisite files for implementation.
+実装に必要な前提ファイルが不足しています。
 
-Spec: [found/missing]
-Design: [found/missing]
+仕様書: [あり/なし]
+設計書: [あり/なし]
 
-Recommended: Run /spec-plan first to create these files.
-```
-
-**Context loading - choose based on need:**
-
-**For quick reference (specific section lookup):**
-- Orchestrator MAY read spec/design files directly
-- Use for: checking a single requirement, verifying acceptance criteria, confirming build sequence
-
-**For comprehensive context (full implementation preparation):**
-Delegate to `product-manager` agent:
-```
-Launch product-manager agent:
-Task: Summarize spec and design for implementation context
-Inputs: Spec file path + Design file path
-Output:
-- Key requirements summary (what to build)
-- Architecture summary (how to build it)
-- Build sequence from design
-- Acceptance criteria for each feature
+推奨: まず /spec-plan を実行してこれらのファイルを作成してください。
 ```
 
-**Error Handling for product-manager (context loading):**
-If product-manager fails or times out:
-1. Retry once with reduced scope (focus on build sequence and key requirements only)
-2. **Fallback: Read files directly** if retry fails:
-   - Read design file directly to extract Build Sequence section
-   - Read spec file directly to extract Acceptance Criteria section
-   - Use extracted content as implementation context
-   - Warn user: "Using direct file read (summarization failed)"
-3. Add to progress file: `"warnings": ["Context loading via agent failed, using direct read fallback"]`
-4. Proceed with available context (do NOT block implementation entirely)
+**コンテキスト読み込み - 必要に応じて選択:**
 
-**CRITICAL: Present context summary to user before proceeding:**
+**クイックリファレンス（特定セクションの参照）の場合:**
+- オーケストレーターは仕様書/設計書を直接読み取り可
+- 用途: 単一要件の確認、受け入れ基準の検証、ビルド順序の確認
 
-After product-manager completes (or fallback completes), present the implementation context to the user:
+**包括的コンテキスト（完全な実装準備）の場合:**
+`product-manager` エージェントに委任:
+```
+product-manager エージェントを起動:
+タスク: 実装コンテキスト用に仕様書と設計書を要約
+入力: 仕様書ファイルパス + 設計書ファイルパス
+出力:
+- 主要要件サマリー（何を構築するか）
+- アーキテクチャサマリー（どう構築するか）
+- 設計書からのビルド順序
+- 各機能の受け入れ基準
+```
+
+**product-manager（コンテキスト読み込み）のエラーハンドリング:**
+product-manager が失敗またはタイムアウトした場合:
+1. スコープを縮小してリトライ（ビルド順序と主要要件のみに集中）
+2. リトライも失敗した場合は**フォールバック: ファイルを直接読み取り**:
+   - 設計書ファイルを直接読み取り、ビルド順序セクションを抽出
+   - 仕様書ファイルを直接読み取り、受け入れ基準セクションを抽出
+   - 抽出した内容を実装コンテキストとして使用
+   - ユーザーに警告: 「直接ファイル読み取りを使用（要約処理に失敗）」
+3. 進捗ファイルに追加: `"warnings": ["Context loading via agent failed, using direct read fallback"]`
+4. 利用可能なコンテキストで続行（実装全体をブロックしない）
+
+**重要: 進行前にコンテキストサマリーをユーザーに提示すること:**
+
+product-manager の完了後（またはフォールバック完了後）、実装コンテキストをユーザーに提示:
 
 ```markdown
-## Implementation Context Summary
+## 実装コンテキストサマリー
 
-### What to Build
-[Key requirements from product-manager output]
+### 構築内容
+[product-manager の出力からの主要要件]
 
-### How to Build It
-[Architecture summary from product-manager output]
+### 構築方法
+[product-manager の出力からのアーキテクチャサマリー]
 
-### Build Sequence
-1. [Feature 1]
-2. [Feature 2]
+### ビルド順序
+1. [機能 1]
+2. [機能 2]
 ...
 
-### Acceptance Criteria
-- [Criteria 1]
-- [Criteria 2]
+### 受け入れ基準
+- [基準 1]
+- [基準 2]
 ...
 ```
 
-Use AskUserQuestion to confirm understanding:
+AskUserQuestion で理解の確認:
 ```
-Question: "This is what I understand from the spec. Is this correct?"
-Header: "Context Confirmation"
+Question: "仕様書からの理解は以上です。この内容で正しいですか？"
+Header: "コンテキスト確認"
 Options:
-- "Yes, this is correct"
-- "Partially correct, let me clarify"
-- "Wrong, let me re-explain the requirements"
+- "はい、正しいです"
+- "一部正しいが、補足があります"
+- "間違っています、要件を再説明します"
 ```
 
-If user chooses "Partially correct" or "Wrong", gather clarification before proceeding.
+ユーザーが「一部正しい」または「間違っている」を選択した場合は、進行前に補足を収集する。
 
-#### Review-Aware Handoff
+#### レビュー対応ハンドオフ
 
-**Why progress file reading is acceptable (not delegated):**
-- Progress files are orchestrator state metadata (not project content)
-- Review status checking is quick validation (typically <20 lines of JSON)
-- Essential to determine if user review was completed
-- Minimal context consumption compared to spec/design content analysis
-- Consistent with resume.md Phase 3 pattern
+**進捗ファイルの読み取りが許容される理由（委任不要）:**
+- 進捗ファイルはオーケストレーターの状態メタデータ（プロジェクトコンテンツではない）
+- レビュー状態の確認はクイックバリデーション（通常 JSON 20行未満）
+- ユーザーレビューが完了したかを判断するために不可欠
+- 仕様書/設計書のコンテンツ分析と比較してコンテキスト消費が最小
+- resume.md フェーズ 3 のパターンと一貫
 
-Check the progress file for review status:
+進捗ファイルでレビュー状態を確認:
 
-| Progress Phase | Meaning | Action |
+| 進捗フェーズ | 意味 | アクション |
 |----------------|---------|--------|
-| `plan-complete` | User review was skipped | Warn: "No user review was run. Consider `/spec-review` first." Proceed if user confirms. |
-| `review-complete` + APPROVED | User reviewed and approved | Proceed normally. Note any changes applied during review. |
+| `plan-complete` | ユーザーレビューがスキップされた | 警告: 「ユーザーレビューが実行されていません。先に `/spec-review` の実行を検討してください。」ユーザーが確認すれば続行。 |
+| `review-complete` + APPROVED | ユーザーがレビューして承認済み | 通常通り続行。レビュー中に適用された変更を記録。 |
 
-If a review log file exists (`docs/specs/[feature-name]-review.md`), delegate to `product-manager` agent to summarize changes made during review. Do not read the full review log directly.
+レビューログファイル (`docs/specs/[feature-name]-review.md`) が存在する場合は、`product-manager` エージェントに委任してレビュー中の変更を要約する。レビューログ全体を直接読み取らないこと。
 
-#### Initialize or Resume Progress
+#### 進捗の初期化または再開
 
-**If starting fresh (no implementation progress):**
-Create `feature-list.json` from the product-manager agent's Build Sequence output (obtained in Validate Prerequisites step above). Do NOT read design document directly.
+**新規開始（実装進捗なし）の場合:**
+product-manager エージェントのビルド順序出力（上記の前提条件検証ステップで取得）から `feature-list.json` を作成する。設計書を直接読み取らないこと。
 
-Update progress file:
+進捗ファイルを更新:
 - currentPhase: "impl-starting"
 - currentTask: "Beginning implementation"
 
-**If progress file shows implementation in progress:**
-Resume from the last incomplete feature.
+**進捗ファイルが実装中を示している場合:**
+最後の未完了機能から再開する。
 
-**CRITICAL (L1): MUST get explicit user approval before starting implementation.**
+**重要 (L1): 実装開始前にユーザーの明示的な承認を得ること。**
 
-Use AskUserQuestion:
+AskUserQuestion を使用:
 ```
-Question: "Ready to start implementation? This will modify files in your codebase."
-Header: "Confirm"
+Question: "実装を開始してよろしいですか？コードベースのファイルが変更されます。"
+Header: "確認"
 Options:
-- "Yes, proceed with implementation"
-- "No, let me review the plan first"
-- "Show me the build sequence again"
+- "はい、実装を進めてください"
+- "いいえ、先に計画を確認させてください"
+- "ビルド順序をもう一度見せてください"
 ```
 
-**NEVER proceed without explicit "Yes" confirmation.**
+**明示的な「はい」の確認なしに進行してはならない。**
 
 ---
 
-### Phase 2: Implementation
+### フェーズ 2: 実装
 
-**Goal:** Build the feature according to spec and design.
+**目標:** 仕様書と設計書に従って機能を構築する。
 
-Load the `long-running-tasks` skill for the Initializer + Coding pattern.
+Initializer + Coding パターンのために `long-running-tasks` スキルを読み込むこと。
 
-#### CRITICAL: One Feature at a Time
+#### 重要: 一度に1つの機能
 
-1. Identify next incomplete feature from `feature-list.json`
-2. Delegate implementation to specialist agent
-3. Wait for completion
-4. Run tests (delegate to `qa-engineer`)
-5. Update progress files (`claude-progress.json`, `feature-list.json`)
-6. Commit working code with descriptive message
-7. Move to next feature
+1. `feature-list.json` から次の未完了機能を特定
+2. スペシャリストエージェントに実装を委任
+3. 完了を待機
+4. テストを実行（`qa-engineer` に委任）
+5. 進捗ファイルを更新（`claude-progress.json`、`feature-list.json`）
+6. 説明的なメッセージでワーキングコードをコミット
+7. 次の機能へ
 
-**NEVER proceed to next feature until current one is:**
-- Implemented
-- Tested
-- Committed
-- Progress files updated
+**現在の機能が以下を満たすまで次の機能に進んではならない:**
+- 実装完了
+- テスト完了
+- コミット完了
+- 進捗ファイル更新完了
 
-#### Implementation Pattern Selection
+#### 実装パターンの選択
 
-| Condition | Pattern | Workflow |
+| 条件 | パターン | ワークフロー |
 |-----------|---------|----------|
-| Clear acceptance criteria | **TDD** | qa-engineer writes failing tests → Specialist implements → Refactor |
-| Exploratory, UI-heavy | **Standard** | Specialist implements → qa-engineer validates → Iterate |
-| Bug fix with reproduction steps | **TDD** | qa-engineer writes failing test → Specialist fixes |
+| 明確な受け入れ基準がある | **TDD** | qa-engineer が失敗テストを作成 → スペシャリストが実装 → リファクタリング |
+| 探索的、UI 中心 | **スタンダード** | スペシャリストが実装 → qa-engineer が検証 → 反復 |
+| 再現手順のあるバグ修正 | **TDD** | qa-engineer が失敗テストを作成 → スペシャリストが修正 |
 
-**TDD Pattern** (Load `tdd-workflow` skill):
-- RED: `qa-engineer` writes failing tests based on acceptance criteria
-- GREEN: Specialist implements minimal code to pass
-- REFACTOR: Review and clean up
+**TDD パターン**（`tdd-workflow` スキルを読み込み）:
+- RED: `qa-engineer` が受け入れ基準に基づいて失敗テストを作成
+- GREEN: スペシャリストがテストを通す最小限のコードを実装
+- REFACTOR: レビューとクリーンアップ
 
-**Standard Pattern**:
-- Specialist implements feature
-- `qa-engineer` validates and writes tests
-- Iterate on feedback
+**スタンダードパターン**:
+- スペシャリストが機能を実装
+- `qa-engineer` が検証してテストを作成
+- フィードバックに基づいて反復
 
-#### Delegation to Specialist Agents
+#### スペシャリストエージェントへの委任
 
-Note: `frontend-specialist` and `backend-specialist` use `model: inherit`, so they use whatever model the user's session is running.
+注: `frontend-specialist` と `backend-specialist` は `model: inherit` を使用するため、ユーザーのセッションで実行中のモデルが使われる。
 
-For frontend work:
+フロントエンド作業の場合:
 ```
-Launch the frontend-specialist agent to implement: [component/feature]
-Following specification: docs/specs/[feature-name].md
-Following design: docs/specs/[feature-name]-design.md
-Key files from design: [Implementation Map entries]
-TDD mode: [yes/no] - If yes, reference test file
-Expected output: Working component with tests
-```
-
-For backend work:
-```
-Launch the backend-specialist agent to implement: [service/API]
-Following specification: docs/specs/[feature-name].md
-Following design: docs/specs/[feature-name]-design.md
-Key files from design: [Implementation Map entries]
-TDD mode: [yes/no] - If yes, reference test file
-Expected output: Working service with tests
+frontend-specialist エージェントを起動して実装: [コンポーネント/機能]
+仕様書に従う: docs/specs/[feature-name].md
+設計書に従う: docs/specs/[feature-name]-design.md
+設計書からの主要ファイル: [Implementation Map エントリ]
+TDD モード: [はい/いいえ] - はいの場合、テストファイルを参照
+期待出力: テスト付きの動作するコンポーネント
 ```
 
-**After each specialist agent completes:**
-1. Verify the agent's output summary
-2. Note the agent ID for potential resume
-3. Update `feature-list.json` (mark feature as completed)
-4. Update `claude-progress.json` (update currentTask, nextAction)
-5. Run TodoWrite to update visible progress
-6. Use AskUserQuestion to ask if user wants to review before committing:
+バックエンド作業の場合:
+```
+backend-specialist エージェントを起動して実装: [サービス/API]
+仕様書に従う: docs/specs/[feature-name].md
+設計書に従う: docs/specs/[feature-name]-design.md
+設計書からの主要ファイル: [Implementation Map エントリ]
+TDD モード: [はい/いいえ] - はいの場合、テストファイルを参照
+期待出力: テスト付きの動作するサービス
+```
+
+**各スペシャリストエージェント完了後:**
+1. エージェントの出力サマリーを確認
+2. 再開の可能性に備えてエージェント ID を記録
+3. `feature-list.json` を更新（機能を完了としてマーク）
+4. `claude-progress.json` を更新（currentTask、nextAction を更新）
+5. TodoWrite で可視的な進捗を更新
+6. AskUserQuestion でコミット前にレビューしたいか確認:
    ```
-   Question: "Feature implementation complete. Would you like to review before committing?"
-   Header: "Review"
+   Question: "機能の実装が完了しました。コミット前にレビューしますか？"
+   Header: "レビュー"
    Options:
-   - "Show me the changes first"
-   - "Proceed with commit"
-   - "Run tests before deciding"
+   - "変更内容を確認させてください"
+   - "コミットを進めてください"
+   - "判断前にテストを実行してください"
    ```
 
-**Error Handling for specialist agents (frontend-specialist, backend-specialist):**
+**スペシャリストエージェント（frontend-specialist、backend-specialist）のエラーハンドリング:**
 
-If specialist agent fails or times out:
-1. Check the agent's partial output for usable code/progress
-2. Retry once with reduced scope (focus on single component/function)
-3. If retry fails:
-   - **CRITICAL: Do NOT mark feature as complete if implementation is partial**
-   - Update `feature-list.json` status: `"blocked"` with reason
-   - Present to user:
+スペシャリストエージェントが失敗またはタイムアウトした場合:
+1. エージェントの部分出力で使用可能なコード/進捗を確認
+2. スコープを縮小してリトライ（単一コンポーネント/関数に集中）
+3. リトライも失敗した場合:
+   - **重要: 実装が部分的な場合、機能を完了としてマークしない**
+   - `feature-list.json` のステータスを `"blocked"` に更新（理由を記載）
+   - ユーザーに提示:
      ```
-     Implementation of [feature] encountered an issue.
+     [機能] の実装で問題が発生しました。
 
-     Agent output: [summary of what was done, if any]
-     Error: [failure reason]
+     エージェント出力: [実施内容のサマリー（あれば）]
+     エラー: [失敗理由]
 
-     Options:
-     1. Retry with simplified scope (single component focus)
-     2. Review partial implementation and complete manually
-     3. Skip this feature and proceed to next
-     4. Escalate to /debug for investigation
+     オプション:
+     1. スコープを簡略化してリトライ（単一コンポーネントに集中）
+     2. 部分的な実装をレビューして手動で完了
+     3. この機能をスキップして次へ進む
+     4. /debug にエスカレーションして調査
      ```
-   - Document failure in progress file: `"warnings": ["Feature X implementation failed: [reason]"]`
-4. Proceed only after user selects an option
+   - 進捗ファイルに障害を記録: `"warnings": ["Feature X implementation failed: [reason]"]`
+4. ユーザーがオプションを選択してから続行
 
-#### Subagent Resume for Iterative Work
+#### 反復作業のためのサブエージェント再開
 
-| Scenario | Action |
+| シナリオ | アクション |
 |----------|--------|
-| Expanding scope of same feature | Resume |
-| Permission error recovery | Resume in foreground |
-| Completely different feature | New agent |
-| Agent hit context limit | New agent with summary |
+| 同一機能のスコープ拡大 | 再開 |
+| パーミッションエラーからの復旧 | フォアグラウンドで再開 |
+| 完全に異なる機能 | 新しいエージェント |
+| エージェントがコンテキスト上限に到達 | サマリー付きの新しいエージェント |
 
-#### Handling Spec-Reality Divergence
+#### 仕様と現実の乖離への対応
 
-During implementation, the specialist agent or you may discover that the spec/design doesn't match reality (e.g., an API doesn't exist as assumed, a pattern works differently than expected).
+実装中に、スペシャリストエージェントまたはあなたが仕様書/設計書と現実の不一致を発見することがある（例: 想定していた API が存在しない、パターンが期待と異なる動作をする等）。
 
-**If divergence is minor** (implementation detail, not spec-level):
-- Adapt implementation and note the deviation
-- Add to progress log: `"deviation": "Adapted X because Y"`
+**乖離が軽微な場合**（実装の詳細レベル、仕様レベルではない）:
+- 実装を適応させ、逸脱を記録
+- 進捗ログに追加: `"deviation": "Adapted X because Y"`
 
-**If divergence is significant** (contradicts spec requirements):
-1. Stop implementation of the current feature
-2. Present the issue to the user:
+**乖離が重大な場合**（仕様要件と矛盾する）:
+1. 現在の機能の実装を停止
+2. ユーザーに問題を提示:
    ```
-   Implementation discovered a spec-reality mismatch:
+   実装中に仕様と現実の不一致が見つかりました:
 
-   Spec says: [what the spec assumes]
-   Reality: [what was actually found]
-   Impact: [how this affects the plan]
+   仕様では: [仕様が前提としている内容]
+   実際には: [実際に見つかった内容]
+   影響: [計画への影響]
 
-   Options:
-   1. Adapt the design → I'll adjust the approach for this feature only
-   2. Update spec and design → Pause implementation, update documents
-   3. Go back to planning → Re-run /spec-plan with new knowledge
+   オプション:
+   1. 設計を適応 → この機能のみアプローチを調整します
+   2. 仕様書と設計書を更新 → 実装を一時停止し、ドキュメントを更新
+   3. 計画に戻る → 新しい知見で /spec-plan を再実行
    ```
-3. Proceed based on user's choice
+3. ユーザーの選択に基づいて続行
 
 ---
 
-### Phase 3: Quality Review
+### フェーズ 3: 品質レビュー
 
-**Goal:** Ensure code meets quality, security, and spec requirements.
+**目標:** コードが品質、セキュリティ、仕様要件を満たしていることを確認する。
 
-**LAUNCH 4 PARALLEL REVIEW AGENTS (Sonnet):**
+**4つの並列レビューエージェント（Sonnet）を起動:**
 
 ```
-Launch these review agents in parallel:
+以下のレビューエージェントを並列で起動:
 
-1. qa-engineer agent
-   Focus: Test coverage, edge cases, acceptance criteria
-   Confidence threshold: 80
-   Output: Test gaps, quality issues with file:line
+1. qa-engineer エージェント
+   フォーカス: テストカバレッジ、エッジケース、受け入れ基準
+   信頼度閾値: 80
+   出力: テストギャップ、品質問題（file:line 付き）
 
-2. security-auditor agent
-   Focus: OWASP Top 10, auth/authz, data validation
-   Confidence threshold: 80
-   Output: Vulnerabilities with file:line and remediation
+2. security-auditor エージェント
+   フォーカス: OWASP Top 10、認証/認可、データバリデーション
+   信頼度閾値: 80
+   出力: 脆弱性（file:line と修正方法付き）
 
-3. code-explorer agent (verification)
-   Focus: Verify implementation matches design spec
-   Thoroughness: quick
-   Compare: Implementation vs docs/specs/[feature]-design.md
-   Output: Deviations, missing pieces with file:line
+3. code-explorer エージェント（検証）
+   フォーカス: 実装が設計仕様と一致しているか検証
+   徹底度: quick
+   比較: 実装 vs docs/specs/[feature]-design.md
+   出力: 逸脱、不足部分（file:line 付き）
 
-4. verification-specialist agent
-   Focus: Validate file:line references from other agents
-   Task: Cross-check findings for accuracy
-   Output: Verification report with VERIFIED/PARTIAL/UNVERIFIED status
+4. verification-specialist エージェント
+   フォーカス: 他のエージェントからの file:line 参照を検証
+   タスク: 発見事項の正確性をクロスチェック
+   出力: 検証レポート（VERIFIED/PARTIAL/UNVERIFIED ステータス付き）
 ```
 
-**Wait for all agents to complete.**
+**全エージェントの完了を待機。**
 
-**Error Handling:**
+**エラーハンドリング:**
 
-**CRITICAL: security-auditor failure is fatal (L1 rule):**
-If security-auditor fails or times out:
-1. Retry once with reduced scope (focus on critical paths only)
-2. If retry fails: **STOP and inform user**
+**重要: security-auditor の失敗は致命的（L1 ルール）:**
+security-auditor が失敗またはタイムアウトした場合:
+1. スコープを縮小してリトライ（クリティカルパスのみに集中）
+2. リトライも失敗した場合: **停止してユーザーに通知**
    ```
-   Security review failed. Cannot proceed without security validation.
+   セキュリティレビューが失敗しました。セキュリティバリデーションなしには続行できません。
 
-   Options:
-   1. Retry security review with manual scope selection
-   2. Skip security review (NOT RECOMMENDED - requires explicit user approval)
-   3. Abort and investigate the failure
+   オプション:
+   1. 手動スコープ選択でセキュリティレビューをリトライ
+   2. セキュリティレビューをスキップ（非推奨 - ユーザーの明示的な承認が必要）
+   3. 中断して障害を調査
    ```
-3. Do NOT proceed with implementation until security review passes or user explicitly approves skip
+3. セキュリティレビューが通過するか、ユーザーが明示的にスキップを承認するまで実装を進めない
 
-**For other agents (qa-engineer, code-explorer, verification-specialist):**
-If agent fails or times out:
-1. Check the agent's partial output for usable findings
-2. Retry once with reduced scope
-3. If retry fails, proceed with available results and document the gap
-4. Add to progress file: `"warnings": ["Agent X failed, results may be incomplete"]`
+**その他のエージェント（qa-engineer、code-explorer、verification-specialist）:**
+エージェントが失敗またはタイムアウトした場合:
+1. エージェントの部分出力で使用可能な発見事項を確認
+2. スコープを縮小してリトライ
+3. リトライも失敗した場合、利用可能な結果で続行しギャップを記録
+4. 進捗ファイルに追加: `"warnings": ["Agent X failed, results may be incomplete"]`
 
-#### Cross-Validation of File References
+#### ファイル参照のクロスバリデーション
 
-Review the verification-specialist's report before scoring:
+スコアリング前に verification-specialist のレポートをレビュー:
 
-| Verification Status | Action |
+| 検証ステータス | アクション |
 |---------------------|--------|
-| VERIFIED | Keep finding as-is |
-| PARTIAL | Reduce confidence by 10 |
-| UNVERIFIED | Reduce confidence by 20, flag as `"verified": false` |
+| VERIFIED | 発見事項をそのまま保持 |
+| PARTIAL | 信頼度を 10 減算 |
+| UNVERIFIED | 信頼度を 20 減算、`"verified": false` としてフラグ |
 
-**Consolidate findings with confidence weighting:**
+**信頼度加重で発見事項を統合:**
 
-| Scenario | Action |
+| シナリオ | アクション |
 |----------|--------|
-| Score < 80 | Filter out |
-| 1 agent reports (80+) | Report as-is |
-| 2 agents agree | Boost confidence |
-| 3 agents agree | Treat as confirmed |
+| スコア < 80 | フィルタアウト |
+| 1エージェントが報告（80以上） | そのまま報告 |
+| 2エージェントが一致 | 信頼度をブースト |
+| 3エージェントが一致 | 確認済みとして扱う |
 
-**Present findings to user:**
+**発見事項をユーザーに提示:**
 ```markdown
-## Quality Review Results
+## 品質レビュー結果
 
-### Critical Issues (Confidence >= 90)
-1. **[Issue Title]** - [Category] (Score: [N], Verified: [Yes/No])
-   File: `file:line`
-   **Fix:** [Remediation]
+### クリティカルな問題（信頼度 >= 90）
+1. **[問題タイトル]** - [カテゴリ]（スコア: [N]、検証済み: [はい/いいえ]）
+   ファイル: `file:line`
+   **修正:** [修正方法]
 
-### Important Issues (Confidence 80-89)
+### 重要な問題（信頼度 80-89）
 ...
 
-### Summary
-- Critical: [N]
-- Important: [N]
-- Filtered (below 80): [N]
+### サマリー
+- クリティカル: [N]
+- 重要: [N]
+- フィルタ済み（80未満）: [N]
 
-**Verdict:** [APPROVED / NEEDS CHANGES]
+**判定:** [承認 / 要変更]
 ```
 
-**Ask user:** "Found [N] issues. What would you like to do?"
-1. Fix critical issues now
-2. Fix all issues now
-3. Proceed without changes
-4. Get more details on specific issues
+**ユーザーに確認:** 「[N] 件の問題が見つかりました。どうしますか？」
+1. クリティカルな問題のみ修正
+2. すべての問題を修正
+3. 変更なしで続行
+4. 特定の問題の詳細を確認
 
-#### Evaluator-Optimizer Loop (For Critical Issues)
+#### 評価・最適化ループ（クリティカルな問題がある場合）
 
-If critical issues are found and user chooses to fix:
+クリティカルな問題が見つかり、ユーザーが修正を選択した場合:
 
 ```
-Iteration Loop (max 3):
+反復ループ（最大3回）:
 
-1. GENERATOR: Delegate fix to specialist agent
-2. EVALUATOR: Delegate re-check to original reviewer
-3. If score >= 80: Accept. If < 80: Loop. If max reached: Escalate to user.
+1. ジェネレーター: スペシャリストエージェントに修正を委任
+2. 評価者: 元のレビューアーに再チェックを委任
+3. スコア >= 80 の場合: 受理。< 80 の場合: ループ。最大到達の場合: ユーザーにエスカレーション。
 ```
 
-See `skills/workflows/evaluator-optimizer/SKILL.md` for detailed pattern.
+詳細なパターンは `skills/workflows/evaluator-optimizer/SKILL.md` を参照。
 
-**Progress Update:**
-Update `claude-progress.json`:
+**進捗更新:**
+`claude-progress.json` を更新:
 - currentPhase: "impl-review-complete"
 - resumptionContext.nextAction: "Proceed to Summary"
 
 ---
 
-### Phase 4: Summary
+### フェーズ 4: サマリー
 
-**Goal:** Document what was accomplished.
+**目標:** 成果を文書化する。
 
-**Update progress file to completed status.**
+**進捗ファイルを完了ステータスに更新。**
 
 ```markdown
-## Implementation Complete
+## 実装完了
 
-### What Was Built
-- [Feature description]
+### 構築した内容
+- [機能の説明]
 
-### Key Decisions
-- [Decision 1]: [Rationale]
+### 主要な決定事項
+- [決定 1]: [根拠]
 
-### Deviations from Design
-- [Deviation 1]: [Why and what was adapted]
+### 設計からの逸脱
+- [逸脱 1]: [理由と適応内容]
 
-### Files Modified
-| File | Changes |
+### 変更ファイル
+| ファイル | 変更内容 |
 |------|---------|
-| `path/to/file.ts` | [Summary] |
+| `path/to/file.ts` | [サマリー] |
 
-### Quality Status
-- Tests: [Passing/Failing]
-- Security: [Approved/Issues]
-- Coverage: [Percentage]
+### 品質ステータス
+- テスト: [通過/失敗]
+- セキュリティ: [承認/問題あり]
+- カバレッジ: [パーセンテージ]
 
-### Next Steps
-1. [Suggested follow-up 1]
-2. [Suggested follow-up 2]
+### 次のステップ
+1. [推奨フォローアップ 1]
+2. [推奨フォローアップ 2]
 ```
 
-**Mark all todos complete.**
+**すべての TODO を完了にマーク。**
 
-## Usage Examples
+## 使用例
 
 ```bash
-# Implement from spec file
+# 仕様書ファイルから実装
 /spec-implement docs/specs/user-authentication.md
 
-# Implement by feature name
+# 機能名で実装
 /spec-implement user-authentication
 
-# Resume implementation (auto-detects from progress file)
+# 実装を再開（進捗ファイルから自動検出）
 /spec-implement
 ```
 
-## When NOT to Use
+## 使うべきでない場合
 
-- No spec or design exists (run `/spec-plan` first)
-- Single-line bug fixes (just fix it directly)
-- Trivial changes (use `/quick-impl`)
-- Urgent hotfixes (use `/hotfix`)
+- 仕様書や設計書が存在しない場合（先に `/spec-plan` を実行）
+- 1行のバグ修正（直接修正する）
+- 些細な変更（`/quick-impl` を使用）
+- 緊急ホットフィックス（`/hotfix` を使用）
 
 ---
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-Critical for safe implementation and orchestration.
+安全な実装とオーケストレーションに不可欠。
 
-- MUST delegate bulk Grep/Glob operations to `code-explorer` (use directly only for single targeted lookups)
-- For bulk reading (>3 files): delegate to subagents. Quick lookups and fallbacks are allowed.
-- NEVER implement code yourself — delegate to `frontend-specialist` or `backend-specialist`
-- NEVER write tests yourself — delegate to `qa-engineer`
-- NEVER do security analysis yourself — delegate to `security-auditor`
-- MUST get explicit user approval before modifying any files
-- NEVER proceed with implementation without user confirmation
-- MUST use AskUserQuestion when:
-  - Spec-reality divergence is discovered
-  - Multiple implementation approaches are possible
-  - User feedback is ambiguous during quality review
-- NEVER proceed if `security-auditor` agent fails without explicit user approval — security review skip requires documented user consent
-- MUST retry once if any agent times out, with reduced scope
-- MUST document all agent failures in progress file before continuing
-- ALWAYS update progress files after each feature completion
+- MUST: 大量の Grep/Glob 操作は `code-explorer` に委任する（単発の特定検索のみ直接使用可）
+- MUST: 大量読み込み（3ファイル超）はサブエージェントに委任する。クイックルックアップおよびフォールバックは許可。
+- NEVER: 自分でコードを実装する — `frontend-specialist` または `backend-specialist` に委任
+- NEVER: 自分でテストを書く — `qa-engineer` に委任
+- NEVER: 自分でセキュリティ分析を行う — `security-auditor` に委任
+- MUST: ファイル変更前にユーザーの明示的な承認を得る
+- NEVER: ユーザーの確認なしに実装を進める
+- MUST: 以下の場合は AskUserQuestion を使用する:
+  - 仕様と現実の乖離が発見された場合
+  - 複数の実装アプローチが可能な場合
+  - 品質レビュー中にユーザーのフィードバックが曖昧な場合
+- NEVER: `security-auditor` エージェントが失敗した場合、ユーザーの明示的な承認なしに続行する — セキュリティレビューのスキップにはユーザーの文書化された同意が必要
+- MUST: エージェントがタイムアウトした場合、スコープを縮小して1回リトライする
+- MUST: 続行前にすべてのエージェント障害を進捗ファイルに記録する
+- MUST: 各機能完了後に進捗ファイルを更新する
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-Important for quality implementation. Override with reasoning when appropriate.
+品質の高い実装に重要。適切な理由がある場合はオーバーライド可。
 
-- Complete one feature at a time (implement → test → commit → next)
-- Use TDD pattern when clear acceptance criteria exist
-- Launch 4 parallel review agents in Phase 3
-- De-duplicate issues from multiple agents (boost confidence by 10)
+- 一度に1つの機能を完了（実装 → テスト → コミット → 次へ）
+- 明確な受け入れ基準がある場合は TDD パターンを使用
+- フェーズ 3 で4つの並列レビューエージェントを起動
+- 複数エージェントからの問題を重複排除（信頼度を 10 ブースト）
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-Recommendations for effective implementation.
+効果的な実装のための推奨事項。
 
-- Consider asking user if they want to review before committing each feature
-- Prefer presenting quality review findings grouped by severity
-- Consider documenting deviations from design for future reference
+- consider: 各機能のコミット前にユーザーにレビューしたいか確認する
+- recommend: 品質レビューの発見事項は重要度別にグループ化して提示する
+- consider: 設計からの逸脱は将来の参考のために文書化する

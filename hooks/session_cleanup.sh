@@ -1,51 +1,49 @@
 #!/bin/bash
-# SessionEnd Hook: Clean up resources when Claude Code session terminates
-# This hook runs when the session ends (user exits, timeout, etc.)
+# SessionEnd フック: Claude Code セッション終了時にリソースをクリーンアップ
+# セッション終了時（ユーザー終了、タイムアウト等）に実行される
 #
-# Responsibilities:
-# - Rotate old log files to prevent disk bloat
-# - Clean up temporary files created during the session
-# - Archive stale workspace data (older than 30 days)
-#
-# Based on: https://code.claude.com/docs/en/hooks
+# 責務:
+# - ディスク肥大化を防ぐための古いログファイルのローテーション
+# - セッション中に作成された一時ファイルのクリーンアップ
+# - 古いワークスペースデータのアーカイブ（30日以上経過したもの）
 
-# Source workspace utilities
+# ワークスペースユーティリティを読み込み
 SCRIPT_DIR="$(dirname "$0")"
 if [ -f "$SCRIPT_DIR/workspace_utils.sh" ]; then
     source "$SCRIPT_DIR/workspace_utils.sh"
 fi
 
-# Configuration
+# 設定
 LOG_RETENTION_DAYS=30
 MAX_LOG_SIZE_MB=10
 WORKSPACE_BASE=".claude/workspaces"
 
-# --- Cross-Platform Utilities ---
-# Get file modification time in seconds since epoch (cross-platform)
+# --- クロスプラットフォームユーティリティ ---
+# ファイルの更新時刻をエポックからの秒数で取得（クロスプラットフォーム）
 get_file_mtime() {
     local file="$1"
 
-    # Check if file exists first (prevents race condition)
+    # まずファイルの存在を確認（競合状態の防止）
     if [ ! -f "$file" ]; then
         echo 0
         return
     fi
 
-    # Try platform-appropriate stat command (POSIX-compatible)
+    # プラットフォームに適した stat コマンドを使用（POSIX 互換）
     case "$OSTYPE" in
         darwin*)
-            # macOS: stat -f%m returns modification time
+            # macOS: stat -f%m は更新時刻を返す
             stat -f%m "$file" 2>/dev/null || echo 0
             ;;
         *)
-            # Linux: stat -c %Y returns modification time
+            # Linux: stat -c %Y は更新時刻を返す
             stat -c %Y "$file" 2>/dev/null || echo 0
             ;;
     esac
 }
 
-# --- Log Rotation ---
-# Rotate logs that exceed size limit or are older than retention period
+# --- ログローテーション ---
+# サイズ制限超過または保持期間を超えたログをローテーション
 
 rotate_logs() {
     local workspace_id="$1"
@@ -55,24 +53,24 @@ rotate_logs() {
         return 0
     fi
 
-    # Find and compress old session logs
+    # 古いセッションログを検索して圧縮
     find "$log_dir/sessions" -name "*.log" -mtime +$LOG_RETENTION_DAYS 2>/dev/null | while read -r logfile; do
         if [ -f "$logfile" ] && [ ! -f "${logfile}.gz" ]; then
             gzip -f "$logfile" 2>/dev/null
         fi
     done
 
-    # Remove very old compressed logs (double retention period)
+    # 非常に古い圧縮済みログを削除（保持期間の2倍）
     find "$log_dir/sessions" -name "*.log.gz" -mtime +$((LOG_RETENTION_DAYS * 2)) -delete 2>/dev/null
 
-    # Rotate main activity log if too large
+    # メインのアクティビティログが大きすぎる場合はローテーション
     local activity_log="$log_dir/subagent_activity.log"
     if [ -f "$activity_log" ]; then
         local size_kb=$(du -k "$activity_log" 2>/dev/null | cut -f1)
         local max_size_kb=$((MAX_LOG_SIZE_MB * 1024))
 
         if [ "${size_kb:-0}" -gt "$max_size_kb" ]; then
-            # Keep last 1000 lines, archive the rest
+            # 最後の1000行を保持し、残りをアーカイブ
             local timestamp=$(date +%Y%m%d_%H%M%S)
             tail -n 1000 "$activity_log" > "${activity_log}.tmp"
             mv "$activity_log" "${activity_log}.${timestamp}"
@@ -82,8 +80,8 @@ rotate_logs() {
     fi
 }
 
-# --- Temporary File Cleanup ---
-# Remove temporary files created during the session
+# --- 一時ファイルのクリーンアップ ---
+# セッション中に作成された一時ファイルを削除
 
 cleanup_temp_files() {
     local workspace_id="$1"
@@ -93,15 +91,15 @@ cleanup_temp_files() {
         return 0
     fi
 
-    # Remove .tmp files
+    # .tmp ファイルを削除
     find "$workspace_dir" -name "*.tmp" -type f -delete 2>/dev/null
 
-    # Remove empty directories (but not the main workspace dir)
+    # 空のディレクトリを削除（メインのワークスペースディレクトリは除く）
     find "$workspace_dir" -mindepth 1 -type d -empty -delete 2>/dev/null
 }
 
-# --- Stale Workspace Archival ---
-# Archive workspaces not updated in a long time
+# --- 古いワークスペースのアーカイブ ---
+# 長期間更新されていないワークスペースをアーカイブ
 
 archive_stale_workspaces() {
     if [ ! -d "$WORKSPACE_BASE" ]; then
@@ -110,25 +108,25 @@ archive_stale_workspaces() {
 
     local archive_dir="$WORKSPACE_BASE/.archive"
 
-    # Find workspaces not modified in LOG_RETENTION_DAYS
+    # LOG_RETENTION_DAYS 日間更新されていないワークスペースを検索
     for workspace_dir in "$WORKSPACE_BASE"/*/; do
         [ -d "$workspace_dir" ] || continue
 
         local workspace_name=$(basename "$workspace_dir")
 
-        # Skip archive directory
+        # アーカイブディレクトリはスキップ
         [ "$workspace_name" = ".archive" ] && continue
 
         local progress_file="$workspace_dir/claude-progress.json"
 
         if [ -f "$progress_file" ]; then
-            # Check if progress file is stale (using cross-platform mtime)
+            # 進捗ファイルが古いかチェック（クロスプラットフォーム mtime を使用）
             local file_mtime
             file_mtime=$(get_file_mtime "$progress_file")
             local file_age_days=$(( ($(date +%s) - file_mtime) / 86400 ))
 
             if [ "$file_age_days" -gt "$LOG_RETENTION_DAYS" ]; then
-                # Check if status is completed (safe to archive)
+                # ステータスが completed かチェック（アーカイブしても安全）
                 local status=""
                 if command -v python3 &> /dev/null; then
                     status=$(PROGRESS_FILE_PATH="$progress_file" python3 -c "
@@ -143,7 +141,7 @@ except:
 " 2>/dev/null)
                 fi
 
-                # Only archive completed workspaces
+                # 完了済みのワークスペースのみアーカイブ
                 if [ "$status" = "completed" ]; then
                     mkdir -p "$archive_dir"
                     local timestamp=$(date +%Y%m%d)
@@ -154,22 +152,22 @@ except:
     done
 }
 
-# --- Main Execution ---
+# --- メイン実行 ---
 
-# Get current workspace ID
+# 現在のワークスペース ID を取得
 WORKSPACE_ID=""
 if command -v get_workspace_id &> /dev/null; then
     WORKSPACE_ID=$(get_workspace_id)
 fi
 
-# Perform cleanup for current workspace
+# 現在のワークスペースのクリーンアップを実行
 if [ -n "$WORKSPACE_ID" ]; then
     rotate_logs "$WORKSPACE_ID"
     cleanup_temp_files "$WORKSPACE_ID"
 fi
 
-# Archive stale workspaces (run periodically, not every session)
-# Only run if a marker file is older than 1 day
+# 古いワークスペースのアーカイブ（定期的に実行、毎セッションではない）
+# マーカーファイルが1日以上古い場合のみ実行
 ARCHIVE_MARKER="$WORKSPACE_BASE/.last_archive_check"
 MARKER_MTIME=$(get_file_mtime "$ARCHIVE_MARKER")
 if [ ! -f "$ARCHIVE_MARKER" ] || [ $(( ($(date +%s) - MARKER_MTIME) / 86400 )) -gt 0 ]; then
@@ -177,5 +175,5 @@ if [ ! -f "$ARCHIVE_MARKER" ] || [ $(( ($(date +%s) - MARKER_MTIME) / 86400 )) -
     touch "$ARCHIVE_MARKER" 2>/dev/null
 fi
 
-# Exit successfully (cleanup is best-effort)
+# 正常終了（クリーンアップはベストエフォート）
 exit 0

@@ -1,60 +1,60 @@
 ---
 name: testing
 description: |
-  Test strategy, patterns, and best practices applicable to any technology stack. Use when:
-  - Writing unit, integration, or E2E tests
-  - Developing test strategies or improving coverage
-  - Learning testing best practices
-  - Debugging failing or flaky tests
-  - Setting up test data, mocks, or fixtures
+  任意の技術スタックに適用可能なテスト戦略、パターン、ベストプラクティス。以下の場合に使用:
+  - ユニットテスト、統合テスト、E2E テストの作成
+  - テスト戦略の策定やカバレッジの改善
+  - テストのベストプラクティスの学習
+  - 失敗テストやフレーキーテストのデバッグ
+  - テストデータ、モック、フィクスチャのセットアップ
   Trigger phrases: write tests, unit test, integration test, E2E test, test coverage, test strategy, mock, fixture, test data
 allowed-tools: Read, Glob, Grep, Bash, Write, Edit, WebSearch, WebFetch
 model: sonnet
 user-invocable: true
 ---
 
-# Testing
+# テスト
 
-Stack-adaptive testing patterns and practices. This skill defines **testing principles and methodologies**, not specific framework commands.
+スタック適応型のテストパターンとプラクティス。このスキルは**テストの原則と方法論**を定義するものであり、特定のフレームワークコマンドを定義するものではない。
 
-## Design Principles
+## 設計原則
 
-1. **Discover, don't assume**: Detect what testing tools the project uses
-2. **Project-first**: Use the project's configured test commands
-3. **Patterns over tools**: Teach testing concepts that apply to any framework
+1. **仮定せず発見する**: プロジェクトが使用するテストツールを検出する
+2. **プロジェクト優先**: プロジェクトに設定されたテストコマンドを使用する
+3. **ツールよりパターン**: 任意のフレームワークに適用できるテストの概念を教える
 
 ---
 
-## Test Pyramid
+## テストピラミッド
 
 ```
          /\
-        /E2E\        Few: Critical user journeys (5-10%)
+        /E2E\        少数: 重要なユーザージャーニー (5-10%)
        /------\
-      / Integ  \     Some: Service boundaries (15-25%)
+      / 統合   \     一部: サービス境界 (15-25%)
      /----------\
-    /   Unit     \   Many: Business logic (65-80%)
+    /  ユニット  \   多数: ビジネスロジック (65-80%)
    /--------------\
 ```
 
-## Test Structure
+## テスト構造
 
 ### Arrange-Act-Assert (AAA)
 
-Universal pattern for all test frameworks:
+全テストフレームワークに共通するユニバーサルパターン:
 
 ```
-Arrange: Set up test data and dependencies
-Act:     Execute the code under test
-Assert:  Verify expected outcomes
+Arrange: テストデータと依存関係のセットアップ
+Act:     テスト対象コードの実行
+Assert:  期待される結果の検証
 ```
 
-### Naming Convention
+### 命名規則
 
 ```
-[unit_being_tested]_[scenario]_[expected_result]
+[テスト対象]_[シナリオ]_[期待結果]
 
-Examples:
+例:
 - createUser_withValidData_returnsUser
 - calculateTotal_withEmptyCart_returnsZero
 - login_withInvalidCredentials_throwsAuthError
@@ -62,43 +62,43 @@ Examples:
 
 ---
 
-## Framework Detection
+## フレームワーク検出
 
-### Step 1: Discover Test Configuration
+### ステップ 1: テスト設定の発見
 
-Look for test configuration files in the project:
+プロジェクト内のテスト設定ファイルを探す:
 
 ```bash
-# List potential test config files
+# テスト設定ファイルの候補をリスト
 ls -la *test*.config.* *jest*.* *vitest*.* pytest.ini setup.cfg pyproject.toml 2>/dev/null
 
-# Check for test directories
+# テストディレクトリの確認
 ls -d tests/ test/ __tests__/ spec/ *_test/ 2>/dev/null
 
-# Check package.json/pyproject.toml for test scripts
+# package.json/pyproject.toml のテストスクリプトを確認
 grep -A 5 '"test"' package.json 2>/dev/null
 grep -A 5 '\[tool.pytest' pyproject.toml 2>/dev/null
 ```
 
-### Step 2: Use Project's Test Commands
+### ステップ 2: プロジェクトのテストコマンドを使用
 
-**Always prefer project-defined scripts:**
+**常にプロジェクト定義のスクリプトを優先する:**
 
 ```bash
-# Check for defined test scripts
+# 定義されたテストスクリプトを確認
 grep -E '"test":|"test:' package.json 2>/dev/null    # JavaScript
 grep -A 3 '\[scripts\]' pyproject.toml 2>/dev/null   # Python
-cat Makefile 2>/dev/null | grep -E '^test:'          # Any language
+cat Makefile 2>/dev/null | grep -E '^test:'          # 任意の言語
 ```
 
-**Run using the project's configured command:**
-- If `npm test` is configured → use `npm test`
-- If `make test` exists → use `make test`
-- Otherwise, search for the standard command for the detected framework
+**プロジェクトに設定されたコマンドで実行する:**
+- `npm test` が設定されている場合 → `npm test` を使用
+- `make test` が存在する場合 → `make test` を使用
+- それ以外の場合、検出されたフレームワークの標準コマンドを検索
 
-### Step 3: Research Framework Commands
+### ステップ 3: フレームワークコマンドのリサーチ
 
-If the test framework is unfamiliar, use WebSearch:
+テストフレームワークに不慣れな場合、WebSearch を使用:
 
 ```
 WebSearch: "[framework name] run tests command [year]"
@@ -107,78 +107,78 @@ WebFetch: [official docs] → "Extract test execution commands"
 
 ---
 
-## Unit Testing Principles
+## ユニットテストの原則
 
-### What to Unit Test
+### ユニットテストすべきもの
 
-- Business logic and algorithms
-- Edge cases and boundary conditions
-- Error conditions and exception handling
-- Input validation
-- Pure functions (no side effects)
+- ビジネスロジックとアルゴリズム
+- エッジケースと境界条件
+- エラー条件と例外処理
+- 入力バリデーション
+- 純粋関数（副作用なし）
 
-### What NOT to Unit Test
+### ユニットテストすべきでないもの
 
-- Framework/library code
-- Simple getters/setters
-- Implementation details (test behavior, not structure)
-- Third-party integrations (use integration tests)
+- フレームワーク/ライブラリのコード
+- 単純なゲッター/セッター
+- 実装の詳細（構造ではなく動作をテスト）
+- サードパーティ統合（統合テストを使用）
 
-### Mocking Guidelines
+### モックのガイドライン
 
-**When to Mock:**
-- External services (APIs, databases)
-- Time-dependent operations (dates, timers)
-- Random number generation
-- File system operations
-- Network requests
+**モックすべき場合:**
+- 外部サービス（API、データベース）
+- 時間依存の操作（日付、タイマー）
+- 乱数生成
+- ファイルシステム操作
+- ネットワークリクエスト
 
-**When NOT to Mock:**
-- The code under test itself
-- Simple utility functions
-- Internal domain logic
-- Anything that's fast and deterministic
-
----
-
-## Integration Testing
-
-### API Testing Pattern
-
-```
-1. Set up test database/state
-2. Make HTTP request to endpoint
-3. Assert response status code
-4. Assert response body structure and values
-5. Assert side effects (database state changes)
-6. Clean up test data
-```
-
-### Database Testing Strategies
-
-| Strategy | Description | Use When |
-|----------|-------------|----------|
-| Transaction rollback | Run test in transaction, rollback after | Fast isolation needed |
-| Test database | Separate database for tests | Full integration testing |
-| Seed and clean | Load fixtures, clean after | Realistic data scenarios |
-| Containers | Ephemeral DB per test run | CI/CD environments |
+**モックすべきでない場合:**
+- テスト対象のコード自体
+- 単純なユーティリティ関数
+- 内部のドメインロジック
+- 高速かつ決定的なもの
 
 ---
 
-## E2E Testing
+## 統合テスト
 
-### Locator Priority
+### API テストパターン
 
-Best practices for finding elements (applies to most E2E frameworks):
+```
+1. テストデータベース/状態のセットアップ
+2. エンドポイントへの HTTP リクエスト
+3. レスポンスステータスコードのアサーション
+4. レスポンスボディの構造と値のアサーション
+5. 副作用（データベース状態変更）のアサーション
+6. テストデータのクリーンアップ
+```
 
-1. **Accessibility roles** - Most robust, works like users interact
-2. **Labels** - For form inputs
-3. **Text content** - For visible content
-4. **Test IDs** - Last resort, explicit for testing
+### データベーステスト戦略
 
-### Page Object Model
+| 戦略 | 説明 | 使用場面 |
+|------|------|---------|
+| トランザクションロールバック | トランザクション内でテスト実行、終了後ロールバック | 高速な分離が必要 |
+| テストデータベース | テスト専用の別データベース | フル統合テスト |
+| シードとクリーン | フィクスチャをロード、終了後クリーン | リアルなデータシナリオ |
+| コンテナ | テスト実行ごとの一時的な DB | CI/CD 環境 |
 
-Organize E2E tests with page abstractions:
+---
+
+## E2E テスト
+
+### ロケーターの優先順位
+
+要素の検索に関するベストプラクティス（ほとんどの E2E フレームワークに適用）:
+
+1. **アクセシビリティロール** - 最も堅牢、ユーザーのインタラクション方法と一致
+2. **ラベル** - フォーム入力用
+3. **テキストコンテンツ** - 表示コンテンツ用
+4. **テスト ID** - 最後の手段、テスト専用に明示的
+
+### ページオブジェクトモデル
+
+ページの抽象化で E2E テストを整理:
 
 ```
 pages/
@@ -191,200 +191,200 @@ tests/
   dashboard.spec.[ext]
 ```
 
-### E2E Best Practices
+### E2E のベストプラクティス
 
-- Test critical user journeys, not everything
-- Use realistic but consistent test data
-- Avoid flaky selectors (prefer stable identifiers)
-- Keep E2E test count low (pyramid principle)
-- Run E2E tests in isolated environments
-
----
-
-## Test Data Management
-
-### Factories
-
-Use factories for dynamic test data:
-- Generate realistic data programmatically
-- Override specific fields as needed
-- Avoid hardcoded magic values in tests
-
-### Fixtures
-
-Use fixtures for stable scenarios:
-- Predefined user accounts for login tests
-- Reference data sets that don't change
-- Configuration presets for different scenarios
+- 全てではなく重要なユーザージャーニーをテスト
+- リアルだが一貫したテストデータを使用
+- フレーキーなセレクターを避ける（安定した識別子を優先）
+- E2E テスト数を少なく保つ（ピラミッド原則）
+- E2E テストは隔離された環境で実行
 
 ---
 
-## Coverage Guidelines
+## テストデータ管理
 
-### Target Thresholds
+### ファクトリー
 
-| Metric | Suggested Target |
-|--------|------------------|
-| Statements | 80% |
-| Branches | 80% |
-| Functions | 80% |
-| Lines | 80% |
+動的テストデータにはファクトリーを使用:
+- リアルなデータをプログラム的に生成
+- 必要に応じて特定のフィールドをオーバーライド
+- テスト内のハードコードされたマジック値を避ける
 
-### Coverage Commands
+### フィクスチャ
 
-Discover coverage commands from project configuration:
+安定したシナリオにはフィクスチャを使用:
+- ログインテスト用の事前定義ユーザーアカウント
+- 変更されないリファレンスデータセット
+- 異なるシナリオ用の設定プリセット
+
+---
+
+## カバレッジガイドライン
+
+### 目標閾値
+
+| メトリクス | 推奨目標 |
+|-----------|---------|
+| ステートメント | 80% |
+| ブランチ | 80% |
+| 関数 | 80% |
+| 行 | 80% |
+
+### カバレッジコマンド
+
+プロジェクト設定からカバレッジコマンドを発見する:
 
 ```bash
-# Check for coverage scripts
+# カバレッジスクリプトの確認
 grep -E 'coverage|cov' package.json 2>/dev/null
 grep -E 'coverage|cov' pyproject.toml 2>/dev/null
 grep -E 'coverage|cov' Makefile 2>/dev/null
 ```
 
-If no coverage script exists, search for the framework's coverage option:
+カバレッジスクリプトが存在しない場合、フレームワークのカバレッジオプションを検索:
 ```
 WebSearch: "[test framework name] code coverage command"
 ```
 
 ---
 
-## Test Quality Checklist
+## テスト品質チェックリスト
 
-- [ ] Tests are independent (no shared mutable state)
-- [ ] Tests are deterministic (same result every run)
-- [ ] Tests clean up after themselves
-- [ ] Tests are fast (unit < 100ms typical)
-- [ ] Test names describe what they verify
-- [ ] Tests cover both success and error cases
-- [ ] No hardcoded paths or environment-specific values
-
----
-
-## Debugging Failing Tests
-
-### Process
-
-1. **Read the failure message** - Understand expected vs actual
-2. **Run test in isolation** - Verify it's not dependent on other tests
-3. **Add logging** - Print intermediate values
-4. **Check test setup** - Verify preconditions are met
-5. **Verify mocks** - Ensure mocks return expected values
-6. **Check for flakiness** - Run multiple times
-
-### Flaky Test Indicators
-
-- Test passes/fails inconsistently
-- Test depends on timing or order
-- Test uses real external services
-- Test has race conditions in async code
+- [ ] テストが独立している（共有の可変状態なし）
+- [ ] テストが決定的である（毎回同じ結果）
+- [ ] テストが自身の後片付けをする
+- [ ] テストが高速である（ユニットテストは通常 100ms 未満）
+- [ ] テスト名が検証内容を説明している
+- [ ] 成功とエラーの両方のケースをカバー
+- [ ] ハードコードされたパスや環境固有の値なし
 
 ---
 
-## Flaky Test Management
+## 失敗テストのデバッグ
 
-Flaky tests undermine CI reliability and developer trust. This section provides systematic approaches to detect, diagnose, and fix them.
+### プロセス
 
-### Detecting Flaky Tests
+1. **失敗メッセージを読む** - 期待値と実際値を理解
+2. **テストを単独で実行** - 他のテストへの依存がないか確認
+3. **ロギングを追加** - 中間値を出力
+4. **テストセットアップを確認** - 前提条件が満たされているか検証
+5. **モックを確認** - モックが期待値を返しているか確認
+6. **フレーキーさをチェック** - 複数回実行
 
-**Local Detection:**
+### フレーキーテストの指標
+
+- テストの合否が一貫しない
+- テストがタイミングや実行順序に依存
+- テストが実際の外部サービスを使用
+- テストに非同期コードの競合状態がある
+
+---
+
+## フレーキーテスト管理
+
+フレーキーテストは CI の信頼性と開発者の信頼を損なう。検出、診断、修正のための体系的なアプローチを提供する。
+
+### フレーキーテストの検出
+
+**ローカルでの検出:**
 ```bash
-# Run test multiple times to detect flakiness
+# フレーキーさを検出するためにテストを複数回実行
 for i in {1..10}; do npm test -- --testNamePattern="suspect test" && echo "Pass $i" || echo "FAIL $i"; done
 
-# For pytest
+# pytest の場合
 for i in {1..10}; do pytest path/to/test.py::test_name -x && echo "Pass $i" || echo "FAIL $i"; done
 ```
 
-**CI Detection Patterns:**
-- Same test fails intermittently across different PRs
-- Test passes on retry without code changes
-- Test fails only on certain CI runners or times
+**CI での検出パターン:**
+- 異なる PR で同じテストが断続的に失敗
+- コード変更なしでリトライ時に通過
+- 特定の CI ランナーや時間帯のみで失敗
 
-### Common Flaky Test Causes
+### フレーキーテストの一般的な原因
 
-| Cause | Symptom | Solution |
-|-------|---------|----------|
-| **Timing dependencies** | Fails with "timeout" or inconsistent timing | Use explicit waits, not sleeps |
-| **Shared state** | Fails when run with other tests, passes alone | Isolate test data, use fixtures |
-| **Order dependency** | Fails when test order changes | Make each test independent |
-| **External services** | Network errors, rate limits | Mock external dependencies |
-| **Race conditions** | Intermittent with async code | Proper async/await handling |
-| **Resource exhaustion** | Fails late in test suite | Clean up resources, increase limits |
-| **Time-based logic** | Fails at certain times (midnight, DST) | Mock time/date functions |
-| **Random data** | Different results with random inputs | Seed random generators |
+| 原因 | 症状 | 解決策 |
+|------|------|--------|
+| **タイミング依存** | 「タイムアウト」やタイミングの不整合で失敗 | sleep ではなく明示的な待機を使用 |
+| **共有状態** | 他テストと同時実行で失敗、単独では通過 | テストデータの分離、フィクスチャを使用 |
+| **順序依存** | テスト順序変更で失敗 | 各テストを独立させる |
+| **外部サービス** | ネットワークエラー、レート制限 | 外部依存をモック |
+| **競合状態** | 非同期コードで断続的に発生 | 適切な async/await の処理 |
+| **リソース枯渇** | テストスイートの後半で失敗 | リソースのクリーンアップ、制限の引き上げ |
+| **時間依存ロジック** | 特定の時間（深夜、夏時間）で失敗 | 時間/日付関数をモック |
+| **ランダムデータ** | ランダム入力で異なる結果 | 乱数ジェネレーターにシードを設定 |
 
-### Fixing Flaky Tests
+### フレーキーテストの修正
 
-**Strategy 1: Replace Sleeps with Explicit Waits**
+**戦略 1: sleep を明示的な待機に置き換え**
 
 ```
-# Bad: Fixed sleep (may be too short or wasteful)
+# 悪い例: 固定 sleep（短すぎるか無駄な場合がある）
 sleep(2)
 assert element.visible
 
-# Good: Wait for condition with timeout
+# 良い例: タイムアウト付きの条件待機
 wait_for(lambda: element.visible, timeout=5)
 ```
 
-**Strategy 2: Isolate Test Data**
+**戦略 2: テストデータの分離**
 
 ```
-# Bad: Tests share database state
+# 悪い例: テストがデータベース状態を共有
 def test_create_user():
-    create_user("john")  # May conflict with other tests
+    create_user("john")  # 他のテストと競合する可能性
 
-# Good: Each test has isolated data
+# 良い例: 各テストが分離されたデータを持つ
 def test_create_user(unique_user_factory):
-    user = unique_user_factory()  # Generates unique user per test
+    user = unique_user_factory()  # テストごとに一意のユーザーを生成
 ```
 
-**Strategy 3: Mock Time-Dependent Code**
+**戦略 3: 時間依存コードのモック**
 
 ```
-# Bad: Uses real time
+# 悪い例: 実時間を使用
 def test_expiration():
     token = create_token(expires_in=60)
     time.sleep(61)
     assert token.is_expired()
 
-# Good: Mocks time
+# 良い例: 時間をモック
 def test_expiration(mock_time):
     token = create_token(expires_in=60)
     mock_time.advance(61)
     assert token.is_expired()
 ```
 
-**Strategy 4: Seed Random Generators**
+**戦略 4: 乱数ジェネレーターにシードを設定**
 
 ```
-# Bad: Non-deterministic
+# 悪い例: 非決定的
 def test_random_selection():
-    result = pick_random_item(items)  # Different each run
+    result = pick_random_item(items)  # 毎回異なる
 
-# Good: Seeded for reproducibility
+# 良い例: 再現性のためにシードを設定
 def test_random_selection():
-    random.seed(42)  # Or use pytest-randomly with --randomly-seed
+    random.seed(42)  # または pytest-randomly の --randomly-seed を使用
     result = pick_random_item(items)
 ```
 
-### Quarantine Strategy
+### 隔離戦略
 
-When a flaky test can't be immediately fixed:
+フレーキーテストをすぐに修正できない場合:
 
-1. **Mark as flaky** - Use framework-specific skip/xfail annotations
-2. **Document the issue** - Create a ticket with reproduction steps
-3. **Exclude from blocking CI** - Move to non-blocking test suite
-4. **Set fix deadline** - Quarantine should be temporary
+1. **フレーキーとしてマーク** - フレームワーク固有の skip/xfail アノテーションを使用
+2. **イシューを文書化** - 再現手順付きのチケットを作成
+3. **ブロッキング CI から除外** - ノンブロッキングテストスイートに移動
+4. **修正期限を設定** - 隔離は一時的であるべき
 
 ```
-# Example: Jest
+# 例: Jest
 test.skip('flaky: issue #123 - timing issue in CI', () => {...})
 
-# Example: pytest
+# 例: pytest
 @pytest.mark.skip(reason="Flaky: issue #123 - race condition")
 def test_flaky_feature(): ...
 
-# Example: Track in separate CI job
+# 例: 別の CI ジョブで追跡
 # .github/workflows/ci.yml
 - name: Run stable tests (blocking)
   run: npm test -- --testPathIgnorePatterns="flaky"
@@ -392,53 +392,53 @@ def test_flaky_feature(): ...
   run: npm test -- --testPathPattern="flaky" || true
 ```
 
-### CI Retry Strategies
+### CI リトライ戦略
 
-**Framework Options:**
-- Jest: `jest --runInBand` (sequential), `jest-circus` retry
-- pytest: `pytest-rerunfailures` plugin
-- CI: Built-in retry (GitHub Actions `retry`, GitLab `retry:`)
+**フレームワークオプション:**
+- Jest: `jest --runInBand`（シーケンシャル）、`jest-circus` リトライ
+- pytest: `pytest-rerunfailures` プラグイン
+- CI: 組み込みリトライ（GitHub Actions `retry`、GitLab `retry:`）
 
-**When to Use Retries:**
-- As temporary mitigation while fixing root cause
-- For genuinely transient issues (network glitches)
-- NOT as permanent solution for broken tests
+**リトライを使用するタイミング:**
+- 根本原因修正中の一時的な軽減策として
+- 本当に一時的な問題（ネットワーク不具合）に対して
+- 壊れたテストの恒久的な解決策としては使わない
 
-### Flaky Test Prevention
+### フレーキーテストの予防
 
-| Practice | Benefit |
-|----------|---------|
-| Run tests in random order | Catches order dependencies early |
-| Run in CI before merge | Catches environment differences |
-| Use test containers | Consistent database/service state |
-| Mock external services | Eliminates network flakiness |
-| Avoid global state | Prevents test interference |
-| Set CI timeouts appropriately | Catches slow/hung tests |
+| プラクティス | メリット |
+|------------|---------|
+| テストをランダム順で実行 | 順序依存を早期に検出 |
+| マージ前に CI で実行 | 環境差異を検出 |
+| テストコンテナを使用 | 一貫したデータベース/サービス状態 |
+| 外部サービスをモック | ネットワークのフレーキーさを排除 |
+| グローバル状態を避ける | テスト間の干渉を防止 |
+| CI タイムアウトを適切に設定 | 遅い/ハングしたテストを検出 |
 
 ---
 
 ## Rules (L1 - Hard)
 
-Critical for test reliability and safety.
+テストの信頼性と安全性に不可欠。
 
-- NEVER share mutable state between tests (causes flakiness)
-- NEVER use hardcoded delays (use proper async waiting)
-- ALWAYS write tests BEFORE fixing bugs (reproduce first)
+- NEVER: テスト間で可変状態を共有しない（フレーキーさの原因）
+- NEVER: ハードコードされた遅延を使用しない（適切な非同期待機を使用）
+- ALWAYS: バグ修正前にテストを書く（まず再現）
 
 ## Defaults (L2 - Soft)
 
-Important for effective testing. Override with reasoning when appropriate.
+効果的なテストに重要。適切な理由がある場合はオーバーライド可。
 
-- Discover the project's test framework before running tests
-- Use the project's configured test commands
-- Test edge cases and error conditions
-- Test behavior, not implementation details
-- Document reason when skipping tests
+- テスト実行前にプロジェクトのテストフレームワークを発見する
+- プロジェクトに設定されたテストコマンドを使用する
+- エッジケースとエラー条件をテストする
+- 実装の詳細ではなく動作をテストする
+- テストをスキップする際は理由を文書化する
 
 ## Guidelines (L3)
 
-Recommendations for comprehensive test coverage.
+包括的なテストカバレッジのための推奨事項。
 
-- Consider using AAA pattern (Arrange-Act-Assert) for clarity
-- Prefer factories for dynamic test data
-- Consider coverage targets around 80%
+- consider: 明確さのために AAA パターン（Arrange-Act-Assert）の使用を検討
+- prefer: 動的テストデータにはファクトリーの使用を推奨
+- consider: カバレッジ目標を約 80% に設定することを検討

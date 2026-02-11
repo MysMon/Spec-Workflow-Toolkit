@@ -21,8 +21,8 @@
 {context_files}
 
 ## ツール制限（L1）
-- NEVER use Write or Edit tools（議論のみ、ファイル変更なし）
-- NEVER use Bash（分析のみ）
+- NEVER: use Write or Edit tools（議論のみ、ファイル変更なし）
+- NEVER: use Bash（分析のみ）
 - Read, Glob, Grep のみ利用可能
 
 ## ラウンド別行動規範
@@ -106,8 +106,8 @@
 {context_files}
 
 ## ツール制限（L1）
-- NEVER use Write or Edit tools
-- NEVER use Bash
+- NEVER: use Write or Edit tools
+- NEVER: use Bash
 - Read, Glob, Grep のみ利用可能
 
 ## 固有の責務（L1 - 必須）

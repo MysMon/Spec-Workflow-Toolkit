@@ -1,12 +1,12 @@
 ---
 name: spec-philosophy
 description: |
-  Specification-Driven Development methodology and workflow. Use when:
-  - Starting new features or projects ("new feature", "implement", "build")
-  - User request is vague or unclear ("add something", "make it better")
-  - Enforcing spec-first development ("write spec", "create specification")
-  - Someone says "just build it" or wants to skip planning
-  - Discussing requirements, acceptance criteria, or scope
+  仕様駆動開発の方法論とワークフロー。使用場面:
+  - 新機能やプロジェクトの開始（「新機能」「実装」「構築」）
+  - ユーザーリクエストが曖昧または不明確（「何か追加して」「改善して」）
+  - 仕様ファーストの開発を強制（「仕様を書いて」「仕様書を作成」）
+  - 「とにかく作って」と言われたり計画をスキップしたい場合
+  - 要件、受け入れ基準、スコープの議論
   Trigger phrases: specification, PRD, requirements document, scope definition, feature planning
 allowed-tools: Read, Write, Glob, AskUserQuestion
 model: sonnet
@@ -15,182 +15,182 @@ context: fork
 agent: general-purpose
 ---
 
-# Specification-Driven Development (SDD)
+# 仕様駆動開発（SDD）
 
-SDD is a disciplined approach to software development that requires explicit specifications before any implementation begins.
+SDD は、実装開始前に明示的な仕様を要求する規律あるソフトウェア開発アプローチ。
 
-## Core Principles
+## 基本原則
 
-### 1. No Code Without Spec
+### 1. 仕様なしにコードなし
 
-**RULE**: Never write implementation code without an approved specification.
+**ルール**: 承認された仕様なしに実装コードを書かない。
 
-- Prevents scope creep
-- Forces upfront thinking
-- Creates audit trail
-- Enables accurate estimation
+- スコープクリープを防止
+- 事前の思考を強制
+- 監査証跡を作成
+- 正確な見積もりを可能にする
 
-### 2. Code-Free Spec (NEW)
+### 2. コードフリーの仕様（NEW）
 
-**RULE**: Specifications describe WHAT to build, never HOW to code it.
+**ルール**: 仕様は「何を」構築するかを記述し、「どのように」コーディングするかは書かない。
 
-**Specs MUST contain:**
-- User Stories (INVEST principle: Independent, Negotiable, Valuable, Estimatable, Small, Testable)
-- Acceptance Criteria (Gherkin format: Given-When-Then)
-- Non-Functional Requirements (measurable targets: "< 200ms p95", not "fast")
-- Edge Cases and error scenarios
-- Out of Scope (explicit exclusions)
-- Success Metrics (verifiable completion criteria)
+**仕様に含めるべきもの:**
+- ユーザーストーリー（INVEST 原則: Independent, Negotiable, Valuable, Estimatable, Small, Testable）
+- 受け入れ基準（Gherkin 形式: Given-When-Then）
+- 非機能要件（測定可能な目標: 「p95 で < 200ms」、「速い」ではない）
+- エッジケースとエラーシナリオ
+- スコープ外（明示的な除外項目）
+- 成功指標（検証可能な完了基準）
 
-**Specs MUST NOT contain:**
-- Implementation code or code snippets
-- Pseudocode or algorithm details
-- Function signatures or class definitions
-- Specific tool/library versions (use "current stable" or omit)
-- Step-by-step implementation instructions
+**仕様に含めてはいけないもの:**
+- 実装コードやコードスニペット
+- 疑似コードやアルゴリズムの詳細
+- 関数シグネチャやクラス定義
+- 特定のツール/ライブラリバージョン（「現在の安定版」を使うか省略）
+- ステップバイステップの実装手順
 
-**Code References:**
-- Use file:line pointers to existing patterns: "Follow pattern at `src/services/auth.ts:23`"
-- Describe what to reference, not the code itself: "Use the error handling pattern in utils/errors.ts"
-- NEVER copy code into specification documents
+**コード参照:**
+- 既存パターンへの file:line ポインタを使用: 「`src/services/auth.ts:23` のパターンに従う」
+- 何を参照するかを記述し、コード自体は書かない: 「utils/errors.ts のエラーハンドリングパターンを使用」
+- NEVER: 仕様書にコードをコピーしない
 
-**Why this matters for AI agents:**
-- Specifications are contracts defining WHAT, not tutorials on HOW
-- AI agents perform better with goal-oriented specs than prescriptive instructions
-- Code in specs creates confusion: is it the requirement or just an example?
-- Keeps specs technology-agnostic and reusable
+**AI エージェントにとっての重要性:**
+- 仕様は「何を」定義する契約であり、「どのように」のチュートリアルではない
+- AI エージェントは規範的な指示よりゴール指向の仕様でパフォーマンスが向上する
+- 仕様内のコードは混乱を生む: それは要件なのか単なる例なのか？
+- 仕様を技術非依存で再利用可能に保つ
 
-### 3. Ambiguity Tolerance Zero
+### 3. 曖昧さ許容度ゼロ
 
-**RULE**: If requirements are vague, DO NOT GUESS. Ask questions.
+**ルール**: 要件が曖昧な場合、推測しない。質問する。
 
-- Assumptions cause rework
-- Clarification is cheaper than bugs
-- Users know what they want (with help)
+- 推測は手戻りの原因
+- 明確化はバグよりコストが低い
+- ユーザーは（助けがあれば）何を求めているか知っている
 
-### 4. Specification as Contract
+### 4. 契約としての仕様
 
-**RULE**: The spec is the source of truth for implementation.
+**ルール**: 仕様は実装の真実の情報源。
 
-The spec defines:
-- What to build (functional requirements)
-- How well to build it (non-functional requirements)
-- When it's done (acceptance criteria)
-- What NOT to build (out of scope)
+仕様が定義するもの:
+- 何を構築するか（機能要件）
+- どの程度の品質で構築するか（非機能要件）
+- いつ完了とするか（受け入れ基準）
+- 何を構築しないか（スコープ外）
 
-## Development Phases
+## 開発フェーズ
 
-| Phase | Name | Action | Output |
-|-------|------|--------|--------|
-| 1 | Ambiguity | Receive vague request | Understanding of intent |
-| 2 | Clarification | Invoke `interview` skill | Requirements summary |
-| 3 | Definition | Create spec in `docs/specs/` | Approved specification |
-| 4 | Execution | Implement per spec | Working code |
-| 5 | Verification | Validate against spec | Passing tests |
+| フェーズ | 名前 | アクション | 出力 |
+|----------|------|-----------|------|
+| 1 | 曖昧さ | 曖昧なリクエストを受領 | 意図の理解 |
+| 2 | 明確化 | `interview` スキルを使用 | 要件サマリー |
+| 3 | 定義 | `docs/specs/` に仕様作成 | 承認済み仕様 |
+| 4 | 実行 | 仕様に従って実装 | 動作するコード |
+| 5 | 検証 | 仕様に対してバリデーション | テスト合格 |
 
-### Relationship to Plan→Review→Implement Commands
+### Plan→Review→Implement コマンドとの関係
 
-The 5-phase model above is the **logical abstraction**. The plan→review→implement commands expand this into an **operational workflow**:
+上記の 5 フェーズモデルは**論理的な抽象化**。plan→review→implement コマンドはこれを**運用ワークフロー**に展開:
 
-| Logical Phase | Command / Phase | Details |
-|---------------|----------------|---------|
-| 1. Ambiguity | `/spec-plan`: Discovery | Initial requirements gathering |
-| 2. Clarification | `/spec-plan`: Exploration + Clarifying Questions | Codebase analysis and user interview |
-| 3. Definition | `/spec-plan`: Spec Drafting + Architecture Design | Specification and design with self-review |
-| 4. Review | `/spec-review`: Interactive Feedback | User-driven plan review and refinement |
-| 5. Execution | `/spec-implement`: Implementation | TDD-driven development |
+| 論理フェーズ | コマンド / フェーズ | 詳細 |
+|-------------|-------------------|------|
+| 1. 曖昧さ | `/spec-plan`: ディスカバリー | 初期要件収集 |
+| 2. 明確化 | `/spec-plan`: 探索 + 明確化質問 | コードベース分析とユーザーインタビュー |
+| 3. 定義 | `/spec-plan`: 仕様ドラフト + アーキテクチャ設計 | セルフレビュー付きの仕様と設計 |
+| 4. レビュー | `/spec-review`: インタラクティブフィードバック | ユーザー主導のプランレビューと改善 |
+| 5. 実行 | `/spec-implement`: 実装 | TDD 駆動の開発 |
 
-## Quick Reference
+## クイックリファレンス
 
-### Spec File Location
+### 仕様ファイルの場所
 
 ```
 docs/specs/
-├── SPEC-TEMPLATE.md      # Template for new specs
-└── feature-*.md          # Feature specifications
+├── SPEC-TEMPLATE.md      # 新規仕様のテンプレート
+└── feature-*.md          # 機能仕様
 ```
 
-### Agent Integration
+### エージェント統合
 
-| Agent | Role in SDD |
-|-------|-------------|
-| `product-manager` | Creates specs |
-| `system-architect` | System-level design (ADRs, schemas) |
-| `code-architect` | Feature implementation blueprints |
-| `*-specialist` | Implements specs |
-| `qa-engineer` | Verifies specs |
-| `security-auditor` | Audits security NFRs |
+| エージェント | SDD での役割 |
+|-------------|-------------|
+| `product-manager` | 仕様を作成 |
+| `system-architect` | システムレベル設計（ADR、スキーマ） |
+| `code-architect` | 機能実装のブループリント |
+| `*-specialist` | 仕様を実装 |
+| `qa-engineer` | 仕様を検証 |
+| `security-auditor` | セキュリティ NFR を監査 |
 
-## Additional Resources
+## 追加リソース
 
-For detailed information:
+詳細情報:
 
-- **Complete Spec Template**: See [references/spec-template.md](references/spec-template.md)
-- **Workflow Examples**: See [examples/workflow-example.md](examples/workflow-example.md)
-- **Project Template**: See `docs/specs/SPEC-TEMPLATE.md`
+- **完全な仕様テンプレート**: [references/spec-template.md](references/spec-template.md) を参照
+- **ワークフロー例**: [examples/workflow-example.md](examples/workflow-example.md) を参照
+- **プロジェクトテンプレート**: `docs/specs/SPEC-TEMPLATE.md` を参照
 
-## Balancing Structure with Flexibility
+## 構造と柔軟性のバランス
 
-SDD provides structure, but rigid adherence can hinder effective problem-solving.
+SDD は構造を提供するが、厳格な遵守は効果的な問題解決を妨げることがある。
 
-### Goal-Oriented Approach
+### ゴール指向のアプローチ
 
-From Claude Code Best Practices:
+Claude Code Best Practices より:
 
 > "Claude often performs better with high level instructions rather than step-by-step prescriptive guidance."
 
-**Apply to SDD:**
-- Phases define WHAT to achieve, not exactly HOW
-- Adapt approach based on task complexity
-- Skip phases when genuinely unnecessary (e.g., typo fixes)
+**SDD への適用:**
+- フェーズは「何を」達成するかを定義し、正確な「方法」は定義しない
+- タスクの複雑さに応じてアプローチを適応
+- 本当に不要な場合はフェーズをスキップ（例: タイポ修正）
 
-### When to Apply Full SDD
+### フル SDD を適用する場合
 
-| Scenario | Full Plan→Implement | Abbreviated |
-|----------|--------------|-------------|
-| New feature | Yes | |
-| Complex change | Yes | |
-| Architecture decision | Yes | |
-| Bug fix | | Yes `/debug` |
-| Typo/config change | | Yes `/quick-impl` |
-| Clear, scoped task | | Yes `/quick-impl` |
+| シナリオ | フル Plan→Implement | 簡略化 |
+|----------|--------------|--------|
+| 新機能 | はい | |
+| 複雑な変更 | はい | |
+| アーキテクチャ判断 | はい | |
+| バグ修正 | | はい `/debug` |
+| タイポ/設定変更 | | はい `/quick-impl` |
+| 明確でスコープが限定されたタスク | | はい `/quick-impl` |
 
-### Flexibility Clause
+### 柔軟性条項
 
-The SDD workflow is a framework, not a checklist.
+SDD ワークフローはフレームワークであり、チェックリストではない。
 
-If you identify that a situation warrants deviation:
-1. Confirm all L1 rules are still respected (no code without understanding, no skipping security)
-2. Explain why the standard approach doesn't fit
-3. Proceed with the adapted approach
+逸脱が必要な状況を特定した場合:
+1. すべての L1 ルールが尊重されていることを確認（コードなしの理解、セキュリティスキップなし）
+2. 標準的なアプローチが適さない理由を説明
+3. 適応したアプローチで進行
 
-**L1 Rules (Never Skip):**
-- Understanding requirements before implementation
-- Security review for security-sensitive code
-- Approval for scope changes
+**L1 ルール（絶対にスキップしない）:**
+- 実装前に要件を理解
+- セキュリティに関わるコードのセキュリティレビュー
+- スコープ変更の承認
 
-**L2/L3 (Adapt as Needed):**
-- Number of exploration agents
-- Spec document format
-- Phase ordering for simple tasks
+**L2/L3（必要に応じて適応）:**
+- 探索エージェントの数
+- 仕様書のフォーマット
+- シンプルなタスクのフェーズ順序
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-- NEVER implement without understanding requirements
-- ALWAYS clarify before assuming
-- NEVER add scope without approval
-- ALWAYS document significant deviations
-- NEVER include code snippets, pseudocode, or implementation details in specifications
-- ALWAYS use file:line references instead of copying code into specs
+- NEVER: 要件を理解せずに実装しない
+- ALWAYS: 推測する前に明確化する
+- NEVER: 承認なしにスコープを追加しない
+- ALWAYS: 重要な逸脱を文書化する
+- NEVER: 仕様書にコードスニペット、疑似コード、実装詳細を含めない
+- ALWAYS: 仕様書にコードをコピーする代わりに file:line 参照を使用する
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-- Create formal spec for features > 1 day effort
-- Use `/spec-plan` for new features (can use `/quick-impl` for obvious small tasks)
-- Acceptance criteria should be testable
+- 1日以上の工数がかかる機能には正式な仕様を作成
+- 新機能には `/spec-plan` を使用（明らかに小さなタスクには `/quick-impl` を使用可能）
+- 受け入れ基準はテスト可能であるべき
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-- Consider TDD for complex logic
-- Prefer parallel agent execution when independent
-- Document architectural decisions in ADRs
+- consider: 複雑なロジックには TDD を検討
+- recommend: 独立した場合はエージェントの並列実行を推奨
+- consider: アーキテクチャ判断を ADR に文書化

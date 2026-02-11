@@ -1,167 +1,167 @@
 ---
 name: code-quality
 description: |
-  Detects and runs project-configured linting, formatting, and type checking. Use when:
-  - After writing or editing code to ensure quality standards
-  - Fixing lint errors or formatting issues
-  - Running the project's configured quality tools
-  - Code is failing CI quality checks
+  プロジェクトに設定されたリンティング、フォーマット、型チェックの検出と実行。以下の場合に使用:
+  - コード記述・編集後の品質基準の確認
+  - リントエラーやフォーマット問題の修正
+  - プロジェクトに設定された品質ツールの実行
+  - CI 品質チェックに失敗している場合
   Trigger phrases: lint, format code, run linter, fix formatting, type check, code style
 allowed-tools: Bash, Read, Glob, Grep, WebSearch, WebFetch
 model: haiku
 user-invocable: true
 ---
 
-# Code Quality
+# コード品質
 
-Detect and use the project's configured quality tools. This skill defines a **discovery process**, not specific tool commands.
+プロジェクトに設定された品質ツールの検出と使用。このスキルは**発見プロセス**を定義するものであり、特定のツールコマンドを定義するものではない。
 
-## Design Principles
+## 設計原則
 
-1. **Projects own their configuration**: Never assume which tools are used
-2. **Discover before running**: Check what tools the project has configured
-3. **Use project commands**: Prefer scripts defined in package.json/Makefile/etc.
-4. **Never install**: Don't add tools that aren't already configured
+1. **プロジェクトが設定を所有する**: どのツールが使われているか決めつけない
+2. **実行前に発見する**: プロジェクトに設定されたツールを確認する
+3. **プロジェクトコマンドを使用する**: package.json/Makefile 等で定義されたスクリプトを優先
+4. **インストールしない**: 設定されていないツールを追加しない
 
 ---
 
-## Workflow
+## ワークフロー
 
-### Step 1: Discover Quality Tool Configuration
+### ステップ 1: 品質ツール設定の発見
 
-Check for quality tool presence without assuming specific tools:
+特定のツールを前提とせずに品質ツールの存在を確認する:
 
 ```bash
-# List all config files that might indicate quality tools
+# 品質ツールを示す可能性のある設定ファイルを一覧
 ls -la .* *.config.* *.json *.toml *.yml *.yaml 2>/dev/null | head -30
 
-# Check for common config patterns (not specific tools)
+# 一般的な設定パターンを確認（特定のツールではなく）
 ls -la *lint* *format* *prettier* *eslint* *biome* *ruff* *black* *rubocop* *golangci* 2>/dev/null
 ```
 
-### Step 2: Check for Defined Scripts
+### ステップ 2: 定義済みスクリプトの確認
 
-**Always prefer project-defined commands:**
+**常にプロジェクト定義のコマンドを優先する:**
 
 ```bash
-# JavaScript/TypeScript projects
+# JavaScript/TypeScript プロジェクト
 grep -A 30 '"scripts"' package.json 2>/dev/null | grep -E '(lint|format|check|style)'
 
-# Python projects
+# Python プロジェクト
 grep -A 10 '\[tool\.' pyproject.toml 2>/dev/null
 grep -E '(lint|format|check)' Makefile 2>/dev/null
 
-# Any project
+# 任意のプロジェクト
 cat Makefile 2>/dev/null | grep -E '^(lint|format|check|style):'
 ```
 
-### Step 3: Run Detected Commands
+### ステップ 3: 検出されたコマンドの実行
 
-**Priority order:**
+**優先順位:**
 
-1. **Project scripts** (most reliable)
-   - `npm run lint`, `npm run format`, `make lint`, etc.
+1. **プロジェクトスクリプト**（最も信頼性が高い）
+   - `npm run lint`、`npm run format`、`make lint` 等
 
-2. **Direct tool execution** (if no script but config exists)
-   - Only if configuration file is detected
-   - Search for current command syntax if unsure
+2. **ツールの直接実行**（スクリプトはないが設定がある場合）
+   - 設定ファイルが検出された場合のみ
+   - 不明な場合は現在のコマンド構文を検索
 
-3. **Research** (if tool is unfamiliar)
+3. **リサーチ**（ツールが不慣れな場合）
    ```
-   WebSearch: "[tool name] run command [year]"
-   WebFetch: [official docs] → "Extract CLI usage"
+   WebSearch: "[ツール名] run command [year]"
+   WebFetch: [公式ドキュメント] → "Extract CLI usage"
    ```
 
-### Step 4: Verify Build Still Works
+### ステップ 4: ビルドの動作確認
 
-After quality fixes:
+品質修正後:
 
 ```bash
-# Run the project's build command (discover first)
+# プロジェクトのビルドコマンドを実行（先に発見する）
 grep -E '"build"' package.json 2>/dev/null && npm run build
 grep -E '^build:' Makefile 2>/dev/null && make build
 ```
 
 ---
 
-## Discovery Patterns
+## 発見パターン
 
-### Identifying Quality Tools
+### 品質ツールの特定
 
-Instead of hardcoding tool names, look for patterns:
+ツール名をハードコードする代わりにパターンを探す:
 
-| Pattern | Indicates |
-|---------|-----------|
-| `*lint*` in filename | Linting configuration |
-| `*format*` or `*prettier*` in filename | Formatting configuration |
-| `*.config.*` files | Tool configuration |
-| `[tool.*]` sections in pyproject.toml | Python tool configs |
-| Scripts with `lint`, `format`, `check` keywords | Project-defined commands |
+| パターン | 示唆する内容 |
+|---------|-------------|
+| ファイル名に `*lint*` | リンティング設定 |
+| ファイル名に `*format*` または `*prettier*` | フォーマット設定 |
+| `*.config.*` ファイル | ツール設定 |
+| pyproject.toml の `[tool.*]` セクション | Python ツール設定 |
+| `lint`、`format`、`check` キーワードを含むスクリプト | プロジェクト定義コマンド |
 
-### Reading Unknown Configurations
+### 不明な設定の読み取り
 
-If you find a config file for an unfamiliar tool:
+不慣れなツールの設定ファイルを見つけた場合:
 
-1. Read the config file to understand tool name
-2. Check if there's a script that uses it
-3. If needed, WebSearch for the tool's documentation
-4. Run the tool using its documented interface
-
----
-
-## What NOT To Do
-
-| Don't | Why |
-|-------|-----|
-| Install tools that aren't configured | Changes project dependencies |
-| Assume specific tool names | Tools change and vary by project |
-| Run tools without config present | May use wrong settings |
-| Override project configuration | Violates project standards |
-| Hardcode tool commands | Commands change between versions |
+1. 設定ファイルを読んでツール名を把握する
+2. そのツールを使用するスクリプトがあるか確認する
+3. 必要に応じて WebSearch でツールのドキュメントを検索する
+4. ドキュメントに記載されたインターフェースでツールを実行する
 
 ---
 
-## Integration with CI
+## やってはいけないこと
 
-Projects typically enforce quality via:
-- Pre-commit hooks
-- CI pipelines (GitHub Actions, GitLab CI, etc.)
-- Editor integration
-
-**This skill complements those mechanisms** by running the same tools on demand, using the same configuration.
+| やらない | 理由 |
+|---------|------|
+| 設定されていないツールをインストール | プロジェクトの依存関係が変わる |
+| 特定のツール名を前提とする | ツールはプロジェクトごとに異なる |
+| 設定なしでツールを実行 | 誤った設定が使われる可能性 |
+| プロジェクト設定をオーバーライド | プロジェクト基準に違反 |
+| ツールコマンドをハードコード | コマンドはバージョン間で変わる |
 
 ---
 
-## Success Criteria
+## CI との統合
 
-- All configured lint rules pass
-- No type errors (if type checking is configured)
-- Build completes successfully
-- Git hooks pass (if present)
+プロジェクトは通常以下で品質を強制する:
+- プリコミットフック
+- CI パイプライン（GitHub Actions、GitLab CI 等）
+- エディタ統合
+
+**このスキルはそれらの仕組みを補完する**ものであり、同じ設定を使って同じツールをオンデマンドで実行する。
+
+---
+
+## 成功基準
+
+- 設定された全リントルールがパス
+- 型エラーなし（型チェックが設定されている場合）
+- ビルドが正常に完了
+- Git フックがパス（存在する場合）
 
 ---
 
 ## Rules (L1 - Hard)
 
-Critical for respecting project configuration.
+プロジェクト設定の尊重に不可欠。
 
-- NEVER install or assume tools (changes project dependencies)
-- NEVER run tools without their config present (wrong settings)
-- NEVER hardcode tool commands (discover them dynamically)
+- NEVER: ツールをインストールしたり前提としない（プロジェクトの依存関係が変わる）
+- NEVER: 設定なしでツールを実行しない（誤った設定になる）
+- NEVER: ツールコマンドをハードコードしない（動的に発見する）
 
 ## Defaults (L2 - Soft)
 
-Important for effective quality checks. Override with reasoning when appropriate.
+効果的な品質チェックに重要。適切な理由がある場合はオーバーライド可。
 
-- Detect tooling before running commands
-- Use project's configured scripts/commands (npm run lint, make lint)
-- Check for scripts in package.json/Makefile first
-- Verify build after fixes
-- Report errors clearly (don't ignore them)
+- コマンド実行前にツールを検出する
+- プロジェクトに設定されたスクリプト/コマンドを使用する（npm run lint、make lint）
+- まず package.json/Makefile のスクリプトを確認する
+- 修正後にビルドを検証する
+- エラーを明確に報告する（無視しない）
 
 ## Guidelines (L3)
 
-Recommendations for comprehensive quality assurance.
+包括的な品質保証のための推奨事項。
 
-- Consider running all quality tools in sequence (lint → format → typecheck)
-- Prefer auto-fix mode when available (--fix, -w)
+- consider: 全品質ツールを順番に実行する（lint → format → typecheck）
+- prefer: 利用可能な場合は自動修正モードを優先（--fix、-w）

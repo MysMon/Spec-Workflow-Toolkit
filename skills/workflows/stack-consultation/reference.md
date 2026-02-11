@@ -1,294 +1,294 @@
-# Stack Consultation Reference
+# スタックコンサルテーションリファレンス
 
-Evaluation frameworks and research methodologies for technology selection. Load on demand when deeper guidance is needed.
+テクノロジー選定のための評価フレームワークとリサーチ方法論。より深いガイダンスが必要な場合にオンデマンドでロードする。
 
-**Important**: This document contains no specific technology recommendations. All technology options must be discovered via WebSearch during consultation.
-
----
-
-## Evaluation Framework
-
-### Primary Evaluation Axes
-
-Use these axes to compare any technology options discovered through research:
-
-| Axis | Weight | Key Questions |
-|------|--------|---------------|
-| **Requirement Fit** | Critical | Does it directly solve the stated problem? |
-| **Constraint Match** | Critical | Compatible with team skills, budget, timeline? |
-| **Maturity** | High | Production-ready? Active maintenance? Security track record? |
-| **Ecosystem** | High | Quality of documentation? Available libraries? Tooling support? |
-| **Integration** | Medium | Works with other chosen components? Standard protocols? |
-| **Community** | Medium | Active contributors? Responsive to issues? Learning resources? |
-| **Future-proofing** | Low | Corporate backing? Clear roadmap? Migration paths? |
-
-### Scoring Guidelines
-
-| Score | Meaning |
-|-------|---------|
-| Strong | Clearly meets requirement with evidence |
-| Partial | Meets requirement with caveats or workarounds |
-| Weak | Does not meet requirement or significant gaps |
-| Unknown | Insufficient information, needs more research |
+**重要**: このドキュメントには特定のテクノロジー推奨は含まれていない。すべてのテクノロジーオプションはコンサルテーション中に WebSearch で発見する必要がある。
 
 ---
 
-## Research Methodology
+## 評価フレームワーク
 
-### Source Prioritization
+### 主要評価軸
 
-When gathering information via WebSearch/WebFetch, prioritize sources in this order:
+リサーチを通じて発見したテクノロジーオプションの比較にこれらの軸を使用する:
 
-| Priority | Source Type | Why |
-|----------|-------------|-----|
-| 1 | Official documentation | Most accurate, current |
-| 2 | GitHub repository | Real activity metrics, issues |
-| 3 | Recent (< 1 year) comparison articles | Contextual analysis |
-| 4 | Production experience reports | Real-world validation |
-| 5 | Stack Overflow activity | Community health indicator |
-| 6 | Tutorial prevalence | Learning resource availability |
+| 軸 | 重み | 主な質問 |
+|----|------|---------|
+| **要件適合性** | 最重要 | 述べられた問題を直接解決するか？ |
+| **制約との適合** | 最重要 | チームスキル、予算、スケジュールと互換性があるか？ |
+| **成熟度** | 高 | 本番環境対応？アクティブなメンテナンス？セキュリティの実績？ |
+| **エコシステム** | 高 | ドキュメントの品質？利用可能なライブラリ？ツールサポート？ |
+| **統合性** | 中 | 他の選択したコンポーネントと連携するか？標準プロトコル？ |
+| **コミュニティ** | 中 | アクティブなコントリビューター？イシューへの対応？学習リソース？ |
+| **将来性** | 低 | 企業による支援？明確なロードマップ？移行パス？ |
 
-### Information to Extract
+### スコアリングガイドライン
 
-For each technology candidate discovered:
+| スコア | 意味 |
+|--------|------|
+| Strong | エビデンスをもって明確に要件を満たす |
+| Partial | 注意点や回避策ありで要件を満たす |
+| Weak | 要件を満たさないか重大なギャップがある |
+| Unknown | 情報不足、さらなるリサーチが必要 |
+
+---
+
+## リサーチ方法論
+
+### ソースの優先順位
+
+WebSearch/WebFetch で情報を収集する際、以下の順序でソースを優先する:
+
+| 優先度 | ソースタイプ | 理由 |
+|--------|------------|------|
+| 1 | 公式ドキュメント | 最も正確で最新 |
+| 2 | GitHub リポジトリ | 実際の活動指標、イシュー |
+| 3 | 最近（1 年以内）の比較記事 | 文脈に沿った分析 |
+| 4 | 本番環境の使用レポート | 実世界での検証 |
+| 5 | Stack Overflow の活動 | コミュニティの健全性指標 |
+| 6 | チュートリアルの普及度 | 学習リソースの利用可能性 |
+
+### 抽出すべき情報
+
+発見した各テクノロジー候補について:
 
 ```markdown
-## [Technology Name]
+## [テクノロジー名]
 
-### Basic Info
-- Current stable version: [from official docs]
-- License: [open source type / commercial]
-- Primary maintainer: [company / community]
+### 基本情報
+- 現在の安定版: [公式ドキュメントより]
+- ライセンス: [オープンソースタイプ / 商用]
+- 主なメンテナー: [企業 / コミュニティ]
 
-### Strengths (from research)
-- [Strength 1 with source]
-- [Strength 2 with source]
+### 強み（リサーチより）
+- [強み 1 とソース]
+- [強み 2 とソース]
 
-### Weaknesses (from research)
-- [Weakness 1 with source]
-- [Weakness 2 with source]
+### 弱み（リサーチより）
+- [弱み 1 とソース]
+- [弱み 2 とソース]
 
-### Fit Analysis
-- Requirement match: [analysis]
-- Constraint compatibility: [analysis]
-- Risk factors: [analysis]
+### 適合性分析
+- 要件との一致: [分析]
+- 制約との互換性: [分析]
+- リスク要因: [分析]
 
-### Attribution
-- [URL 1] (date accessed)
-- [URL 2] (date accessed)
+### 出典
+- [URL 1] (アクセス日)
+- [URL 2] (アクセス日)
 ```
 
-### Red Flags to Watch For
+### 危険信号
 
-| Red Flag | What It Indicates |
-|----------|-------------------|
-| No commits in 6+ months | Potentially abandoned |
-| Many open security issues | Maintenance concerns |
-| Breaking changes in minor versions | Stability concerns |
-| Sparse documentation | High learning curve |
-| Single maintainer | Bus factor risk |
-| No clear migration path | Lock-in risk |
+| 危険信号 | 示唆すること |
+|---------|------------|
+| 6 ヶ月以上コミットなし | 放棄の可能性 |
+| 未解決のセキュリティイシューが多い | メンテナンスの懸念 |
+| マイナーバージョンで破壊的変更 | 安定性の懸念 |
+| ドキュメントが乏しい | 高い学習コスト |
+| メンテナーが 1 人 | バス係数リスク |
+| 明確な移行パスなし | ロックインリスク |
 
-### Green Flags to Look For
+### 良好な兆候
 
-| Green Flag | What It Indicates |
-|------------|-------------------|
-| Active release cycle | Healthy maintenance |
-| Corporate backing + community | Sustainable model |
-| Comprehensive documentation | Lower learning curve |
-| Large ecosystem | Problem-solving resources |
-| Clear deprecation policy | Predictable evolution |
-| Multiple successful case studies | Production-proven |
-
----
-
-## Query Construction Guide
-
-### Requirement-to-Query Mapping
-
-Transform user requirements into effective search queries:
-
-| Requirement Type | Query Pattern |
-|-----------------|---------------|
-| Interaction: Visual interface | `"[platform] UI frameworks [year] comparison"` |
-| Interaction: CLI | `"CLI framework [language] [year]"` |
-| Interaction: API | `"API framework [language] [year] production"` |
-| Data: Structured | `"relational database [year] comparison"` |
-| Data: Unstructured | `"document database [year] comparison"` |
-| Data: Real-time | `"real-time database [year]"` |
-| Data: Large-scale | `"big data processing [year] tools"` |
-| Communication: Real-time | `"real-time communication [year] tools"` |
-| Communication: Async | `"message queue [year] comparison"` |
-| Deploy: Cloud | `"cloud deployment platform [year]"` |
-| Deploy: Edge | `"edge computing platform [year]"` |
-| Deploy: Embedded | `"embedded development [year] tools"` |
-
-### Query Refinement
-
-If initial search results are too broad:
-- Add constraint: `"[query] for small teams"`
-- Add use case: `"[query] for startups"`
-- Add comparison: `"[query] vs alternatives"`
-
-If results are too narrow or outdated:
-- Remove year: `"[query]"` (then verify recency manually)
-- Broaden scope: `"[category] tools comparison"`
+| 良好な兆候 | 示唆すること |
+|-----------|------------|
+| アクティブなリリースサイクル | 健全なメンテナンス |
+| 企業支援 + コミュニティ | 持続可能なモデル |
+| 包括的なドキュメント | 低い学習コスト |
+| 大規模なエコシステム | 問題解決リソースの豊富さ |
+| 明確な非推奨ポリシー | 予測可能な進化 |
+| 複数の成功事例 | 本番環境で実証済み |
 
 ---
 
-## Decision Patterns
+## クエリ構築ガイド
 
-### When Requirements Conflict
+### 要件からクエリへのマッピング
 
-| Situation | Resolution Strategy |
-|-----------|---------------------|
-| Speed vs. Quality | Clarify timeline criticality with user |
-| Cost vs. Capability | Define minimum viable requirements |
-| Familiarity vs. Fit | Assess learning curve vs. long-term benefit |
-| Simplicity vs. Scale | Start simple with clear scale-up path |
+ユーザーの要件を効果的な検索クエリに変換する:
 
-### When No Clear Winner
+| 要件タイプ | クエリパターン |
+|-----------|--------------|
+| インタラクション: ビジュアルインターフェース | `"[platform] UI frameworks [year] comparison"` |
+| インタラクション: CLI | `"CLI framework [language] [year]"` |
+| インタラクション: API | `"API framework [language] [year] production"` |
+| データ: 構造化 | `"relational database [year] comparison"` |
+| データ: 非構造化 | `"document database [year] comparison"` |
+| データ: リアルタイム | `"real-time database [year]"` |
+| データ: 大規模 | `"big data processing [year] tools"` |
+| 通信: リアルタイム | `"real-time communication [year] tools"` |
+| 通信: 非同期 | `"message queue [year] comparison"` |
+| デプロイ: クラウド | `"cloud deployment platform [year]"` |
+| デプロイ: エッジ | `"edge computing platform [year]"` |
+| デプロイ: 組込み | `"embedded development [year] tools"` |
 
-If evaluation produces no obvious choice:
+### クエリの洗練
 
-1. **Re-examine requirements**: Are all stated requirements truly essential?
-2. **Identify deciding factor**: What single aspect matters most?
-3. **Consider hybrid**: Can multiple tools solve different aspects?
-4. **Default to simplicity**: When equal, choose the simpler option
-5. **Acknowledge uncertainty**: Present to user with honest assessment
+初期の検索結果が広すぎる場合:
+- 制約を追加: `"[query] for small teams"`
+- ユースケースを追加: `"[query] for startups"`
+- 比較を追加: `"[query] vs alternatives"`
 
-### When Research is Inconclusive
-
-If WebSearch/WebFetch doesn't provide clear answers:
-
-1. Search for alternative query formulations
-2. Look for "lessons learned" or "post-mortem" articles
-3. Check GitHub issues for real-world problems
-4. Acknowledge gaps and note them in recommendations
-
----
-
-## Common Pitfalls
-
-### In Requirements Gathering
-
-| Pitfall | Symptom | Resolution |
-|---------|---------|------------|
-| Solution bias | User asks for specific tech | Ask what problem they're solving |
-| Scope creep | Requirements keep expanding | Establish MVP boundaries |
-| Assumption | User says "standard" or "normal" | Ask for specific behaviors |
-| Vagueness | "Fast", "scalable", "modern" | Quantify: how fast? how many users? |
-
-### In Research
-
-| Pitfall | Symptom | Resolution |
-|---------|---------|------------|
-| Recency bias | Newest = best | Verify production readiness |
-| Popularity bias | Most stars = best | Check fit for specific needs |
-| Tutorial bias | Many tutorials = good | Tutorials ≠ production quality |
-| Benchmark bias | Fastest = best | Benchmarks ≠ real workload |
-
-### In Recommendations
-
-| Pitfall | Symptom | Resolution |
-|---------|---------|------------|
-| Overconfidence | Strong rec without evidence | Always cite sources |
-| Analysis paralysis | Too many options presented | Limit to top 3 with clear ranking |
-| Hidden assumptions | "Obviously you need X" | State all assumptions explicitly |
-| Ignoring constraints | Perfect tech but wrong fit | Re-check constraint compatibility |
+結果が狭すぎるまたは古い場合:
+- 年を削除: `"[query]"`（その後手動で最新性を確認）
+- スコープを広げる: `"[category] tools comparison"`
 
 ---
 
-## Scaffolding Best Practices
+## 意思決定パターン
 
-### Before Running Any Commands
+### 要件が矛盾する場合
 
-1. **Verify command currency**: Search for official getting-started guide
-2. **Check prerequisites**: What must be installed first?
-3. **Understand what it creates**: What files/folders will appear?
-4. **Plan project location**: Where should project be created?
+| 状況 | 解決戦略 |
+|------|---------|
+| スピード vs 品質 | ユーザーとタイムラインの重要度を確認 |
+| コスト vs 機能 | 最小限の実行可能な要件を定義 |
+| 馴染み vs 適合性 | 学習コスト vs 長期的なメリットを評価 |
+| シンプルさ vs スケール | シンプルに始めて明確なスケールアップパスを用意 |
 
-### After Scaffolding
+### 明確な勝者がない場合
 
-1. **Verify success**: Can the project build/run?
-2. **Document setup**: Record exact commands used
-3. **Create .gitignore**: Based on technologies used (search for template)
-4. **Initialize CLAUDE.md**: Capture decisions for future sessions
+評価で明白な選択が出ない場合:
 
-### CLAUDE.md Template for New Projects
+1. **要件の再検討**: すべての要件が本当に必須か？
+2. **決定要因の特定**: 最も重要な側面は何か？
+3. **ハイブリッドの検討**: 複数のツールで異なる側面を解決できるか？
+4. **シンプルさを優先**: 同等なら、よりシンプルな選択肢を選ぶ
+5. **不確実性の認識**: 正直な評価をユーザーに提示
+
+### リサーチが結論に至らない場合
+
+WebSearch/WebFetch で明確な答えが得られない場合:
+
+1. 代替のクエリ表現を検索
+2. 「lessons learned」や「post-mortem」記事を探す
+3. 実世界の問題について GitHub イシューを確認
+4. ギャップを認識し推奨に記載
+
+---
+
+## よくある落とし穴
+
+### 要件収集時
+
+| 落とし穴 | 症状 | 解決策 |
+|---------|------|--------|
+| ソリューション偏向 | ユーザーが特定のテクノロジーを求める | 解決したい問題を聞く |
+| スコープクリープ | 要件が拡大し続ける | MVP の境界を設定 |
+| 仮定 | ユーザーが「標準」「普通」と言う | 具体的な動作を聞く |
+| 曖昧さ | 「速い」「スケーラブル」「モダン」 | 定量化: どのくらい速い？何ユーザー？ |
+
+### リサーチ時
+
+| 落とし穴 | 症状 | 解決策 |
+|---------|------|--------|
+| 新しさバイアス | 最新 = 最良 | 本番環境対応を確認 |
+| 人気バイアス | スター数が多い = 最良 | 特定のニーズへの適合を確認 |
+| チュートリアルバイアス | チュートリアルが多い = 良い | チュートリアル ≠ 本番品質 |
+| ベンチマークバイアス | 最速 = 最良 | ベンチマーク ≠ 実ワークロード |
+
+### 推奨時
+
+| 落とし穴 | 症状 | 解決策 |
+|---------|------|--------|
+| 過信 | エビデンスなしの強い推奨 | 常にソースを引用 |
+| 分析麻痺 | 多すぎるオプションを提示 | 明確なランキング付きで上位 3 つに限定 |
+| 隠れた仮定 | 「当然 X が必要」 | すべての仮定を明示 |
+| 制約の無視 | 完璧なテクノロジーだが適合しない | 制約との互換性を再確認 |
+
+---
+
+## スキャフォールディングのベストプラクティス
+
+### コマンド実行前
+
+1. **コマンドの最新性を確認**: 公式のスタートガイドを検索
+2. **前提条件の確認**: 先にインストールすべきものは？
+3. **作成されるものを理解**: どのファイル/フォルダが生成されるか？
+4. **プロジェクトの場所を計画**: プロジェクトをどこに作成すべきか？
+
+### スキャフォールディング後
+
+1. **成功を検証**: プロジェクトはビルド/実行できるか？
+2. **セットアップを文書化**: 実行したコマンドを記録
+3. **.gitignore の作成**: 使用テクノロジーに基づく（テンプレートを検索）
+4. **CLAUDE.md の初期化**: 今後のセッション用に決定事項を記録
+
+### 新規プロジェクト用 CLAUDE.md テンプレート
 
 ```markdown
-# [Project Name]
+# [プロジェクト名]
 
-## Technology Stack
+## テクノロジースタック
 
-| Component | Technology | Version | Chosen Because |
-|-----------|------------|---------|----------------|
-| [Layer]   | [Name]     | [Ver]   | [Rationale]    |
+| コンポーネント | テクノロジー | バージョン | 選択理由 |
+|-------------|------------|-----------|---------|
+| [レイヤー] | [名前] | [バージョン] | [根拠] |
 
-## Setup Commands Used
-
-```bash
-# [Exact commands that were run]
-```
-
-## Key Decisions
-
-| Decision | Choice | Alternatives Considered | Rationale |
-|----------|--------|------------------------|-----------|
-| [Area]   | [What] | [Options]              | [Why]     |
-
-## Project Structure
-
-```
-[Directory tree created by scaffolding]
-```
-
-## Development Commands
+## 使用したセットアップコマンド
 
 ```bash
-# Start development
+# [実行したコマンド]
+```
+
+## 主要な決定事項
+
+| 決定事項 | 選択 | 検討した代替案 | 根拠 |
+|---------|------|--------------|------|
+| [領域] | [選択] | [オプション] | [理由] |
+
+## プロジェクト構造
+
+```
+[スキャフォールディングで作成されたディレクトリツリー]
+```
+
+## 開発コマンド
+
+```bash
+# 開発の開始
 [command]
 
-# Run tests
+# テストの実行
 [command]
 
-# Build
+# ビルド
 [command]
 ```
 ```
 
 ---
 
-## Domain-Specific Considerations
+## ドメイン固有の考慮事項
 
-When researching, be aware of domain-specific evaluation criteria:
+リサーチ時にドメイン固有の評価基準を意識する:
 
-### Systems with Human Users
-- Accessibility compliance requirements
-- Localization/internationalization needs
-- Device/browser compatibility
+### ユーザーがいるシステム
+- アクセシビリティコンプライアンス要件
+- ローカリゼーション/国際化のニーズ
+- デバイス/ブラウザの互換性
 
-### Systems with High Reliability Needs
-- Failure mode analysis
-- Backup/recovery capabilities
-- Monitoring/observability support
+### 高信頼性が求められるシステム
+- 障害モードの分析
+- バックアップ/リカバリ機能
+- モニタリング/オブザーバビリティのサポート
 
-### Systems with Regulatory Requirements
-- Compliance certification availability
-- Audit logging capabilities
-- Data residency options
+### 規制要件のあるシステム
+- コンプライアンス認証の利用可能性
+- 監査ロギング機能
+- データレジデンシーのオプション
 
-### Systems with Performance Requirements
-- Benchmark methodology validation
-- Scaling characteristics
-- Resource consumption patterns
+### パフォーマンス要件のあるシステム
+- ベンチマーク方法論の検証
+- スケーリング特性
+- リソース消費パターン
 
 ---
 
-## Research Query Templates
+## リサーチクエリテンプレート
 
-### For Initial Discovery
+### 初期発見用
 
 ```
 "best [category] tools [year] comparison"
@@ -296,7 +296,7 @@ When researching, be aware of domain-specific evaluation criteria:
 "top [category] solutions [year]"
 ```
 
-### For Deep Evaluation
+### 深い評価用
 
 ```
 "[technology] production experience [year]"
@@ -305,7 +305,7 @@ When researching, be aware of domain-specific evaluation criteria:
 "[technology] problems issues"
 ```
 
-### For Setup Information
+### セットアップ情報用
 
 ```
 "[technology] getting started official"

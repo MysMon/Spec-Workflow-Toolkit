@@ -1,28 +1,24 @@
 #!/bin/bash
-# PostToolUse Hook: Audit logging for tool usage tracking
-# This hook logs tool invocations for debugging, compliance, and session analysis
+# PostToolUse フック: ツール使用状況の監査ログ
+# デバッグ、コンプライアンス、セッション分析のためにツール呼び出しを記録する
 #
-# Based on:
-# - https://www.anthropic.com/engineering/claude-code-best-practices
-# - https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
+# PostToolUse フックは stdin で以下の JSON を受け取る:
+# - tool_name: 実行されたツールの名前
+# - tool_input: ツールに渡されたパラメータ
+# - tool_response: ツールからの結果（切り詰められる場合あり）
+# - session_id: 現在のセッション識別子
 #
-# PostToolUse hooks receive JSON on stdin with:
-# - tool_name: Name of the tool that was executed
-# - tool_input: Parameters passed to the tool
-# - tool_response: Result from the tool (may be truncated)
-# - session_id: Current session identifier
-#
-# Output: Optional JSON to modify session state
+# 出力: セッション状態を変更するオプションの JSON
 
 set -euo pipefail
 
-# Source workspace utilities for path resolution
+# ワークスペースユーティリティを読み込み（パス解決用）
 SCRIPT_DIR="$(dirname "$0")"
 if [ -f "$SCRIPT_DIR/workspace_utils.sh" ]; then
     source "$SCRIPT_DIR/workspace_utils.sh"
 fi
 
-# Determine log directory
+# ログディレクトリの決定
 LOG_DIR=""
 WORKSPACE_ID=""
 
@@ -36,18 +32,18 @@ else
     LOG_DIR=".claude/logs"
 fi
 
-# Create log directory if it doesn't exist
+# ログディレクトリが存在しない場合は作成
 mkdir -p "$LOG_DIR" 2>/dev/null || true
 
-# Log file with date rotation
+# 日付でローテーションするログファイル
 LOG_FILE="$LOG_DIR/tool-audit-$(date +%Y-%m-%d).jsonl"
 
-# Configuration for log rotation
-MAX_LOG_SIZE_BYTES=$((10 * 1024 * 1024))  # 10MB max per log file
-MAX_LOG_FILES=7  # Keep 7 days of logs
+# ログローテーションの設定
+MAX_LOG_SIZE_BYTES=$((10 * 1024 * 1024))  # ログファイルあたり最大 10MB
+MAX_LOG_FILES=7  # 7日分のログを保持
 
-# --- Log Rotation ---
-# Rotate log file if it exceeds size limit
+# --- ログローテーション ---
+# サイズ制限を超えた場合にログファイルをローテーション
 rotate_log_if_needed() {
     local log_file="$1"
     local max_size="$2"
@@ -56,7 +52,7 @@ rotate_log_if_needed() {
         return 0
     fi
 
-    # Get file size (cross-platform, POSIX-compatible)
+    # ファイルサイズを取得（クロスプラットフォーム、POSIX 互換）
     local current_size
     case "$OSTYPE" in
         darwin*)
@@ -72,17 +68,17 @@ rotate_log_if_needed() {
         timestamp=$(date '+%H%M%S')
         local rotated_file="${log_file}.${timestamp}"
 
-        # Rotate current log
+        # 現在のログをローテーション
         mv "$log_file" "$rotated_file" 2>/dev/null || return 1
 
-        # Compress rotated file if gzip is available
+        # gzip が利用可能な場合はローテーションしたファイルを圧縮
         if command -v gzip &> /dev/null; then
             gzip "$rotated_file" 2>/dev/null &
         fi
     fi
 }
 
-# Clean up old audit logs (older than MAX_LOG_FILES days)
+# 古い監査ログのクリーンアップ（MAX_LOG_FILES 日より古いもの）
 cleanup_old_logs() {
     local log_dir="$1"
     if [ -d "$log_dir" ]; then
@@ -90,26 +86,26 @@ cleanup_old_logs() {
     fi
 }
 
-# Rotate if needed before writing
+# 書き込み前に必要に応じてローテーション
 rotate_log_if_needed "$LOG_FILE" "$MAX_LOG_SIZE_BYTES"
 
-# Periodic cleanup (only run occasionally to avoid overhead)
+# 定期的なクリーンアップ（オーバーヘッドを避けるため時々のみ実行）
 CLEANUP_MARKER="$LOG_DIR/.last_audit_cleanup"
 if [ ! -f "$CLEANUP_MARKER" ] || [ "$(find "$CLEANUP_MARKER" -mtime +1 2>/dev/null)" ]; then
     cleanup_old_logs "$LOG_DIR"
     touch "$CLEANUP_MARKER" 2>/dev/null || true
 fi
 
-# Read input from stdin
+# stdin から入力を読み取り
 INPUT=$(cat)
 
-# Skip logging if input is empty
+# 入力が空の場合はログをスキップ
 if [ -z "$INPUT" ]; then
     exit 0
 fi
 
-# Extract tool information using Python for reliable JSON parsing
-# Use environment variable to safely pass input
+# Python を使用して信頼性の高い JSON パースでツール情報を抽出
+# 環境変数を使用して入力を安全に渡す
 if command -v python3 &> /dev/null; then
     AUDIT_INPUT="$INPUT" python3 -c "
 import json
@@ -119,9 +115,9 @@ from datetime import datetime
 
 import re
 
-# Patterns for secrets that might appear in command arguments
+# コマンド引数に含まれる可能性のあるシークレットのパターン
 SECRET_PATTERNS = [
-    # Provider API keys with prefixes
+    # プロバイダー API キー（プレフィックス付き）
     (r'sk-ant-[a-zA-Z0-9_-]{20,}', '[ANTHROPIC_KEY_REDACTED]'),
     (r'sk-[a-zA-Z0-9]{20,}', '[OPENAI_KEY_REDACTED]'),
     (r'AKIA[0-9A-Z]{16}', '[AWS_ACCESS_KEY_REDACTED]'),
@@ -129,20 +125,20 @@ SECRET_PATTERNS = [
     (r'gho_[a-zA-Z0-9]{36,}', '[GITHUB_OAUTH_REDACTED]'),
     (r'glpat-[a-zA-Z0-9_-]{20,}', '[GITLAB_TOKEN_REDACTED]'),
     (r'xox[baprs]-[a-zA-Z0-9-]{10,}', '[SLACK_TOKEN_REDACTED]'),
-    # Bearer/Authorization tokens
+    # Bearer/Authorization トークン
     (r'Bearer\s+[a-zA-Z0-9._-]{20,}', 'Bearer [TOKEN_REDACTED]'),
     (r'Authorization:\s*[^\s]{20,}', 'Authorization: [REDACTED]'),
-    # Generic patterns for passwords/secrets in arguments
+    # 引数内のパスワード/シークレットの汎用パターン
     (r'(-[pP]|--password[=\s])[^\s]{8,}', r'\g<1>[PASSWORD_REDACTED]'),
     (r'(ANTHROPIC_API_KEY|OPENAI_API_KEY|AWS_SECRET_ACCESS_KEY|GITHUB_TOKEN)=[^\s]{10,}', r'\g<1>=[REDACTED]'),
-    # Database connection strings with passwords
+    # パスワード付きデータベース接続文字列
     (r'(postgres|mysql|mongodb)://[^:]+:[^@]{8,}@', r'\g<1>://[USER]:[PASSWORD_REDACTED]@'),
-    # Generic high-entropy strings that look like secrets (64+ hex chars)
-    (r'["\'][a-fA-F0-9]{64,}["\']', '"[POSSIBLE_SECRET_REDACTED]"'),
+    # シークレットの可能性がある汎用の高エントロピー文字列（64文字以上の16進数）
+    (r'[\"\'][a-fA-F0-9]{64,}[\"\']', '\"[POSSIBLE_SECRET_REDACTED]\"'),
 ]
 
 def redact_secrets_in_string(text):
-    '''Redact known secret patterns from a string'''
+    '''文字列から既知のシークレットパターンをマスクする'''
     if not isinstance(text, str):
         return text
     result = text
@@ -151,17 +147,17 @@ def redact_secrets_in_string(text):
     return result
 
 def truncate_input(data, max_len=200):
-    '''Truncate input for logging without exposing sensitive data'''
+    '''機密データを公開せずにログ用に入力を切り詰める'''
     if isinstance(data, dict):
         result = {}
         for k, v in data.items():
-            # Skip potentially sensitive fields by name
+            # 名前から判断して機密性の高いフィールドをスキップ
             if k.lower() in ('password', 'secret', 'token', 'key', 'credential', 'api_key'):
                 result[k] = '[REDACTED]'
             elif isinstance(v, str):
-                # First redact secrets in string content
+                # まず文字列内のシークレットをマスク
                 redacted = redact_secrets_in_string(v)
-                # Then truncate if needed
+                # 必要に応じて切り詰め
                 if len(redacted) > max_len:
                     result[k] = redacted[:max_len] + '...[truncated]'
                 else:
@@ -184,7 +180,7 @@ try:
     tool_input = data.get('tool_input', {})
     session_id = data.get('session_id', 'unknown')
 
-    # Create audit entry (exclude tool_response to save space)
+    # 監査エントリを作成（容量節約のため tool_response は除外）
     audit_entry = {
         'timestamp': datetime.utcnow().isoformat() + 'Z',
         'session_id': session_id,
@@ -195,13 +191,13 @@ try:
     print(json.dumps(audit_entry))
 
 except json.JSONDecodeError:
-    # Invalid JSON input - skip logging, don't fail
+    # 不正な JSON 入力 - ログをスキップし、失敗させない
     sys.exit(0)
 except Exception as e:
-    # Any other error - skip logging, don't fail
+    # その他のエラー - ログをスキップし、失敗させない
     sys.exit(0)
 " 2>/dev/null >> "$LOG_FILE" || true
 fi
 
-# Always exit successfully - audit logging should never block tool execution
+# 常に正常終了 - 監査ログがツール実行をブロックしてはならない
 exit 0

@@ -1,122 +1,122 @@
 ---
 name: security-fundamentals
 description: |
-  Core security principles and practices applicable to any technology stack. Use when:
-  - Implementing authentication, authorization, or access control
-  - Handling sensitive data (passwords, PII, secrets, tokens)
-  - Validating user input or API payloads
-  - Reviewing code for security vulnerabilities
-  - Working with encryption, hashing, or cryptography
-  - Addressing OWASP Top 10 vulnerabilities
+  あらゆる技術スタックに適用可能なコアセキュリティ原則と実践。使用場面:
+  - 認証、認可、アクセス制御の実装
+  - 機密データの取り扱い（パスワード、PII、シークレット、トークン）
+  - ユーザー入力や API ペイロードのバリデーション
+  - セキュリティ脆弱性のコードレビュー
+  - 暗号化、ハッシュ化、暗号技術の使用
+  - OWASP Top 10 脆弱性への対応
   Trigger phrases: security review, auth implementation, password handling, input validation, XSS, SQL injection, CSRF, secrets management, OWASP
 allowed-tools: Read, Grep, Glob, Bash
 model: sonnet
 user-invocable: true
 ---
 
-# Security Fundamentals
+# セキュリティ基礎
 
-Stack-agnostic security principles and practices for building secure applications.
+安全なアプリケーションを構築するためのスタック非依存のセキュリティ原則と実践。
 
-## Core Principles
+## 基本原則
 
-### 1. Defense in Depth
-
-```
-Never rely on a single security measure.
-
-Layers:
-- Network (firewalls, VPNs)
-- Infrastructure (hardening, least privilege)
-- Application (validation, authentication)
-- Data (encryption, access control)
-```
-
-### 2. Least Privilege
+### 1. 多層防御
 
 ```
-Grant minimum required permissions.
+単一のセキュリティ対策に依存しない。
 
-Examples:
-- Database users: Only necessary tables
-- API tokens: Only needed scopes
-- File permissions: Only required access
-- IAM roles: Specific actions only
+レイヤー:
+- ネットワーク（ファイアウォール、VPN）
+- インフラ（ハードニング、最小権限）
+- アプリケーション（バリデーション、認証）
+- データ（暗号化、アクセス制御）
 ```
 
-### 3. Fail Secure
+### 2. 最小権限
 
 ```
-When in doubt, deny access.
+必要最小限の権限を付与。
 
-Example:
+例:
+- データベースユーザー: 必要なテーブルのみ
+- API トークン: 必要なスコープのみ
+- ファイルパーミッション: 必要なアクセスのみ
+- IAM ロール: 特定のアクションのみ
+```
+
+### 3. セキュアフェイル
+
+```
+疑わしい場合はアクセスを拒否。
+
+例:
 if (!hasPermission(user, resource)) {
-    return DENIED;  // Fail closed
+    return DENIED;  // クローズドにフェイル
 }
 ```
 
-### 4. Input Validation
+### 4. 入力バリデーション
 
 ```
-Never trust input from untrusted sources.
+信頼できないソースからの入力を信頼しない。
 
-Validate at:
-- API boundaries (external input)
-- Service boundaries (inter-service calls)
-- Database boundaries (before queries)
+バリデーション箇所:
+- API 境界（外部入力）
+- サービス境界（サービス間呼び出し）
+- データベース境界（クエリ実行前）
 ```
 
-## OWASP Top 10 Quick Reference
+## OWASP Top 10 クイックリファレンス
 
-| # | Vulnerability | Prevention |
-|---|---------------|------------|
-| A01 | Broken Access Control | Auth checks on every request |
-| A02 | Cryptographic Failures | Strong encryption, no secrets in code |
-| A03 | Injection | Parameterized queries, input validation |
-| A04 | Insecure Design | Threat modeling, secure defaults |
-| A05 | Security Misconfiguration | Hardened defaults, minimal footprint |
-| A06 | Vulnerable Components | Dependency updates, audits |
-| A07 | Auth Failures | Strong passwords, MFA, rate limiting |
-| A08 | Data Integrity | Signature verification, secure CI/CD |
-| A09 | Logging Failures | Comprehensive logging, no PII in logs |
-| A10 | SSRF | URL validation, allowlists |
+| # | 脆弱性 | 予防策 |
+|---|--------|--------|
+| A01 | アクセス制御の欠陥 | 毎リクエストで認証チェック |
+| A02 | 暗号化の失敗 | 強力な暗号化、コードにシークレットを含めない |
+| A03 | インジェクション | パラメータ化クエリ、入力バリデーション |
+| A04 | 安全でない設計 | 脅威モデリング、セキュアなデフォルト |
+| A05 | セキュリティ設定ミス | ハードニングされたデフォルト、最小フットプリント |
+| A06 | 脆弱なコンポーネント | 依存関係の更新、監査 |
+| A07 | 認証の失敗 | 強力なパスワード、MFA、レート制限 |
+| A08 | データ整合性の失敗 | 署名検証、セキュアな CI/CD |
+| A09 | ロギングの失敗 | 包括的なロギング、ログに PII を含めない |
+| A10 | SSRF | URL バリデーション、許可リスト |
 
-## Secret Management
+## シークレット管理
 
-### Never Hardcode Secrets
+### シークレットのハードコード禁止
 
 ```
-BAD:
+悪い例:
 api_key = "sk-1234567890abcdef"
 database_url = "postgres://user:password@host/db"
 
-GOOD:
+良い例:
 api_key = os.environ["API_KEY"]
 database_url = os.environ["DATABASE_URL"]
 ```
 
-### Environment Files
+### 環境ファイル
 
 ```
-# .env.example (commit this)
+# .env.example（これはコミットする）
 API_KEY=your-api-key-here
 DATABASE_URL=postgres://user:pass@localhost/db
 
-# .env (NEVER commit)
+# .env（絶対にコミットしない）
 API_KEY=sk-actual-secret-key
 DATABASE_URL=postgres://real:secret@prod/db
 ```
 
-### .gitignore Pattern
+### .gitignore パターン
 
 ```gitignore
-# Environment files
+# 環境ファイル
 .env
 .env.local
 .env.*.local
 .env.production
 
-# Secrets
+# シークレット
 *.pem
 *.key
 *.p12
@@ -124,162 +124,162 @@ secrets/
 credentials.json
 ```
 
-## Input Validation Patterns
+## 入力バリデーションパターン
 
-### Allowlist vs Denylist
-
-```
-PREFER ALLOWLIST:
-- Define what IS allowed
-- Reject everything else
-
-AVOID DENYLIST:
-- Trying to block bad input
-- Always incomplete
-```
-
-### Validation Schema Pattern
+### 許可リスト vs 拒否リスト
 
 ```
-Define schema:
-- Type constraints
-- Length limits
-- Format patterns
-- Required fields
+許可リストを推奨:
+- 許可されるものを定義
+- それ以外はすべて拒否
 
-Validate:
-- Parse input against schema
-- Reject if invalid
-- Use validated data only
+拒否リストは避ける:
+- 悪い入力をブロックしようとする
+- 常に不完全
 ```
 
-## Authentication Security
-
-### Password Requirements
+### バリデーションスキーマパターン
 
 ```
-Modern recommendations:
-- Minimum 12 characters
-- No composition rules (upper/lower/number/special)
-- Check against breach databases
-- Use bcrypt/argon2/scrypt (not MD5/SHA1)
+スキーマを定義:
+- 型制約
+- 長さ制限
+- フォーマットパターン
+- 必須フィールド
+
+バリデーション:
+- スキーマに対して入力を解析
+- 無効なら拒否
+- バリデーション済みデータのみ使用
 ```
 
-### Session Security
+## 認証セキュリティ
+
+### パスワード要件
 
 ```
-Cookie attributes:
-- HttpOnly: Prevent XSS access
-- Secure: HTTPS only
-- SameSite: CSRF protection
-- Short expiration
+現代の推奨事項:
+- 最低 12 文字
+- 構成ルールなし（大文字/小文字/数字/記号）
+- 漏洩データベースとの照合
+- bcrypt/argon2/scrypt を使用（MD5/SHA1 は不可）
 ```
 
-### Token Best Practices
+### セッションセキュリティ
 
 ```
-Access tokens:
-- Short expiration (15-60 minutes)
-- Minimal claims
-- Validate on every request
-
-Refresh tokens:
-- Longer expiration
-- Rotate on use
-- Store securely
+Cookie 属性:
+- HttpOnly: XSS アクセスを防止
+- Secure: HTTPS のみ
+- SameSite: CSRF 保護
+- 短い有効期限
 ```
 
-## Authorization Patterns
-
-### Check on Every Request
+### トークンのベストプラクティス
 
 ```
-Pattern:
-1. Authenticate user
-2. Load resource
-3. Check permission
-4. Return or deny
+アクセストークン:
+- 短い有効期限（15-60分）
+- 最小限のクレーム
+- 毎リクエストでバリデーション
 
-NEVER:
-- Rely on URL obscurity
-- Trust client-side checks
-- Cache permissions without invalidation
+リフレッシュトークン:
+- 長い有効期限
+- 使用時にローテーション
+- セキュアに保存
 ```
 
-### Resource-Level Checks
+## 認可パターン
+
+### 毎リクエストでチェック
 
 ```
-Example:
-1. User requests /documents/123
-2. Load document 123
-3. Verify user.id == document.owner_id OR user.isAdmin
-4. Return document or 403
+パターン:
+1. ユーザーを認証
+2. リソースをロード
+3. 権限をチェック
+4. 返却または拒否
+
+絶対にしてはいけないこと:
+- URL の不明瞭さに依存
+- クライアントサイドのチェックを信頼
+- 無効化なしで権限をキャッシュ
 ```
 
-## Logging Security
-
-### What to Log
-
-- Authentication attempts (success and failure)
-- Authorization failures
-- Input validation failures
-- System errors (sanitized)
-- Configuration changes
-
-### What NOT to Log
-
-- Passwords (even hashed)
-- API keys or tokens
-- PII (names, emails, addresses)
-- Credit card numbers
-- Session tokens
-
-## Dependency Security
-
-### Regular Audits
-
-Each ecosystem has standard dependency audit tools. Use the `security-auditor` agent or `stack-detector` skill to identify the appropriate commands for your stack.
-
-**Audit checklist:**
-- Known CVEs in dependencies
-- Outdated packages with security patches
-- Transitive dependency vulnerabilities
-- License compliance (if required)
-
-### Update Strategy
+### リソースレベルのチェック
 
 ```
-1. Monitor for vulnerabilities
-2. Test updates in CI
-3. Apply security patches promptly
-4. Schedule regular dependency updates
+例:
+1. ユーザーが /documents/123 をリクエスト
+2. ドキュメント 123 をロード
+3. user.id == document.owner_id OR user.isAdmin を検証
+4. ドキュメントを返却 または 403
 ```
 
-## Rules (L1 - Hard)
+## ロギングセキュリティ
 
-Security rules are L1 by default. These prevent vulnerabilities and data breaches.
+### ログに記録すべきもの
 
-- NEVER hardcode secrets (use environment variables or secret managers)
-- ALWAYS validate untrusted input at all boundaries
-- NEVER trust client-side validation alone (always validate server-side)
-- ALWAYS use parameterized queries (prevent SQL injection)
-- NEVER log sensitive data (passwords, tokens, PII)
-- ALWAYS hash passwords with strong algorithms (bcrypt, argon2, scrypt)
+- 認証試行（成功と失敗）
+- 認可の失敗
+- 入力バリデーションの失敗
+- システムエラー（サニタイズ済み）
+- 設定変更
 
-## Defaults (L2 - Soft)
+### ログに記録してはいけないもの
 
-Important practices that may have context-specific exceptions.
+- パスワード（ハッシュ化済みでも）
+- API キーやトークン
+- PII（氏名、メール、住所）
+- クレジットカード番号
+- セッショントークン
 
-- Expose stack traces only in development, never in production
-- Keep dependencies updated (balance security vs stability)
-- Use HTTPS for all external communications
-- Implement rate limiting on authentication endpoints
+## 依存関係のセキュリティ
 
-## Guidelines (L3)
+### 定期的な監査
 
-Recommendations that improve security posture.
+各エコシステムには標準的な依存関係監査ツールがある。`security-auditor` エージェントまたは `stack-detector` スキルを使用して、スタックに適したコマンドを特定する。
 
-- Consider implementing Content Security Policy (CSP)
-- Prefer allowlist over denylist for input validation
-- Consider using security headers (HSTS, X-Frame-Options)
-- Review OWASP Top 10 periodically for new vulnerabilities
+**監査チェックリスト:**
+- 依存関係の既知の CVE
+- セキュリティパッチがある古いパッケージ
+- 推移的依存関係の脆弱性
+- ライセンスコンプライアンス（必要な場合）
+
+### 更新戦略
+
+```
+1. 脆弱性を監視
+2. CI で更新をテスト
+3. セキュリティパッチを迅速に適用
+4. 定期的な依存関係更新をスケジュール
+```
+
+## ルール（L1 - ハード）
+
+セキュリティルールはデフォルトで L1。脆弱性とデータ漏洩を防止する。
+
+- NEVER: シークレットをハードコードしない（環境変数またはシークレットマネージャーを使用）
+- ALWAYS: すべての境界で信頼できない入力をバリデーションする
+- NEVER: クライアントサイドのバリデーションのみを信頼しない（常にサーバーサイドでバリデーション）
+- ALWAYS: パラメータ化クエリを使用する（SQL インジェクション防止）
+- NEVER: 機密データをログに記録しない（パスワード、トークン、PII）
+- ALWAYS: 強力なアルゴリズムでパスワードをハッシュ化する（bcrypt, argon2, scrypt）
+
+## デフォルト（L2 - ソフト）
+
+コンテキスト固有の例外がありうる重要な実践。
+
+- スタックトレースは開発環境でのみ公開し、本番環境では非公開
+- 依存関係を最新に保つ（セキュリティと安定性のバランス）
+- すべての外部通信に HTTPS を使用
+- 認証エンドポイントにレート制限を実装
+
+## ガイドライン（L3）
+
+セキュリティ態勢を改善する推奨事項。
+
+- consider: Content Security Policy (CSP) の実装を検討
+- prefer: 入力バリデーションには拒否リストより許可リストを推奨
+- consider: セキュリティヘッダー（HSTS, X-Frame-Options）の使用を検討
+- recommend: 新しい脆弱性について定期的に OWASP Top 10 をレビュー

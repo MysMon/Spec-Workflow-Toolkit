@@ -1,30 +1,30 @@
 ---
 name: api-design
 description: |
-  API design patterns and best practices for REST, GraphQL, and gRPC. Use when:
-  - Designing new REST, GraphQL, or gRPC APIs
-  - Reviewing or creating OpenAPI/Swagger specifications
-  - Implementing API versioning or deprecation strategies
-  - Designing pagination, filtering, or error responses
-  - Working with HTTP status codes or API authentication
+  REST、GraphQL、gRPC の API 設計パターンとベストプラクティス。以下の場合に使用:
+  - 新しい REST、GraphQL、gRPC API の設計
+  - OpenAPI/Swagger 仕様のレビューや作成
+  - API バージョニングや非推奨化戦略の実装
+  - ページネーション、フィルタリング、エラーレスポンスの設計
+  - HTTP ステータスコードや API 認証の扱い
   Trigger phrases: API design, REST endpoint, GraphQL schema, OpenAPI, swagger, gRPC, API versioning, HTTP status code, pagination, error response
 allowed-tools: Read, Glob, Grep, Write, Edit
 model: sonnet
 user-invocable: true
 ---
 
-# API Design
+# API 設計
 
-Stack-agnostic patterns for designing consistent, maintainable APIs.
+一貫性のある保守しやすい API を設計するためのスタック非依存パターン。
 
-## Design Principles
+## 設計原則
 
-### 1. Contract-First Design
+### 1. コントラクトファースト設計
 
-Always define the API contract before implementation:
+実装より先に必ず API コントラクトを定義する:
 
 ```yaml
-# OpenAPI for REST
+# REST 向け OpenAPI
 openapi: 3.1.0
 info:
   title: User Service API
@@ -35,64 +35,64 @@ type Query {
   user(id: ID!): User
 }
 
-# Protocol Buffers for gRPC
+# gRPC 向け Protocol Buffers
 service UserService {
   rpc GetUser (GetUserRequest) returns (User);
 }
 ```
 
-### 2. Consistency
+### 2. 一貫性
 
-| Aspect | Standard |
-|--------|----------|
-| Naming | Use consistent case (snake_case or camelCase) |
-| Errors | Uniform error response format |
-| Pagination | Same pattern across all list endpoints |
-| Versioning | Single versioning strategy |
+| 側面 | 標準 |
+|------|------|
+| 命名 | 一貫したケースを使用（snake_case または camelCase） |
+| エラー | 統一されたエラーレスポンス形式 |
+| ページネーション | 全リストエンドポイントで同じパターン |
+| バージョニング | 単一のバージョニング戦略 |
 
-## REST API Design
+## REST API 設計
 
-### Resource Naming
+### リソース命名
 
 ```
-# Good - Noun, plural, lowercase
+# 良い例 - 名詞、複数形、小文字
 GET    /users
 GET    /users/{id}
 POST   /users
 PUT    /users/{id}
 DELETE /users/{id}
 
-# Nested resources
+# ネストされたリソース
 GET    /users/{id}/posts
 POST   /users/{id}/posts
 
-# Actions (when needed)
+# アクション（必要な場合）
 POST   /users/{id}/activate
 POST   /orders/{id}/cancel
 
-# Bad examples
-GET    /getUsers          # Verb in URL
-GET    /user_list         # Singular, underscore
-POST   /createUser        # Verb, not RESTful
+# 悪い例
+GET    /getUsers          # URL に動詞
+GET    /user_list         # 単数形、アンダースコア
+POST   /createUser        # 動詞、RESTful でない
 ```
 
-### HTTP Status Codes
+### HTTP ステータスコード
 
-| Code | Meaning | Use Case |
-|------|---------|----------|
-| 200 | OK | Successful GET, PUT |
-| 201 | Created | Successful POST |
-| 204 | No Content | Successful DELETE |
-| 400 | Bad Request | Validation error |
-| 401 | Unauthorized | Missing/invalid auth |
-| 403 | Forbidden | Valid auth, no permission |
-| 404 | Not Found | Resource doesn't exist |
-| 409 | Conflict | Duplicate, state conflict |
-| 422 | Unprocessable | Business logic error |
-| 429 | Too Many Requests | Rate limited |
-| 500 | Server Error | Unexpected error |
+| コード | 意味 | 使用場面 |
+|--------|------|----------|
+| 200 | OK | GET、PUT 成功時 |
+| 201 | Created | POST 成功時 |
+| 204 | No Content | DELETE 成功時 |
+| 400 | Bad Request | バリデーションエラー |
+| 401 | Unauthorized | 認証なし/無効な認証 |
+| 403 | Forbidden | 認証済みだが権限なし |
+| 404 | Not Found | リソースが存在しない |
+| 409 | Conflict | 重複、状態の競合 |
+| 422 | Unprocessable | ビジネスロジックエラー |
+| 429 | Too Many Requests | レート制限 |
+| 500 | Server Error | 予期しないエラー |
 
-### Error Response Format
+### エラーレスポンス形式
 
 ```json
 {
@@ -112,10 +112,10 @@ POST   /createUser        # Verb, not RESTful
 }
 ```
 
-### Pagination
+### ページネーション
 
 ```json
-// Cursor-based (preferred for large datasets)
+// カーソルベース（大規模データセットに推奨）
 {
   "data": [...],
   "pagination": {
@@ -124,7 +124,7 @@ POST   /createUser        # Verb, not RESTful
   }
 }
 
-// Offset-based
+// オフセットベース
 {
   "data": [...],
   "pagination": {
@@ -136,35 +136,35 @@ POST   /createUser        # Verb, not RESTful
 }
 ```
 
-### Filtering and Sorting
+### フィルタリングとソート
 
 ```bash
-# Filtering
+# フィルタリング
 GET /users?status=active&role=admin
 
-# Sorting
+# ソート
 GET /users?sort=created_at:desc,name:asc
 
-# Field selection
+# フィールド選択
 GET /users?fields=id,name,email
 
-# Combining
+# 組み合わせ
 GET /users?status=active&sort=name:asc&fields=id,name&page=1&per_page=20
 ```
 
-## GraphQL API Design
+## GraphQL API 設計
 
-### Schema Design
+### スキーマ設計
 
 ```graphql
-# Use input types for mutations
+# ミューテーションには input 型を使用
 input CreateUserInput {
   email: String!
   name: String!
   role: UserRole = MEMBER
 }
 
-# Use payload types for mutations
+# ミューテーションには payload 型を使用
 type CreateUserPayload {
   user: User
   errors: [Error!]
@@ -174,7 +174,7 @@ type Mutation {
   createUser(input: CreateUserInput!): CreateUserPayload!
 }
 
-# Connections for pagination
+# ページネーション用の Connection パターン
 type UserConnection {
   edges: [UserEdge!]!
   pageInfo: PageInfo!
@@ -193,10 +193,10 @@ type PageInfo {
 }
 ```
 
-### Error Handling
+### エラーハンドリング
 
 ```graphql
-# Errors in extensions
+# extensions でのエラー
 {
   "data": null,
   "errors": [
@@ -211,7 +211,7 @@ type PageInfo {
   ]
 }
 
-# Union types for expected errors
+# 期待されるエラー用の Union 型
 union CreateUserResult = User | ValidationErrors
 
 type ValidationErrors {
@@ -219,9 +219,9 @@ type ValidationErrors {
 }
 ```
 
-## gRPC API Design
+## gRPC API 設計
 
-### Service Definition
+### サービス定義
 
 ```protobuf
 syntax = "proto3";
@@ -229,16 +229,16 @@ syntax = "proto3";
 package user.v1;
 
 service UserService {
-  // Get a single user by ID
+  // ID で単一ユーザーを取得
   rpc GetUser(GetUserRequest) returns (User);
 
-  // List users with pagination
+  // ページネーション付きでユーザー一覧を取得
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
 
-  // Create a new user
+  // 新しいユーザーを作成
   rpc CreateUser(CreateUserRequest) returns (User);
 
-  // Stream user updates
+  // ユーザー更新をストリーミング
   rpc WatchUsers(WatchUsersRequest) returns (stream UserEvent);
 }
 
@@ -257,41 +257,41 @@ message ListUsersResponse {
 }
 ```
 
-## API Versioning
+## API バージョニング
 
-### Strategies
+### 戦略
 
-| Strategy | Example | Pros | Cons |
-|----------|---------|------|------|
-| URL Path | `/v1/users` | Clear, easy routing | Multiple URLs |
-| Header | `Accept: application/vnd.api.v1+json` | Clean URLs | Hidden |
-| Query | `/users?version=1` | Easy to use | Not RESTful |
+| 戦略 | 例 | 利点 | 欠点 |
+|------|-----|------|------|
+| URL パス | `/v1/users` | 明確、ルーティングが容易 | 複数の URL |
+| ヘッダー | `Accept: application/vnd.api.v1+json` | クリーンな URL | 不可視 |
+| クエリ | `/users?version=1` | 使いやすい | RESTful でない |
 
-### Deprecation
+### 非推奨化
 
 ```http
-# Headers for deprecation
+# 非推奨化用ヘッダー
 Deprecation: true
 Sunset: Sat, 01 Jun 2025 00:00:00 GMT
 Link: </v2/users>; rel="successor-version"
 ```
 
-## Security
+## セキュリティ
 
-### Authentication
+### 認証
 
 ```http
-# Bearer token
+# Bearer トークン
 Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 
-# API Key
+# API キー
 X-API-Key: sk_live_abc123
 
-# Multiple methods
+# 複数方式
 Authorization: Basic base64(client_id:client_secret)
 ```
 
-### Rate Limiting Headers
+### レート制限ヘッダー
 
 ```http
 X-RateLimit-Limit: 100
@@ -300,9 +300,9 @@ X-RateLimit-Reset: 1704067200
 Retry-After: 60
 ```
 
-## Documentation
+## ドキュメント
 
-### OpenAPI Best Practices
+### OpenAPI ベストプラクティス
 
 ```yaml
 paths:
@@ -331,43 +331,43 @@ paths:
                   $ref: '#/components/examples/UserListExample'
 ```
 
-## Checklist
+## チェックリスト
 
-Before finalizing an API design:
+API 設計を確定する前に:
 
-- [ ] Contract defined (OpenAPI/GraphQL SDL/Protobuf)
-- [ ] Consistent naming conventions
-- [ ] Proper HTTP methods/status codes (REST)
-- [ ] Error response format documented
-- [ ] Pagination implemented for lists
-- [ ] Authentication/authorization defined
-- [ ] Rate limiting strategy
-- [ ] Versioning strategy
-- [ ] Deprecation policy
-- [ ] Examples for all endpoints
+- [ ] コントラクト定義済み（OpenAPI/GraphQL SDL/Protobuf）
+- [ ] 一貫した命名規則
+- [ ] 適切な HTTP メソッド/ステータスコード（REST）
+- [ ] エラーレスポンス形式を文書化
+- [ ] リスト用ページネーション実装済み
+- [ ] 認証/認可を定義
+- [ ] レート制限戦略
+- [ ] バージョニング戦略
+- [ ] 非推奨化ポリシー
+- [ ] 全エンドポイントの例
 
 ## Rules (L1 - Hard)
 
-Critical for API security and reliability.
+API のセキュリティと信頼性に不可欠。
 
-- NEVER expose internal identifiers directly (security risk)
-- NEVER return stack traces in production errors (information disclosure)
-- ALWAYS validate input at API boundaries (security requirement)
-- NEVER break backwards compatibility without versioning
+- NEVER: 内部識別子を直接公開しない（セキュリティリスク）
+- NEVER: 本番環境のエラーでスタックトレースを返さない（情報漏洩）
+- ALWAYS: API 境界で入力をバリデーションする（セキュリティ要件）
+- NEVER: バージョニングなしで後方互換性を壊さない
 
 ## Defaults (L2 - Soft)
 
-Important for API quality. Override with reasoning when appropriate.
+API の品質に重要。適切な理由がある場合はオーバーライド可。
 
-- Design the contract before implementation
-- Use consistent naming conventions across endpoints
-- Use appropriate HTTP status codes
-- Document all endpoints with examples
+- 実装より先にコントラクトを設計する
+- エンドポイント間で一貫した命名規則を使用する
+- 適切な HTTP ステータスコードを使用する
+- 全エンドポイントを例付きで文書化する
 
 ## Guidelines (L3)
 
-Recommendations for excellent API design.
+優れた API 設計のための推奨事項。
 
-- Consider cursor-based pagination for large datasets
-- Prefer OpenAPI/GraphQL SDL/Protobuf for contract definition
-- Consider deprecation headers before removing endpoints
+- consider: 大規模データセットにはカーソルベースのページネーションを検討
+- prefer: コントラクト定義には OpenAPI/GraphQL SDL/Protobuf を推奨
+- consider: エンドポイント削除前に非推奨化ヘッダーの使用を検討

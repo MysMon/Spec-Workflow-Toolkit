@@ -1,84 +1,84 @@
 ---
 name: progress-tracking
 description: |
-  JSON-based progress tracking for long-running and multi-session tasks.
-  Based on Anthropic's "Effective harnesses for long-running agents" pattern.
-  Use when:
-  - Starting complex tasks that may span multiple sessions
-  - Need to track feature implementation progress
-  - Want resumable workflows across context windows
-  - Managing large migrations or refactoring
-  - User says "track progress", "resume work", "continue from where we left off"
+  ロングランニングおよびマルチセッションタスクのための JSON ベース進捗トラッキング。
+  Anthropic の「ロングランニングエージェントのための効果的なハーネス」パターンに基づく。
+  以下の場合に使用:
+  - 複数セッションにまたがる可能性のある複雑なタスクの開始時
+  - 機能実装の進捗を追跡する必要がある時
+  - コンテキストウィンドウ間で再開可能なワークフローが必要な時
+  - 大規模なマイグレーションやリファクタリングの管理
+  - ユーザーが「進捗を追跡」「作業を再開」「前回の続き」と言った時
   Trigger phrases: track progress, resume, continue, multi-session, persist state, progress file, feature list
 allowed-tools: Read, Write, Glob, Grep, TodoWrite
 model: sonnet
 user-invocable: false
 ---
 
-# Progress Tracking System
+# 進捗トラッキングシステム
 
-JSON-based progress tracking for autonomous, long-running tasks that may span multiple sessions or context windows.
+複数セッションやコンテキストウィンドウにまたがる可能性のある自律的なロングランニングタスクのための JSON ベース進捗トラッキング。
 
-Based on Anthropic's Effective Harnesses for Long-Running Agents pattern.
+Anthropic の「ロングランニングエージェントのための効果的なハーネス」パターンに基づく。
 
-## Multi-Project Isolation
+## マルチプロジェクト分離
 
-Based on Claude Code's official git worktree recommendations, this system isolates each workspace to prevent conflicts when running multiple projects or sessions concurrently.
+Claude Code の公式 git worktree 推奨に基づき、このシステムは各ワークスペースを分離し、複数のプロジェクトやセッションを同時実行する際の競合を防止する。
 
-### Workspace Structure
+### ワークスペース構造
 
 ```
 .claude/
 └── workspaces/
-    └── {workspace-id}/           # Format: {branch}_{path-hash}
-        ├── claude-progress.json  # Progress log with resumption context
-        ├── feature-list.json     # Feature/task tracking
-        ├── session-state.json    # Current session state (optional)
+    └── {workspace-id}/           # 形式: {branch}_{path-hash}
+        ├── claude-progress.json  # 再開コンテキスト付き進捗ログ
+        ├── feature-list.json     # 機能/タスク追跡
+        ├── session-state.json    # 現在のセッション状態（オプション）
         └── logs/
             ├── subagent_activity.log
             └── sessions/
                 └── {session-id}.log
 ```
 
-### Workspace ID Generation
+### ワークスペース ID の生成
 
-The workspace ID is generated from:
-- **Branch name**: Current git branch (e.g., `main`, `feature-auth`)
-- **Path hash**: MD5 hash of working directory path (8 chars)
+ワークスペース ID は以下から生成:
+- **ブランチ名**: 現在の git ブランチ（例: `main`、`feature-auth`）
+- **パスハッシュ**: 作業ディレクトリパスの MD5 ハッシュ（8 文字）
 
-Example workspace IDs:
-- `main_a1b2c3d4` - main branch in directory with hash a1b2c3d4
-- `feature-auth_e5f6g7h8` - feature/auth branch in different worktree
+ワークスペース ID の例:
+- `main_a1b2c3d4` - ハッシュ a1b2c3d4 のディレクトリの main ブランチ
+- `feature-auth_e5f6g7h8` - 別の worktree の feature/auth ブランチ
 
-### Why This Structure?
+### この構造の理由
 
-From Claude Code Issue #1985 (Session Isolation):
-> "File path from one session appeared in the context of a completely separate session"
+Claude Code Issue #1985（セッション分離）より:
+> 「あるセッションのファイルパスが完全に別のセッションのコンテキストに出現した」
 
-This structure ensures:
-1. **Worktree isolation**: Different git worktrees get different workspaces
-2. **Branch isolation**: Same directory, different branch = different workspace
-3. **Session tracking**: Each session has its own log file
-4. **Resume capability**: Easy identification by branch name
+この構造により:
+1. **Worktree 分離**: 異なる git worktree は異なるワークスペースを取得
+2. **ブランチ分離**: 同じディレクトリ、異なるブランチ = 異なるワークスペース
+3. **セッション追跡**: 各セッションが独自のログファイルを持つ
+4. **再開機能**: ブランチ名による容易な特定
 
-## Core Principle
+## 基本原則
 
-**Context windows are limited.** Complex tasks cannot be completed in a single window. This system provides:
+**コンテキストウィンドウには制限がある。** 複雑なタスクは単一ウィンドウで完了できない。このシステムが提供するもの:
 
-1. **claude-progress.json** - Structured progress log
-2. **feature-list.json** - Feature/task tracking with status
-3. **Resumption context** - Clear state for new sessions
+1. **claude-progress.json** - 構造化された進捗ログ
+2. **feature-list.json** - ステータス付き機能/タスク追跡
+3. **再開コンテキスト** - 新しいセッション用の明確な状態
 
-## Why JSON over Markdown?
+## なぜ Markdown ではなく JSON か？
 
-From Anthropic's research: "Models are less likely to inappropriately modify JSON files compared to Markdown files."
+Anthropic のリサーチより: 「モデルは Markdown ファイルと比べて JSON ファイルを不適切に変更する可能性が低い。」
 
-- JSON has strict schema - harder to accidentally corrupt
-- Fields can be independently updated
-- Machine-readable for automation
-- Clear separation of data and presentation
+- JSON は厳密なスキーマを持つ - 誤って破損しにくい
+- フィールドを独立して更新可能
+- 自動化用に機械可読
+- データとプレゼンテーションの明確な分離
 
-## claude-progress.json Schema
+## claude-progress.json スキーマ
 
 ```json
 {
@@ -115,7 +115,7 @@ From Anthropic's research: "Models are less likely to inappropriately modify JSO
 }
 ```
 
-## feature-list.json Schema
+## feature-list.json スキーマ
 
 ```json
 {
@@ -148,42 +148,42 @@ From Anthropic's research: "Models are less likely to inappropriately modify JSO
 }
 ```
 
-## Workflow
+## ワークフロー
 
-### Starting a New Task
+### 新しいタスクの開始
 
-1. **Determine Workspace ID**
+1. **ワークスペース ID を決定**
    ```bash
-   # Generated automatically by hooks:
-   # {branch}_{path-hash} e.g., main_a1b2c3d4
+   # フックにより自動生成:
+   # {branch}_{path-hash} 例: main_a1b2c3d4
    ```
 
-2. **Initialize Progress Files**
+2. **進捗ファイルを初期化**
    ```
-   Create .claude/workspaces/{workspace-id}/claude-progress.json with:
-   - Workspace ID
-   - Project name
-   - Start timestamp
-   - Initial status
-   - First session entry
-   ```
-
-3. **Create Feature List** (if multiple features)
-   ```
-   Create .claude/workspaces/{workspace-id}/feature-list.json with:
-   - All features to implement
-   - All marked as "pending" initially
+   .claude/workspaces/{workspace-id}/claude-progress.json を以下で作成:
+   - ワークスペース ID
+   - プロジェクト名
+   - 開始タイムスタンプ
+   - 初期ステータス
+   - 最初のセッションエントリ
    ```
 
-4. **Use TodoWrite in Parallel**
+3. **機能リストを作成**（複数機能の場合）
    ```
-   TodoWrite for real-time visibility
-   JSON files for persistence across sessions
+   .claude/workspaces/{workspace-id}/feature-list.json を以下で作成:
+   - 実装する全機能
+   - 全て初期状態は "pending"
    ```
 
-### During Work
+4. **TodoWrite を並行使用**
+   ```
+   TodoWrite でリアルタイム可視化
+   JSON ファイルでセッション横断の永続化
+   ```
 
-1. **Update Progress Log** after significant actions
+### 作業中
+
+1. **重要なアクション後に進捗ログを更新**
    ```json
    {
      "timestamp": "...",
@@ -193,7 +193,7 @@ From Anthropic's research: "Models are less likely to inappropriately modify JSO
    }
    ```
 
-2. **Update Feature Status** when completing features
+2. **機能完了時にステータスを更新**
    ```json
    {
      "status": "completed",
@@ -201,112 +201,112 @@ From Anthropic's research: "Models are less likely to inappropriately modify JSO
    }
    ```
 
-3. **Keep Resumption Context Current**
+3. **再開コンテキストを最新に保つ**
    ```json
    {
-     "position": "Where we are now",
-     "nextAction": "What to do next",
-     "dependencies": ["What's needed"],
-     "blockers": ["What's in the way"]
+     "position": "現在の位置",
+     "nextAction": "次にやること",
+     "dependencies": ["必要なもの"],
+     "blockers": ["障害になっているもの"]
    }
    ```
 
-### Ending a Session
+### セッション終了時
 
-1. **Update Session Summary**
+1. **セッションサマリーを更新**
    ```json
    {
      "ended": "...",
-     "summary": "What was accomplished",
+     "summary": "達成したこと",
      "filesModified": [...],
      "nextSteps": [...]
    }
    ```
 
-2. **Ensure Resumption Context is Complete**
-   - Position must be clear
-   - Next action must be specific
-   - Any blockers documented
+2. **再開コンテキストが完全であることを確認**
+   - 位置が明確であること
+   - 次のアクションが具体的であること
+   - ブロッカーが文書化されていること
 
-### Resuming Work
+### 作業の再開
 
-1. **List Available Workspaces**
+1. **利用可能なワークスペースを一覧**
    ```
-   Check .claude/workspaces/ for available workspaces
-   Display workspace IDs with project names and status
-   ```
-
-2. **Read Progress Files for Selected Workspace**
-   ```
-   Read .claude/workspaces/{workspace-id}/claude-progress.json
-   Read .claude/workspaces/{workspace-id}/feature-list.json (if exists)
+   .claude/workspaces/ で利用可能なワークスペースを確認
+   プロジェクト名とステータス付きでワークスペース ID を表示
    ```
 
-3. **Understand Current State**
-   - Check resumptionContext.position
-   - Review last session summary
-   - Note any blockers
+2. **選択したワークスペースの進捗ファイルを読む**
+   ```
+   .claude/workspaces/{workspace-id}/claude-progress.json を読む
+   .claude/workspaces/{workspace-id}/feature-list.json を読む（存在する場合）
+   ```
 
-4. **Continue from Documented Point**
-   - Start new session entry
-   - Follow nextAction from resumption context
+3. **現在の状態を理解**
+   - resumptionContext.position を確認
+   - 最後のセッションサマリーをレビュー
+   - ブロッカーを確認
 
-## Integration with TodoWrite
+4. **記録された地点から続行**
+   - 新しいセッションエントリを開始
+   - 再開コンテキストの nextAction に従う
 
-Use BOTH systems together:
+## TodoWrite との統合
 
-| System | Purpose | Scope |
-|--------|---------|-------|
-| TodoWrite | Real-time visibility | Current session |
-| JSON files | Persistence | Across sessions |
+両方のシステムを併用:
+
+| システム | 目的 | スコープ |
+|---------|------|---------|
+| TodoWrite | リアルタイム可視化 | 現在のセッション |
+| JSON ファイル | 永続化 | セッション横断 |
 
 ```
-Flow:
-1. Read feature-list.json to populate TodoWrite
-2. Mark TodoWrite items as you work
-3. Update JSON files at milestones
-4. Sync TodoWrite from JSON on new session
+フロー:
+1. feature-list.json から TodoWrite にポピュレート
+2. 作業に応じて TodoWrite の項目をマーク
+3. マイルストーンで JSON ファイルを更新
+4. 新しいセッションで JSON から TodoWrite に同期
 ```
 
-## Session Start Protocol
+## セッション開始プロトコル
 
-When starting or resuming:
+開始または再開時:
 
 ```
-1. Get current workspace ID (branch + path hash)
-2. Check if .claude/workspaces/{workspace-id}/claude-progress.json exists
-3. If exists:
-   - Read resumptionContext
-   - Read last session summary
-   - Report: "Resuming from: [position]"
-   - Report: "Workspace: [workspace-id]"
-   - Report: "Next action: [nextAction]"
-4. If not exists:
-   - Initialize new progress tracking
-   - Create feature list if multiple features
+1. 現在のワークスペース ID を取得（ブランチ + パスハッシュ）
+2. .claude/workspaces/{workspace-id}/claude-progress.json が存在するか確認
+3. 存在する場合:
+   - resumptionContext を読む
+   - 最後のセッションサマリーを読む
+   - 報告: "再開位置: [position]"
+   - 報告: "ワークスペース: [workspace-id]"
+   - 報告: "次のアクション: [nextAction]"
+4. 存在しない場合:
+   - 新しい進捗トラッキングを初期化
+   - 複数機能の場合は機能リストを作成
 ```
 
-## PreCompact Hook Integration
+## PreCompact フック統合
 
-This plugin includes a `PreCompact` hook that automatically saves state before context compaction.
+このプラグインはコンテキストコンパクション前に自動的に状態を保存する `PreCompact` フックを含む。
 
-### Compaction Process Flow
+### コンパクションプロセスフロー
 
-1. Context approaches limit (~50-70% full)
-2. **PreCompact hook** triggers → saves state to workspace progress file
-3. System compacts context (summarizes, details may be lost)
-4. Agent continues with reduced context → **must read progress files to restore state**
+1. コンテキストが上限に接近（約 50-70% フル）
+2. **PreCompact フック** が発火 → ワークスペース進捗ファイルに状態を保存
+3. システムがコンテキストをコンパクション（要約、詳細が失われる可能性）
+4. エージェントが縮小されたコンテキストで続行 → **状態復元のために進捗ファイルを読む必要あり**
 
-### Post-Compaction Recovery Protocol
+### コンパクション後のリカバリプロトコル
 
-**After compaction, ALWAYS:**
+**コンパクション後は必ず:**
 
-1. **Read progress file** to restore context:
+1. **進捗ファイルを読む**（コンテキストの復元）:
    ```
-   Read .claude/workspaces/{workspace-id}/claude-progress.json
+   .claude/workspaces/{workspace-id}/claude-progress.json を読む
    ```
 
-2. **Check for compaction history**:
+2. **コンパクション履歴を確認**:
    ```json
    {
      "compactionHistory": [
@@ -318,18 +318,18 @@ This plugin includes a `PreCompact` hook that automatically saves state before c
    }
    ```
 
-3. **Resume from documented position**:
-   - Check `resumptionContext.position`
-   - Follow `resumptionContext.nextAction`
-   - Be aware of any `blockers`
+3. **記録された位置から再開**:
+   - `resumptionContext.position` を確認
+   - `resumptionContext.nextAction` に従う
+   - `blockers` に注意
 
-4. **Re-read key files if needed**:
-   - Check `resumptionContext.keyFiles` for important references
-   - Use `file:line` format to quickly locate relevant code
+4. **必要に応じて主要ファイルを再読み込み**:
+   - 重要な参照は `resumptionContext.keyFiles` を確認
+   - `file:line` 形式で関連コードを素早く特定
 
-### Compaction-Safe State Format
+### コンパクション安全な状態形式
 
-Ensure your progress files contain enough context to recover:
+進捗ファイルにリカバリに十分なコンテキストを含める:
 
 ```json
 {
@@ -356,92 +356,92 @@ Ensure your progress files contain enough context to recover:
 }
 ```
 
-### Why This Matters
+### なぜこれが重要か
 
-Without proper recovery after compaction:
-- Agent loses track of what was done
-- May repeat work or skip steps
-- Decisions made before compaction are forgotten
-- Quality degrades significantly
+コンパクション後に適切なリカバリがないと:
+- エージェントが何をしたか見失う
+- 作業を繰り返したりステップをスキップする可能性
+- コンパクション前の決定が忘れられる
+- 品質が著しく低下
 
-With proper recovery:
-- Agent resumes exactly where it left off
-- All decisions are preserved in JSON
-- Key file references enable quick context loading
-- Work continues smoothly across compaction boundaries
+適切なリカバリにより:
+- エージェントが中断箇所から正確に再開
+- 全ての決定が JSON に保持
+- 主要ファイル参照で素早いコンテキストロードが可能
+- コンパクション境界を越えてもスムーズに作業継続
 
-## Context Editing (Advanced)
+## Context Editing（上級）
 
-Claude Code includes **Context Editing** - an automatic feature that removes stale tool calls and results when approaching token limits.
+Claude Code には **Context Editing** が含まれている — トークン制限に近づいた時に古くなったツール呼び出しと結果を自動的に削除する機能。
 
-From Anthropic's Context Management announcement:
+Anthropic の Context Management アナウンスより:
 
-> "Context editing automatically clears stale tool calls and results from within the context window when approaching token limits... reducing token consumption by 84%."
+> 「Context editing はトークン制限に近づいた時にコンテキストウィンドウ内の古くなったツール呼び出しと結果を自動的にクリアし...トークン消費を 84% 削減する。」
 
-### How Context Editing Works
+### Context Editing の仕組み
 
-Unlike compaction (which summarizes the conversation), context editing **surgically removes** completed tool interactions while preserving:
-- Conversation flow
-- Important decisions
-- Current task state
+コンパクション（会話を要約する）とは異なり、context editing は以下を保持しながら完了したツールインタラクションを**外科的に除去**:
+- 会話の流れ
+- 重要な決定
+- 現在のタスク状態
 
 ```
-Before Context Editing:
+Context Editing 前:
 [Turn 1: Read file A → Result: 500 lines]
 [Turn 2: Read file B → Result: 800 lines]
 [Turn 3: Edit file A → Success]
 [Turn 4: Current task discussion]
 
-After Context Editing:
+Context Editing 後:
 [Turn 1: Read file A → [removed - stale]]
 [Turn 2: Read file B → [removed - stale]]
 [Turn 3: Edit file A → [removed - completed]]
-[Turn 4: Current task discussion]  ← preserved
+[Turn 4: Current task discussion]  ← 保持
 ```
 
-### Progress Files + Context Editing = Long Sessions
+### 進捗ファイル + Context Editing = 長時間セッション
 
-Combining progress files with context editing enables extended autonomous work:
+進捗ファイルと context editing の組み合わせで長時間の自律作業が可能:
 
-| Feature | Compaction | Context Editing |
-|---------|-----------|-----------------|
-| **Trigger** | Manual or ~70% full | Automatic near limits |
-| **Method** | Summarizes conversation | Removes stale tool calls |
-| **Preserves** | Summary only | Conversation + decisions |
-| **Recovery** | Requires progress file | Often self-recovers |
-| **Token savings** | ~60-70% | Up to 84% |
+| 機能 | コンパクション | Context Editing |
+|------|-------------|-----------------|
+| **トリガー** | 手動または約 70% フル | 制限近くで自動 |
+| **方法** | 会話を要約 | 古くなったツール呼び出しを除去 |
+| **保持** | サマリーのみ | 会話 + 決定 |
+| **リカバリ** | 進捗ファイルが必要 | 多くの場合セルフリカバリ |
+| **トークン節約** | 約 60-70% | 最大 84% |
 
-### Best Practice: Use Both
+### ベストプラクティス: 両方を使用
 
-1. **Context Editing** handles routine cleanup automatically
-2. **Progress Files** provide insurance for major context loss
-3. **PreCompact Hook** saves state before any compaction
+1. **Context Editing** がルーティンのクリーンアップを自動処理
+2. **進捗ファイル** が重大なコンテキスト喪失に対する保険を提供
+3. **PreCompact フック** がコンパクション前に状態を保存
 
-**Recommendation**: Even with context editing, maintain progress files for:
-- Multi-session work
-- Complex decisions that must survive any context loss
-- Work that spans multiple days
+**推奨**: context editing があっても、以下のために進捗ファイルを維持:
+- マルチセッション作業
+- あらゆるコンテキスト喪失を生き残る必要がある複雑な決定
+- 複数日にわたる作業
 
-## Best Practices
+## ベストプラクティス
 
-### DO
+### すべきこと
 
-- Update progress after EVERY significant action
-- Keep resumption context specific and actionable
-- Use feature-list.json for tasks with multiple deliverables
-- Commit progress files to git for persistence
-- Include file paths in log entries
-- Include workspaceId in all progress files
+- 各重要なアクション後に進捗を更新
+- 再開コンテキストを具体的でアクション可能に保つ
+- 複数の成果物があるタスクには feature-list.json を使用
+- 永続化のために進捗ファイルを git にコミット
+- ログエントリにファイルパスを含める
+- 全進捗ファイルに workspaceId を含める
 
-### DON'T
+### すべきでないこと
 
-- Batch updates (risk losing progress on failure)
-- Use vague resumption context ("continue working")
-- Forget to update feature status on completion
-- Leave blockers undocumented
-- Mix progress from different workspaces
+- 更新をバッチ処理しない（失敗時に進捗を失うリスク）
+- 曖昧な再開コンテキストを使わない（「作業を続行」）
+- 完了時の機能ステータス更新を忘れない
+- ブロッカーを文書化しないまま放置しない
+- 異なるワークスペースの進捗を混在させない
 
-## Example: Database Migration
+## 例: データベースマイグレーション
 
 ```json
 {
@@ -467,28 +467,28 @@ Combining progress files with context editing enables extended autonomous work:
 
 ## Rules (L1 - Hard)
 
-Critical for session continuity and data integrity.
+セッション継続性とデータ整合性に不可欠。
 
-- ALWAYS update resumption context before ending session (enables recovery)
-- NEVER leave nextAction empty or vague (agent cannot resume)
-- ALWAYS include workspaceId in progress files (isolation)
-- NEVER write to progress files outside current workspace (prevents conflicts)
-- ALWAYS read progress files immediately after compaction (restores decision context)
-- NEVER continue work without verifying resumptionContext.position after compaction
+- ALWAYS: セッション終了前に再開コンテキストを更新する（リカバリを可能にする）
+- NEVER: nextAction を空または曖昧にしない（エージェントが再開できない）
+- ALWAYS: 進捗ファイルに workspaceId を含める（分離）
+- NEVER: 現在のワークスペース外の進捗ファイルに書き込まない（競合防止）
+- ALWAYS: コンパクション直後に進捗ファイルを読む（決定コンテキストの復元）
+- NEVER: コンパクション後に resumptionContext.position を確認せずに作業を続行しない
 
 ## Defaults (L2 - Soft)
 
-Important for effective progress tracking. Override with reasoning when appropriate.
+効果的な進捗トラッキングに重要。適切な理由がある場合はオーバーライド可。
 
-- Create progress files for tasks > 3 steps
-- Use JSON format (not Markdown) for state
-- Include file paths in log entries
-- Sync TodoWrite with feature-list on resume
+- 3 ステップを超えるタスクには進捗ファイルを作成
+- 状態には JSON 形式を使用（Markdown ではなく）
+- ログエントリにファイルパスを含める
+- 再開時に TodoWrite を feature-list と同期
 
 ## Guidelines (L3)
 
-Recommendations for better progress management.
+より良い進捗管理のための推奨事項。
 
-- Consider committing progress files to git for persistence
-- Prefer frequent small updates over batched large updates
-- Include recent decisions in resumption context for continuity
+- consider: 永続化のために進捗ファイルを git にコミットすることを検討
+- prefer: バッチでの大規模更新より頻繁な小規模更新を推奨
+- consider: 継続性のために再開コンテキストに最近の決定を含めることを検討

@@ -1,105 +1,105 @@
 ---
 name: plan-self-review
 description: |
-  Lightweight self-review checklist for plan quality before presenting to user.
-  No agent invocations — the orchestrator runs this checklist directly.
+  ユーザーに提示する前のプラン品質のための軽量セルフレビューチェックリスト。
+  エージェント呼び出しなし — オーケストレーターがこのチェックリストを直接実行する。
 
-  Use when:
-  - Completing /spec-plan before presenting final output
-  - Validating spec↔design consistency without launching review agents
-  - Quick quality gate before handing off to /spec-review
+  以下の場合に使用:
+  - /spec-plan の最終出力を提示する前の完了時
+  - レビューエージェントを起動せずに仕様⇔設計の一貫性を検証する時
+  - /spec-review への引き渡し前の簡易品質ゲート
 
-  Not for: Full parallel agent review (use /spec-review --auto for that)
+  非対象: フル並列エージェントレビュー（それには /spec-review --auto を使用）
 allowed-tools: Read, Glob, Grep
 model: sonnet
 user-invocable: false
 ---
 
-# Plan Self-Review Checklist
+# プランセルフレビューチェックリスト
 
-A lightweight quality gate that the orchestrator runs at the end of `/spec-plan` BEFORE presenting the final plan to the user. No agents are launched — this preserves context budget.
+`/spec-plan` フェーズ 4 の終了時に、最終プランをユーザーに提示する前にオーケストレーターが実行する軽量品質ゲート。エージェントは起動しない — コンテキスト予算を保持する。
 
-## When to Load
+## ロードタイミング
 
-Load this skill at the end of `/spec-plan` Phase 4, after spec and design files have been saved.
+`/spec-plan` フェーズ 4 の終了時、仕様と設計ファイルが保存された後にこのスキルをロード。
 
-## Prerequisites
+## 前提条件
 
-**File size check before running this checklist:**
+**チェックリスト実行前のファイルサイズチェック:**
 
-This self-review is appropriate ONLY if BOTH conditions are met:
-1. Specification file ≤200 lines
-2. Design file ≤200 lines
+このセルフレビューは以下の両方の条件が満たされる場合のみ適切:
+1. 仕様ファイル ≤200 行
+2. 設計ファイル ≤200 行
 
-**If either file exceeds 200 lines:**
-→ Skip this checklist and proceed directly to `/spec-review` with `--auto` flag
-→ The parallel review agents are better suited for larger documents
+**いずれかのファイルが 200 行を超える場合:**
+→ このチェックリストをスキップし、`--auto` フラグ付きで `/spec-review` に直接進む
+→ 並列レビューエージェントの方が大きなドキュメントに適している
 
-This respects the Quick Lookup limits defined in `subagent-contract` skill.
+これは `subagent-contract` スキルで定義されたクイックルックアップ制限を尊重する。
 
-## Checklist
+## チェックリスト
 
-The orchestrator reads both output files and checks each item. Mark each as PASS or FLAG.
+オーケストレーターが両方の出力ファイルを読み、各項目を PASS または FLAG として確認する。
 
-### Specification Checklist
+### 仕様チェックリスト
 
-| # | Check | How to Verify |
-|---|-------|---------------|
-| S1 | **Acceptance criteria are measurable** | Each criterion has a concrete condition, not "should work well" |
-| S2 | **Edge cases are listed** | At least 3 edge cases or error scenarios defined |
-| S3 | **Out-of-scope is defined** | Section exists and lists at least 1 exclusion |
-| S4 | **No ambiguous language** | Search for "should", "might", "could", "possibly" — flag if in requirements (OK in rationale) |
-| S5 | **Security requirements exist** | Auth, authz, validation, or "N/A with reason" |
-| S6 | **Non-functional requirements exist** | Performance, scalability, or "N/A with reason" |
+| # | チェック | 検証方法 |
+|---|---------|---------|
+| S1 | **受入基準が測定可能** | 各基準に具体的な条件があり、「うまく動くべき」でない |
+| S2 | **エッジケースが列挙されている** | 少なくとも 3 つのエッジケースまたはエラーシナリオが定義 |
+| S3 | **スコープ外が定義されている** | セクションが存在し少なくとも 1 つの除外が記載 |
+| S4 | **曖昧な言葉がない** | "should"、"might"、"could"、"possibly" を検索 — 要件内にあればフラグ（根拠内は OK） |
+| S5 | **セキュリティ要件がある** | 認証、認可、バリデーション、または「理由付きで N/A」 |
+| S6 | **非機能要件がある** | パフォーマンス、スケーラビリティ、または「理由付きで N/A」 |
 
-### Design Checklist
+### 設計チェックリスト
 
-| # | Check | How to Verify |
-|---|-------|---------------|
-| D1 | **Implementation map has files** | At least 1 file listed with Create/Modify action |
-| D2 | **Build sequence exists** | At least 2 ordered steps |
-| D3 | **Trade-offs documented** | At least 1 trade-off or rejected alternative |
-| D4 | **File references are plausible** | Referenced files exist (Glob check) or are marked as "Create" |
+| # | チェック | 検証方法 |
+|---|---------|---------|
+| D1 | **実装マップにファイルがある** | Create/Modify アクション付きで少なくとも 1 ファイルが記載 |
+| D2 | **ビルドシーケンスがある** | 少なくとも 2 つの順序付きステップ |
+| D3 | **トレードオフが文書化されている** | 少なくとも 1 つのトレードオフまたは却下された代替案 |
+| D4 | **ファイル参照が妥当** | 参照されたファイルが存在する（Glob チェック）か「Create」としてマークされている |
 
-### Consistency Checklist
+### 一貫性チェックリスト
 
-| # | Check | How to Verify |
-|---|-------|---------------|
-| C1 | **Spec requirements covered by design** | Each spec section maps to a design component |
-| C2 | **Design doesn't contradict spec** | No design choice violates a spec requirement |
-| C3 | **Build sequence covers all components** | Each component in Implementation Map appears in Build Sequence |
+| # | チェック | 検証方法 |
+|---|---------|---------|
+| C1 | **仕様要件が設計でカバーされている** | 各仕様セクションが設計コンポーネントにマッピング |
+| C2 | **設計が仕様と矛盾しない** | 仕様要件に違反する設計選択がない |
+| C3 | **ビルドシーケンスが全コンポーネントをカバー** | 実装マップの各コンポーネントがビルドシーケンスに出現 |
 
-## Output Format
+## 出力形式
 
 ```markdown
-## Self-Review Results
+## セルフレビュー結果
 
-Passed: [N]/13
-Flagged: [N]
+合格: [N]/13
+フラグ: [N]
 
-### Flagged Items
-- [S4] Ambiguous language: "should" found in requirement 3.2
-- [C1] Spec section "Error Handling" has no corresponding design component
+### フラグされた項目
+- [S4] 曖昧な言葉: 要件 3.2 に "should" が含まれている
+- [C1] 仕様セクション「エラーハンドリング」に対応する設計コンポーネントがない
 
-### Assessment
+### 評価
 [ALL CLEAR / MINOR FLAGS / NEEDS ATTENTION]
 ```
 
-## Actions Based on Results
+## 結果に基づくアクション
 
-| Result | Action |
-|--------|--------|
-| ALL CLEAR (0 flags) | Present plan to user as-is |
-| MINOR FLAGS (1-2 flags) | Present plan with flags noted: "Self-review found [N] items to note: ..." |
-| NEEDS ATTENTION (3+ flags) | Fix the flagged items before presenting. For spec issues, edit the spec. For design issues, edit the design. Then re-run checklist once. |
+| 結果 | アクション |
+|------|----------|
+| ALL CLEAR（フラグ 0 件） | プランをそのままユーザーに提示 |
+| MINOR FLAGS（1-2 件のフラグ） | フラグを付記してプランを提示: 「セルフレビューで [N] 件の注意事項を検出: ...」 |
+| NEEDS ATTENTION（3+ 件のフラグ） | 提示前にフラグされた項目を修正。仕様の問題は仕様を編集、設計の問題は設計を編集。その後チェックリストを 1 回再実行。 |
 
-## Rules (L1)
+## ルール（L1 - ハード）
 
-- NEVER launch subagents for this checklist — use direct file reads only
-- ALWAYS run this before presenting the final plan to the user
-- NEVER auto-fix items silently — always report what was flagged
+- NEVER: このチェックリストにサブエージェントを起動しない — 直接ファイル読み取りのみ使用
+- ALWAYS: 最終プランをユーザーに提示する前にこれを実行
+- NEVER: 項目をサイレントに自動修正しない — 常に何がフラグされたかを報告
 
-## Defaults (L2)
+## デフォルト（L2 - ソフト）
 
-- Fix NEEDS ATTENTION items before presenting (but inform user of changes)
-- Include flagged items in the plan presentation so user is aware
+- NEEDS ATTENTION の項目は提示前に修正する（ただしユーザーに変更を通知）
+- プラン提示にフラグされた項目を含め、ユーザーに認識してもらう

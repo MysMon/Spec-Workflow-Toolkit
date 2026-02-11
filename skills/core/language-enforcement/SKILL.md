@@ -1,78 +1,78 @@
 ---
 name: language-enforcement
 description: |
-  Enforces Japanese language output for all user-facing content.
+  すべてのユーザー向けコンテンツに日本語出力を強制する。
 
-  Use when:
-  - Agent outputs need to be in Japanese
-  - Verifying language consistency across responses
-  - Generating specifications or documentation in Japanese
+  使用場面:
+  - エージェント出力を日本語にする必要がある場合
+  - レスポンス全体の言語の一貫性を検証する場合
+  - 仕様書やドキュメントを日本語で生成する場合
 
   Trigger phrases: Japanese, 日本語, language mode, output language
 ---
 
-# Language Enforcement Skill
+# 言語強制スキル
 
-This skill ensures all user-facing output is in Japanese while maintaining code readability.
+すべてのユーザー向け出力をコードの可読性を維持しつつ日本語にするスキル。
 
-## Rule Hierarchy
+## ルール階層
 
-### L1 Hard Rules (MUST - Never Break)
+### ルール（L1 - ハード）
 
-| Rule | Scope |
-|------|-------|
-| All user responses must be 100% Japanese | User interaction |
-| Specification/design document body must be Japanese | Documentation |
-| Error messages and explanations must be Japanese | Error handling |
-| NEVER output English explanations to users | All outputs |
+| ルール | スコープ |
+|--------|----------|
+| すべてのユーザーレスポンスは 100% 日本語であること | ユーザーインタラクション |
+| 仕様書/設計文書の本文は日本語であること | ドキュメント |
+| エラーメッセージと説明は日本語であること | エラー処理 |
+| NEVER: 英語の説明をユーザーに出力しない | すべての出力 |
 
-### L2 Soft Rules (Should - Default Behavior)
+### デフォルト（L2 - ソフト）
 
-| Rule | Override Condition |
-|------|-------------------|
-| Code comments should be Japanese | When collaborating with English-only team |
-| Technical terms may include English in parentheses | When term is ambiguous |
-| Commit messages should be Japanese | When repo convention is English |
+| ルール | オーバーライド条件 |
+|--------|-------------------|
+| コードコメントは日本語にすべき | 英語のみのチームと協業する場合 |
+| 技術用語は括弧内に英語を含めてよい | 用語が曖昧な場合 |
+| コミットメッセージは日本語にすべき | リポジトリの慣例が英語の場合 |
 
-### L3 Guidelines (Consider - Recommendations)
+### ガイドライン（L3）
 
-| Guideline | Rationale |
-|-----------|-----------|
-| Keep variable/function names in English | Programming language conventions |
-| Keep file paths and URLs unchanged | System compatibility |
-| Keep JSON keys in English | API compatibility |
-| Keep code identifiers in English | IDE/tooling support |
+| ガイドライン | 理由 |
+|-------------|------|
+| 変数名/関数名は英語を維持 | プログラミング言語の慣例 |
+| ファイルパスと URL はそのまま | システム互換性 |
+| JSON キーは英語を維持 | API 互換性 |
+| コード識別子は英語を維持 | IDE/ツールサポート |
 
-## Technical Term Mapping
+## 技術用語マッピング
 
-Use this mapping for consistent terminology:
+一貫した用語のためにこのマッピングを使用:
 
-| English | 日本語 | Context |
-|---------|--------|---------|
-| specification | 仕様書 | Documents |
-| architecture | アーキテクチャ | Design |
-| implementation | 実装 | Code |
-| refactoring | リファクタリング | Code changes |
-| dependency | 依存関係 | Packages |
+| English | 日本語 | コンテキスト |
+|---------|--------|-------------|
+| specification | 仕様書 | ドキュメント |
+| architecture | アーキテクチャ | 設計 |
+| implementation | 実装 | コード |
+| refactoring | リファクタリング | コード変更 |
+| dependency | 依存関係 | パッケージ |
 | repository | リポジトリ | Git |
-| deployment | デプロイ | Operations |
+| deployment | デプロイ | 運用 |
 | endpoint | エンドポイント | API |
-| middleware | ミドルウェア | Backend |
-| component | コンポーネント | Frontend |
-| hook | フック | Events/React |
-| state management | 状態管理 | Frontend |
-| authentication | 認証 | Security |
-| authorization | 認可 | Security |
-| validation | バリデーション | Input |
-| serialization | シリアライズ | Data |
-| caching | キャッシュ | Performance |
-| logging | ロギング | Observability |
-| monitoring | モニタリング | Observability |
+| middleware | ミドルウェア | バックエンド |
+| component | コンポーネント | フロントエンド |
+| hook | フック | イベント/React |
+| state management | 状態管理 | フロントエンド |
+| authentication | 認証 | セキュリティ |
+| authorization | 認可 | セキュリティ |
+| validation | バリデーション | 入力 |
+| serialization | シリアライズ | データ |
+| caching | キャッシュ | パフォーマンス |
+| logging | ロギング | オブザーバビリティ |
+| monitoring | モニタリング | オブザーバビリティ |
 | testing | テスト | QA |
 
-## Output Format Examples
+## 出力形式の例
 
-### Good Example (Correct)
+### 良い例（正しい）
 
 ```markdown
 ## アーキテクチャ設計
@@ -102,7 +102,7 @@ export async function handleOAuthCallback(
 - JWT vs セッション: JWTを採用（スケーラビリティ重視）
 ```
 
-### Bad Example (Incorrect)
+### 悪い例（不正確）
 
 ```markdown
 ## Architecture Design
@@ -115,44 +115,44 @@ This feature extends existing auth patterns to support OAuth 2.0.
 2. Add new endpoints to `src/api/oauth.ts`
 ```
 
-## Validation Checklist
+## バリデーションチェックリスト
 
-Before returning output, verify:
+出力を返す前に確認:
 
-- [ ] All explanatory text is in Japanese
-- [ ] Technical terms use consistent Japanese terminology
-- [ ] Code identifiers remain in English
-- [ ] File paths and references are unchanged
-- [ ] No English-only sentences in explanations
+- [ ] すべての説明テキストが日本語であること
+- [ ] 技術用語が一貫した日本語用語を使用していること
+- [ ] コード識別子が英語のままであること
+- [ ] ファイルパスと参照が変更されていないこと
+- [ ] 説明に英語のみの文がないこと
 
-## Integration with Other Skills
+## 他のスキルとの統合
 
-This skill works with:
-- `subagent-contract`: Ensures subagent outputs follow language rules
-- `spec-philosophy`: Applies to specification documents
-- `evaluator-optimizer`: Quality checks include language verification
+このスキルは以下と連携:
+- `subagent-contract`: サブエージェント出力が言語ルールに従うことを保証
+- `spec-philosophy`: 仕様書に適用
+- `evaluator-optimizer`: 品質チェックに言語検証を含む
 
-## Edge Cases
+## エッジケース
 
-### When English is Acceptable
+### 英語が許容される場合
 
-1. **Code blocks**: Variable names, function names, class names
-2. **File paths**: `src/components/Button.tsx`
-3. **Technical references**: `file:line` format
-4. **URLs and external links**: Keep original format
-5. **JSON/YAML keys**: `{ "status": "success" }`
-6. **Error codes**: `ERR_AUTH_001`
-7. **CLI commands**: `npm install`, `git commit`
+1. **コードブロック**: 変数名、関数名、クラス名
+2. **ファイルパス**: `src/components/Button.tsx`
+3. **技術参照**: `file:line` 形式
+4. **URL と外部リンク**: 元の形式を維持
+5. **JSON/YAML キー**: `{ "status": "success" }`
+6. **エラーコード**: `ERR_AUTH_001`
+7. **CLI コマンド**: `npm install`, `git commit`
 
-### When to Use English Parenthetical
+### 英語括弧書きを使用する場合
 
-For clarity, use format: 日本語 (English)
+明確さのために、形式: 日本語 (English) を使用
 
 ```markdown
 認証 (authentication) と認可 (authorization) の違いを理解することが重要です。
 ```
 
-Only use when:
-- Term is ambiguous in Japanese
-- First introduction of technical concept
-- User explicitly asks for English term
+使用する場合:
+- 日本語で曖昧な用語の場合
+- 技術概念の初回導入時
+- ユーザーが明示的に英語の用語を求めた場合

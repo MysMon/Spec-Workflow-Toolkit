@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 """
-Secret Leak Prevention Hook - PreToolUse for Write/Edit
-Detects secrets and sensitive data before they're written to files.
-Stack-agnostic: works with any project type.
+シークレット漏洩防止フック - Write/Edit 用の PreToolUse
+ファイルに書き込まれる前にシークレットや機密データを検出する。
+スタック非依存: あらゆるプロジェクトタイプで動作。
 
-Based on Claude Code hooks specification:
-https://code.claude.com/docs/en/hooks
-
-Uses JSON decision control (exit 0 + hookSpecificOutput) for proper blocking.
+適切なブロックのために JSON decision control（exit 0 + hookSpecificOutput）を使用。
 """
 
 import sys
@@ -16,28 +13,28 @@ import re
 import json
 import base64
 
-# Read tool input from stdin (Claude Code passes JSON)
+# stdin からツール入力を読み取り（Claude Code が JSON を渡す）
 input_data = sys.stdin.read().strip()
 
 try:
     data = json.loads(input_data)
     tool_input = data.get("tool_input", {})
-    # Handle both Write (content) and Edit (new_string) tools
+    # Write（content）と Edit（new_string）の両ツールに対応
     content = tool_input.get("content", "") or tool_input.get("new_string", "")
     file_path = tool_input.get("file_path", "")
 except json.JSONDecodeError:
-    # Fail-safe: deny on parse error (do not process raw input)
+    # フェイルセーフ: パースエラー時は拒否（生の入力を処理しない）
     output = {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
-            "permissionDecisionReason": "Secret leak check failed: Invalid JSON input format"
+            "permissionDecisionReason": "シークレット漏洩チェックに失敗: 無効な JSON 入力形式"
         }
     }
     print(json.dumps(output))
     sys.exit(0)
 
-# Secret patterns (stack-agnostic)
+# シークレットパターン（スタック非依存）
 SECRET_PATTERNS = [
     # AWS
     (r"AKIA[0-9A-Z]{16}", "AWS Access Key ID"),
@@ -46,7 +43,7 @@ SECRET_PATTERNS = [
     # Anthropic
     (r"sk-ant-[a-zA-Z0-9_-]{48,}", "Anthropic API Key"),
 
-    # OpenAI (sk- followed by alphanumeric, but not Stripe patterns)
+    # OpenAI（sk- の後に英数字、ただし Stripe パターンは除外）
     (r"sk-[a-zA-Z0-9]{32,}(?<!live_)(?<!test_)", "OpenAI API Key"),
 
     # HuggingFace
@@ -62,18 +59,18 @@ SECRET_PATTERNS = [
     # GitLab
     (r"glpat-[0-9a-zA-Z_-]{20,}", "GitLab Personal Access Token"),
 
-    # Generic API Keys (more precise - require assignment context)
-    (r"(?:api[_-]?key|apikey)[_-]?[=:]\s*['\"]?[a-zA-Z0-9_-]{20,}['\"]?", "Generic API Key"),
-    (r"(?:api[_-]?secret|apisecret)[_-]?[=:]\s*['\"]?[a-zA-Z0-9_-]{20,}['\"]?", "Generic API Secret"),
+    # 汎用 API キー（より正確 - 代入コンテキストが必要）
+    (r"(?:api[_-]?key|apikey)[_-]?[=:]\s*['\"]?[a-zA-Z0-9_-]{20,}['\"]?", "汎用 API Key"),
+    (r"(?:api[_-]?secret|apisecret)[_-]?[=:]\s*['\"]?[a-zA-Z0-9_-]{20,}['\"]?", "汎用 API Secret"),
 
-    # Private Keys
-    (r"-----BEGIN\s+(RSA|DSA|EC|OPENSSH|PGP)\s+PRIVATE\s+KEY-----", "Private Key"),
+    # 秘密鍵
+    (r"-----BEGIN\s+(RSA|DSA|EC|OPENSSH|PGP)\s+PRIVATE\s+KEY-----", "秘密鍵"),
 
-    # Database URLs with credentials
-    (r"(postgres|mysql|mongodb|redis)://[^:]+:[^@]+@", "Database URL with credentials"),
+    # 認証情報付きデータベース URL
+    (r"(postgres|mysql|mongodb|redis)://[^:]+:[^@]+@", "認証情報付きデータベース URL"),
 
-    # JWT (if suspiciously long)
-    (r"eyJ[a-zA-Z0-9_-]{50,}\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+", "Possible JWT Token"),
+    # JWT（疑わしく長い場合）
+    (r"eyJ[a-zA-Z0-9_-]{50,}\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+", "JWT トークンの可能性"),
 
     # Slack
     (r"xox[baprs]-[0-9]{10,13}-[0-9]{10,13}[a-zA-Z0-9-]*", "Slack Token"),
@@ -135,13 +132,13 @@ SECRET_PATTERNS = [
     # Figma
     (r"figd_[a-zA-Z0-9_-]{40,}", "Figma Personal Access Token"),
 
-    # Passwords in common formats
-    (r"password\s*[=:]\s*['\"][^'\"]{8,}['\"]", "Hardcoded password"),
-    (r"passwd\s*[=:]\s*['\"][^'\"]{8,}['\"]", "Hardcoded password"),
-    (r"pwd\s*[=:]\s*['\"][^'\"]{8,}['\"]", "Hardcoded password"),
+    # ハードコードされたパスワード（一般的な形式）
+    (r"password\s*[=:]\s*['\"][^'\"]{8,}['\"]", "ハードコードされたパスワード"),
+    (r"passwd\s*[=:]\s*['\"][^'\"]{8,}['\"]", "ハードコードされたパスワード"),
+    (r"pwd\s*[=:]\s*['\"][^'\"]{8,}['\"]", "ハードコードされたパスワード"),
 ]
 
-# Files that are OK to contain secrets (templates, examples, documentation)
+# シークレットを含んでも問題ないファイル（テンプレート、サンプル、ドキュメント）
 ALLOWED_FILES = [
     ".env.example",
     ".env.template",
@@ -155,7 +152,7 @@ ALLOWED_FILES = [
     "CONFIG.md",
 ]
 
-# Patterns for allowed file paths (regex)
+# 許可されるファイルパスのパターン（正規表現）
 ALLOWED_PATH_PATTERNS = [
     r"\.example$",
     r"\.sample$",
@@ -166,21 +163,21 @@ ALLOWED_PATH_PATTERNS = [
     r"test_data",
 ]
 
-# Check if file should be skipped
+# ファイルをスキップすべきかチェック
 def should_skip_file(path: str) -> bool:
     if not path:
         return False
     filename = os.path.basename(path)
-    # Check exact filename matches
+    # ファイル名の完全一致をチェック
     if filename in ALLOWED_FILES:
         return True
-    # Check path patterns
+    # パスパターンをチェック
     for pattern in ALLOWED_PATH_PATTERNS:
         if re.search(pattern, path, re.IGNORECASE):
             return True
     return False
 
-# Check content for secrets
+# コンテンツのシークレットをチェック
 def find_secrets(text: str) -> list[tuple[str, str]]:
     found = []
     for pattern, description in SECRET_PATTERNS:
@@ -188,95 +185,94 @@ def find_secrets(text: str) -> list[tuple[str, str]]:
             found.append((pattern, description))
     return found
 
-# Base64 encoded secret detection
+# Base64 エンコードされたシークレットの検出
 def find_base64_secrets(text: str) -> list[tuple[str, str]]:
     """
-    Detect base64-encoded secrets by finding base64 strings and checking
-    their decoded content against known secret patterns.
+    Base64 文字列を見つけてデコードした内容を既知のシークレットパターンと照合し、
+    Base64 エンコードされたシークレットを検出する。
 
-    Returns: list of (pattern, description) tuples for found secrets
+    戻り値: 見つかったシークレットの (pattern, description) タプルのリスト
 
-    Design decisions:
-    - Minimum 24 chars: Base64 encodes 3 bytes to 4 chars, so 24 chars = 18 bytes minimum.
-      This is enough for most API key prefixes (sk-ant-, ghp_, AKIA) after decoding.
-    - Assignment context ([=:]) required to avoid matching image data, random strings.
-    - Padding ={0,3}: Base64 can have 0-2 padding chars, but we allow 3 for malformed input.
-    - High-value patterns only: We check for specific known secret formats after decoding
-      to minimize false positives (e.g., random base64 that decodes to gibberish).
+    設計上の判断:
+    - 最小24文字: Base64 は3バイトを4文字にエンコードするため、24文字 = 最小18バイト。
+      これはデコード後のほとんどの API キープレフィックス（sk-ant-, ghp_, AKIA）に十分。
+    - 代入コンテキスト（[=:]）が必要: 画像データやランダム文字列との誤検知を回避。
+    - パディング ={0,3}: Base64 は 0-2 のパディング文字を持ちうるが、不正な入力のため 3 を許容。
+    - 高価値パターンのみ: デコード後に特定の既知シークレット形式をチェックし、
+      誤検知を最小化（ランダムな Base64 がでたらめにデコードされるケース等）。
     """
     found = []
 
-    # Pattern to find potential base64 strings in assignment context
-    # Minimum 24 chars (encodes 18 bytes) to reduce false positives
+    # 代入コンテキスト内の潜在的な Base64 文字列を検出するパターン
+    # 誤検知を減らすため最小24文字（18バイトをエンコード）
     base64_context_pattern = r'[=:]\s*["\']?([A-Za-z0-9+/]{24,}={0,3})["\']?'
 
     candidates = re.findall(base64_context_pattern, text)
 
     for candidate in candidates:
         try:
-            # Try to decode as base64
+            # Base64 としてデコードを試行
             decoded = base64.b64decode(candidate, validate=True).decode('utf-8', errors='ignore')
 
-            # Check decoded content against secret patterns
-            # Only check specific high-value patterns to reduce false positives
+            # デコードされた内容をシークレットパターンに対してチェック
+            # 誤検知を減らすため特定の高価値パターンのみチェック
             high_value_patterns = [
-                (r"sk-ant-[a-zA-Z0-9_-]{20,}", "Anthropic API Key (base64 encoded)"),
-                (r"sk-[a-zA-Z0-9]{20,}", "OpenAI API Key (base64 encoded)"),
-                (r"AKIA[0-9A-Z]{16}", "AWS Access Key ID (base64 encoded)"),
-                (r"ghp_[0-9a-zA-Z]{36}", "GitHub Personal Access Token (base64 encoded)"),
-                (r"glpat-[0-9a-zA-Z_-]{20,}", "GitLab Personal Access Token (base64 encoded)"),
-                (r"-----BEGIN\s+(RSA|DSA|EC|OPENSSH|PGP)\s+PRIVATE\s+KEY-----", "Private Key (base64 encoded)"),
-                (r"(postgres|mysql|mongodb)://[^:]+:[^@]+@", "Database URL (base64 encoded)"),
+                (r"sk-ant-[a-zA-Z0-9_-]{20,}", "Anthropic API Key (Base64 エンコード)"),
+                (r"sk-[a-zA-Z0-9]{20,}", "OpenAI API Key (Base64 エンコード)"),
+                (r"AKIA[0-9A-Z]{16}", "AWS Access Key ID (Base64 エンコード)"),
+                (r"ghp_[0-9a-zA-Z]{36}", "GitHub Personal Access Token (Base64 エンコード)"),
+                (r"glpat-[0-9a-zA-Z_-]{20,}", "GitLab Personal Access Token (Base64 エンコード)"),
+                (r"-----BEGIN\s+(RSA|DSA|EC|OPENSSH|PGP)\s+PRIVATE\s+KEY-----", "秘密鍵 (Base64 エンコード)"),
+                (r"(postgres|mysql|mongodb)://[^:]+:[^@]+@", "データベース URL (Base64 エンコード)"),
             ]
 
             for pattern, description in high_value_patterns:
                 if re.search(pattern, decoded, re.IGNORECASE):
                     found.append((pattern, description))
-                    break  # One match per candidate is enough
+                    break  # 候補あたり1つの一致で十分
         except Exception:
-            # Not valid base64 or decode error - skip
+            # 有効な Base64 でないかデコードエラー - スキップ
             pass
 
     return found
 
-# Main check - wrapped in try/except for fail-closed behavior
+# メインチェック - フェイルクローズド動作のため try/except でラップ
 try:
     if should_skip_file(file_path):
-        # Allow template/example files without checking
+        # テンプレート/サンプルファイルはチェックせず許可
         sys.exit(0)
 
-    # Check for plaintext secrets first
+    # まず平文のシークレットをチェック
     secrets_found = find_secrets(content)
 
-    # Also check for base64-encoded secrets
+    # Base64 エンコードされたシークレットもチェック
     base64_secrets = find_base64_secrets(content)
     secrets_found.extend(base64_secrets)
 
     if secrets_found:
         descriptions = [s[1] for s in secrets_found]
-        # Use JSON decision control to properly block the operation
-        # Based on: https://code.claude.com/docs/en/hooks
+        # JSON decision control で操作を適切にブロック
         output = {
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
                 "permissionDecision": "deny",
-                "permissionDecisionReason": f"Potential secrets detected: {', '.join(descriptions)}. Use environment variables or a secrets manager instead."
+                "permissionDecisionReason": f"シークレットの可能性を検出: {', '.join(descriptions)}。環境変数またはシークレットマネージャーを使用してください。"
             }
         }
         print(json.dumps(output))
-        sys.exit(0)  # Exit 0 with JSON decision control
+        sys.exit(0)  # JSON decision control で exit 0
     else:
-        # Allow the operation to proceed
+        # 操作の続行を許可
         sys.exit(0)
 
 except Exception as e:
-    # Fail-safe: deny on unexpected error to prevent secret leakage
-    # This ensures fail-closed behavior consistent with external_content_validator.py
+    # フェイルセーフ: シークレット漏洩を防ぐため予期しないエラー時は拒否
+    # external_content_validator.py と一貫したフェイルクローズド動作を保証
     output = {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
-            "permissionDecisionReason": f"Secret leak check failed: {str(e)}"
+            "permissionDecisionReason": f"シークレット漏洩チェックに失敗: {str(e)}"
         }
     }
     print(json.dumps(output))

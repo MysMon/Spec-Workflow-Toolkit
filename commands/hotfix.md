@@ -1,10 +1,10 @@
 ---
-description: "Rapid emergency fix workflow for production issues - minimal process, maximum safety"
-argument-hint: "[issue description or ticket reference]"
+description: "本番環境の緊急修正ワークフロー - 最小限のプロセスで最大限の安全性"
+argument-hint: "[問題の説明またはチケット参照]"
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite
 ---
 
-# /hotfix - Emergency Production Fix
+# /hotfix - 本番環境の緊急修正
 
 ## Language Mode
 
@@ -12,433 +12,433 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoW
 
 ---
 
-A streamlined workflow for urgent production issues that balances speed with safety. Bypasses the full planning workflow while maintaining critical safety checks.
+緊急の本番環境問題に対する、速度と安全性のバランスを取った効率化ワークフロー。重要な安全チェックを維持しつつ、フル計画ワークフローをバイパスする。
 
-## Purpose
+## 目的
 
-Production issues require immediate attention. This command provides:
+本番環境の問題には即座の対応が必要である。このコマンドは以下を提供する:
 
-1. **Speed** - Minimal process overhead
-2. **Safety** - Essential checks preserved (security, tests)
-3. **Traceability** - Clear documentation of what changed and why
-4. **Rollback readiness** - Easy to revert if needed
+1. **速度** - 最小限のプロセスオーバーヘッド
+2. **安全性** - 必須チェック（セキュリティ、テスト）を維持
+3. **追跡可能性** - 何をなぜ変更したかの明確なドキュメント
+4. **ロールバック対応** - 必要に応じて容易に元に戻せる
 
-## When to Use
+## 使用するとき
 
-- Production bug affecting users NOW
-- Critical security vulnerability discovered
-- Service outage requiring immediate code fix
-- Data corruption that needs urgent patching
+- ユーザーに影響する本番バグが発生中
+- 重大なセキュリティ脆弱性が発見された
+- 即座のコード修正が必要なサービス障害
+- 緊急パッチが必要なデータ破損
 
-## When NOT to Use
+## 使用しないとき
 
-- Non-urgent bugs (use `/quick-impl` or `/spec-plan`)
-- Feature development (use `/spec-plan`)
-- Refactoring (use `/spec-plan`)
-- CI failures (use `/ci-fix`)
-
----
-
-## Rules (L1 - Hard)
-
-**These rules apply even in emergencies:**
-
-- NEVER skip security validation for auth/data handling code
-- NEVER commit secrets or credentials
-- ALWAYS create a hotfix branch (never commit directly to main/production)
-- ALWAYS run existing tests before pushing
-- ALWAYS document what was changed and why
+- 緊急でないバグ（`/quick-impl` または `/spec-plan` を使用）
+- 機能開発（`/spec-plan` を使用）
+- リファクタリング（`/spec-plan` を使用）
+- CI の障害（`/ci-fix` を使用）
 
 ---
 
-## Execution Instructions
+## ルール（L1 - ハード）
 
-### Phase 1: Rapid Assessment (2-3 minutes)
+**これらのルールは緊急時にも適用される:**
 
-**Goal:** Understand the issue quickly without deep analysis.
+- NEVER: 認証/データ処理コードに対するセキュリティバリデーションをスキップしてはならない
+- NEVER: シークレットや認証情報をコミットしてはならない
+- ALWAYS: hotfix ブランチを作成する（main/production に直接コミットしない）
+- ALWAYS: プッシュ前に既存テストを実行する
+- ALWAYS: 何をなぜ変更したかをドキュメント化する
 
-**Gather essential info:**
+---
+
+## 実行手順
+
+### フェーズ 1: 迅速なアセスメント（2-3分）
+
+**ゴール:** 深い分析なしに問題を迅速に把握する。
+
+**必須情報の収集:**
 
 ```
-Question: "What's the production issue?"
-Header: "Issue"
+Question: "本番環境でどのような問題が発生していますか？"
+Header: "問題"
 Options:
-- "Users seeing errors"
-- "Feature not working"
-- "Security issue"
-- "Performance degradation"
+- "ユーザーにエラーが表示される"
+- "機能が動作しない"
+- "セキュリティの問題"
+- "パフォーマンスの劣化"
 ```
 
-**CRITICAL: Get specifics (even in emergencies, clarity prevents wrong fixes):**
+**CRITICAL: 具体的な情報を取得する（緊急時でも、明確さが誤った修正を防ぐ）:**
 
 ```
-Question: "Tell me more about the issue to ensure we fix the right thing."
-Header: "Details"
+Question: "正しいものを修正するため、問題の詳細を教えてください。"
+Header: "詳細"
 Options:
-- "Show me the error message"
-- "The issue is in [specific feature/endpoint]"
-- "I'll describe the symptoms"
-- "I have a ticket/issue link"
+- "エラーメッセージを見せます"
+- "問題は [特定の機能/エンドポイント] にあります"
+- "症状を説明します"
+- "チケット/Issue のリンクがあります"
 ```
 
-**If description is vague**, use AskUserQuestion to clarify:
+**説明が曖昧な場合**は AskUserQuestion で明確化する:
 
-| User Says | Ask About |
-|-----------|-----------|
-| "Something is broken" | Which feature? What happens when users try to use it? |
-| "Users seeing errors" | What error message? Which page/action triggers it? |
-| "It's not working" | What was the expected behavior? What happens instead? |
-| "Performance issue" | Which operation is slow? How slow (seconds/timeout)? |
+| ユーザーの発言 | 確認すべきこと |
+|--------------|-------------|
+| 「何か壊れている」 | どの機能か？ユーザーが使おうとすると何が起きるか？ |
+| 「ユーザーにエラーが出ている」 | どんなエラーメッセージか？どのページ/操作で発生するか？ |
+| 「動いていない」 | 期待される動作は？代わりに何が起きるか？ |
+| 「パフォーマンスの問題」 | どの操作が遅いか？どの程度遅いか（秒数/タイムアウト）？ |
 
-**NEVER proceed with vague descriptions** — wrong fixes waste time and may cause additional issues.
+**曖昧な説明のまま進めてはならない** — 誤った修正は時間を浪費し、追加の問題を引き起こす可能性がある。
 
-**After gathering specifics, confirm understanding:**
+**具体情報を収集後、理解内容を確認する:**
 
 ```
-Question: "I understand the issue as: [summary]. Is this correct?"
-Header: "Confirm"
+Question: "問題を以下のように理解しました: [サマリー]。正しいですか？"
+Header: "確認"
 Options:
-- "Yes, that's correct"
-- "Let me clarify: [...]"
+- "はい、その通りです"
+- "補足します: [...]"
 ```
 
-**Quick context check (delegate to code-explorer):**
+**簡易コンテキストチェック（code-explorer に委任）:**
 
 ```
-Launch code-explorer agent:
-Task: Quick production context for hotfix
-Analyze:
-- Recent deployments (git log --oneline -5 --date=short)
-- Production branch identification (main/master/production/release)
-- Latest deploy timestamp
-Thoroughness: quick
-Output: Recent commits + production branch name
+code-explorer エージェントを起動:
+タスク: hotfix 用の本番コンテキストを迅速に確認
+分析内容:
+- 最近のデプロイ（git log --oneline -5 --date=short）
+- 本番ブランチの特定（main/master/production/release）
+- 最新デプロイのタイムスタンプ
+網羅度: quick
+出力: 最近のコミット + 本番ブランチ名
 ```
 
-Do NOT run git analysis commands (git log, git diff, git show) directly in the parent context. Use the agent's output for context.
+親コンテキストで git 分析コマンド（git log、git diff、git show）を直接実行してはならない。コンテキストにはエージェントの出力を使用する。
 
-**Error Handling (Time-Critical):**
-If code-explorer fails or takes more than 60 seconds:
-1. Skip agent and proceed with manual minimal check: `git branch -a | grep -E "(main|master|prod)"` (single command, allowed for emergency)
-2. Ask user to confirm production branch if unclear
-3. Continue with Phase 2 immediately
+**エラーハンドリング（時間重視）:**
+code-explorer が失敗するか60秒以上かかる場合:
+1. エージェントをスキップし手動の最小限チェックを実行: `git branch -a | grep -E "(main|master|prod)"`（単一コマンド、緊急時は許可）
+2. 不明な場合はユーザーに本番ブランチを確認
+3. 即座にフェーズ 2 に進む
 
-### Phase 2: Create Hotfix Branch (30 seconds)
+### フェーズ 2: hotfix ブランチの作成（30秒）
 
-**Goal:** Isolate changes for safe deployment and easy rollback.
+**ゴール:** 安全なデプロイと容易なロールバックのために変更を分離する。
 
-**CRITICAL: Use production branch from Phase 1 code-explorer output**
+**CRITICAL: フェーズ 1 の code-explorer 出力から本番ブランチを使用する**
 
-**Note:** Simple git state commands (fetch, checkout, branch creation) are allowed directly in the parent context. These are lightweight operations that don't consume context. The restriction in Phase 1 applies only to analysis commands.
+**注:** 単純な git 状態コマンド（fetch、checkout、ブランチ作成）は親コンテキストで直接実行可。これらは軽量な操作でコンテキストを消費しない。フェーズ 1 の制限は分析コマンドにのみ適用される。
 
 ```bash
-# Use production branch identified by code-explorer (do NOT assume 'main')
-PROD_BRANCH=[production branch from Phase 1 agent output]
+# code-explorer が特定した本番ブランチを使用（'main' を仮定しない）
+PROD_BRANCH=[フェーズ 1 エージェント出力の本番ブランチ]
 
 git fetch origin
 git checkout "$PROD_BRANCH"
 
-# Create hotfix branch
-git checkout -b hotfix/[brief-description]-$(date +%Y%m%d)
+# hotfix ブランチを作成
+git checkout -b hotfix/[簡潔な説明]-$(date +%Y%m%d)
 ```
 
-**If code-explorer did not identify production branch**, ask user:
+**code-explorer が本番ブランチを特定できなかった場合**、ユーザーに確認する:
 ```
-Question: "Which branch is your production branch?"
-Header: "Branch"
+Question: "本番ブランチはどれですか？"
+Header: "ブランチ"
 Options:
 - "main"
 - "master"
 - "production"
-- "Let me specify..."
+- "指定します..."
 ```
 
-**Branch naming:** `hotfix/[issue-id]-[brief-description]`
+**ブランチ命名:** `hotfix/[issue-id]-[簡潔な説明]`
 
-Examples:
+例:
 - `hotfix/fix-login-500-20250120`
 - `hotfix/SEC-123-xss-patch`
 - `hotfix/payment-timeout-fix`
 
-### Phase 3: Locate and Fix (5-10 minutes)
+### フェーズ 3: 問題の特定と修正（5-10分）
 
-**Goal:** Find the issue and implement minimal fix.
+**ゴール:** 問題を見つけて最小限の修正を実施する。
 
-**Quick search strategy (DELEGATE to Explore agent):**
+**迅速な検索戦略（Explore エージェントに委任する）:**
 
-Do NOT run Grep/Glob directly. Delegate ALL search to Explore agent:
-
-```
-Launch Task tool with subagent_type=Explore:
-Task: Rapid production issue localization
-
-Search approach based on issue type:
-1. If error message known → Search for error message in codebase
-2. If feature broken → Trace from entry point (API route, UI component)
-3. If performance issue → Check recent changes to affected code path
-
-Issue type: [from Phase 1]
-Issue details: [error message / feature name / symptom]
-
-Output: Specific file:line reference for the issue
-Thoroughness: quick
-```
-
-Use the agent's file:line output for Phase 3 implementation. Do NOT search codebase manually.
-
-**Error Handling (Emergency Override):**
-If Explore agent fails or takes more than 90 seconds:
-1. Use emergency direct search (allowed only for hotfix): single Grep for exact error message
-2. If error message not found, ask user for specific file path hint
-3. Proceed with manual fix using user-provided or best-guess location
-4. Document "agent timeout - manual localization" in commit message
-
-**Implement MINIMAL fix:**
-
-| Principle | Explanation |
-|-----------|-------------|
-| **Smallest change** | Fix only what's broken, nothing more |
-| **No refactoring** | Resist urge to clean up nearby code |
-| **No new features** | Even if "while we're here..." |
-| **Preserve behavior** | Match existing patterns exactly |
-
-**DELEGATE implementation to appropriate specialist** (use model: haiku for speed):
+Grep/Glob を直接実行してはならない。すべての検索を Explore エージェントに委任する:
 
 ```
-Launch Task tool with appropriate specialist:
-- Frontend issue → frontend-specialist (model: haiku)
-- Backend issue → backend-specialist (model: haiku)
-- Config issue → can modify directly (single line only)
+Task ツールで subagent_type=Explore を起動:
+タスク: 本番問題の迅速な特定
 
-Prompt:
-Emergency hotfix - implement minimal fix only.
-File: [file:line from Explore]
-Issue: [brief description]
-Fix: [specific change needed]
+問題タイプに基づく検索アプローチ:
+1. エラーメッセージが判明 → コードベースでエラーメッセージを検索
+2. 機能が壊れている → エントリーポイント（API ルート、UI コンポーネント）から追跡
+3. パフォーマンスの問題 → 影響を受けるコードパスの最近の変更を確認
 
-Constraints:
-- Single logical change only
-- No refactoring
-- Match existing patterns
+問題タイプ: [フェーズ 1 から]
+問題の詳細: [エラーメッセージ / 機能名 / 症状]
+
+出力: 問題の具体的な file:line 参照
+網羅度: quick
 ```
 
-**Error Handling (Emergency Override):**
-If specialist agent fails or takes more than 2 minutes:
-1. Check agent's partial output for usable fix
-2. Retry once with explicit single-file focus
-3. If retry fails: inform user and offer emergency manual fix option:
+フェーズ 3 の実装にはエージェントの file:line 出力を使用する。コードベースを手動で検索してはならない。
+
+**エラーハンドリング（緊急オーバーライド）:**
+Explore エージェントが失敗するか90秒以上かかる場合:
+1. 緊急直接検索を使用（hotfix のみ許可）: 正確なエラーメッセージの単一 Grep
+2. エラーメッセージが見つからない場合、ユーザーに具体的なファイルパスのヒントを求める
+3. ユーザー提供または最善の推測に基づく場所で手動修正を進める
+4. コミットメッセージに「agent timeout - manual localization」と記載
+
+**最小限の修正を実施する:**
+
+| 原則 | 説明 |
+|------|------|
+| **最小の変更** | 壊れているところだけを修正し、それ以上は行わない |
+| **リファクタリングなし** | 周辺コードの整理をしたい衝動に抵抗する |
+| **新機能なし** | 「ついでに...」も行わない |
+| **動作を維持** | 既存のパターンに正確に合わせる |
+
+**実装は適切なスペシャリストに委任する**（速度のため model: haiku を使用）:
+
+```
+Task ツールで適切なスペシャリストを起動:
+- フロントエンドの問題 → frontend-specialist（model: haiku）
+- バックエンドの問題 → backend-specialist（model: haiku）
+- 設定の問題 → 直接変更可能（1行のみ）
+
+プロンプト:
+緊急 hotfix - 最小限の修正のみ実施。
+ファイル: [Explore からの file:line]
+問題: [簡潔な説明]
+修正: [必要な具体的変更]
+
+制約:
+- 単一の論理的変更のみ
+- リファクタリングなし
+- 既存パターンに合わせる
+```
+
+**エラーハンドリング（緊急オーバーライド）:**
+スペシャリストエージェントが失敗するか2分以上かかる場合:
+1. エージェントの部分的な出力に利用可能な修正がないか確認
+2. 明示的な単一ファイルフォーカスでリトライ
+3. リトライも失敗した場合: ユーザーに通知し緊急手動修正オプションを提案:
    ```
-   Question: "Agent timed out. This is an emergency - can I apply the fix manually?"
-   Header: "Emergency Override"
+   Question: "エージェントがタイムアウトしました。これは緊急事態です - 手動で修正を適用してよいですか？"
+   Header: "緊急オーバーライド"
    Options:
-   - "Yes, apply minimal fix directly" (understand the risks)
-   - "No, wait and retry with agent"
-   - "Abort hotfix and try /debug instead"
+   - "はい、最小限の修正を直接適用する"（リスクを理解した上で）
+   - "いいえ、待ってエージェントをリトライ"
+   - "hotfix を中止し /debug を試す"
    ```
-4. If user approves manual fix: apply minimal change, document "emergency manual fix" in commit
+4. ユーザーが手動修正を承認した場合: 最小限の変更を適用し、コミットに「emergency manual fix」と記載
 
-**Direct modification allowed ONLY for:**
-- Single-line config value changes
-- Environment variable updates
-- Feature flag toggles
+**直接変更が許可されるのは以下の場合のみ:**
+- 1行の設定値変更
+- 環境変数の更新
+- フィーチャーフラグの切り替え
 
-### Phase 4: Safety Verification (2-3 minutes)
+### フェーズ 4: 安全性検証（2-3分）
 
-**Goal:** Ensure fix doesn't break anything else.
+**ゴール:** 修正が他を壊していないことを確認する。
 
-**CRITICAL: Delegate verification to qa-engineer agent (do NOT run tests directly in parent context):**
+**CRITICAL: 検証は qa-engineer エージェントに委任する（親コンテキストでテストを直接実行してはならない）:**
 
 ```
-Launch qa-engineer agent:
+qa-engineer エージェントを起動:
 
-Task: Run safety verification for hotfix
+タスク: hotfix の安全性検証を実行
 
-Changed files:
-[list of files modified in Phase 3]
+変更ファイル:
+[フェーズ 3 で変更したファイルリスト]
 
-Verify:
-1. Run tests (required)
-2. Run linter (if < 30 seconds)
-3. Run type check (if < 30 seconds)
+検証内容:
+1. テストを実行（必須）
+2. リンターを実行（30秒以内なら）
+3. 型チェックを実行（30秒以内なら）
 
-Output:
-- Test results (PASS/FAIL)
-- Lint results (PASS/FAIL/SKIPPED)
-- Type check results (PASS/FAIL/SKIPPED)
-- Any failures with error details
+出力:
+- テスト結果（PASS/FAIL）
+- リント結果（PASS/FAIL/SKIPPED）
+- 型チェック結果（PASS/FAIL/SKIPPED）
+- 失敗がある場合はエラー詳細
 ```
 
-Use the agent's output for verification results. Do NOT run test/lint commands directly in the parent context.
+検証結果にはエージェントの出力を使用する。親コンテキストでテスト/リントコマンドを直接実行してはならない。
 
-**Error Handling (Emergency Override):**
-If qa-engineer fails or takes more than 2 minutes:
-1. Check agent's partial output for usable results
-2. Retry once with simplified scope (tests only)
-3. If retry fails, offer emergency manual option:
+**エラーハンドリング（緊急オーバーライド）:**
+qa-engineer が失敗するか2分以上かかる場合:
+1. エージェントの部分的な出力に利用可能な結果がないか確認
+2. スコープを簡略化してリトライ（テストのみ）
+3. リトライも失敗した場合、緊急手動オプションを提示:
    ```
-   Question: "Verification agent timed out. How should I proceed?"
-   Header: "Emergency Verification"
+   Question: "検証エージェントがタイムアウトしました。どう進めますか？"
+   Header: "緊急検証"
    Options:
-   - "Run minimal test suite manually" (single test command)
-   - "Skip verification (I'll verify manually before deploy)"
-   - "Abort hotfix and investigate"
+   - "最小限のテストスイートを手動で実行"（単一テストコマンド）
+   - "検証をスキップ（デプロイ前に手動で検証します）"
+   - "hotfix を中止して調査"
    ```
-4. Document verification approach in commit message
+4. コミットメッセージに検証アプローチを記載
 
-**Security check (L1 - NEVER skip for auth/data code):**
+**セキュリティチェック（L1 - 認証/データコードでは NEVER スキップ）:**
 
 ```
-If fix touches authentication, authorization, or data handling:
-- Delegate quick security review to security-auditor
-- Focus only on the changed code
-- Must pass before proceeding
+修正が認証、認可、またはデータ処理に関わる場合:
+- security-auditor に簡易セキュリティレビューを委任
+- 変更されたコードのみに焦点
+- 合格してから次に進む
 ```
 
-**If tests fail (from qa-engineer output):**
-- Fix the test if it's testing the bug (bug was "correct" behavior)
-- Fix the code if test reveals new issue
-- Do NOT skip failing tests
+**テストが失敗した場合（qa-engineer の出力より）:**
+- テストがバグをテストしていた場合はテストを修正（バグが「正常」な動作だった場合）
+- テストが新しい問題を明らかにした場合はコードを修正
+- 失敗するテストをスキップしてはならない
 
-### Phase 5: Document and Commit (1-2 minutes)
+### フェーズ 5: ドキュメント化とコミット（1-2分）
 
-**Goal:** Create traceable commit for audit and rollback.
+**ゴール:** 監査とロールバックのための追跡可能なコミットを作成する。
 
-**Commit message format:**
+**コミットメッセージの形式:**
 
 ```bash
-git add [changed-files]
+git add [変更ファイル]
 git commit -m "$(cat <<'EOF'
-hotfix: [brief description]
+hotfix: [簡潔な説明]
 
-Issue: [ticket/description]
-Root cause: [one line explanation]
-Fix: [one line explanation]
+Issue: [チケット/説明]
+Root cause: [1行の説明]
+Fix: [1行の説明]
 
-Affected: [list affected functionality]
-Tested: [how it was verified]
+Affected: [影響を受ける機能のリスト]
+Tested: [検証方法]
 Rollback: git revert [this-commit-sha]
 EOF
 )"
 ```
 
-**Example:**
+**例:**
 
 ```
-hotfix: fix login 500 error for users with special chars in email
+hotfix: メールアドレスに特殊文字を含むユーザーのログイン500エラーを修正
 
-Issue: Users with + in email getting 500 on login
-Root cause: URL encoding not applied before API call
-Fix: Added encodeURIComponent to email parameter
+Issue: メールに + を含むユーザーがログイン時に500エラー
+Root cause: API 呼び出し前に URL エンコーディングが適用されていない
+Fix: メールパラメータに encodeURIComponent を追加
 
-Affected: Login flow only
-Tested: Manual test with test+user@example.com, unit tests pass
+Affected: ログインフローのみ
+Tested: test+user@example.com での手動テスト、ユニットテスト合格
 Rollback: git revert abc123
 ```
 
-### Phase 6: Push and Deploy
+### フェーズ 6: プッシュとデプロイ
 
-**Goal:** Get fix to production quickly.
+**ゴール:** 修正を本番環境に迅速に反映する。
 
-**Push hotfix branch:**
+**hotfix ブランチをプッシュ:**
 
 ```bash
-git push -u origin hotfix/[branch-name]
+git push -u origin hotfix/[ブランチ名]
 ```
 
-**Deployment options:**
+**デプロイオプション:**
 
-| Method | When to Use |
-|--------|-------------|
-| **Merge to main, auto-deploy** | Standard CI/CD in place |
-| **Direct deploy from branch** | Emergency override available |
-| **Cherry-pick to release** | Release branch workflow |
+| 方法 | 使用する場面 |
+|------|-------------|
+| **main にマージ、自動デプロイ** | 標準 CI/CD が整備されている場合 |
+| **ブランチから直接デプロイ** | 緊急オーバーライドが利用可能な場合 |
+| **リリースブランチにチェリーピック** | リリースブランチワークフローの場合 |
 
-**Ask user:**
+**ユーザーに確認する:**
 
 ```
-Question: "Fix is ready. How do you want to deploy?"
-Header: "Deploy"
+Question: "修正の準備ができました。どのようにデプロイしますか？"
+Header: "デプロイ"
 Options:
-- "Create PR to main" (Recommended)
-- "I'll deploy manually"
-- "Show me deployment commands"
+- "main への PR を作成"（推奨）
+- "手動でデプロイします"
+- "デプロイコマンドを表示"
 ```
 
-### Phase 7: Post-Hotfix
+### フェーズ 7: ポスト hotfix
 
-**Goal:** Ensure fix is tracked and followed up.
+**ゴール:** 修正が追跡されフォローアップされることを確認する。
 
-**Create summary:**
+**サマリーを作成:**
 
 ```markdown
-## Hotfix Complete
+## hotfix 完了
 
-### Issue
-[Brief description]
+### 問題
+[簡潔な説明]
 
-### Fix Applied
-| File | Change |
-|------|--------|
-| `src/api/auth.ts:45` | Added URL encoding |
+### 適用された修正
+| ファイル | 変更内容 |
+|---------|---------|
+| `src/api/auth.ts:45` | URL エンコーディングを追加 |
 
-### Verification
-- [x] Tests pass
-- [x] Security check (if applicable)
-- [x] Manual verification
+### 検証
+- [x] テスト合格
+- [x] セキュリティチェック（該当する場合）
+- [x] 手動検証
 
-### Deployment
-- Branch: `hotfix/[name]`
-- PR: [link if created]
+### デプロイ
+- ブランチ: `hotfix/[名前]`
+- PR: [作成された場合はリンク]
 
-### Follow-up Required
-- [ ] Add regression test for this case
-- [ ] Review if root cause indicates larger issue
-- [ ] Update monitoring/alerting if needed
+### 必要なフォローアップ
+- [ ] このケースのリグレッションテストを追加
+- [ ] 根本原因がより大きな問題を示唆していないか確認
+- [ ] 必要に応じてモニタリング/アラートを更新
 ```
 
-**Suggest follow-up:**
+**フォローアップの提案:**
 
 ```
-The hotfix is deployed. Recommended follow-up:
-1. Monitor for recurrence
-2. Create proper regression test (use /spec-plan if substantial)
-3. Root cause analysis if pattern issue
-```
-
----
-
-## Hotfix Checklist
-
-Quick reference during emergency:
-
-```
-[ ] 1. Understand issue (2-3 min)
-[ ] 2. Create hotfix branch
-[ ] 3. Find and fix (minimal change)
-[ ] 4. Run tests (REQUIRED)
-[ ] 5. Security check (if auth/data)
-[ ] 6. Commit with full context
-[ ] 7. Push and deploy
-[ ] 8. Document for follow-up
+hotfix がデプロイされました。推奨されるフォローアップ:
+1. 再発を監視
+2. 適切なリグレッションテストを作成（大規模な場合は /spec-plan を使用）
+3. パターン問題の場合は根本原因分析
 ```
 
 ---
 
-## Rollback Procedure
+## hotfix チェックリスト
 
-If hotfix causes new issues:
+緊急時のクイックリファレンス:
+
+```
+[ ] 1. 問題を把握（2-3分）
+[ ] 2. hotfix ブランチを作成
+[ ] 3. 問題を特定して修正（最小限の変更）
+[ ] 4. テストを実行（必須）
+[ ] 5. セキュリティチェック（認証/データの場合）
+[ ] 6. フルコンテキスト付きでコミット
+[ ] 7. プッシュしてデプロイ
+[ ] 8. フォローアップ用にドキュメント化
+```
+
+---
+
+## ロールバック手順
+
+hotfix が新たな問題を引き起こした場合:
 
 ```bash
-# Option 1: Revert the commit
+# オプション 1: コミットをリバート
 git revert [hotfix-commit-sha]
 git push
 
-# Option 2: Deploy previous version
+# オプション 2: 以前のバージョンをデプロイ
 git checkout main
 git reset --hard [pre-hotfix-sha]
-git push --force  # DANGER: coordinate with team
+git push --force  # 危険: チームと調整すること
 
-# Option 3: Cherry-pick revert to release
+# オプション 3: リリースブランチにリバートをチェリーピック
 git checkout release
 git cherry-pick -n [revert-commit]
 git push
@@ -446,31 +446,31 @@ git push
 
 ---
 
-## Time Budget
+## 時間予算
 
-Target total time: **15-20 minutes**
+目標合計時間: **15-20分**
 
-| Phase | Target | Max |
-|-------|--------|-----|
-| Assessment | 2-3 min | 5 min |
-| Branch setup | 30 sec | 1 min |
-| Find and fix | 5-10 min | 15 min |
-| Verification | 2-3 min | 5 min |
-| Commit/push | 1-2 min | 3 min |
+| フェーズ | 目標 | 最大 |
+|---------|------|------|
+| アセスメント | 2-3分 | 5分 |
+| ブランチセットアップ | 30秒 | 1分 |
+| 特定と修正 | 5-10分 | 15分 |
+| 検証 | 2-3分 | 5分 |
+| コミット/プッシュ | 1-2分 | 3分 |
 
-**If exceeding 30 minutes:** The issue may be more complex than a hotfix. Consider:
-- Temporary mitigation (feature flag, rollback)
-- Escalate to `/spec-plan` for proper fix
+**30分を超過した場合:** 問題は hotfix よりも複雑な可能性がある。以下を検討:
+- 一時的な緩和策（フィーチャーフラグ、ロールバック）
+- `/spec-plan` による適切な修正へのエスカレーション
 
 ---
 
-## Comparison with Other Commands
+## 他のコマンドとの比較
 
-| Aspect | /hotfix | /quick-impl | /spec-plan |
-|--------|---------|-------------|------------|
-| **Speed** | Fastest | Fast | Thorough |
-| **Process** | Minimal | Light | Plan→Review→Implement |
-| **Exploration** | Quick only | Light | Parallel agents |
-| **Testing** | Required | Expected | Comprehensive |
-| **Documentation** | Commit message | Light | Full spec |
-| **Best for** | Emergencies | Small tasks | Features |
+| 側面 | /hotfix | /quick-impl | /spec-plan |
+|------|---------|-------------|------------|
+| **速度** | 最速 | 速い | 入念 |
+| **プロセス** | 最小限 | 軽量 | 計画→レビュー→実装 |
+| **探索** | 迅速のみ | 軽量 | 並列エージェント |
+| **テスト** | 必須 | 期待される | 包括的 |
+| **ドキュメント** | コミットメッセージ | 軽量 | フル仕様書 |
+| **最適な用途** | 緊急時 | 小規模タスク | 機能開発 |

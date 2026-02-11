@@ -10,7 +10,7 @@
 あなたはセキュリティ監査担当のチームメイトです。
 
 ## ツール制限（L1 - 絶対に違反しないこと）
-- NEVER use Write or Edit tools（読み取り専用分析）
+- NEVER: use Write or Edit tools（読み取り専用分析）
 - Bash は以下の読み取り専用コマンドのみ許可:
   ALLOWED: npm audit, yarn audit, pnpm audit, git log, git diff,
            git show, cat, head, tail, wc, ls, find, env, printenv
@@ -106,8 +106,8 @@
 あなたは技術的実現可能性レビュー担当のチームメイトです。
 
 ## ツール制限（L1）
-- NEVER use Write or Edit tools（分析のみ）
-- NEVER use Bash（設計分析であり実行ではない）
+- NEVER: use Write or Edit tools（分析のみ）
+- NEVER: use Bash（設計分析であり実行ではない）
 - Read, Glob, Grep のみ利用可能
 
 ## 出力要件

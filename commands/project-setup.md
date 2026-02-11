@@ -1,10 +1,10 @@
 ---
-description: "Analyze project and generate .claude/rules/ files through stack detection and user interview"
-argument-hint: "[optional: focus area - e.g., 'frontend', 'testing']"
+description: "プロジェクトを分析し、スタック検出とユーザーインタビューを通じて .claude/rules/ ファイルを生成する"
+argument-hint: "[任意: フォーカス領域 - 例: 'frontend', 'testing']"
 allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
 ---
 
-# /project-setup - Project Rules Generator
+# /project-setup - プロジェクトルール生成
 
 ## Language Mode
 
@@ -12,334 +12,334 @@ allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
 
 ---
 
-Generate project-specific `.claude/rules/` files by analyzing the codebase and interviewing the user about conventions and preferences.
+コードベースの分析とユーザーへの規約・好みに関するインタビューを通じて、プロジェクト固有の `.claude/rules/` ファイルを生成する。
 
-## Design Principles
+## 設計原則
 
-1. **Discover, don't assume**: Detect the stack through analysis, not hardcoded file lists
-2. **Domain-agnostic**: Works for any project type (web, mobile, CLI, embedded, etc.)
-3. **User-driven**: Interview to understand conventions that can't be detected
-4. **Pattern-based**: Generate rules based on discovered patterns, not technology categories
-
----
-
-## Phase Overview
-
-```
-Phase 1: Stack Detection    → Discover technologies through analysis
-Phase 2: Pattern Analysis   → Find existing conventions in code
-Phase 3: User Interview     → Gather preferences through questions
-Phase 4: Rule Generation    → Create .claude/rules/ files
-Phase 5: Review & Confirm   → User approval
-```
+1. **推測せず発見する**: ハードコードされたファイルリストではなく、分析を通じてスタックを検出する
+2. **ドメイン非依存**: あらゆるプロジェクトタイプ（Web、モバイル、CLI、組み込み等）で動作する
+3. **ユーザー主導**: 検出できない規約をインタビューで理解する
+4. **パターンベース**: 技術カテゴリではなく、発見されたパターンに基づいてルールを生成する
 
 ---
 
-## Execution Instructions
-
-### Phase 1: Stack Detection
-
-**Goal:** Discover the project's technology stack through analysis.
-
-**CRITICAL: Delegate stack detection to code-explorer agent (do NOT explore manually):**
+## フェーズ概要
 
 ```
-Launch code-explorer agent:
-Task: Detect project technology stack
-Analyze:
-- Project type from common indicators (*.json, *.toml, *.yaml, etc.)
-- Primary language(s) from file extensions
-- Build/package configuration files
-- Package manager and dependencies
-- Testing setup (if present)
-- Build/lint configuration (if present)
+フェーズ 1: スタック検出    → 分析を通じた技術スタックの発見
+フェーズ 2: パターン分析    → コード内の既存規約の発見
+フェーズ 3: ユーザーインタビュー → 質問による好みの収集
+フェーズ 4: ルール生成      → .claude/rules/ ファイルの作成
+フェーズ 5: レビューと確認  → ユーザー承認
+```
+
+---
+
+## 実行手順
+
+### フェーズ 1: スタック検出
+
+**目的:** 分析を通じてプロジェクトの技術スタックを発見する。
+
+**重要: スタック検出は code-explorer エージェントに委任する（手動で調査しないこと）:**
+
+```
+code-explorer エージェントを起動:
+タスク: プロジェクトの技術スタックを検出
+分析対象:
+- 一般的な指標からのプロジェクトタイプ（*.json, *.toml, *.yaml 等）
+- ファイル拡張子からの主要言語
+- ビルド/パッケージ設定ファイル
+- パッケージマネージャーと依存関係
+- テストセットアップ（存在する場合）
+- ビルド/リント設定（存在する場合）
 
 Thoroughness: quick
-Output: Stack profile summary with detected technologies
+出力: 検出された技術のスタックプロファイルサマリー
 ```
 
-Use the agent's output for stack summary. Do NOT run discovery commands manually.
+エージェントの出力をスタックサマリーとして使用する。手動で検出コマンドを実行しないこと。
 
-**Error Handling:**
-If code-explorer fails or times out:
-1. Retry once with reduced scope (focus on primary language and build system only)
-2. If retry fails, inform user:
+**エラーハンドリング:**
+code-explorer が失敗またはタイムアウトした場合:
+1. スコープを縮小して1回リトライする（主要言語とビルドシステムのみに焦点）
+2. リトライも失敗した場合、ユーザーに通知する:
    ```
-   Stack detection failed. Cannot determine project technologies.
+   スタック検出に失敗しました。プロジェクトの技術を判定できません。
 
-   Options:
-   1. Retry stack detection
-   2. Manually describe your stack (I'll skip auto-detection)
-   3. Cancel setup
+   選択肢:
+   1. スタック検出をリトライ
+   2. スタックを手動で説明する（自動検出をスキップ）
+   3. セットアップをキャンセル
    ```
-3. If user chooses option 2: Use AskUserQuestion to gather stack information manually
+3. ユーザーが選択肢 2 を選んだ場合: AskUserQuestion を使用してスタック情報を手動で収集する
 
-**Output:** Stack summary for user confirmation (don't assume specific frameworks).
+**出力:** ユーザー確認用のスタックサマリー（特定のフレームワークを推測しない）。
 
-### Phase 2: Pattern Analysis
+### フェーズ 2: パターン分析
 
-**Goal:** Discover existing conventions through code analysis, not assumptions.
+**目的:** 推測ではなく、コード分析を通じて既存の規約を発見する。
 
-**Delegate to `code-explorer` agent:**
+**`code-explorer` エージェントに委任する:**
 
 ```
-Launch code-explorer agent to analyze:
-- Directory structure and naming conventions
-- Code organization patterns (by feature, by layer, etc.)
-- Import/export patterns
-- Error handling patterns
-- Testing patterns (file locations, naming)
-- Documentation patterns
+code-explorer エージェントを起動して分析:
+- ディレクトリ構造と命名規則
+- コード構成パターン（機能別、レイヤー別等）
+- インポート/エクスポートパターン
+- エラーハンドリングパターン
+- テストパターン（ファイル配置、命名）
+- ドキュメントパターン
 
 Thoroughness: medium
-Output: Convention summary with file:line examples
+出力: file:line の例を含む規約サマリー
 ```
 
-**CRITICAL: Do NOT run Glob commands separately for configuration check.**
+**重要: 設定ファイルチェックのために別途 Glob コマンドを実行しないこと。**
 
-The code-explorer agent above already includes configuration file discovery in its analysis:
+上記の code-explorer エージェントは、分析に設定ファイルの発見を既に含んでいる:
 - `.claude/`, `CLAUDE.md`, `.claude/rules/`
-- Quality tool configs (`.*rc*`, `*.config.*`)
-- Editor configs (`.editorconfig`, `.vscode/`, `.idea/`)
+- 品質ツールの設定（`.*rc*`, `*.config.*`）
+- エディタ設定（`.editorconfig`, `.vscode/`, `.idea/`）
 
-Use the agent's output directly. Do NOT duplicate with separate Glob commands.
+エージェントの出力を直接使用する。別途 Glob コマンドで重複させないこと。
 
-**Error Handling:**
-If code-explorer fails or times out:
-1. Retry once with reduced scope (focus on directory structure and testing patterns only)
-2. If retry fails, inform user:
+**エラーハンドリング:**
+code-explorer が失敗またはタイムアウトした場合:
+1. スコープを縮小して1回リトライする（ディレクトリ構造とテストパターンのみに焦点）
+2. リトライも失敗した場合、ユーザーに通知する:
    ```
-   Pattern analysis failed.
+   パターン分析に失敗しました。
 
-   Options:
-   1. Retry pattern analysis
-   2. Skip pattern analysis and proceed with interview only
-   3. Cancel setup
+   選択肢:
+   1. パターン分析をリトライ
+   2. パターン分析をスキップしてインタビューのみで進行
+   3. セットアップをキャンセル
    ```
-3. If user chooses option 2: Proceed to Phase 3 without pattern data (interview responses will guide rule generation)
+3. ユーザーが選択肢 2 を選んだ場合: パターンデータなしでフェーズ 3 に進む（インタビュー回答がルール生成を導く）
 
-**Output:** Discovered patterns with specific examples from the codebase (from agent output).
+**出力:** コードベースからの具体例を含む発見されたパターン（エージェント出力から）。
 
-### Phase 3: User Interview
+### フェーズ 3: ユーザーインタビュー
 
-**Goal:** Gather preferences that can't be detected through code analysis.
+**目的:** コード分析では検出できない好みを収集する。
 
-**Use domain-agnostic questions:**
+**ドメイン非依存の質問を使用する:**
 
-#### 3.1 Code Style Preferences
+#### 3.1 コードスタイルの好み
 
 ```
-Based on detected stack: [stack summary]
+検出されたスタックに基づく: [スタックサマリー]
 
-Question: "What code style conventions should Claude follow?"
-Header: "Code Style"
+Question: "Claude にはどのようなコードスタイル規約に従ってほしいですか？"
+Header: "コードスタイル"
 Options:
-- "Follow existing tool configuration (detected: [tool])"
-- "Match patterns found in codebase"
-- "Let me specify custom rules"
-- "Use language/framework defaults"
+- "既存のツール設定に従う（検出: [ツール]）"
+- "コードベースで見つかったパターンに合わせる"
+- "カスタムルールを指定する"
+- "言語/フレームワークのデフォルトを使用する"
 ```
 
-#### 3.2 Testing Approach
+#### 3.2 テストアプローチ
 
 ```
-Question: "What testing approach should Claude use?"
-Header: "Testing"
+Question: "Claude にはどのテストアプローチを使用してほしいですか？"
+Header: "テスト"
 Options:
-- "Match existing test patterns (detected: [pattern])"
-- "Test-Driven Development (write tests first)"
-- "Tests after implementation"
-- "Let me specify test requirements"
+- "既存のテストパターンに合わせる（検出: [パターン]）"
+- "テスト駆動開発（テストを先に書く）"
+- "実装後にテスト"
+- "テスト要件を指定する"
 ```
 
-#### 3.3 Documentation Style
+#### 3.3 ドキュメントスタイル
 
 ```
-Question: "What documentation style should Claude follow?"
-Header: "Docs"
+Question: "Claude にはどのドキュメントスタイルに従ってほしいですか？"
+Header: "ドキュメント"
 Options:
-- "Document public APIs only"
-- "Comprehensive documentation"
-- "Minimal (self-documenting code)"
-- "Match existing documentation style"
+- "公開 API のみドキュメント化"
+- "包括的なドキュメント"
+- "最小限（自己説明的なコード）"
+- "既存のドキュメントスタイルに合わせる"
 ```
 
-#### 3.4 Architecture Boundaries
+#### 3.4 アーキテクチャ境界
 
 ```
-Question: "Are there areas that should have different rules?"
-Header: "Boundaries"
+Question: "異なるルールを適用すべき領域はありますか？"
+Header: "境界"
 MultiSelect: true
 Options:
-- "Different rules for different parts of codebase"
-- "Some areas require extra review/care"
-- "Strict validation in certain areas"
-- "No special boundaries needed"
+- "コードベースの部分ごとに異なるルールが必要"
+- "特に注意が必要な領域がある"
+- "特定の領域で厳格なバリデーションが必要"
+- "特別な境界は不要"
 ```
 
-If user selects boundaries, follow up to understand which paths/patterns.
+ユーザーが境界を選択した場合、どのパス/パターンかフォローアップして確認する。
 
-#### 3.5 Security Considerations
+#### 3.5 セキュリティ考慮事項
 
 ```
-Question: "What security considerations apply?"
-Header: "Security"
+Question: "どのようなセキュリティ考慮事項がありますか？"
+Header: "セキュリティ"
 MultiSelect: true
 Options:
-- "Authentication/authorization code needs extra care"
-- "Input validation is critical"
-- "Handles sensitive data (PII, credentials)"
-- "Standard security practices are sufficient"
+- "認証/認可コードには特別な注意が必要"
+- "入力バリデーションが重要"
+- "機密データを扱う（PII、認証情報）"
+- "標準的なセキュリティプラクティスで十分"
 ```
 
-#### 3.6 Custom Rules
+#### 3.6 カスタムルール
 
 ```
-Question: "Any other project-specific rules Claude should know?"
-Header: "Custom"
+Question: "Claude が知っておくべきプロジェクト固有のルールはありますか？"
+Header: "カスタム"
 Options:
-- "Yes, I'll describe them"
-- "No additional rules needed"
+- "はい、説明します"
+- "追加ルールは不要"
 ```
 
-### Phase 4: Rule Generation
+### フェーズ 4: ルール生成
 
-**Goal:** Generate `.claude/rules/` files based on analysis and interview.
+**目的:** 分析とインタビューに基づいて `.claude/rules/` ファイルを生成する。
 
-**Create directory:**
+**ディレクトリの作成:**
 
 ```bash
 mkdir -p .claude/rules
 ```
 
-**Generate rule files based on findings (not hardcoded templates):**
+**調査結果に基づいてルールファイルを生成する（ハードコードされたテンプレートではなく）:**
 
-#### 4.1 General Rules (always created)
+#### 4.1 汎用ルール（常に作成）
 
-Create `.claude/rules/general.md`:
+`.claude/rules/general.md` を作成:
 
 ```markdown
-# Project: [Project Name from analysis]
+# プロジェクト: [分析から得たプロジェクト名]
 
-## Technology Stack
-[Detected stack - discovered, not assumed]
+## 技術スタック
+[検出されたスタック - 推測ではなく発見されたもの]
 
-## Code Style
-[From interview + detected patterns]
+## コードスタイル
+[インタビュー + 検出されたパターンから]
 
-## Testing
-[From interview + detected patterns]
+## テスト
+[インタビュー + 検出されたパターンから]
 
-## Documentation
-[From interview]
+## ドキュメント
+[インタビューから]
 
-## Additional Context
-[Any custom rules from interview]
+## 追加コンテキスト
+[インタビューからのカスタムルール]
 ```
 
-#### 4.2 Path-Conditional Rules (if boundaries identified)
+#### 4.2 パス条件付きルール（境界が特定された場合）
 
-Only create path-specific rules if:
-1. User indicated different rules for different areas
-2. Analysis found clear separation in codebase
+以下の場合のみパス固有のルールを作成する:
+1. ユーザーが領域ごとに異なるルールを指定した場合
+2. 分析でコードベースに明確な分離が見つかった場合
 
-**Discover paths from Phase 2 analysis, don't hardcode or run commands:**
+**フェーズ 2 の分析でパスを発見する。ハードコードしたりコマンドを実行したりしないこと:**
 
-The code-explorer agent in Phase 2 already discovered the directory structure. Use that output directly.
+フェーズ 2 の code-explorer エージェントが既にディレクトリ構造を発見している。その出力を直接使用する。
 
-Do NOT run find commands in the parent context. If additional path discovery is needed, delegate to code-explorer.
+親コンテキストで find コマンドを実行しないこと。追加のパス検出が必要な場合は code-explorer に委任する。
 
-Create path-conditional rules using discovered paths (from Phase 2 agent output):
+発見されたパス（フェーズ 2 のエージェント出力から）を使用してパス条件付きルールを作成:
 
 ```yaml
 ---
 paths:
-  - "[discovered path pattern]"
+  - "[発見されたパスパターン]"
 ---
 
-# [Area] Development Rules
+# [領域] 開発ルール
 
-[Rules specific to this area from interview]
+[インタビューからのこの領域固有のルール]
 ```
 
-### Phase 5: Review & Confirm
+### フェーズ 5: レビューと確認
 
-**Goal:** Present generated rules for user approval.
+**目的:** 生成されたルールをユーザー承認のために提示する。
 
-**Display summary:**
+**サマリーを表示する:**
 
 ```markdown
-## Generated Rules Summary
+## 生成ルールサマリー
 
-### Files Created
-| File | Scope | Key Rules |
-|------|-------|-----------|
-| `general.md` | All files | [summary] |
-| [path-specific if created] | [paths] | [summary] |
+### 作成されたファイル
+| ファイル | スコープ | 主要ルール |
+|----------|----------|------------|
+| `general.md` | 全ファイル | [サマリー] |
+| [パス固有（作成された場合）] | [パス] | [サマリー] |
 
-### Rule Highlights
-- [Key rule 1 based on interview]
-- [Key rule 2 based on analysis]
+### ルールハイライト
+- [インタビューに基づく主要ルール 1]
+- [分析に基づく主要ルール 2]
 
-Options:
-1. Apply these rules as-is
-2. Review and edit before applying
-3. Regenerate with different preferences
-4. Cancel
+選択肢:
+1. これらのルールをそのまま適用
+2. 適用前にレビュー・編集
+3. 異なる設定で再生成
+4. キャンセル
 ```
 
-**Final output:**
+**最終出力:**
 
 ```markdown
-Rules created in .claude/rules/
+ルールが .claude/rules/ に作成されました。
 
-These rules will be automatically loaded when Claude works on this project.
+これらのルールは Claude がこのプロジェクトで作業する際に自動的に読み込まれます。
 
-Next steps:
-1. Review generated rules in .claude/rules/
-2. Add to version control: git add .claude/rules/
-3. Share with team for consistent AI assistance
+次のステップ:
+1. .claude/rules/ 内の生成されたルールをレビュー
+2. バージョン管理に追加: git add .claude/rules/
+3. 一貫した AI アシスタンスのためにチームと共有
 ```
 
 ---
 
-## Usage Examples
+## 使用例
 
 ```bash
-# Full setup with interview
+# インタビュー付きのフルセットアップ
 /project-setup
 
-# Focus on specific area (will ask focused questions)
+# 特定の領域にフォーカス（的を絞った質問をする）
 /project-setup testing
 /project-setup security
 
-# Regenerate after codebase changes
+# コードベース変更後に再生成
 /project-setup
 ```
 
 ---
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-Critical for accurate project rules.
+正確なプロジェクトルールのために重要。
 
-- NEVER assume specific framework/library names (discover through analysis)
-- NEVER hardcode path patterns (discover them from codebase)
-- NEVER create rules for technologies not detected
-- NEVER skip user confirmation before creating files
+- NEVER: 特定のフレームワーク/ライブラリ名を推測する（分析を通じて発見する）
+- NEVER: パスパターンをハードコードする（コードベースから発見する）
+- NEVER: 検出されていない技術に対してルールを作成する
+- NEVER: ファイル作成前にユーザー確認をスキップする
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-Important for effective rule generation. Override with reasoning when appropriate.
+効果的なルール生成のために重要。適切な理由がある場合はオーバーライド可能。
 
-- Discover stack through analysis, not hardcoded file lists
-- Use domain-agnostic interview questions
-- Confirm detected patterns with user
-- Use discovered paths for path-conditional rules
+- ハードコードされたファイルリストではなく、分析を通じてスタックを発見する
+- ドメイン非依存のインタビュー質問を使用する
+- 検出されたパターンをユーザーに確認する
+- パス条件付きルールには発見されたパスを使用する
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-Recommendations for comprehensive project setup.
+包括的なプロジェクトセットアップのための推奨事項。
 
-- Consider generating path-specific rules when clear boundaries exist
-- Prefer matching existing editor/tool configurations
+- consider: 明確な境界が存在する場合、パス固有のルール生成を行う
+- prefer: 既存のエディタ/ツール設定との整合を取る

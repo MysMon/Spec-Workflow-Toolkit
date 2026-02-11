@@ -1,5 +1,5 @@
 #!/bin/bash
-# TeammateIdle Hook: チームメイトの品質ゲートチェック
+# TeammateIdle フック: チームメイトの品質ゲートチェック
 # チームメイトがアイドル状態になった時に実行される品質ゲート。
 # exit 0 = チームメイトのアイドル遷移を許可（ブロッキングしない）
 # exit 2 = フィードバックを送信してチームメイトに作業継続を指示
@@ -49,7 +49,7 @@ try:
     if missing:
         fields = ', '.join(missing)
         print(
-            '[TeammateIdle] WARNING: missing fields: %s at %s'
+            '[TeammateIdle] 警告: 欠落フィールド: %s (時刻: %s)'
             % (fields, timestamp),
             file=sys.stderr,
         )
@@ -57,7 +57,7 @@ try:
 
     # 監査ログ出力（stderr でフック表示に出力）
     print(
-        '[TeammateIdle] %s in %s idled at %s'
+        '[TeammateIdle] %s (チーム: %s) がアイドル状態になりました (時刻: %s)'
         % (teammate_name, team_name, timestamp),
         file=sys.stderr,
     )
@@ -66,14 +66,14 @@ try:
     sys.exit(0)
 
 except json.JSONDecodeError:
-    print('[TeammateIdle] WARNING: invalid JSON input', file=sys.stderr)
+    print('[TeammateIdle] 警告: 無効な JSON 入力', file=sys.stderr)
     sys.exit(0)
 except Exception:
     sys.exit(0)
 "
 else
     # Python が利用できない場合もログ出力して正常終了
-    echo "[TeammateIdle] WARNING: python3 unavailable, skipping validation" >&2
+    echo "[TeammateIdle] 警告: python3 が利用できません。検証をスキップします" >&2
 fi
 
 exit 0

@@ -1,10 +1,10 @@
 ---
-description: "Launch a structured multi-agent discussion on a topic using dialectical exploration"
-argument-hint: "<topic> [--quick|--deep] [--members role1,role2,role3] [--context file1,file2] [--timeout minutes]"
+description: "弁証法的探索による構造化マルチエージェントディスカッションをトピックについて開始する"
+argument-hint: "<トピック> [--quick|--deep] [--members ロール1,ロール2,ロール3] [--context ファイル1,ファイル2] [--timeout 分]"
 allowed-tools: Read, Write, Glob, Grep, Bash, Task, AskUserQuestion, TeamCreate, TaskCreate, TaskUpdate, TaskList, TaskGet, SendMessage
 ---
 
-# /discuss - Multi-Agent Structured Discussion
+# /discuss - マルチエージェント構造化ディスカッション
 
 ## Language Mode
 
@@ -17,19 +17,19 @@ allowed-tools: Read, Write, Glob, Grep, Bash, Task, AskUserQuestion, TeamCreate,
 
 結果は最終決定ではなく、ユーザーへの判断材料として提示する。
 
-## Options
+## オプション
 
-| Option | Description | Default |
-|--------|-------------|---------|
+| オプション | 説明 | デフォルト |
+|-----------|------|-----------|
 | `--quick` | 2ラウンド（Position + Synthesis） | - |
 | `--deep` | 最大5ラウンド | - |
-| `--members role1,role2,...` | カスタムロール指定 | トピックに応じて自動選出 |
-| `--context file1,file2,...` | コンテキストファイルを指定 | なし |
+| `--members ロール1,ロール2,...` | カスタムロール指定 | トピックに応じて自動選出 |
+| `--context ファイル1,ファイル2,...` | コンテキストファイルを指定 | なし |
 | `--timeout N` | 全体タイムアウト（分） | 10 |
 
-## Execution Instructions
+## 実行手順
 
-### Step 1: トピック解析とロール選出
+### ステップ 1: トピック解析とロール選出
 
 `$ARGUMENTS` からトピックとオプションを解析する。
 
@@ -55,20 +55,20 @@ allowed-tools: Read, Write, Glob, Grep, Bash, Task, AskUserQuestion, TeamCreate,
 `--context` で指定されたファイルを Read で読み込み、各メンバーに配布する。
 未指定でも関連ファイルの自動検出は行わない（明示的指定のみ）。
 
-### Step 2: チーム作成とメンバースポーン
+### ステップ 2: チーム作成とメンバースポーン
 
-Load the `discussion-protocol` skill for spawn prompt templates and round management.
+`discussion-protocol` スキルを読み込み、スポーンプロンプトテンプレートとラウンド管理の情報を取得する。
 
-#### Agent Team Mode（自動検出）
+#### Agent Team モード（自動検出）
 
 TeamCreate ツールが利用可能な場合:
 
-**Step 2a: チーム作成**
+**ステップ 2a: チーム作成**
 
 TeamCreate で `discuss-{topic-slug}` チームを作成する。
-TeamCreate が失敗またはツールが利用不可の場合、Step 2 フォールバックに移行。
+TeamCreate が失敗またはツールが利用不可の場合、ステップ 2 フォールバックに移行。
 
-**Step 2b: チームメイトスポーン（4体）**
+**ステップ 2b: チームメイトスポーン（4体）**
 
 以下の 4 体を Task tool で team_name を指定してスポーン。
 各チームメイトのスポーンプロンプトは discussion-protocol skill の reference.md から取得:
@@ -90,7 +90,7 @@ TeamCreate が失敗またはツールが利用不可の場合、Step 2 フォ�
          + トピック + コンテキスト
 ```
 
-**Step 2c: ユーザー通知**
+**ステップ 2c: ユーザー通知**
 
 ```
 Agent Team モードでディスカッションを開始します。
@@ -99,7 +99,7 @@ Agent Team モードでディスカッションを開始します。
 ラウンド: {preset_description}
 ```
 
-#### Step 2 フォールバック（Task tool による並列実行）
+#### ステップ 2 フォールバック（Task tool による並列実行）
 
 Agent Team が利用不可の場合:
 
@@ -116,13 +116,13 @@ Agent Team ツールは現在の環境で利用できません。
 4体のサブエージェントを並列起動（Task tool、チームなし）。
 各サブエージェントに Position → Self-Challenge → Final Position を一括実行させる。
 
-### Step 3: ラウンド管理（Agent Team モードのみ）
+### ステップ 3: ラウンド管理（Agent Team モードのみ）
 
 モデレーター（リーダー）が以下のラウンド制御を行う。
 
-#### Round 1 - Position（必須）
+#### ラウンド 1 - Position（必須）
 
-1. 全メンバーに Round 1 開始を通知（SendMessage）
+1. 全メンバーにラウンド 1 開始を通知（SendMessage）
 2. L1: メンバー間の直接通信を禁止（独立提出）
 3. 全 Position を受信するまで待機
 4. 収束判定を実施
@@ -136,14 +136,14 @@ Agent Team ツールは現在の環境で利用できません。
 | CONVERGING | → Synthesis | → Synthesis（Challenge スキップ） | → Challenge |
 | CONSENSUS | → 偽合意検出 | → 偽合意検出 | → Challenge（強制） |
 
-#### Round 2 - Challenge（条件付き）
+#### ラウンド 2 - Challenge（条件付き）
 
 1. 全メンバーの Position を配布（SendMessage、300語以内）
 2. L1: 同意・賛同の表明を禁止することを通知
 3. 全 Challenge を受信
 4. 収束判定を実施
 
-#### Round 3 - Synthesis（条件付き）
+#### ラウンド 3 - Synthesis（条件付き）
 
 モデレーター判定: 未解決の重要な対立があれば実施、なければスキップ。
 
@@ -162,7 +162,7 @@ DIVERGENT が続く場合、論点を絞って追加ラウンドを実施。
 1. 全メンバーに最終立場の報告を要請（500語以内、構造化フォーマット）
 2. 全最終立場を受信
 
-### Step 4: 結果統合
+### ステップ 4: 結果統合
 
 #### 統合レポート作成
 
@@ -186,7 +186,7 @@ discussion-protocol skill の reference.md「結果統合フォーマット」�
 1. 各チームメイトに shutdown_request を送信
 2. TeamDelete でチームを削除
 
-### Step 5: ユーザーへの結果提示とフィードバックループ
+### ステップ 5: ユーザーへの結果提示とフィードバックループ
 
 統合レポートをユーザーに提示し、フィードバックを受け付ける。
 
@@ -224,7 +224,7 @@ AskUserQuestion でどの論点を深掘りするか確認し、
 /spec-plan {feature} --context docs/specs/{feature}-discussion-{topic-slug}.md
 ```
 
-### Step 6: 結果保存
+### ステップ 6: 結果保存
 
 最終結果を以下に保存:
 - 結果ファイル: `docs/specs/{feature}-discussion-{topic-slug}.md`
@@ -236,7 +236,7 @@ discussion-protocol skill の定義に従う:
 - 全体タイムアウト: `--timeout` で指定（デフォルト10分）
 - team-orchestration スキルの3段階判断モデルを踏襲
 
-## Usage Examples
+## 使用例
 
 ```bash
 # 技術選定の議論
@@ -257,7 +257,7 @@ discussion-protocol skill の定義に従う:
 
 ---
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
 - MUST: 3名以上のディスカッションには必ず1名を devils-advocate として割り当てる
 - MUST: Challenge Round では同意・賛同の表明を禁止する
@@ -270,7 +270,7 @@ discussion-protocol skill の定義に従う:
 - NEVER: モデレーターが「A案が正しい」等の内容判断を表明する
 - NEVER: チームメイトが直接 AskUserQuestion を呼び出す（リーダー経由で中継）
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
 - デフォルト3ラウンド（Position -> Challenge -> Synthesis）、適応型で2ラウンドに短縮可能
 - チーム構成はデフォルト5名（3+1+1）
@@ -278,10 +278,10 @@ discussion-protocol skill の定義に従う:
 - 全体タイムアウトは10分
 - 5名以下はメッシュ型通信
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-- 対立軸を含むロール構成を推奨
-- 結果は「合意事項」より「選択肢+トレードオフ+判断問い」として提示することを推奨
-- 短時間プロセスのため、中断時はやり直しで対応
-- 議論品質の指標として立場変遷（Position変更の有無）を確認
-- spec-plan Phase 4 との連携を検討
+- recommend: 対立軸を含むロール構成を推奨
+- recommend: 結果は「合意事項」より「選択肢+トレードオフ+判断問い」として提示することを推奨
+- consider: 短時間プロセスのため、中断時はやり直しで対応
+- consider: 議論品質の指標として立場変遷（Position変更の有無）を確認
+- consider: spec-plan Phase 4 との連携を検討

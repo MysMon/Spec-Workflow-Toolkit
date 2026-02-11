@@ -1,10 +1,10 @@
 ---
-description: "Review and approve insights captured during development - process one by one interactively"
+description: "開発中にキャプチャされたインサイトをレビュー・承認する - インタラクティブに一つずつ処理"
 argument-hint: "[workspace-id | list]"
 allowed-tools: Read, Write, Edit, AskUserQuestion, Bash, Glob, Task
 ---
 
-# /review-insights - Insight Review Workflow
+# /review-insights - インサイトレビューワークフロー
 
 ## Language Mode
 
@@ -12,62 +12,62 @@ allowed-tools: Read, Write, Edit, AskUserQuestion, Bash, Glob, Task
 
 ---
 
-Review insights captured during development and decide where to apply them. Each insight is processed interactively, one by one, with user confirmation.
+開発中にキャプチャされたインサイトをレビューし、適用先を決定する。各インサイトはユーザー確認付きで一つずつインタラクティブに処理される。
 
-## Architecture (Folder-Based)
+## アーキテクチャ（フォルダベース）
 
 ```
 .claude/workspaces/{id}/insights/
-├── pending/          # New insights (one JSON file per insight)
+├── pending/          # 新規インサイト（1インサイト1 JSON ファイル）
 │   ├── INS-xxx.json
 │   └── INS-yyy.json
-├── applied/          # Applied to CLAUDE.md or rules
-├── rejected/         # Rejected by user
-└── archive/          # Old insights for reference
+├── applied/          # CLAUDE.md またはルールに適用済み
+├── rejected/         # ユーザーが却下
+└── archive/          # 参照用の古いインサイト
 ```
 
-**Benefits:**
-- No file locking needed (each insight is a separate file)
-- Concurrent capture and review without conflicts
-- Easy cleanup (just move/delete files)
-- Partial failure resilience
+**メリット:**
+- ファイルロック不要（各インサイトが個別ファイル）
+- コンフリクトなしの並行キャプチャとレビュー
+- 簡単なクリーンアップ（ファイルの移動/削除のみ）
+- 部分的な障害への耐性
 
 ---
 
-## When to Use
+## 使用タイミング
 
-- After completing a development session with captured insights
-- When SessionStart notifies you of pending insights
-- Periodically to review accumulated knowledge
-- Before starting similar work to consolidate learnings
+- キャプチャされたインサイトのある開発セッション完了後
+- SessionStart が保留中のインサイトを通知した場合
+- 蓄積された知見を定期的にレビューする場合
+- 類似の作業を開始する前に学びを統合する場合
 
-## Input Formats
+## 入力形式
 
 ```bash
-# Review current workspace's insights
+# 現在のワークスペースのインサイトをレビュー
 /review-insights
 
-# Review specific workspace
+# 特定のワークスペースをレビュー
 /review-insights feature-auth_a1b2c3d4
 
-# List all workspaces with pending insights
+# 保留中のインサイトがあるすべてのワークスペースを一覧表示
 /review-insights list
 ```
 
 ---
 
-## Execution Instructions
+## 実行手順
 
-### Phase 1: Load Pending Insights
+### フェーズ 1: 保留中インサイトの読み込み
 
-**Goal:** Identify workspace and load pending insights from the folder.
+**目的:** ワークスペースを特定し、フォルダから保留中のインサイトを読み込む。
 
-**If argument is "list":**
+**引数が "list" の場合:**
 
-Enumerate workspace directories and count pending insights:
+ワークスペースディレクトリを列挙し、保留中のインサイト数をカウントする:
 
 ```bash
-# List all workspaces with pending counts
+# 保留中の件数を含むすべてのワークスペースを一覧表示
 for dir in .claude/workspaces/*/insights/pending; do
     if [ -d "$dir" ]; then
         count=$(find "$dir" -name "*.json" -type f | wc -l)
@@ -79,238 +79,238 @@ for dir in .claude/workspaces/*/insights/pending; do
 done
 ```
 
-Display summary and exit.
+サマリーを表示して終了する。
 
-**If argument is workspace-id:**
+**引数がワークスペース ID の場合:**
 
-**IMPORTANT: Validate workspace ID before use:**
-- Must match pattern `^[a-zA-Z0-9._-]+$`
-- Must NOT contain `..` (path traversal)
-- If validation fails, show error and exit
+**重要: 使用前にワークスペース ID を検証すること:**
+- パターン `^[a-zA-Z0-9._-]+$` に一致すること
+- `..`（パストラバーサル）を含まないこと
+- 検証に失敗した場合、エラーを表示して終了する
 
-Use specified workspace after validation.
+検証後、指定されたワークスペースを使用する。
 
-**If no argument:**
+**引数なしの場合:**
 
-Determine current workspace ID using the same logic as `workspace_utils.sh`:
-1. Get git branch: `git branch --show-current` (sanitize: replace `/` and space with `-`, keep only `a-zA-Z0-9._-`)
-2. Get path hash: first 8 chars of MD5 hash of current directory
-3. Combine: `{branch}_{hash}`
+`workspace_utils.sh` と同じロジックで現在のワークスペース ID を決定する:
+1. git ブランチを取得: `git branch --show-current`（サニタイズ: `/` とスペースを `-` に置換、`a-zA-Z0-9._-` のみ保持）
+2. パスハッシュを取得: 現在のディレクトリの MD5 ハッシュの先頭8文字
+3. 結合: `{branch}_{hash}`
 
-**Load pending insights:**
+**保留中のインサイトを読み込む:**
 
 ```bash
 PENDING_DIR=".claude/workspaces/${WORKSPACE_ID}/insights/pending"
 ```
 
-Use Glob or find to list all `.json` files in the pending directory.
-Read each file and collect insight objects.
+Glob または find を使用して pending ディレクトリ内のすべての `.json` ファイルを一覧表示する。
+各ファイルを読み取り、インサイトオブジェクトを収集する。
 
-**If no pending insights:**
+**保留中のインサイトがない場合:**
 
 ```
-No pending insights in workspace: {workspace-id}
+ワークスペース {workspace-id} に保留中のインサイトはありません。
 
-Run /review-insights list to see all workspaces with pending insights.
+/review-insights list を実行して、保留中のインサイトがあるすべてのワークスペースを確認できます。
 ```
 
-Exit.
+終了する。
 
-### Phase 2: Interactive Review Loop
+### フェーズ 2: インタラクティブレビューループ
 
-**Goal:** Process each insight one by one with user decisions.
+**目的:** 各インサイトをユーザーの判断で一つずつ処理する。
 
-**For each pending insight file (process one at a time):**
+**保留中の各インサイトファイル（一つずつ処理）:**
 
-**Read the insight file:**
+**インサイトファイルの読み取り:**
 
 ```bash
 INSIGHT_FILE=".claude/workspaces/${WORKSPACE_ID}/insights/pending/INS-xxx.json"
 ```
 
-**Display the insight:**
+**インサイトの表示:**
 
 ```markdown
 ---
-## Insight Review ({current}/{total})
+## インサイトレビュー ({current}/{total})
 
 **ID**: {insight.id}
-**Captured**: {insight.timestamp}
-**Source**: {insight.source}
-**Category**: {insight.category}
+**キャプチャ日時**: {insight.timestamp}
+**ソース**: {insight.source}
+**カテゴリ**: {insight.category}
 
-### Content
+### 内容
 {insight.content}
 
 ---
 ```
 
-**Ask for decision:**
+**判断を確認する:**
 
 ```
-Question: "What should we do with this insight?"
-Header: "Action"
+Question: "このインサイトをどうしますか？"
+Header: "アクション"
 Options:
-- "Approve: Add to CLAUDE.md (project-wide rule)"
-- "Approve: Add to .claude/rules/ (category-specific)" (Recommended)
-- "Approve: Keep in workspace only (this workspace)"
-- "Skip for now (review later)"
-- "Reject (not useful)"
+- "承認: CLAUDE.md に追加（プロジェクト全体のルール）"
+- "承認: .claude/rules/ に追加（カテゴリ別）"（推奨）
+- "承認: ワークスペースのみに保持（このワークスペース用）"
+- "今はスキップ（後でレビュー）"
+- "却下（不要）"
 ```
 
-**If "Approve: Add to CLAUDE.md":**
+**「承認: CLAUDE.md に追加」の場合:**
 
 ```
-Question: "What rule level should this be?"
-Header: "Level"
+Question: "ルールレベルはどうしますか？"
+Header: "レベル"
 Options:
-- "L1 (Hard Rule) - Security/safety critical, use NEVER/ALWAYS"
-- "L2 (Soft Rule) - Best practice with exceptions, use should/by default" (Recommended)
-- "L3 (Guideline) - Suggestion, use consider/prefer"
+- "L1（ハードルール）- セキュリティ/安全性に重要、NEVER/ALWAYS を使用"
+- "L2（ソフトルール）- 例外ありのベストプラクティス、should/by default を使用"（推奨）
+- "L3（ガイドライン）- 提案、consider/prefer を使用"
 ```
 
-Then ask:
+次に確認する:
 
 ```
-Question: "Which section of CLAUDE.md?"
-Header: "Section"
+Question: "CLAUDE.md のどのセクションに追加しますか？"
+Header: "セクション"
 Options:
 - "Development Rules"
 - "Content Guidelines"
-- "Other (specify in follow-up)"
+- "その他（フォローアップで指定）"
 ```
 
-**If "Approve: Add to .claude/rules/":**
+**「承認: .claude/rules/ に追加」の場合:**
 
 ```
-Question: "Which category?"
-Header: "Category"
+Question: "どのカテゴリですか？"
+Header: "カテゴリ"
 Options:
-- "hooks - Hook development patterns"
-- "agents - Agent design patterns"
-- "skills - Skill development patterns"
-- "workflows - Workflow improvements"
+- "hooks - フック開発パターン"
+- "agents - エージェント設計パターン"
+- "skills - スキル開発パターン"
+- "workflows - ワークフロー改善"
 ```
 
-**If "Approve: Keep in workspace only":**
+**「承認: ワークスペースのみに保持」の場合:**
 
-Move file from `pending/` to `applied/`:
+ファイルを `pending/` から `applied/` に移動する:
 ```bash
 mv ".claude/workspaces/${WORKSPACE_ID}/insights/pending/INS-xxx.json" \
    ".claude/workspaces/${WORKSPACE_ID}/insights/applied/"
 ```
 
-**If "Skip for now":**
+**「今はスキップ」の場合:**
 
-Leave file in `pending/`, continue to next.
+ファイルを `pending/` に残し、次に進む。
 
-**If "Reject":**
+**「却下」の場合:**
 
-Move file from `pending/` to `rejected/`:
+ファイルを `pending/` から `rejected/` に移動する:
 ```bash
 mv ".claude/workspaces/${WORKSPACE_ID}/insights/pending/INS-xxx.json" \
    ".claude/workspaces/${WORKSPACE_ID}/insights/rejected/"
 ```
 
-### Phase 3: Apply Approved Insights
+### フェーズ 3: 承認済みインサイトの適用
 
-**Goal:** Write approved insights to their destinations.
+**目的:** 承認されたインサイトを適用先に書き込む。
 
-**Choose execution method based on change complexity:**
+**変更の複雑さに応じて実行方法を選択する:**
 
-#### Option A: Direct Edit (for simple single-line additions)
+#### オプション A: 直接編集（単純な一行追加の場合）
 
-For straightforward insight additions (single rule, clear section):
+簡単なインサイト追加（単一ルール、明確なセクション）の場合:
 
-**For CLAUDE.md additions:**
-1. Read current CLAUDE.md
-2. Find appropriate section
-3. Format insight according to L1/L2/L3 style:
-   - L1: `- **NEVER** do X` or `- **ALWAYS** do Y`
-   - L2: `- X should Y` or `- By default, do Z`
-   - L3: `- Consider X` or `- Prefer Y when Z`
-4. Use Edit tool to append to section
-5. Move insight file to `applied/`
+**CLAUDE.md への追加:**
+1. 現在の CLAUDE.md を読み取る
+2. 適切なセクションを見つける
+3. L1/L2/L3 スタイルに従ってインサイトをフォーマットする:
+   - L1: `- NEVER: X をする` または `- ALWAYS: Y をする`
+   - L2: `- X は Y すべき` または `- デフォルトで Z する`
+   - L3: `- X を検討する` または `- Z の場合は Y を優先する`
+4. Edit ツールでセクションに追加する
+5. インサイトファイルを `applied/` に移動する
 
-**For .claude/rules/ additions:**
-1. Check if `.claude/rules/{category}.md` exists
-2. If not, create with header using Write tool
-3. Use Edit tool to append formatted insight
-4. Move insight file to `applied/`
+**.claude/rules/ への追加:**
+1. `.claude/rules/{category}.md` が存在するか確認する
+2. 存在しない場合、Write ツールでヘッダー付きで作成する
+3. Edit ツールでフォーマットされたインサイトを追加する
+4. インサイトファイルを `applied/` に移動する
 
-#### Option B: Delegate to technical-writer (for complex additions)
+#### オプション B: technical-writer に委任（複雑な追加の場合）
 
-For insights requiring formatting judgment or multiple additions:
+フォーマットの判断が必要なインサイトや複数の追加の場合:
 
 ```
-Launch technical-writer agent:
-Task: Add approved insight to documentation
-Insight content: [user-approved content]
-Destination: [CLAUDE.md or .claude/rules/{category}.md]
-Rule level: [L1/L2/L3]
-Section: [target section]
-Output: Confirmation with before/after diff
+technical-writer エージェントを起動:
+タスク: 承認済みインサイトをドキュメントに追加
+インサイト内容: [ユーザーが承認した内容]
+適用先: [CLAUDE.md または .claude/rules/{category}.md]
+ルールレベル: [L1/L2/L3]
+セクション: [対象セクション]
+出力: 変更前後の diff を含む確認
 ```
 
-**Use Option B when:**
-- Insight content needs significant reformatting
-- Multiple related insights are being added together
-- Appropriate section is unclear
-- CLAUDE.md is large (>300 lines) and navigation is complex
+**オプション B を使用する場合:**
+- インサイトの内容に大幅なフォーマット変更が必要
+- 関連する複数のインサイトをまとめて追加
+- 適切なセクションが不明確
+- CLAUDE.md が大きい（300行超）でナビゲーションが複雑
 
-**For workspace-only:**
+**ワークスペースのみの場合:**
 
-File is already moved to `applied/` during Phase 2.
+フェーズ 2 で既にファイルが `applied/` に移動済み。
 
-### Phase 4: Summary Report
+### フェーズ 4: サマリーレポート
 
-**Goal:** Show what was done.
+**目的:** 実行した内容を表示する。
 
 ```markdown
-## Insight Review Summary
+## インサイトレビューサマリー
 
-### Workspace: {workspace-id}
+### ワークスペース: {workspace-id}
 
-| # | Insight | Decision | Destination |
-|---|---------|----------|-------------|
-| 1 | [first 50 chars...] | Approved | CLAUDE.md (L2) |
-| 2 | [first 50 chars...] | Approved | .claude/rules/hooks.md |
-| 3 | [first 50 chars...] | Workspace | applied/ |
-| 4 | [first 50 chars...] | Skipped | pending/ |
-| 5 | [first 50 chars...] | Rejected | rejected/ |
+| # | インサイト | 判断 | 適用先 |
+|---|-----------|------|--------|
+| 1 | [先頭50文字...] | 承認 | CLAUDE.md (L2) |
+| 2 | [先頭50文字...] | 承認 | .claude/rules/hooks.md |
+| 3 | [先頭50文字...] | ワークスペース | applied/ |
+| 4 | [先頭50文字...] | スキップ | pending/ |
+| 5 | [先頭50文字...] | 却下 | rejected/ |
 
-### Statistics
+### 統計
 
-- **Total reviewed**: 5
-- **Added to CLAUDE.md**: 1
-- **Added to .claude/rules/**: 1
-- **Kept in workspace**: 1
-- **Skipped**: 1
-- **Rejected**: 1
+- **レビュー総数**: 5
+- **CLAUDE.md に追加**: 1
+- **.claude/rules/ に追加**: 1
+- **ワークスペースに保持**: 1
+- **スキップ**: 1
+- **却下**: 1
 
-### Files Modified
+### 修正されたファイル
 
-- `CLAUDE.md` - Added 1 rule
-- `.claude/rules/hooks.md` - Added 1 insight
+- `CLAUDE.md` - 1ルール追加
+- `.claude/rules/hooks.md` - 1インサイト追加
 
-### Remaining
+### 残り
 
-- **Pending in this workspace**: 1 (skipped)
-- **Run `/review-insights` again to process skipped items**
+- **このワークスペースの保留中**: 1（スキップ）
+- **スキップした項目を処理するには `/review-insights` を再実行してください**
 ```
 
 ---
 
-## Insight File Format
+## インサイトファイル形式
 
-Each insight is a separate JSON file:
+各インサイトは個別の JSON ファイル:
 
 ```json
 {
   "id": "INS-20250121143000-a1b2c3d4",
   "timestamp": "2025-01-21T14:30:00Z",
   "category": "pattern",
-  "content": "Error handling uses AppError class with error codes",
+  "content": "エラーハンドリングはエラーコード付きの AppError クラスを使用",
   "source": "code-explorer",
   "status": "pending",
   "contentHash": "a1b2c3d4e5f6g7h8",
@@ -320,45 +320,45 @@ Each insight is a separate JSON file:
 
 ---
 
-## Insight Markers (For Reference)
+## インサイトマーカー（参考）
 
-Insights are captured when subagents output these markers:
+サブエージェントが以下のマーカーを出力するとインサイトがキャプチャされる:
 
-| Marker | Use Case |
-|--------|----------|
-| `INSIGHT:` | General learning or discovery |
-| `LEARNED:` | Something learned from experience |
-| `DECISION:` | Important decision made |
-| `PATTERN:` | Reusable pattern discovered |
-| `ANTIPATTERN:` | Pattern to avoid |
+| マーカー | 用途 |
+|----------|------|
+| `INSIGHT:` | 一般的な学びや発見 |
+| `LEARNED:` | 経験から学んだこと |
+| `DECISION:` | 行われた重要な判断 |
+| `PATTERN:` | 発見された再利用可能なパターン |
+| `ANTIPATTERN:` | 避けるべきパターン |
 
-Example:
+例:
 ```
-INSIGHT: PreToolUse hooks with exit 1 are non-blocking - use JSON decision control + exit 0 for blocking
+INSIGHT: PreToolUse hooks で exit 1 はノンブロッキング - ブロッキングには JSON decision control + exit 0 を使用する
 ```
 
 ---
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-- ALWAYS validate workspace ID before use (must match `^[a-zA-Z0-9._-]+$`, must NOT contain `..`)
-- NEVER process user-provided workspace ID without validation (prevents path traversal attacks)
-- ALWAYS process insights one by one with explicit user confirmation
-- NEVER auto-approve or batch-approve without user decision per item
-- NEVER modify CLAUDE.md without showing the change to user first
-- ALWAYS preserve original insight content (user can edit destination text)
-- MUST use AskUserQuestion for each insight decision (approve/skip/reject)
+- MUST: 使用前にワークスペース ID を検証する（`^[a-zA-Z0-9._-]+$` に一致、`..` を含まないこと）
+- NEVER: ユーザー提供のワークスペース ID を検証なしに処理する（パストラバーサル攻撃を防止）
+- MUST: インサイトはユーザー確認付きで一つずつ処理する
+- NEVER: ユーザーの判断なしに自動承認やバッチ承認をする
+- NEVER: ユーザーに変更を表示せずに CLAUDE.md を修正する
+- MUST: 元のインサイト内容を保持する（ユーザーが適用先テキストを編集可能）
+- MUST: 各インサイトの判断（承認/スキップ/却下）には AskUserQuestion を使用する
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-- Default recommendation is ".claude/rules/" (prevents CLAUDE.md bloat)
-- Default rule level is L2 (Soft Rule) for most insights
-- Process insights in chronological order (oldest first)
-- Show insight source (which agent captured it)
+- デフォルトの推奨は ".claude/rules/"（CLAUDE.md の肥大化を防止）
+- ほとんどのインサイトのデフォルトルールレベルは L2（ソフトルール）
+- インサイトは時系列順（古い順）に処理する
+- インサイトのソース（どのエージェントがキャプチャしたか）を表示する
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-- Consider suggesting category based on insight content keywords
-- Consider warning if CLAUDE.md is getting large (>500 lines)
-- Consider grouping related insights if user prefers batch review
-- Recommend L1 only for security/safety/data-integrity rules
+- consider: インサイトの内容キーワードに基づくカテゴリ提案を行う
+- consider: CLAUDE.md が大きくなりすぎている場合（500行超）に警告する
+- consider: ユーザーがバッチレビューを好む場合、関連インサイトのグループ化を行う
+- recommend: L1 はセキュリティ/安全性/データ整合性のルールにのみ使用する

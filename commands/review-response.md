@@ -1,10 +1,10 @@
 ---
-description: "Respond to PR review comments - analyze feedback, implement changes, and reply systematically (Requires: GitHub CLI 'gh')"
-argument-hint: "<PR number or URL>"
+description: "PR レビューコメントに対応する - フィードバックを分析し、変更を実装し、体系的に返信する（必要: GitHub CLI 'gh'）"
+argument-hint: "<PR 番号 or URL>"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion, Task, TodoWrite
 ---
 
-# /review-response - PR Review Response Workflow
+# /review-response - PR レビュー対応ワークフロー
 
 ## Language Mode
 
@@ -12,375 +12,375 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion, Task, TodoW
 
 ---
 
-A structured workflow to efficiently address PR review comments. Analyzes reviewer feedback, implements requested changes, and prepares responses.
+PR レビューコメントを効率的に処理するための構造化ワークフロー。レビューアーのフィードバックを分析し、要求された変更を実装し、回答を準備する。
 
-## Design Principles
+## 設計原則
 
-1. **Understand before acting**: Read all comments before making changes
-2. **Batch related changes**: Group similar feedback to avoid conflicts
-3. **Track responses**: Ensure every comment is addressed
-4. **Preserve reviewer intent**: Ask if feedback is unclear
+1. **行動前に理解する**: 変更を加える前にすべてのコメントを読む
+2. **関連する変更をまとめる**: 類似のフィードバックをグループ化してコンフリクトを回避
+3. **回答を追跡する**: すべてのコメントに対応していることを確認する
+4. **レビューアーの意図を尊重する**: フィードバックが不明確な場合は確認する
 
 ---
 
-## When to Use
+## 使用タイミング
 
-- Received review comments on a PR
-- Need to address multiple reviewer feedback items
-- Want systematic tracking of review responses
-- Need to implement changes and reply to reviewers
+- PR にレビューコメントが付いた場合
+- 複数のレビューアーからのフィードバックに対応する必要がある場合
+- レビュー回答の体系的な追跡が必要な場合
+- 変更を実装しレビューアーに返信する必要がある場合
 
-## Input Formats
+## 入力形式
 
 ```bash
-# PR number (requires gh CLI or MCP GitHub server)
+# PR 番号（gh CLI または MCP GitHub サーバーが必要）
 /review-response 123
 
-# PR URL (GitHub, GitLab, etc.)
+# PR URL（GitHub, GitLab 等）
 /review-response <PR URL>
 
-# Current branch's PR
+# 現在のブランチの PR
 /review-response
 ```
 
 ---
 
-## Execution Instructions
+## 実行手順
 
-### Phase 1: Gather Review Comments
+### フェーズ 1: レビューコメントの収集
 
-**Goal:** Collect all review comments and categorize them.
+**目的:** すべてのレビューコメントを収集し、分類する。
 
-**Fetch PR comments:**
+**PR コメントの取得:**
 
-**IMPORTANT: Validate PR number format before use:**
-- PR number must be a positive integer (e.g., `123`, `4567`)
-- Use `gh pr view` without number to get current branch's PR if unsure
+**重要: 使用前に PR 番号のフォーマットを検証すること:**
+- PR 番号は正の整数であること（例: `123`, `4567`）
+- 不明な場合は `gh pr view` を番号なしで実行して現在のブランチの PR を取得する
 
 ```bash
-# Using GitHub CLI (PR_NUMBER must be validated as numeric)
+# GitHub CLI を使用（PR_NUMBER は数値であることを検証済み）
 gh pr view "$PR_NUMBER" --comments
 gh pr view "$PR_NUMBER" --json reviews,comments
 
-# Get review comments on specific files
+# 特定のファイルに対するレビューコメントを取得
 gh api "repos/{owner}/{repo}/pulls/${PR_NUMBER}/comments"
 ```
 
-**If no PR number provided:**
+**PR 番号が指定されていない場合:**
 
 ```bash
-# Find PR for current branch
+# 現在のブランチの PR を検索
 gh pr view --json number,title,url
 ```
 
-**Categorize comments:**
+**コメントの分類:**
 
-| Category | Description | Priority |
-|----------|-------------|----------|
-| **Required Changes** | "Must fix", blocking approval | High |
-| **Suggestions** | "Consider", "Maybe", improvements | Medium |
-| **Questions** | Clarification requests | Medium |
-| **Nitpicks** | Style, naming, minor | Low |
-| **Praise** | Positive feedback | N/A |
+| カテゴリ | 説明 | 優先度 |
+|----------|------|--------|
+| **必須変更** | 「修正必須」、承認をブロックする | 高 |
+| **提案** | 「検討して」「もしかしたら」、改善案 | 中 |
+| **質問** | 明確化のリクエスト | 中 |
+| **細かい指摘** | スタイル、命名、軽微な点 | 低 |
+| **称賛** | ポジティブなフィードバック | N/A |
 
-### Phase 2: Create Response Plan
+### フェーズ 2: 対応計画の作成
 
-**Goal:** Plan how to address each comment.
+**目的:** 各コメントへの対応方法を計画する。
 
-**Create TodoWrite list:**
-
-```
-For each comment:
-1. File path and line number
-2. Comment category
-3. Planned action (implement/discuss/decline)
-4. Estimated complexity
-```
-
-**Group related comments:**
+**TodoWrite リストを作成する:**
 
 ```
-Group by:
-- Same file (batch changes)
-- Same reviewer (maintain context)
-- Same topic (consistent approach)
+各コメントについて:
+1. ファイルパスと行番号
+2. コメントカテゴリ
+3. 計画されたアクション（実装/議論/辞退）
+4. 想定される複雑さ
 ```
 
-**Ask for prioritization if many comments:**
+**関連するコメントをグループ化する:**
 
 ```
-Question: "I found [N] review comments. How should I prioritize?"
-Header: "Priority"
+グループ化の基準:
+- 同じファイル（変更をまとめる）
+- 同じレビューアー（コンテキストを維持）
+- 同じトピック（一貫したアプローチ）
+```
+
+**コメントが多い場合は優先順位を確認する:**
+
+```
+Question: "[N] 件のレビューコメントを見つけました。どのように優先順位をつけますか？"
+Header: "優先度"
 Options:
-- "Required changes first" (Recommended)
-- "By file (minimize conflicts)"
-- "Quick wins first"
-- "Let me choose specific items"
+- "必須変更を先に"（推奨）
+- "ファイル別（コンフリクトを最小化）"
+- "簡単なものから先に"
+- "特定の項目を選択する"
 ```
 
-### Phase 3: Implement Changes
+### フェーズ 3: 変更の実装
 
-**Goal:** Make requested changes systematically.
+**目的:** 要求された変更を体系的に実施する。
 
-**For each comment group:**
+**各コメントグループについて:**
 
-**Step 1: Understand the feedback**
+**ステップ 1: フィードバックを理解する**
 
 ```
-Launch code-explorer agent to analyze:
+code-explorer エージェントを起動して分析:
 
-Review comment: [comment text]
-File: [file path]
-Line: [line number]
+レビューコメント: [コメント内容]
+ファイル: [ファイルパス]
+行: [行番号]
 
-Tasks:
-1. Read the code being reviewed
-2. Understand the reviewer's concern
-3. Check if similar patterns exist elsewhere
-4. Identify the best approach to address feedback
+タスク:
+1. レビュー対象のコードを読み取る
+2. レビューアーの懸念を理解する
+3. 他の箇所に類似パターンがないか確認する
+4. フィードバックに対応する最適なアプローチを特定する
 
 Thoroughness: quick
 ```
 
-**Step 2: Implement the change**
+**ステップ 2: 変更を実装する**
 
-**ALWAYS delegate implementation to appropriate specialist:**
-
-```
-Launch Task tool with appropriate specialist (model: haiku for simple changes):
-
-- Code logic → backend-specialist or frontend-specialist
-- Tests → qa-engineer
-- Architecture concerns → code-architect
-
-Prompt:
-Address PR review comment.
-
-Review comment: [comment text]
-File: [file path]
-Line: [line number]
-Original code: [code snippet]
-Similar patterns found: [from Step 1]
-
-Implement the requested change following codebase patterns.
-```
-
-**Direct modification allowed ONLY for TRIVIAL changes:**
-See `subagent-contract` skill "TRIVIAL Edit Definition" for criteria:
-- Single-line typo fixes in comments or strings
-- Formatting-only changes (whitespace, indentation)
-
-**Step 3: Mark as addressed**
-
-Update TodoWrite after each change.
-
-### Phase 4: Handle Discussions
-
-**Goal:** Prepare responses for comments that need discussion.
-
-**For questions from reviewers:**
+**常に適切なスペシャリストに実装を委任すること:**
 
 ```
-Launch code-explorer to gather context:
-- Why was this implementation chosen?
-- What alternatives were considered?
-- What are the tradeoffs?
+Task ツールで適切なスペシャリストを起動（単純な変更には model: haiku）:
 
-Prepare a concise response explaining the reasoning.
+- コードロジック → backend-specialist または frontend-specialist
+- テスト → qa-engineer
+- アーキテクチャの懸念 → code-architect
+
+プロンプト:
+PR レビューコメントに対応。
+
+レビューコメント: [コメント内容]
+ファイル: [ファイルパス]
+行: [行番号]
+元のコード: [コードスニペット]
+発見された類似パターン: [ステップ 1 から]
+
+コードベースのパターンに従って要求された変更を実装する。
 ```
 
-**For suggestions you disagree with:**
+**TRIVIAL な変更に限り直接修正が許可される:**
+基準は `subagent-contract` スキル「TRIVIAL Edit Definition」を参照:
+- コメントや文字列内の一行タイプミス修正
+- フォーマットのみの変更（空白、インデント）
 
-1. Understand the reviewer's perspective
-2. Prepare a respectful counterpoint with reasoning
-3. Offer compromise if possible
+**ステップ 3: 対応済みとしてマークする**
 
-**Ask user for discussion items:**
+各変更後に TodoWrite を更新する。
+
+### フェーズ 4: 議論の処理
+
+**目的:** 議論が必要なコメントへの回答を準備する。
+
+**レビューアーからの質問に対して:**
 
 ```
-Question: "How should I respond to this suggestion?"
-Header: "Response"
+code-explorer を起動してコンテキストを収集:
+- なぜこの実装を選んだのか？
+- どのような代替案を検討したか？
+- トレードオフは何か？
+
+理由を説明する簡潔な回答を準備する。
+```
+
+**同意できない提案に対して:**
+
+1. レビューアーの視点を理解する
+2. 理由を添えた丁寧な反論を準備する
+3. 可能であれば妥協案を提示する
+
+**議論項目についてユーザーに確認する:**
+
+```
+Question: "この提案にどう対応しますか？"
+Header: "回答"
 Options:
-- "Implement as suggested"
-- "Propose alternative: [brief description]"
-- "Respectfully decline with reasoning"
-- "Ask reviewer for clarification"
+- "提案通りに実装する"
+- "代替案を提案する: [簡単な説明]"
+- "理由を添えて丁重にお断りする"
+- "レビューアーに明確化を求める"
 ```
 
-### Phase 5: Verification
+### フェーズ 5: 検証
 
-**Goal:** Ensure all changes work together.
+**目的:** すべての変更が正しく動作することを確認する。
 
-**CRITICAL: Delegate verification to qa-engineer agent (do NOT run tests directly in parent context):**
+**重要: 検証は qa-engineer エージェントに委任する（親コンテキストでテストを直接実行しないこと）:**
 
 ```
-Launch qa-engineer agent:
+qa-engineer エージェントを起動:
 
-Task: Verify PR review changes
+タスク: PR レビュー変更の検証
 
-Changed files:
-[list of files modified in Phase 3]
+変更されたファイル:
+[フェーズ 3 で修正されたファイルのリスト]
 
-Run:
-1. Tests (npm test / pytest / go test / etc.)
-2. Linting (npm run lint / eslint / etc.)
-3. Build check (npm run build / etc.)
+実行:
+1. テスト（npm test / pytest / go test 等）
+2. リント（npm run lint / eslint 等）
+3. ビルドチェック（npm run build 等）
 
-Output:
-- Test results (PASS/FAIL)
-- Lint results (PASS/FAIL)
-- Build results (PASS/FAIL)
-- Any failures with error details
+出力:
+- テスト結果（PASS/FAIL）
+- リント結果（PASS/FAIL）
+- ビルド結果（PASS/FAIL）
+- 失敗があればエラー詳細
 ```
 
-Use the agent's output for verification results. Do NOT run test/lint/build commands directly in the parent context.
+エージェントの出力を検証結果として使用する。親コンテキストで test/lint/build コマンドを直接実行しないこと。
 
-**Error Handling:**
-If qa-engineer fails or times out:
-1. Check agent's partial output for usable results
-2. Retry once with simplified scope (tests only)
-3. If retry fails, inform user and offer options:
-   - "Retry verification"
-   - "Skip automated verification (I'll verify manually)"
-   - "Show me the commands to run manually"
+**エラーハンドリング:**
+qa-engineer が失敗またはタイムアウトした場合:
+1. エージェントの部分的な出力に使用可能な結果がないか確認する
+2. スコープを簡略化して1回リトライする（テストのみ）
+3. リトライも失敗した場合、ユーザーに通知し選択肢を提示する:
+   - 「検証をリトライする」
+   - 「自動検証をスキップする（手動で検証する）」
+   - 「手動実行用のコマンドを表示する」
 
-**Check for conflicts (allowed in parent context - lightweight git state commands):**
+**コンフリクトの確認（親コンテキストで許可 - 軽量な git 状態コマンド）:**
 
 ```bash
-# Ensure changes don't conflict
+# 変更がコンフリクトしていないことを確認
 git status
 git diff --stat
 ```
 
-### Phase 6: Prepare Commit
+### フェーズ 6: コミットの準備
 
-**Goal:** Create a clean commit addressing the review.
+**目的:** レビュー対応のクリーンなコミットを作成する。
 
-**Commit message format:**
-
-```
-fix: address PR review feedback
-
-- [Summary of change 1]
-- [Summary of change 2]
-- [Summary of change 3]
-
-Addresses review comments from @reviewer
-```
-
-**Ask about commit:**
+**コミットメッセージの形式:**
 
 ```
-Question: "All changes are implemented. How should I proceed?"
-Header: "Commit"
+fix: PR レビューフィードバックに対応
+
+- [変更 1 のサマリー]
+- [変更 2 のサマリー]
+- [変更 3 のサマリー]
+
+@reviewer からのレビューコメントに対応
+```
+
+**コミットについて確認する:**
+
+```
+Question: "すべての変更が実装されました。どのように進めますか？"
+Header: "コミット"
 Options:
-- "Commit all changes together"
-- "Commit by category (separate commits)"
-- "Show me the diff first"
-- "I'll commit manually"
+- "すべての変更を1つのコミットにまとめる"
+- "カテゴリ別にコミットを分ける"
+- "まず diff を確認する"
+- "手動でコミットする"
 ```
 
-### Phase 7: Summary Report
+### フェーズ 7: サマリーレポート
 
-**Goal:** Provide overview for review response.
+**目的:** レビュー対応の概要を提供する。
 
 ```markdown
-## Review Response Summary
+## レビュー対応サマリー
 
-### PR: #[number] - [title]
+### PR: #[番号] - [タイトル]
 
-### Comments Addressed
+### 対応したコメント
 
-| # | File | Comment | Action | Status |
-|---|------|---------|--------|--------|
-| 1 | `path/file.ts:45` | [summary] | Implemented | Done |
-| 2 | `path/other.ts:12` | [summary] | Discussed | Noted |
-| 3 | `path/test.ts:78` | [summary] | Declined | Rejected |
+| # | ファイル | コメント | アクション | ステータス |
+|---|----------|---------|-----------|-----------|
+| 1 | `path/file.ts:45` | [概要] | 実装済み | 完了 |
+| 2 | `path/other.ts:12` | [概要] | 議論 | 記録済み |
+| 3 | `path/test.ts:78` | [概要] | 辞退 | 却下 |
 
-### Changes Made
+### 実施した変更
 
-| File | Changes |
-|------|---------|
-| `path/file.ts` | [description] |
+| ファイル | 変更内容 |
+|----------|----------|
+| `path/file.ts` | [説明] |
 
-### Responses to Post
+### 投稿する回答
 
-| Comment | Response |
-|---------|----------|
-| @reviewer on file.ts:45 | [your response] |
+| コメント | 回答 |
+|----------|------|
+| @reviewer の file.ts:45 | [回答] |
 
-### Verification
+### 検証
 
-- [ ] Tests pass
-- [ ] Lint passes
-- [ ] Build succeeds
-- [ ] No regressions
+- [ ] テスト合格
+- [ ] リント合格
+- [ ] ビルド成功
+- [ ] リグレッションなし
 
-### Next Steps
+### 次のステップ
 
-1. Push changes
-2. Post responses to PR comments
-3. Request re-review
+1. 変更をプッシュする
+2. PR コメントに回答を投稿する
+3. 再レビューをリクエストする
 ```
 
 ---
 
-## Comment Response Templates
+## コメント回答テンプレート
 
-### Implemented as Requested
-
-```
-Done! Updated [file] to [description of change].
-```
-
-### Implemented with Modification
+### 要求通りに実装
 
 ```
-Good catch! I've addressed this, though I went with [approach] because [reason]. Let me know if you'd prefer the original suggestion.
+対応しました！[ファイル]を[変更内容の説明]に更新しました。
 ```
 
-### Clarification Provided
+### 修正を加えて実装
 
 ```
-The reason for this approach is [explanation]. We considered [alternative] but chose this because [tradeoff].
-
-Happy to discuss further or change if you see issues with this approach.
+ご指摘ありがとうございます！対応しましたが、[理由]のため[アプローチ]を採用しました。元の提案の方がよい場合はお知らせください。
 ```
 
-### Respectful Decline
+### 説明を提供
 
 ```
-Thanks for the suggestion! I considered this but decided to keep the current approach because [reason].
+このアプローチを選んだ理由は[説明]です。[代替案]も検討しましたが、[トレードオフ]のため現在のアプローチを選択しました。
 
-[If applicable: I've opened an issue to track this as a potential future improvement: #XXX]
+このアプローチに問題がある場合はお気軽にご意見ください。
 ```
 
-### Request for Clarification
+### 丁重にお断り
 
 ```
-Could you elaborate on this feedback? I want to make sure I understand what you're looking for.
+ご提案ありがとうございます！検討しましたが、[理由]のため現在のアプローチを維持することにしました。
 
-Are you suggesting [interpretation A] or [interpretation B]?
+[該当する場合: 将来的な改善の可能性として Issue を作成しました: #XXX]
+```
+
+### 明確化のリクエスト
+
+```
+このフィードバックについてもう少し詳しく教えていただけますか？ご意図を正確に理解したいです。
+
+[解釈 A] と [解釈 B] のどちらをご提案でしょうか？
 ```
 
 ---
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-- ALWAYS read all comments before implementing changes
-- NEVER ignore or dismiss reviewer feedback without explanation
-- NEVER push without verification
-- ALWAYS verify changes don't break existing functionality
+- MUST: 変更を実装する前にすべてのコメントを読む
+- NEVER: レビューアーのフィードバックを説明なしに無視または却下する
+- NEVER: 検証なしにプッシュする
+- MUST: 既存の機能を壊さないことを検証する
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-- Track every comment, even if declining
-- Prepare responses for discussion items
-- Make a single commit for related changes (unless user prefers separate)
-- Thank reviewers for their feedback
+- 辞退する場合でもすべてのコメントを追跡する
+- 議論項目には回答を準備する
+- 関連する変更は1つのコミットにまとめる（ユーザーが別々を希望しない限り）
+- レビューアーのフィードバックに感謝する
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-- Consider batching by file to minimize conflicts
-- Prefer implementing suggestions before discussing disagreements
-- Consider asking for re-review after significant changes
+- consider: コンフリクトを最小化するためにファイル別のバッチ処理を行う
+- prefer: 不同意の議論よりも提案の実装を先に行う
+- consider: 大幅な変更後は再レビューをリクエストする

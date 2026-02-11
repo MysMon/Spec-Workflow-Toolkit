@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 """
-Verify References Hook - SubagentStop event handler
-Validates file:line references in subagent output to catch hallucinated code locations.
+参照検証フック - SubagentStop イベントハンドラ
+サブエージェント出力の file:line 参照を検証し、ハルシネーションされたコード位置を検出する。
 
-Based on Claude Code hooks specification.
+入力: stdin からの JSON メタデータ（agent_transcript_path（推奨）または transcript_path で JSONL ファイルを指定）
+出力:
+  - 30% 超の参照が無効な場合: exit 0 で JSON {"decision": "block", "reason": "..."}（SubagentStop 制御）
+  - それ以外: exit 0 で JSON {"systemMessage": "..."}（検証サマリーを含む）
 
-Input: JSON metadata from stdin containing agent_transcript_path (preferred) or transcript_path to JSONL file
-Output:
-  - If >30% references are invalid: exit 0 with JSON {"decision": "block", "reason": "..."} (SubagentStop control)
-  - Otherwise: exit 0 with JSON {"systemMessage": "..."} containing verification summary
-
-Reference patterns matched:
+一致する参照パターン:
   - file.ts:123
   - path/to/file.py:45
   - src/components/Button.tsx:100
@@ -24,79 +22,79 @@ import os
 from typing import List, Dict, Tuple, Optional
 
 # =============================================================================
-# CONFIGURATION
+# 設定
 # =============================================================================
 
-# Threshold for invalid references (percentage)
+# 無効な参照のしきい値（パーセンテージ）
 INVALID_THRESHOLD = 30
 
-# Maximum file size for transcript processing (100MB)
+# トランスクリプト処理の最大ファイルサイズ（100MB）
 MAX_TRANSCRIPT_SIZE = 100 * 1024 * 1024
 
-# Maximum references to check (performance limit)
+# チェックする参照の最大数（パフォーマンス制限）
 MAX_REFERENCES_TO_CHECK = 500
 
-# Reference pattern - matches file:line patterns
-# Captures: filename (with optional path), line number
+# 参照パターン - file:line パターンに一致
+# キャプチャ: ファイル名（オプションのパス付き）、行番号
 REFERENCE_PATTERN = re.compile(
-    r'(?:^|[\s\(\[\{`\'"])' +                    # Start of string or delimiter
-    r'(' +                                        # Start capture group
-    r'(?:[a-zA-Z0-9_\-./]+/)?' +                 # Optional path prefix
-    r'[a-zA-Z0-9_\-]+' +                         # Filename base
-    r'\.[a-zA-Z0-9]+' +                          # File extension
-    r')' +                                        # End filename capture
-    r':(\d+)' +                                   # Colon and line number
-    r'(?:$|[\s\)\]\}`\'",:])',                   # End of string or delimiter
+    r'(?:^|[\s\(\[\{`\'"])' +                    # 文字列の先頭またはデリミタ
+    r'(' +                                        # キャプチャグループ開始
+    r'(?:[a-zA-Z0-9_\-./]+/)?' +                 # オプションのパスプレフィックス
+    r'[a-zA-Z0-9_\-]+' +                         # ファイル名のベース部分
+    r'\.[a-zA-Z0-9]+' +                          # ファイル拡張子
+    r')' +                                        # ファイル名キャプチャ終了
+    r':(\d+)' +                                   # コロンと行番号
+    r'(?:$|[\s\)\]\}`\'",:])',                   # 文字列の末尾またはデリミタ
     re.MULTILINE
 )
 
 # =============================================================================
-# PATH VALIDATION
+# パス検証
 # =============================================================================
 
 def validate_transcript_path(path: str) -> Tuple[bool, str, str]:
     """
-    Validate transcript_path for security.
+    transcript_path のセキュリティ検証。
 
-    Returns: (is_valid, error_message, resolved_path)
+    戻り値: (is_valid, error_message, resolved_path)
     """
     if not path:
-        return False, "Empty path", ""
+        return False, "パスが空です", ""
 
     expanded = os.path.expanduser(path)
 
     try:
         resolved = os.path.realpath(expanded)
     except (OSError, ValueError) as e:
-        return False, f"Path resolution failed: {e}", ""
+        return False, f"パスの解決に失敗: {e}", ""
 
-    # Check for path traversal
+    # パストラバーサルをチェック
     if '..' in path:
-        return False, "Path traversal detected", ""
+        return False, "パストラバーサルを検出", ""
 
-    # Check for expected Claude directory patterns
+    # 期待される Claude ディレクトリパターンをチェック
     valid_patterns = ['/.claude/', '/claude-code/', '/tmp/claude']
     path_lower = resolved.lower()
 
     if not any(pattern in path_lower for pattern in valid_patterns):
-        return False, "Path not in expected Claude directory", ""
+        return False, "期待される Claude ディレクトリに含まれていないパス", ""
 
     return True, "", resolved
 
 # =============================================================================
-# TRANSCRIPT PARSING
+# トランスクリプトパース
 # =============================================================================
 
 def extract_assistant_content(resolved_path: str, max_size: int) -> Tuple[str, bool]:
     """
-    Extract assistant message content from JSONL transcript.
+    JSONL トランスクリプトからアシスタントメッセージの内容を抽出。
 
-    Returns: (content, was_skipped_due_to_size)
+    戻り値: (content, was_skipped_due_to_size)
     """
     content_parts = []
 
     try:
-        # Check file size
+        # ファイルサイズをチェック
         try:
             file_size = os.path.getsize(resolved_path)
             if file_size > max_size:
@@ -136,14 +134,14 @@ def extract_assistant_content(resolved_path: str, max_size: int) -> Tuple[str, b
     return '\n'.join(content_parts), False
 
 # =============================================================================
-# REFERENCE EXTRACTION AND VALIDATION
+# 参照の抽出と検証
 # =============================================================================
 
 def extract_references(text: str) -> List[Dict[str, any]]:
     """
-    Extract file:line references from text.
+    テキストから file:line 参照を抽出。
 
-    Returns list of dicts with 'file' and 'line' keys.
+    'file' と 'line' キーを持つ辞書のリストを返す。
     """
     references = []
     seen = set()
@@ -154,12 +152,12 @@ def extract_references(text: str) -> List[Dict[str, any]]:
         if len(references) >= MAX_REFERENCES_TO_CHECK:
             break
 
-        # Skip obvious non-file patterns
+        # 明らかにファイルでないパターンをスキップ
         if filepath.startswith('http://') or filepath.startswith('https://'):
             continue
         if filepath.startswith('node_modules/'):
             continue
-        if '::' in filepath:  # C++ scope resolution
+        if '::' in filepath:  # C++ のスコープ解決
             continue
 
         try:
@@ -167,7 +165,7 @@ def extract_references(text: str) -> List[Dict[str, any]]:
         except ValueError:
             continue
 
-        # Deduplicate
+        # 重複排除
         key = (filepath, line_num)
         if key in seen:
             continue
@@ -183,24 +181,24 @@ def extract_references(text: str) -> List[Dict[str, any]]:
 
 def resolve_file_path(reference_path: str) -> Optional[str]:
     """
-    Resolve a reference path to an actual file on disk.
-    Tries multiple strategies to find the file.
+    参照パスをディスク上の実際のファイルに解決。
+    複数の戦略でファイルを検索。
 
-    Returns: resolved absolute path or None if not found
+    戻り値: 解決された絶対パス、見つからない場合は None
     """
-    # Strategy 1: Absolute path
+    # 戦略1: 絶対パス
     if os.path.isabs(reference_path):
         if os.path.isfile(reference_path):
             return reference_path
         return None
 
-    # Strategy 2: Relative to current working directory
+    # 戦略2: カレントワーキングディレクトリからの相対パス
     cwd = os.getcwd()
     cwd_path = os.path.join(cwd, reference_path)
     if os.path.isfile(cwd_path):
         return os.path.abspath(cwd_path)
 
-    # Strategy 3: Search common project roots
+    # 戦略3: 一般的なプロジェクトルートを検索
     project_roots = [
         cwd,
         os.path.join(cwd, 'src'),
@@ -218,9 +216,9 @@ def resolve_file_path(reference_path: str) -> Optional[str]:
 
 def get_file_line_count(filepath: str) -> int:
     """
-    Get the number of lines in a file.
+    ファイルの行数を取得。
 
-    Returns: line count or -1 on error
+    戻り値: 行数、エラー時は -1
     """
     try:
         with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
@@ -231,9 +229,9 @@ def get_file_line_count(filepath: str) -> int:
 
 def validate_reference(ref: Dict[str, any]) -> Dict[str, any]:
     """
-    Validate a single file:line reference.
+    単一の file:line 参照を検証。
 
-    Returns: dict with validation result
+    検証結果の辞書を返す。
     """
     filepath = ref['file']
     line_num = ref['line']
@@ -245,14 +243,14 @@ def validate_reference(ref: Dict[str, any]) -> Dict[str, any]:
         'reason': None
     }
 
-    # Resolve the file path
+    # ファイルパスを解決
     resolved = resolve_file_path(filepath)
 
     if resolved is None:
         result['reason'] = 'file_not_found'
         return result
 
-    # Check line count
+    # 行数をチェック
     total_lines = get_file_line_count(resolved)
 
     if total_lines < 0:
@@ -260,7 +258,7 @@ def validate_reference(ref: Dict[str, any]) -> Dict[str, any]:
         return result
 
     if line_num > total_lines:
-        result['reason'] = f'line_exceeds_file_length (file has {total_lines} lines)'
+        result['reason'] = f'line_exceeds_file_length（ファイルは {total_lines} 行）'
         return result
 
     if line_num < 1:
@@ -272,111 +270,111 @@ def validate_reference(ref: Dict[str, any]) -> Dict[str, any]:
     return result
 
 # =============================================================================
-# MAIN
+# メイン
 # =============================================================================
 
 def main():
-    # Read hook input from stdin
+    # stdin からフック入力を読み取り
     try:
         input_data = sys.stdin.read().strip()
     except Exception as e:
-        sys.stderr.write(f"verify_references: Failed to read stdin: {e}\n")
-        sys.exit(0)  # Allow by default
+        sys.stderr.write(f"verify_references: stdin の読み取りに失敗: {e}\n")
+        sys.exit(0)  # デフォルトで許可
 
     if not input_data:
-        sys.exit(0)  # Allow by default
+        sys.exit(0)  # デフォルトで許可
 
-    # Parse hook metadata
+    # フックメタデータをパース
     try:
         metadata = json.loads(input_data)
     except json.JSONDecodeError:
-        sys.stderr.write("verify_references: Invalid JSON input\n")
-        sys.exit(0)  # Allow by default
+        sys.stderr.write("verify_references: 無効な JSON 入力\n")
+        sys.exit(0)  # デフォルトで許可
 
-    # Check for stop_hook_active to prevent infinite loops
+    # 無限ループを防ぐため stop_hook_active をチェック
     if metadata.get('stop_hook_active', False):
-        sys.exit(0)  # Allow by default
+        sys.exit(0)  # デフォルトで許可
 
-    # Get transcript path
-    # Prefer agent_transcript_path (subagent's own transcript) over transcript_path (main session)
+    # トランスクリプトパスを取得
+    # agent_transcript_path（サブエージェント自身のトランスクリプト）を transcript_path（メインセッション）より優先
     transcript_path = metadata.get('agent_transcript_path', '') or metadata.get('transcript_path', '')
     if not transcript_path:
-        sys.exit(0)  # Allow by default
+        sys.exit(0)  # デフォルトで許可
 
-    # Validate transcript path
+    # トランスクリプトパスを検証
     is_valid, error_msg, resolved_path = validate_transcript_path(transcript_path)
     if not is_valid:
-        sys.stderr.write(f"verify_references: Invalid path - {error_msg}\n")
-        sys.exit(0)  # Allow by default
+        sys.stderr.write(f"verify_references: 無効なパス - {error_msg}\n")
+        sys.exit(0)  # デフォルトで許可
 
-    # Extract content from transcript
+    # トランスクリプトからコンテンツを抽出
     content, was_size_skipped = extract_assistant_content(resolved_path, MAX_TRANSCRIPT_SIZE)
     if was_size_skipped:
         print(json.dumps({
-            "systemMessage": "verify_references: Transcript too large, skipping validation"
+            "systemMessage": "verify_references: トランスクリプトが大きすぎるため、検証をスキップします"
         }))
         sys.exit(0)
 
     if not content:
-        sys.exit(0)  # Allow by default
+        sys.exit(0)  # デフォルトで許可
 
-    # Extract references from content
+    # コンテンツから参照を抽出
     references = extract_references(content)
 
     if not references:
-        # No references found, nothing to validate
-        sys.exit(0)  # Allow by default
+        # 参照が見つからない、検証するものなし
+        sys.exit(0)  # デフォルトで許可
 
-    # Validate each reference
+    # 各参照を検証
     results = []
     for ref in references:
         result = validate_reference(ref)
         results.append(result)
 
-    # Calculate statistics
+    # 統計を計算
     total = len(results)
     valid_count = sum(1 for r in results if r['valid'])
     invalid_count = total - valid_count
     invalid_percentage = (invalid_count / total * 100) if total > 0 else 0
 
-    # Build summary of invalid references
+    # 無効な参照のサマリーを構築
     invalid_refs = [r for r in results if not r['valid']]
 
-    # Check threshold
+    # しきい値をチェック
     if invalid_percentage > INVALID_THRESHOLD:
-        # Build detailed error message
+        # 詳細なエラーメッセージを構築
         error_details = []
-        for ref in invalid_refs[:10]:  # Show first 10 invalid refs
+        for ref in invalid_refs[:10]:  # 最初の10件の無効な参照を表示
             error_details.append(f"  - {ref['file']}:{ref['line']} ({ref['reason']})")
 
         remaining = len(invalid_refs) - 10
         if remaining > 0:
-            error_details.append(f"  ... and {remaining} more")
+            error_details.append(f"  ... 他 {remaining} 件")
 
         error_message = (
-            f"Reference verification failed: {invalid_percentage:.1f}% of file:line references are invalid "
-            f"({invalid_count}/{total}).\n"
-            f"Invalid references:\n" + "\n".join(error_details) + "\n"
-            f"Please verify code locations before referencing them."
+            f"参照検証に失敗: file:line 参照の {invalid_percentage:.1f}% が無効です "
+            f"({invalid_count}/{total})。\n"
+            f"無効な参照:\n" + "\n".join(error_details) + "\n"
+            f"コード位置を参照する前に検証してください。"
         )
 
         sys.stderr.write(f"verify_references: {error_message}\n")
 
-        # SubagentStop uses decision control with exit 0 (not exit 2 which is for PreToolUse)
+        # SubagentStop は exit 0 で decision control を使用（exit 2 は PreToolUse 用）
         print(json.dumps({
             "decision": "block",
             "reason": error_message
         }))
         sys.exit(0)
 
-    # Success - output summary via systemMessage
+    # 成功 - systemMessage 経由でサマリーを出力
     if invalid_count > 0:
         summary = (
-            f"Reference verification: {valid_count}/{total} references valid "
-            f"({invalid_count} invalid, {invalid_percentage:.1f}% - below {INVALID_THRESHOLD}% threshold)"
+            f"参照検証: {valid_count}/{total} 件の参照が有効 "
+            f"({invalid_count} 件が無効、{invalid_percentage:.1f}% - {INVALID_THRESHOLD}% しきい値未満)"
         )
     else:
-        summary = f"Reference verification: All {total} file:line references validated successfully"
+        summary = f"参照検証: 全 {total} 件の file:line 参照の検証に成功しました"
 
     print(json.dumps({
         "systemMessage": summary
@@ -388,11 +386,11 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        # CRITICAL: Fail-closed on exceptions - don't let potentially
-        # hallucinated references pass through unvalidated
-        sys.stderr.write(f"verify_references FATAL: {e}\n")
+        # 重要: 例外時はフェイルクローズド - ハルシネーションの可能性がある
+        # 参照を検証なしで通過させない
+        sys.stderr.write(f"verify_references 致命的エラー: {e}\n")
         print(json.dumps({
             "decision": "block",
-            "reason": f"Reference validation failed due to error: {e}. Subagent output may contain hallucinated references."
+            "reason": f"エラーにより参照検証に失敗: {e}。サブエージェント出力にハルシネーションされた参照が含まれている可能性があります。"
         }))
         sys.exit(0)

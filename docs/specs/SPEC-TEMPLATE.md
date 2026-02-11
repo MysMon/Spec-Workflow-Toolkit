@@ -1,156 +1,156 @@
-# Feature: [Feature Name]
+# 機能: [機能名]
 
-> **Status**: Draft | In Review | Approved | Implemented
-> **Author**: [Name]
-> **Date**: YYYY-MM-DD
-> **Reviewers**: [Names]
+> **ステータス**: Draft | In Review | Approved | Implemented
+> **作成者**: [名前]
+> **日付**: YYYY-MM-DD
+> **レビュアー**: [名前]
 
 <!--
-## Specification Content Guidelines
+## 仕様コンテンツガイドライン
 
-This template defines WHAT to build, not HOW to code it.
+このテンプレートは何を構築するかを定義し、どうコーディングするかは定義しない。
 
-INCLUDE:
-- User Stories (As a [user], I want [goal] so that [benefit])
-- Acceptance Criteria in Gherkin format (Given-When-Then)
-- Non-Functional Requirements with measurable targets
-- Edge cases and error scenarios
-- Out of Scope (explicit exclusions)
-- Success metrics
+含めるもの:
+- ユーザーストーリー（[ユーザー]として、[目標]を達成したい。なぜなら[利点]だから）
+- Gherkin 形式の受け入れ基準（Given-When-Then）
+- 測定可能な目標を持つ非機能要件
+- エッジケースとエラーシナリオ
+- スコープ外（明示的な除外事項）
+- 成功指標
 
-DO NOT INCLUDE:
-- Code snippets or implementation examples
-- Pseudocode or algorithm details
-- Function signatures or class definitions
-- Specific tool/library version numbers
-- Step-by-step implementation instructions
+含めないもの:
+- コードスニペットや実装例
+- 疑似コードやアルゴリズムの詳細
+- 関数シグネチャやクラス定義
+- 特定のツール/ライブラリのバージョン番号
+- ステップバイステップの実装手順
 
-CODE REFERENCES:
-- Use file:line pointers: "Follow pattern at `src/services/auth.ts:23`"
-- Reference existing implementations: "See error handling in `utils/errors.ts`"
-- NEVER copy code into this document
+コード参照:
+- file:line ポインタを使用: 「`src/services/auth.ts:23` のパターンに従う」
+- 既存の実装を参照: 「`utils/errors.ts` のエラーハンドリングを参照」
+- このドキュメントにコードをコピーしない
 
-WHY: Specifications are contracts for AI agents and developers.
-Code in specs creates ambiguity (is it a requirement or example?).
-AI agents perform better with goal-oriented specs than prescriptive code.
+理由: 仕様は AI エージェントと開発者のための契約。
+仕様内のコードは曖昧さを生む（要件か例か？）。
+AI エージェントは規定的なコードよりゴール指向の仕様でより良く動作する。
 -->
 
-## Overview
+## 概要
 
-Brief description of the feature and its business value (2-3 sentences).
+機能の簡潔な説明とそのビジネス価値（2-3文）。
 
-## Background
+## 背景
 
-Context and motivation for this feature. What problem does it solve?
+この機能のコンテキストと動機。どんな問題を解決するか？
 
-## User Stories
+## ユーザーストーリー
 
-### US-001: [Story Title]
-**As a** [type of user]
-**I want** [goal/desire]
-**So that** [benefit/value]
+### US-001: [ストーリータイトル]
+**[ユーザータイプ]として**
+**[目標/要望]を達成したい**
+**なぜなら[利点/価値]だから**
 
-### US-002: [Story Title]
-**As a** [type of user]
-**I want** [goal/desire]
-**So that** [benefit/value]
+### US-002: [ストーリータイトル]
+**[ユーザータイプ]として**
+**[目標/要望]を達成したい**
+**なぜなら[利点/価値]だから**
 
-## Functional Requirements
+## 機能要件
 
-### FR-001: [Requirement Name]
-- **Priority**: Must | Should | Could | Won't
-- **Description**: Detailed description of the requirement
-- **Acceptance Criteria**:
-  - [ ] Criterion 1
-  - [ ] Criterion 2
+### FR-001: [要件名]
+- **優先度**: Must | Should | Could | Won't
+- **説明**: 要件の詳細な説明
+- **受け入れ基準**:
+  - [ ] 基準 1
+  - [ ] 基準 2
 
-### FR-002: [Requirement Name]
-- **Priority**: Must | Should | Could | Won't
-- **Description**: Detailed description
-- **Acceptance Criteria**:
-  - [ ] Criterion 1
+### FR-002: [要件名]
+- **優先度**: Must | Should | Could | Won't
+- **説明**: 詳細な説明
+- **受け入れ基準**:
+  - [ ] 基準 1
 
-## Non-Functional Requirements
+## 非機能要件
 
-### Performance
-- Response time: < X ms for Y operation
-- Throughput: X requests/second
+### パフォーマンス
+- レスポンスタイム: Y 操作で X ms 未満
+- スループット: X リクエスト/秒
 
-### Security
-- Authentication required: Yes/No
-- Authorization level: [Roles]
-- Data sensitivity: Public/Internal/Confidential
+### セキュリティ
+- 認証必須: はい/いいえ
+- 認可レベル: [ロール]
+- データ機密性: 公開/社内/機密
 
-### Accessibility
-- WCAG 2.1 Level: A/AA/AAA
-- Specific requirements: [List]
+### アクセシビリティ
+- WCAG 2.1 レベル: A/AA/AAA
+- 具体的な要件: [一覧]
 
-### Scalability
-- Expected users: X concurrent
-- Data volume: X records
+### スケーラビリティ
+- 想定ユーザー数: X 同時接続
+- データ量: X レコード
 
-## Acceptance Criteria (Gherkin)
+## 受け入れ基準（Gherkin）
 
 ```gherkin
-Feature: [Feature Name]
+Feature: [機能名]
 
-  Scenario: [Scenario Name]
-    Given [initial context]
-    When [action taken]
-    Then [expected outcome]
+  Scenario: [シナリオ名]
+    Given [初期コンテキスト]
+    When [実行されるアクション]
+    Then [期待される結果]
 
-  Scenario: [Error Case]
-    Given [initial context]
-    When [invalid action]
-    Then [error handling]
+  Scenario: [エラーケース]
+    Given [初期コンテキスト]
+    When [無効なアクション]
+    Then [エラーハンドリング]
 ```
 
-## UI/UX Considerations
+## UI/UX の考慮事項
 
-- Wireframes: [Link or description]
-- Design system components to use: [List]
-- Responsive breakpoints: [Mobile, Tablet, Desktop]
+- ワイヤーフレーム: [リンクまたは説明]
+- 使用するデザインシステムコンポーネント: [一覧]
+- レスポンシブブレークポイント: [モバイル、タブレット、デスクトップ]
 
-## Technical Considerations
+## 技術的考慮事項
 
-- Affected services/components: [List]
-- Database changes required: Yes/No
-- API changes required: Yes/No
-- Third-party integrations: [List]
+- 影響を受けるサービス/コンポーネント: [一覧]
+- データベース変更の必要性: はい/いいえ
+- API 変更の必要性: はい/いいえ
+- サードパーティ統合: [一覧]
 
-## Out of Scope
+## スコープ外
 
-Explicitly list what is NOT included in this feature:
-- Item 1
-- Item 2
+この機能に含まれないものを明示的に列挙:
+- 項目 1
+- 項目 2
 
-## Dependencies
+## 依存関係
 
-- [Dependency 1]: [Status]
-- [Dependency 2]: [Status]
+- [依存関係 1]: [ステータス]
+- [依存関係 2]: [ステータス]
 
-## Open Questions
+## 未解決の質問
 
-| # | Question | Owner | Status | Answer |
+| # | 質問 | 担当者 | ステータス | 回答 |
 |---|----------|-------|--------|--------|
-| 1 | [Question] | [Name] | Open/Resolved | [Answer] |
+| 1 | [質問] | [名前] | 未解決/解決済み | [回答] |
 
-## Appendix
+## 付録
 
-### Glossary
-- **Term 1**: Definition
-- **Term 2**: Definition
+### 用語集
+- **用語 1**: 定義
+- **用語 2**: 定義
 
-### References
-- [Link to related documentation]
-- [Link to design files]
+### 参照資料
+- [関連ドキュメントへのリンク]
+- [デザインファイルへのリンク]
 
 ---
 
-## Approval
+## 承認
 
-| Role | Name | Date | Signature |
+| 役割 | 名前 | 日付 | 署名 |
 |------|------|------|-----------|
-| Product Owner | | | [ ] Approved |
-| Tech Lead | | | [ ] Approved |
-| Designer | | | [ ] Approved |
+| プロダクトオーナー | | | [ ] 承認 |
+| テックリード | | | [ ] 承認 |
+| デザイナー | | | [ ] 承認 |

@@ -1,10 +1,10 @@
 ---
-description: "Process user change requests after implementation - analyze impact against spec/design and route appropriately"
-argument-hint: "[change request description or 'interactive']"
+description: "実装後のユーザー変更リクエストを処理する - 仕様書/設計書に対する影響を分析し、適切なワークフローにルーティング"
+argument-hint: "[変更リクエストの説明または 'interactive']"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite
 ---
 
-# /spec-revise - Post-Implementation Change Request Handler
+# /spec-revise - 実装後の変更リクエストハンドラー
 
 ## Language Mode
 
@@ -12,539 +12,539 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoW
 
 ---
 
-Process user change requests after `/spec-implement` completion. This command reads the original spec and design documents, analyzes the impact of requested changes, and routes to the appropriate workflow.
+`/spec-implement` 完了後のユーザー変更リクエストを処理する。このコマンドは、元の仕様書と設計書を読み込み、リクエストされた変更の影響を分析し、適切なワークフローにルーティングする。
 
-## When to Use
+## 使用するタイミング
 
-- After `/spec-implement` when user wants modifications
-- When user requests additions or changes to implemented features
-- When feedback requires evaluating impact against original design
+- `/spec-implement` の後でユーザーが修正を希望する場合
+- 実装済み機能に対する追加や変更をユーザーがリクエストする場合
+- フィードバックが元の設計に対する影響評価を必要とする場合
 
-## When NOT to Use
+## 使うべきでない場合
 
-- Before implementation (use `/spec-plan` or `/spec-review`)
-- For new unrelated features (use `/spec-plan`)
-- For urgent production fixes (use `/hotfix`)
-- For debugging errors (use `/debug`)
+- 実装前の場合（`/spec-plan` または `/spec-review` を使用）
+- 無関係な新機能の場合（`/spec-plan` を使用）
+- 緊急の本番修正の場合（`/hotfix` を使用）
+- エラーのデバッグの場合（`/debug` を使用）
 
-## Phase Overview
+## フェーズ概要
 
-1. **Context Loading** - Locate and read spec, design, and implementation state
-2. **Change Request Collection** - Gather and clarify user's modification request
-3. **Impact Analysis** - Analyze how changes affect spec and design
-4. **Classification & Routing** - Determine appropriate response path
-5. **Execution** - Apply changes or route to appropriate command
-6. **Completion** - Update documents and progress files
+1. **コンテキスト読み込み** - 仕様書、設計書、実装状態を特定して読み込む
+2. **変更リクエスト収集** - ユーザーの修正リクエストを収集して明確化
+3. **影響分析** - 変更が仕様書と設計書にどう影響するか分析
+4. **分類とルーティング** - 適切な対応パスを決定
+5. **実行** - 変更を適用するか、適切なコマンドにルーティング
+6. **完了** - ドキュメントと進捗ファイルを更新
 
-## Execution Instructions
-
----
-
-### Phase 1: Context Loading
-
-**Goal:** Understand the current state of spec, design, and implementation.
-
-#### Locate Project Files
-
-**Why progress file reading is acceptable (not delegated):**
-- Progress files are orchestrator state metadata (not project content)
-- Status checking is quick validation (typically <20 lines of JSON)
-- Essential to locate spec/design file paths for this project
-- Minimal context consumption compared to spec/design content analysis
-- Consistent with resume.md Phase 3 pattern
-
-1. **Check progress file** for current project:
-   - Look for `.claude/workspaces/{workspace-id}/claude-progress.json`
-   - Extract spec and design file paths
-
-2. **If no progress file**, search for recent specs:
-   - List files in `docs/specs/`
-   - Ask user which project to revise
-
-3. **Check existence only (do not read full content):**
-   - Specification: Use Glob to check if `docs/specs/[feature-name].md` exists
-   - Design: Use Glob to check if `docs/specs/[feature-name]-design.md` exists
-   - Review log: Use Glob to check if `docs/specs/[feature-name]-review.md` exists
-   - Progress file: Use Glob to check if `.claude/workspaces/{id}/claude-progress.json` exists
-
-**Reading vs Editing distinction:**
-- **Reading for context**: Orchestrator MAY read spec/design files directly for quick lookups (confirming change location, verifying current value)
-- **Editing/modifying**: Delegate to `product-manager` for SMALL or larger changes
-
-Refer to `subagent-contract` skill for unified quick lookup limits (≤3 files, ≤200 lines per file, ≤300 lines total).
-
-**Exception for TRIVIAL changes only** (Phase 5 Option A):
-Single-value fixes (typos, dates, version numbers) MAY be edited directly using the Edit tool.
-TRIVIAL criteria: Affects only 1-2 lines, has no semantic impact, requires no judgment calls.
-See Phase 5 for detailed TRIVIAL classification with concrete examples.
-
-**For comprehensive analysis**: ALWAYS delegate to `product-manager` or `code-architect` agents.
-
-**Delegate context loading to `product-manager` agent:**
-
-```
-Launch product-manager agent:
-Task: Summarize current project state for revision context
-Inputs: Spec file path + Design file path
-Output: Key requirements list + Architecture summary (concise)
-```
-
-**Error Handling for product-manager (context loading):**
-If product-manager fails or times out:
-1. Retry once with reduced scope (focus on key requirements only)
-2. **Fallback: Read files directly** if retry fails (respecting unified limits from `subagent-contract`):
-   - Read spec file directly to extract Key Requirements section (≤200 lines)
-   - Read design file directly to extract Architecture Summary section (≤200 lines)
-   - If file exceeds 200 lines, read first 200 lines with warning
-   - Use extracted content as context for impact analysis
-   - Warn user: "Using direct file read (summarization failed)"
-3. Add to progress file: `"warnings": ["Context loading via agent failed, using direct read fallback"]`
-4. Proceed with available context (do NOT block impact analysis entirely)
-
-Use the agent's summary output for context when available.
-
-**Present current state to user (using agent output):**
-```
-## Current Project State
-
-**Feature:** [feature name]
-**Spec:** docs/specs/[feature-name].md
-**Design:** docs/specs/[feature-name]-design.md
-**Status:** [from progress file if exists, or "No progress file"]
-
-### Key Requirements (from product-manager summary)
-[Agent-generated summary]
-
-### Architecture Summary (from product-manager summary)
-[Agent-generated summary]
-
-Ready to receive your change request.
-```
+## 実行手順
 
 ---
 
-### Phase 2: Change Request Collection
+### フェーズ 1: コンテキスト読み込み
 
-**Goal:** Gather and clarify what the user wants to change.
+**目標:** 仕様書、設計書、実装の現在の状態を把握する。
 
-#### If `$ARGUMENTS` contains a change request:
-- Parse the request
-- Proceed to clarification if needed
+#### プロジェクトファイルの特定
 
-#### If `$ARGUMENTS` is empty or "interactive":
-- Ask user what they want to change
+**進捗ファイルの読み取りが許容される理由（委任不要）:**
+- 進捗ファイルはオーケストレーターの状態メタデータ（プロジェクトコンテンツではない）
+- ステータス確認はクイックバリデーション（通常 JSON 20行未満）
+- このプロジェクトの仕様書/設計書ファイルパスを特定するために不可欠
+- 仕様書/設計書のコンテンツ分析と比較してコンテキスト消費が最小
+- resume.md フェーズ 3 のパターンと一貫
+
+1. **進捗ファイルで現在のプロジェクトを確認:**
+   - `.claude/workspaces/{workspace-id}/claude-progress.json` を探す
+   - 仕様書と設計書のファイルパスを抽出
+
+2. **進捗ファイルがない場合**、最近の仕様書を検索:
+   - `docs/specs/` のファイルを一覧表示
+   - どのプロジェクトを修正するかユーザーに確認
+
+3. **存在のみ確認（全文は読まない）:**
+   - 仕様書: Glob で `docs/specs/[feature-name].md` の存在を確認
+   - 設計書: Glob で `docs/specs/[feature-name]-design.md` の存在を確認
+   - レビューログ: Glob で `docs/specs/[feature-name]-review.md` の存在を確認
+   - 進捗ファイル: Glob で `.claude/workspaces/{id}/claude-progress.json` の存在を確認
+
+**読み取りと編集の区別:**
+- **コンテキストのための読み取り**: オーケストレーターは仕様書/設計書を直接読み取り可（変更箇所の確認、現在値の検証等のクイックルックアップ）
+- **編集・修正**: 軽微な変更でも大きな変更でも `product-manager` に委任
+
+`subagent-contract` スキルの統一クイックルックアップ制限（3ファイル以下、ファイルあたり200行以下、合計300行以下）を参照。
+
+**TRIVIAL 変更のみの例外**（フェーズ 5 オプション A）:
+単一値の修正（タイポ、日付、バージョン番号）は Edit ツールで直接編集可。
+TRIVIAL の基準: 1-2行のみに影響、意味的な変更なし、判断を必要としない。
+詳細な TRIVIAL 分類と具体例はフェーズ 5 を参照。
+
+**包括的な分析**: 常に `product-manager` または `code-architect` エージェントに委任。
+
+**コンテキスト読み込みを `product-manager` エージェントに委任:**
 
 ```
-What would you like to change or add?
-
-Examples:
-- "Add pagination to the user list"
-- "Change authentication from JWT to sessions"
-- "Remove the export feature"
-- "Make the search faster"
+product-manager エージェントを起動:
+タスク: 修正コンテキスト用に現在のプロジェクト状態を要約
+入力: 仕様書ファイルパス + 設計書ファイルパス
+出力: 主要要件リスト + アーキテクチャサマリー（簡潔に）
 ```
 
-#### Clarification Loop
+**product-manager（コンテキスト読み込み）のエラーハンドリング:**
+product-manager が失敗またはタイムアウトした場合:
+1. スコープを縮小してリトライ（主要要件のみに集中）
+2. リトライも失敗した場合は**フォールバック: ファイルを直接読み取り**（`subagent-contract` の統一制限を遵守）:
+   - 仕様書ファイルを直接読み取り、主要要件セクションを抽出（200行以下）
+   - 設計書ファイルを直接読み取り、アーキテクチャサマリーセクションを抽出（200行以下）
+   - ファイルが200行を超える場合、先頭200行を警告付きで読み取り
+   - 抽出した内容を影響分析のコンテキストとして使用
+   - ユーザーに警告: 「直接ファイル読み取りを使用（要約処理に失敗）」
+3. 進捗ファイルに追加: `"warnings": ["Context loading via agent failed, using direct read fallback"]`
+4. 利用可能なコンテキストで続行（影響分析全体をブロックしない）
 
-**CRITICAL:** Use AskUserQuestion when the request is ambiguous.
+エージェント出力が利用可能な場合はそれをコンテキストとして使用。
 
-| User Says | Ask About |
+**現在の状態をユーザーに提示（エージェント出力を使用）:**
+```
+## 現在のプロジェクト状態
+
+**機能:** [機能名]
+**仕様書:** docs/specs/[feature-name].md
+**設計書:** docs/specs/[feature-name]-design.md
+**ステータス:** [進捗ファイルがあればそこから、なければ「進捗ファイルなし」]
+
+### 主要要件（product-manager のサマリーから）
+[エージェント生成のサマリー]
+
+### アーキテクチャサマリー（product-manager のサマリーから）
+[エージェント生成のサマリー]
+
+変更リクエストを受け付ける準備ができました。
+```
+
+---
+
+### フェーズ 2: 変更リクエスト収集
+
+**目標:** ユーザーが何を変更したいのかを収集し、明確化する。
+
+#### `$ARGUMENTS` に変更リクエストが含まれる場合:
+- リクエストを解析
+- 必要に応じて明確化に進む
+
+#### `$ARGUMENTS` が空または "interactive" の場合:
+- ユーザーに何を変更したいか確認
+
+```
+何を変更または追加しますか？
+
+例:
+- 「ユーザー一覧にページネーションを追加」
+- 「認証を JWT からセッションに変更」
+- 「エクスポート機能を削除」
+- 「検索をもっと速く」
+```
+
+#### 明確化ループ
+
+**重要:** リクエストが曖昧な場合は AskUserQuestion を使用すること。
+
+| ユーザーの発言 | 確認すべき内容 |
 |-----------|-----------|
-| "Make it better" | Better how? Performance? UX? Reliability? |
-| "Add more features" | Which specific features? |
-| "Change the design" | UI design? Architecture? Data model? |
-| "It's too slow" | Which operation? What's acceptable? |
-| "Something's wrong" | What behavior? Expected vs actual? |
+| 「もっと良くして」 | どう良く？パフォーマンス？UX？信頼性？ |
+| 「機能を追加して」 | どの具体的な機能？ |
+| 「デザインを変更して」 | UI デザイン？アーキテクチャ？データモデル？ |
+| 「遅い」 | どの操作？許容範囲は？ |
+| 「何かおかしい」 | どの動作？期待値 vs 実際の値？ |
 
-**Continue until you have:**
-- Clear description of what to change
-- Why the change is needed (if not obvious)
-- Any constraints or preferences
+**以下が揃うまで継続:**
+- 変更内容の明確な説明
+- 変更が必要な理由（自明でなければ）
+- 制約や希望
 
 ---
 
-### Phase 3: Impact Analysis
+### フェーズ 3: 影響分析
 
-**Goal:** Analyze how the requested change affects spec and design.
+**目標:** リクエストされた変更が仕様書と設計書にどう影響するかを分析する。
 
-**Launch 2 parallel agents:**
-
-```
-1. product-manager agent
-   Task: Analyze change request against specification
-   Inputs: Change request + spec file
-   Output:
-   - Which requirements are affected
-   - New requirements needed
-   - Requirements to remove
-   - Scope assessment (in-scope / out-of-scope / boundary)
-
-2. code-architect agent
-   Task: Analyze change request against design
-   Inputs: Change request + design file + exploration findings
-   Output:
-   - Which components are affected
-   - Architecture changes needed
-   - Estimated complexity (low / medium / high)
-   - Risk assessment
-```
-
-**Wait for both agents to complete.**
-
-**Error Handling for Impact Analysis agents:**
-
-If product-manager fails or times out:
-1. Retry once with reduced scope (focus on requirement impact only)
-2. If retry fails, proceed with code-architect output only
-3. Warn user: "Spec impact analysis unavailable. Classification will rely on design impact only."
-4. Mark analysis as partial in progress file
-
-If code-architect fails or times out:
-1. Retry once with reduced scope (focus on component mapping only)
-2. If retry fails, proceed with product-manager output only
-3. Warn user: "Design impact analysis unavailable. Classification will rely on spec impact only."
-4. Mark analysis as partial in progress file
-
-If BOTH agents fail:
-1. Inform user: "Impact analysis failed. Cannot proceed with classification."
-2. Offer options:
-   - "Retry both agents"
-   - "Cancel and investigate"
-3. Do NOT proceed to Phase 4 without at least one successful analysis
-
-**CRITICAL: Delegate result consolidation to verification-specialist agent:**
+**2つの並列エージェントを起動:**
 
 ```
-Launch verification-specialist agent:
-Task: Consolidate and cross-reference impact analysis from product-manager and code-architect
-Inputs:
-  - Change request summary
-  - Product-manager findings (spec impact)
-  - Code-architect findings (design impact)
-Output:
-  - Consolidated impact analysis with verified references
-  - Recommended classification (TRIVIAL/SMALL/MEDIUM/LARGE/NEW)
-  - Confidence scores for each determination
-  - Identified contradictions or gaps between analyses
+1. product-manager エージェント
+   タスク: 仕様書に対する変更リクエストの分析
+   入力: 変更リクエスト + 仕様書ファイル
+   出力:
+   - 影響を受ける要件
+   - 新たに必要な要件
+   - 削除すべき要件
+   - スコープ評価（スコープ内 / スコープ外 / 境界）
+
+2. code-architect エージェント
+   タスク: 設計書に対する変更リクエストの分析
+   入力: 変更リクエスト + 設計書ファイル + 探索の発見事項
+   出力:
+   - 影響を受けるコンポーネント
+   - 必要なアーキテクチャ変更
+   - 推定複雑度（低 / 中 / 高）
+   - リスク評価
 ```
 
-Do NOT consolidate results manually. Use the agent's consolidated output for Phase 4 presentation.
+**両エージェントの完了を待機。**
 
-**Error Handling for verification-specialist:**
-If verification-specialist fails or times out:
-1. Present findings from product-manager and code-architect separately
-2. Warn user: "Impact analysis consolidation failed. Showing raw agent findings."
-3. **Fallback: Basic manual classification is ALLOWED** when verification-specialist fails:
+**影響分析エージェントのエラーハンドリング:**
 
-   Apply this simplified classification logic:
-   | Spec Impact | Design Impact | Classification |
+product-manager が失敗またはタイムアウトした場合:
+1. スコープを縮小してリトライ（要件への影響のみに集中）
+2. リトライも失敗した場合、code-architect の出力のみで続行
+3. ユーザーに警告: 「仕様への影響分析が利用できません。分類は設計への影響のみに依存します。」
+4. 進捗ファイルに分析が部分的であることを記録
+
+code-architect が失敗またはタイムアウトした場合:
+1. スコープを縮小してリトライ（コンポーネントマッピングのみに集中）
+2. リトライも失敗した場合、product-manager の出力のみで続行
+3. ユーザーに警告: 「設計への影響分析が利用できません。分類は仕様への影響のみに依存します。」
+4. 進捗ファイルに分析が部分的であることを記録
+
+両方のエージェントが失敗した場合:
+1. ユーザーに通知: 「影響分析が失敗しました。分類を続行できません。」
+2. オプションを提示:
+   - 「両エージェントをリトライ」
+   - 「キャンセルして調査」
+3. 少なくとも1つの分析が成功するまでフェーズ 4 に進まない
+
+**重要: 結果の統合を verification-specialist エージェントに委任:**
+
+```
+verification-specialist エージェントを起動:
+タスク: product-manager と code-architect の影響分析を統合してクロスリファレンス
+入力:
+  - 変更リクエストのサマリー
+  - product-manager の発見事項（仕様への影響）
+  - code-architect の発見事項（設計への影響）
+出力:
+  - 検証済み参照付きの統合影響分析
+  - 推奨分類（TRIVIAL/SMALL/MEDIUM/LARGE/NEW）
+  - 各判定の信頼度スコア
+  - 分析間の矛盾やギャップの特定
+```
+
+手動で結果を統合しないこと。フェーズ 4 の提示にはエージェントの統合出力を使用する。
+
+**verification-specialist のエラーハンドリング:**
+verification-specialist が失敗またはタイムアウトした場合:
+1. product-manager と code-architect の発見事項を個別に提示
+2. ユーザーに警告: 「影響分析の統合が失敗しました。エージェントの生の発見事項を表示します。」
+3. **フォールバック: 基本的な手動分類が許可される** verification-specialist 失敗時:
+
+   以下の簡易分類ロジックを適用:
+   | 仕様への影響 | 設計への影響 | 分類 |
    |-------------|---------------|----------------|
-   | None mentioned | None mentioned | TRIVIAL |
-   | "minor" or "clarification" only | None or "minor" | SMALL |
-   | Any "new requirement" | Any | MEDIUM or higher |
-   | "significant" or "breaking" | Any | LARGE |
-   | "out of scope" mentioned | Any | NEW |
+   | 言及なし | 言及なし | TRIVIAL |
+   | 「軽微」または「明確化」のみ | なし または「軽微」 | SMALL |
+   | 「新しい要件」あり | いずれか | MEDIUM 以上 |
+   | 「重大」または「破壊的」 | いずれか | LARGE |
+   | 「スコープ外」の言及 | いずれか | NEW |
 
-4. Present classification to user with confidence caveat:
+4. 信頼度の注記付きで分類をユーザーに提示:
    ```
-   Based on available analysis (not fully consolidated):
-   - Product-manager found: [summary of spec impact]
-   - Code-architect found: [summary of design impact]
+   利用可能な分析に基づく（完全な統合なし）:
+   - product-manager の発見: [仕様への影響のサマリー]
+   - code-architect の発見: [設計への影響のサマリー]
 
-   Suggested classification: [TRIVIAL/SMALL/MEDIUM/LARGE/NEW]
+   推奨分類: [TRIVIAL/SMALL/MEDIUM/LARGE/NEW]
 
-   Note: This classification was derived without full consolidation.
-   Please confirm or adjust before proceeding.
+   注: この分類は完全な統合なしで導出されました。
+   続行前に確認または調整してください。
 
-   Options:
-   1. Proceed with suggested classification
-   2. Retry consolidation with verification-specialist
-   3. Choose different classification manually
+   オプション:
+   1. 推奨分類で続行
+   2. verification-specialist で統合をリトライ
+   3. 別の分類を手動で選択
    ```
 
-5. Require explicit user confirmation before proceeding with fallback classification
+5. フォールバック分類で続行する前にユーザーの明示的な確認を必須とする
 
-**Present consolidated analysis to user (using verification-specialist output):**
+**統合分析をユーザーに提示（verification-specialist の出力を使用）:**
 ```markdown
-## Impact Analysis
+## 影響分析
 
-### Specification Impact
-- **Affected Requirements:** [from consolidated output]
-- **New Requirements:** [from consolidated output]
-- **Scope Assessment:** [from consolidated output]
+### 仕様への影響
+- **影響を受ける要件:** [統合出力から]
+- **新しい要件:** [統合出力から]
+- **スコープ評価:** [統合出力から]
 
-### Design Impact
-- **Affected Components:** [from consolidated output]
-- **Architecture Changes:** [from consolidated output]
-- **Complexity:** [from consolidated output]
-- **Risks:** [from consolidated output]
+### 設計への影響
+- **影響を受けるコンポーネント:** [統合出力から]
+- **アーキテクチャ変更:** [統合出力から]
+- **複雑度:** [統合出力から]
+- **リスク:** [統合出力から]
 
-### Classification
-[See Phase 4 for classification result]
+### 分類
+[フェーズ 4 の分類結果を参照]
 ```
 
 ---
 
-### Phase 4: Classification & Routing
+### フェーズ 4: 分類とルーティング
 
-**Goal:** Determine the appropriate response path based on impact analysis.
+**目標:** 影響分析に基づいて適切な対応パスを決定する。
 
-#### Classification Matrix
+#### 分類マトリクス
 
-| Spec Impact | Design Impact | Classification | Route |
+| 仕様への影響 | 設計への影響 | 分類 | ルート |
 |-------------|---------------|----------------|-------|
-| None | None/Minor | **TRIVIAL** | Direct fix |
-| Minor | None/Minor | **SMALL** | Edit spec/design, then `/quick-impl` |
-| Minor | Significant | **MEDIUM** | `/spec-review` for design revision |
-| Significant | Any | **LARGE** | `/spec-plan` for re-planning |
-| Out of scope | Any | **NEW** | `/spec-plan` as new feature |
+| なし | なし/軽微 | **TRIVIAL** | 直接修正 |
+| 軽微 | なし/軽微 | **SMALL** | 仕様書/設計書を編集後、`/quick-impl` |
+| 軽微 | 重大 | **MEDIUM** | 設計見直しのため `/spec-review` |
+| 重大 | いずれか | **LARGE** | 再計画のため `/spec-plan` |
+| スコープ外 | いずれか | **NEW** | 新機能として `/spec-plan` |
 
-#### Present Classification to User
+#### 分類をユーザーに提示
 
 ```
-## Change Classification
+## 変更分類
 
-**Your Request:** [summary]
+**リクエスト:** [サマリー]
 
-**Classification:** [TRIVIAL / SMALL / MEDIUM / LARGE / NEW]
+**分類:** [TRIVIAL / SMALL / MEDIUM / LARGE / NEW]
 
-**Rationale:**
-- Spec impact: [description]
-- Design impact: [description]
+**根拠:**
+- 仕様への影響: [説明]
+- 設計への影響: [説明]
 
-**Recommended Action:**
-[Based on classification - see options below]
+**推奨アクション:**
+[分類に基づく - 以下のオプションを参照]
 
-Options:
-1. [Recommended action] - [why]
-2. [Alternative action] - [trade-off]
-3. Discuss further - I'll explain more about the impact
+オプション:
+1. [推奨アクション] - [理由]
+2. [代替アクション] - [トレードオフ]
+3. 詳しく議論する - 影響についてもっと説明します
 ```
 
-**CRITICAL:** Always let user choose. Never auto-route without confirmation.
+**重要:** 常にユーザーに選択させること。確認なしに自動ルーティングしない。
 
-#### Routing Actions
+#### ルーティングアクション
 
-**TRIVIAL (Direct Fix):**
+**TRIVIAL（直接修正）:**
 ```
-This is a minor change that doesn't affect the spec or design.
-I can apply this directly using the Edit tool for speed.
+仕様書や設計書に影響しない軽微な変更です。
+Edit ツールで直接適用できます。
 
-Proceed with the fix?
-1. Yes, apply the change directly
-2. Delegate to product-manager instead
-3. No, let me reconsider
-```
-
-If yes (option 1): Proceed to Phase 5 Option A (direct edit).
-If option 2: Proceed to Phase 5 Option B (product-manager delegation).
-
-**SMALL (Spec/Design Edit + Quick Implementation):**
-```
-This requires updating the spec/design documents before implementation.
-
-I'll delegate to product-manager to:
-1. Update the spec with [changes]
-2. Update the design with [changes]
-
-Then you can run /quick-impl for the implementation.
-
-Proceed?
+修正を進めますか？
+1. はい、直接変更を適用
+2. 代わりに product-manager に委任
+3. いいえ、再検討します
 ```
 
-If yes: Proceed to Phase 5 (SMALL execution via product-manager delegation).
+はいの場合（オプション 1）: フェーズ 5 オプション A（直接編集）に進む。
+オプション 2 の場合: フェーズ 5 オプション B（product-manager 委任）に進む。
 
-**MEDIUM (Design Revision Needed):**
+**SMALL（仕様書/設計書の編集 + クイック実装）:**
 ```
-This change significantly affects the architecture.
+実装前に仕様書/設計書の更新が必要な変更です。
 
-Recommended: Run /spec-review to revise the design with full analysis.
+product-manager に委任して:
+1. 仕様書に [変更内容] を更新
+2. 設計書に [変更内容] を更新
 
-I'll update the progress file so /spec-review knows to focus on:
-- [Affected area 1]
-- [Affected area 2]
+その後 /quick-impl で実装できます。
 
-Run /spec-review now?
-1. Yes, start design revision
-2. No, I want to proceed anyway (risky)
-3. Let me think about it
+進めますか？
 ```
 
-If yes: Update progress file with revision context, instruct user to run `/spec-review`.
+はいの場合: フェーズ 5（product-manager 委任による SMALL 実行）に進む。
 
-**LARGE (Re-planning Needed):**
+**MEDIUM（設計の見直しが必要）:**
 ```
-This is a significant change that affects core requirements.
+アーキテクチャに大きく影響する変更です。
 
-Recommended: Run /spec-plan to re-analyze with the new constraints.
+推奨: /spec-review を実行して、完全な分析で設計を見直します。
 
-The original plan assumed [X], but your change requires [Y].
-Re-planning will ensure we have a solid foundation.
+進捗ファイルを更新して /spec-review が以下に集中するようにします:
+- [影響エリア 1]
+- [影響エリア 2]
 
-Options:
-1. Run /spec-plan with new constraints
-2. Try to adapt current plan (higher risk)
-3. Abandon the change
+今すぐ /spec-review を実行しますか？
+1. はい、設計の見直しを開始
+2. いいえ、それでも進めたい（リスクあり）
+3. 考えさせてください
 ```
 
-If option 1: Update progress file, instruct user to run `/spec-plan`.
+はいの場合: 修正コンテキストで進捗ファイルを更新し、`/spec-review` の実行をユーザーに案内。
 
-**NEW (New Feature):**
+**LARGE（再計画が必要）:**
 ```
-This request is outside the scope of the current feature.
+コア要件に影響する重大な変更です。
 
-It should be planned as a separate feature using /spec-plan.
+推奨: /spec-plan を実行して新しい制約で再分析します。
 
-Current feature: [name] - [scope summary]
-Your request: [summary] - [why it's out of scope]
+元の計画では [X] を前提としていましたが、変更には [Y] が必要です。
+再計画により堅実な基盤を確保できます。
 
-Options:
-1. Start /spec-plan for new feature
-2. Try to incorporate into current feature (scope creep risk)
-3. Save for later
+オプション:
+1. 新しい制約で /spec-plan を実行
+2. 現在の計画を適応してみる（リスク高）
+3. 変更を取りやめる
+```
+
+オプション 1 の場合: 進捗ファイルを更新し、`/spec-plan` の実行をユーザーに案内。
+
+**NEW（新機能）:**
+```
+このリクエストは現在の機能のスコープ外です。
+
+別の機能として /spec-plan で計画する必要があります。
+
+現在の機能: [名前] - [スコープサマリー]
+リクエスト: [サマリー] - [スコープ外である理由]
+
+オプション:
+1. 新機能として /spec-plan を開始
+2. 現在の機能に組み込む（スコープクリープのリスク）
+3. 後回しにする
 ```
 
 ---
 
-### Phase 5: Execution (for TRIVIAL and SMALL only)
+### フェーズ 5: 実行（TRIVIAL と SMALL のみ）
 
-**Goal:** Apply changes when classification allows direct action.
+**目標:** 分類が直接アクションを許容する場合に変更を適用する。
 
-#### For TRIVIAL Changes
+#### TRIVIAL 変更の場合
 
-TRIVIAL changes are single-value fixes that meet ALL criteria:
-- Affect only 1-2 lines
-- Have no semantic impact (meaning identical before and after)
-- Require no judgment calls
+TRIVIAL 変更とは、以下のすべての基準を満たす単一値の修正:
+- 1-2行のみに影響
+- 意味的な変更なし（変更前後で意味が同一）
+- 判断を必要としない
 
-See `subagent-contract` skill "TRIVIAL Edit Definition" for base criteria and "Orchestrator Exceptions Reference" for justification.
+基本基準は `subagent-contract` スキルの「TRIVIAL Edit Definition」、正当性は「オーケストレーター例外リファレンス」を参照。
 
-**Concrete Examples of TRIVIAL (delegate to product-manager by default):**
+**TRIVIAL の具体例（デフォルトは product-manager に委任）:**
 
-| Change Type | Example | Why TRIVIAL |
+| 変更タイプ | 例 | TRIVIAL の理由 |
 |-------------|---------|-------------|
-| Typo fix | "recieve" → "receive" | Spelling error, meaning unchanged |
-| Version number | "1.0.0" → "1.0.1" | Metadata update, no behavior change |
-| Date update | "2025-01-01" → "2025-01-31" | Metadata update |
-| Formatting | Fix markdown bullet indent | Visual only |
+| タイポ修正 | "recieve" → "receive" | スペルミス、意味は同一 |
+| バージョン番号 | "1.0.0" → "1.0.1" | メタデータ更新、動作変更なし |
+| 日付更新 | "2025-01-01" → "2025-01-31" | メタデータ更新 |
+| フォーマット | マークダウンの箇条書きインデント修正 | 見た目のみ |
 
-**Note:** Numeric value changes (timeout, retries, limits) are NOT TRIVIAL by default. Even small numeric changes may indicate spec intent changes and should be delegated to product-manager for proper context tracking.
+**注:** 数値の変更（タイムアウト、リトライ回数、制限値）はデフォルトで TRIVIAL ではない。小さな数値変更でも仕様の意図変更を示す可能性があり、適切なコンテキスト管理のために product-manager に委任すべき。
 
-**NOT TRIVIAL (delegate to product-manager):**
+**TRIVIAL ではない（product-manager に委任）:**
 
-| Change Type | Example | Why NOT TRIVIAL |
+| 変更タイプ | 例 | TRIVIAL でない理由 |
 |-------------|---------|-----------------|
-| Value that affects behavior | `timeout: 30` → `timeout: 600` (10x increase) | May indicate spec intent change |
-| Wording that affects meaning | "should" → "must" | Changes requirement strength |
-| Adding/removing content | Adding a new bullet point | New requirement |
-| Requirement description | "User can upload files" → "User can upload images only" | Scope change |
-| Clarification with intent | "Fast response" → "Response under 100ms" | Adds specificity |
+| 動作に影響する値 | `timeout: 30` → `timeout: 600`（10倍増） | 仕様の意図変更の可能性 |
+| 意味が変わる文言 | "should" → "must" | 要件の強度が変化 |
+| コンテンツの追加/削除 | 新しい箇条書きの追加 | 新しい要件 |
+| 要件の説明 | 「ファイルアップロード可」→「画像のみアップロード可」 | スコープ変更 |
+| 意図を持つ明確化 | 「高速レスポンス」→「100ms以内のレスポンス」 | 具体性の追加 |
 
-**Gray Zone - Always delegate to product-manager:**
+**グレーゾーン - 常に product-manager に委任:**
 
-| Change | Why it's NOT TRIVIAL | Action |
+| 変更 | TRIVIAL でない理由 | アクション |
 |--------|---------------------|--------|
-| `maxRetries: 3` → `maxRetries: 5` | Numeric change affects behavior | Delegate to product-manager |
-| `timeout: 30` → `timeout: 60` | Numeric change affects behavior | Delegate to product-manager |
-| "error message" → "error notification" | Subtle meaning shift | Delegate to product-manager |
-| Removing "(optional)" from a field | Changes requirement status | Delegate to product-manager |
+| `maxRetries: 3` → `maxRetries: 5` | 数値変更が動作に影響 | product-manager に委任 |
+| `timeout: 30` → `timeout: 60` | 数値変更が動作に影響 | product-manager に委任 |
+| "error message" → "error notification" | 微妙な意味の変化 | product-manager に委任 |
+| フィールドから "(optional)" を削除 | 要件ステータスの変更 | product-manager に委任 |
 
-**Rule of thumb:** If the change affects any numeric value or could influence implementation behavior, delegate to product-manager. When in doubt, always delegate.
+**経験則:** 数値に影響する変更や実装動作に影響し得る変更は、product-manager に委任する。迷ったら常に委任。
 
-**Execution options for TRIVIAL:**
+**TRIVIAL の実行オプション:**
 
-**Option A: Delegate to product-manager (Recommended - delegation-first)**
+**オプション A: product-manager に委任（推奨 - 委任優先）**
 ```
-Launch product-manager agent:
-Task: Apply trivial change to spec/design
-Change request: [user's request]
-File(s): [spec and/or design file paths]
-Constraint: Single-value fix only, no semantic changes
-Output: Confirmation of change with before/after
-```
-
-**Option B: Direct Edit (Fallback only)**
-1. Use Edit tool to apply the single-line change
-2. Show user before/after diff
-3. Run `git diff` to confirm change scope
-4. If change affected more than intended lines, revert and escalate to SMALL
-
-**Choose Option A by default (delegation-first principle). Use Option B only if:**
-- User explicitly requests direct edit for speed
-- Agent retry failed (after one retry attempt)
-- Change is purely formatting (whitespace, markdown syntax only)
-
-**Post-change verification (both options):**
-- Run `git diff` to confirm only intended lines changed
-- If more lines affected, warn user and offer to revert
-
-#### For SMALL Changes
-
-SMALL changes are minor edits that meet ALL of these criteria:
-- **Line limit:** Less than 20 lines changed across all files
-- **File limit:** Affects 1-2 files only
-- **No architecture impact:** Does not change design decisions, data models, or API contracts
-- **Low risk:** Typos, wording improvements, adding clarifications, minor requirement additions
-
-**CRITICAL: Verify "No architecture impact" before classifying as SMALL:**
-- Use verification-specialist's confidence score from Phase 3
-- If confidence for "no architecture impact" < 90: escalate to MEDIUM
-- If verification-specialist did not provide confidence: ask user for confirmation
-
-If ANY criterion is not met, escalate to MEDIUM and recommend `/spec-review`.
-
-**Delegate to product-manager:**
-
-```
-Launch product-manager agent:
-Task: Apply small change to spec and design
-Change request: [user's request]
-Spec file: [spec file path]
-Design file: [design file path]
-Impact analysis: [summary from Phase 3]
-Constraints:
-- Less than 20 lines changed
-- No architecture changes
-- Maintain document consistency
-Output:
-- Summary of changes made
-- Before/after for each modified section
+product-manager エージェントを起動:
+タスク: 仕様書/設計書に TRIVIAL 変更を適用
+変更リクエスト: [ユーザーのリクエスト]
+ファイル: [仕様書および/または設計書のファイルパス]
+制約: 単一値の修正のみ、意味的変更なし
+出力: 変更前後の確認
 ```
 
-**Present agent's output as diff summary:**
+**オプション B: 直接編集（フォールバックのみ）**
+1. Edit ツールで1行の変更を適用
+2. ユーザーに変更前後の差分を表示
+3. `git diff` で変更範囲を確認
+4. 意図した以上の行が変更された場合、元に戻して SMALL にエスカレーション
+
+**デフォルトでオプション A を選択（委任優先の原則）。オプション B は以下の場合のみ使用:**
+- ユーザーが速度のために直接編集を明示的にリクエスト
+- エージェントのリトライが失敗（1回リトライ後）
+- 変更が純粋なフォーマット（空白、マークダウン構文のみ）
+
+**変更後の検証（両オプション共通）:**
+- `git diff` で意図した行のみが変更されたことを確認
+- より多くの行に影響した場合、ユーザーに警告して元に戻すオプションを提示
+
+#### SMALL 変更の場合
+
+SMALL 変更とは、以下のすべての基準を満たす軽微な編集:
+- **行数制限:** 全ファイル合計で20行未満の変更
+- **ファイル数制限:** 1-2ファイルのみに影響
+- **アーキテクチャ影響なし:** 設計決定、データモデル、API コントラクトを変更しない
+- **低リスク:** タイポ、文言改善、明確化の追加、軽微な要件追加
+
+**重要: SMALL に分類する前に「アーキテクチャ影響なし」を検証:**
+- フェーズ 3 の verification-specialist の信頼度スコアを使用
+- 「アーキテクチャ影響なし」の信頼度が 90 未満: MEDIUM にエスカレーション
+- verification-specialist が信頼度を提供していない場合: ユーザーに確認を求める
+
+いずれかの基準を満たさない場合、MEDIUM にエスカレーションし `/spec-review` を推奨。
+
+**product-manager に委任:**
+
 ```
-## Changes Applied
-
-### Specification Updates
-[from product-manager output]
-
-### Design Updates
-[from product-manager output]
-
-Next: Run /quick-impl to implement these changes.
+product-manager エージェントを起動:
+タスク: 仕様書と設計書に小規模な変更を適用
+変更リクエスト: [ユーザーのリクエスト]
+仕様書ファイル: [仕様書ファイルパス]
+設計書ファイル: [設計書ファイルパス]
+影響分析: [フェーズ 3 からのサマリー]
+制約:
+- 変更は20行未満
+- アーキテクチャ変更なし
+- ドキュメントの一貫性を維持
+出力:
+- 実施した変更のサマリー
+- 変更セクションごとの変更前後
 ```
 
-**Error Handling for SMALL execution:**
-If product-manager fails or times out:
-1. Retry once with single-file focus (spec or design, not both)
-2. If retry fails, inform user:
+**エージェント出力を差分サマリーとして提示:**
+```
+## 適用された変更
+
+### 仕様書の更新
+[product-manager の出力から]
+
+### 設計書の更新
+[product-manager の出力から]
+
+次のステップ: /quick-impl を実行してこれらの変更を実装してください。
+```
+
+**SMALL 実行のエラーハンドリング:**
+product-manager が失敗またはタイムアウトした場合:
+1. 単一ファイルにフォーカスしてリトライ（仕様書または設計書のいずれか）
+2. リトライも失敗した場合、ユーザーに通知:
    ```
-   Small change application failed.
+   小規模変更の適用が失敗しました。
 
-   Options:
-   1. Retry with single-file scope
-   2. Escalate to MEDIUM classification (use /spec-review)
-   3. Cancel the change
+   オプション:
+   1. 単一ファイルスコープでリトライ
+   2. MEDIUM 分類にエスカレーション（/spec-review を使用）
+   3. 変更をキャンセル
    ```
-3. Add to progress file: `"warnings": ["SMALL change application failed"]`
+3. 進捗ファイルに追加: `"warnings": ["SMALL change application failed"]`
 
 ---
 
-### Phase 6: Completion
+### フェーズ 6: 完了
 
-**Goal:** Update all relevant files and present next steps.
+**目標:** すべての関連ファイルを更新し、次のステップを提示する。
 
-#### Update Progress File
+#### 進捗ファイルの更新
 
 ```json
 {
@@ -554,103 +554,103 @@ If product-manager fails or times out:
   "resumptionContext": {
     "changeRequest": "{summary}",
     "classification": "{TRIVIAL/SMALL/MEDIUM/LARGE/NEW}",
-    "action": "{what was done or recommended}",
-    "nextAction": "{next command to run}"
+    "action": "{実施した内容または推奨内容}",
+    "nextAction": "{次に実行すべきコマンド}"
   }
 }
 ```
 
-#### Update Review Log
+#### レビューログの更新
 
-Append to `docs/specs/[feature-name]-review.md`:
+`docs/specs/[feature-name]-review.md` に追記:
 ```markdown
-## Revision: {date}
+## 修正: {date}
 
-### Change Request
-{user's request}
+### 変更リクエスト
+{ユーザーのリクエスト}
 
-### Classification
-{classification} - {rationale}
+### 分類
+{分類} - {根拠}
 
-### Action Taken
-{what was done}
+### 実施したアクション
+{実施内容}
 
-### Next Steps
-{recommendations}
+### 次のステップ
+{推奨事項}
 ```
 
-#### Present Summary
+#### サマリーの提示
 
 ```
-## Revision Complete
+## 修正完了
 
-**Request:** {summary}
-**Classification:** {classification}
-**Action:** {what was done}
+**リクエスト:** {サマリー}
+**分類:** {分類}
+**アクション:** {実施内容}
 
-### Next Steps
-{based on classification}
+### 次のステップ
+{分類に基づく}
 
-### Files Updated
-- {list of modified files}
+### 更新されたファイル
+- {変更ファイルリスト}
 ```
 
 ---
 
-## Feedback Loop
+## フィードバックループ
 
-After completion, offer to process additional changes:
+完了後、追加の変更を処理するか確認:
 
 ```
-Would you like to make any other changes?
-1. Yes, I have another change
-2. No, I'm done for now
-3. Undo the last change
+他に変更はありますか？
+1. はい、別の変更があります
+2. いいえ、今回はこれで完了です
+3. 最後の変更を元に戻す
 ```
 
-If "Yes": Return to Phase 2.
-If "Undo": Revert changes using git, return to Phase 2.
+「はい」の場合: フェーズ 2 に戻る。
+「元に戻す」の場合: git で変更を元に戻し、フェーズ 2 に戻る。
 
 ---
 
-## Usage Examples
+## 使用例
 
 ```bash
-# Interactive mode - describe changes conversationally
+# インタラクティブモード - 会話的に変更を説明
 /spec-revise
 
-# Direct change request
-/spec-revise Add pagination to the user list API
+# 直接変更リクエスト
+/spec-revise ユーザー一覧 API にページネーションを追加
 
-# Specific modification
-/spec-revise Change the auth token expiry from 1 hour to 24 hours
+# 具体的な修正
+/spec-revise 認証トークンの有効期限を1時間から24時間に変更
 
-# Feature adjustment
-/spec-revise Remove the email notification feature
+# 機能の調整
+/spec-revise メール通知機能を削除
 ```
 
 ---
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-- For comprehensive spec/design analysis, delegate to `product-manager` or `code-architect` agent
-- TRIVIAL changes: delegate to `product-manager` by default; direct Edit is fallback only (see Phase 5)
-- ALWAYS use AskUserQuestion when change request is ambiguous
-- NEVER auto-route to other commands without user confirmation
-- NEVER skip impact analysis - always run both agents
-- ALWAYS update progress file on completion
-- ALWAYS append to review log
-- MUST present classification and let user choose action
+- MUST: 包括的な仕様書/設計書分析は `product-manager` または `code-architect` エージェントに委任する
+- MUST: TRIVIAL 変更はデフォルトで `product-manager` に委任する。直接 Edit はフォールバックのみ（フェーズ 5 参照）
+- ALWAYS: 変更リクエストが曖昧な場合は AskUserQuestion を使用する
+- NEVER: ユーザーの確認なしに他のコマンドに自動ルーティングする
+- NEVER: 影響分析をスキップする - 常に両エージェントを実行
+- MUST: 完了時に進捗ファイルを更新する
+- MUST: レビューログに追記する
+- MUST: 分類を提示し、ユーザーにアクションを選択させる
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-- Launch product-manager and code-architect in parallel for impact analysis
-- Present classification matrix rationale to help user understand
-- Offer feedback loop for additional changes after completion
-- For MEDIUM/LARGE/NEW, recommend but don't force the appropriate command
+- 影響分析のために product-manager と code-architect を並列起動
+- ユーザーの理解を助けるために分類マトリクスの根拠を提示
+- 完了後に追加変更のフィードバックループを提示
+- MEDIUM/LARGE/NEW では適切なコマンドを推奨するが強制しない
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-- Consider showing relevant parts of spec/design when presenting current state
-- Prefer explaining trade-offs when user wants to override classification
-- Consider offering to save change requests for later if user is unsure
+- consider: 現在の状態を提示する際に仕様書/設計書の関連部分を表示する
+- recommend: ユーザーが分類をオーバーライドしたい場合はトレードオフを説明する
+- consider: ユーザーが迷っている場合は変更リクエストの後回しを提案する

@@ -1,10 +1,10 @@
 ---
-description: "Diagnose and fix CI/CD pipeline failures with systematic log analysis and targeted fixes (Requires: GitHub CLI 'gh' for GitHub Actions)"
-argument-hint: "[optional: CI URL, job name, or error message]"
+description: "CI/CD パイプラインの障害を体系的なログ分析と的確な修正で診断・解決する（必要条件: GitHub Actions 用の GitHub CLI 'gh'）"
+argument-hint: "[任意: CI の URL、ジョブ名、またはエラーメッセージ]"
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoWrite, WebFetch
 ---
 
-# /ci-fix - CI/CD Failure Resolution
+# /ci-fix - CI/CD 障害解決
 
 ## Language Mode
 
@@ -12,507 +12,507 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, AskUserQuestion, Task, TodoW
 
 ---
 
-Systematically diagnose and fix CI/CD pipeline failures by analyzing logs, identifying root causes, and implementing targeted fixes.
+CI/CD パイプラインの障害をログ分析により体系的に診断し、根本原因を特定して的確な修正を実施する。
 
-## Purpose
+## 目的
 
-CI failures are a common interruption in development workflows. This command provides a structured approach to:
+CI の障害は開発ワークフローにおいてよくある中断要因である。このコマンドは以下の構造化されたアプローチを提供する:
 
-1. **Analyze** - Parse CI logs to identify failure points
-2. **Diagnose** - Determine root cause (test failure, lint error, build issue, environment problem)
-3. **Fix** - Implement targeted fixes for identified issues
-4. **Verify** - Confirm fixes locally before pushing
+1. **分析** - CI ログを解析して障害箇所を特定する
+2. **診断** - 根本原因を判定する（テスト失敗、リントエラー、ビルド問題、環境問題）
+3. **修正** - 特定した問題に対して的確な修正を実施する
+4. **検証** - プッシュ前にローカルで修正を確認する
 
-## When to Use
+## 使用するとき
 
-- CI pipeline failed after push
-- Tests passing locally but failing in CI
-- Build errors in CI environment
-- Lint/format check failures
-- Dependency resolution issues
-- Environment-specific failures
+- プッシュ後に CI パイプラインが失敗した場合
+- ローカルではテストが通るが CI で失敗する場合
+- CI 環境でのビルドエラー
+- リント/フォーマットチェックの失敗
+- 依存関係の解決に関する問題
+- 環境固有の障害
 
-## When NOT to Use
+## 使用しないとき
 
-- For local-only issues (use `/debug` instead)
-- For complex feature implementation (use `/spec-plan`)
-- For urgent production issues (use `/hotfix`)
-
----
-
-## Rules (L1 - Hard)
-
-- NEVER push fixes without running tests locally first
-- NEVER commit secrets or credentials exposed in CI logs
-- ALWAYS verify the fix addresses the root cause, not just symptoms
-
-## Defaults (L2 - Soft)
-
-- Delegate code fixes to specialist agents (qa-engineer, frontend/backend-specialist)
-- Run full CI check suite locally before pushing
-- Document root cause in commit message
-
-## Guidelines (L3)
-
-- Consider if the CI failure reveals a larger systemic issue
-- Prefer auto-fix tools (eslint --fix, black) for lint issues
-- Check if failure is flaky before investing in fixes
+- ローカルのみの問題（代わりに `/debug` を使用）
+- 複雑な機能実装（`/spec-plan` を使用）
+- 緊急の本番障害（`/hotfix` を使用）
 
 ---
 
-## Execution Instructions
+## ルール（L1 - ハード）
 
-### Phase 1: Gather CI Context
+- NEVER: ローカルでテストを実行せずに修正をプッシュしてはならない
+- NEVER: CI ログに露出したシークレットや認証情報をコミットしてはならない
+- ALWAYS: 症状だけでなく根本原因に対処する修正であることを確認する
 
-**Goal:** Understand what failed and where.
+## デフォルト（L2 - ソフト）
 
-**If URL provided (`$ARGUMENTS` contains URL):**
+- コード修正はスペシャリストエージェント（qa-engineer、frontend/backend-specialist）に委任する
+- プッシュ前にローカルで CI チェックスイート全体を実行する
+- コミットメッセージに根本原因を記載する
+
+## ガイドライン（L3）
+
+- consider: CI 障害がより大きなシステム的問題を示唆していないか検討する
+- prefer: リント問題には自動修正ツール（eslint --fix、black）を使用する
+- consider: 修正に着手する前にフレイキーテストでないか確認する
+
+---
+
+## 実行手順
+
+### フェーズ 1: CI コンテキストの収集
+
+**ゴール:** 何がどこで失敗したかを把握する。
+
+**URL が指定された場合（`$ARGUMENTS` に URL が含まれる場合）:**
 
 ```
-Use WebFetch to retrieve CI log content from the provided URL.
-Supported CI platforms: GitHub Actions, GitLab CI, CircleCI, Jenkins, etc.
+WebFetch を使用して指定された URL から CI ログの内容を取得する。
+対応 CI プラットフォーム: GitHub Actions、GitLab CI、CircleCI、Jenkins 等。
 ```
 
-**If job name or error message provided:**
+**ジョブ名またはエラーメッセージが指定された場合:**
 
-Delegate CI configuration discovery to code-explorer:
+code-explorer に CI 設定の探索を委任する:
 
 ```
-Launch code-explorer agent:
-Task: Find CI configuration and recent changes
-Analyze:
-- CI configuration files (.github/workflows/, .gitlab-ci.yml, .circleci/, Jenkinsfile)
-- Recent git history for CI-related changes
-- Match job name or error message to configuration
-Thoroughness: quick
-Output: CI platform, relevant config files, recent CI-related commits
+code-explorer エージェントを起動:
+タスク: CI 設定と最近の変更を検索
+分析内容:
+- CI 設定ファイル（.github/workflows/、.gitlab-ci.yml、.circleci/、Jenkinsfile）
+- CI 関連の最近の git 履歴
+- ジョブ名またはエラーメッセージと設定の照合
+網羅度: quick
+出力: CI プラットフォーム、関連する設定ファイル、最近の CI 関連コミット
 ```
 
-**If no argument:**
+**引数なしの場合:**
 
-Ask user:
+ユーザーに質問する:
 ```
-Question: "What CI failure do you need help with?"
-Header: "CI Info"
+Question: "どの CI 障害について支援が必要ですか？"
+Header: "CI 情報"
 Options:
-- "Tests failing"
-- "Build failing"
-- "Lint/format errors"
-- "Dependency issues"
+- "テストの失敗"
+- "ビルドの失敗"
+- "リント/フォーマットエラー"
+- "依存関係の問題"
 ```
 
-**CRITICAL: After initial category selection, gather specific details:**
+**CRITICAL: カテゴリ選択後、具体的な詳細を収集する:**
 
 ```
-Question: "Please provide more details about the failure."
-Header: "Details"
+Question: "障害の詳細を教えてください。"
+Header: "詳細"
 Options:
-- "Show me the error message from CI"
-- "I'll paste the CI log URL"
-- "The failure is in [specific test/file]"
-- "I'm not sure, help me investigate"
+- "CI のエラーメッセージを表示する"
+- "CI ログの URL を貼り付けます"
+- "障害は [特定のテスト/ファイル] にあります"
+- "よく分からないので調査してほしい"
 ```
 
-If user provides error message or URL, proceed to Phase 2.
-If user says "not sure", delegate discovery to code-explorer with broader scope.
+ユーザーがエラーメッセージまたは URL を提供した場合はフェーズ 2 に進む。
+ユーザーが「よく分からない」と答えた場合は、より広い範囲で code-explorer に探索を委任する。
 
-### Phase 2: Failure Classification
+### フェーズ 2: 障害の分類
 
-**Goal:** Categorize the failure type for targeted resolution.
+**ゴール:** 的確な解決のために障害タイプを分類する。
 
-| Category | Indicators | Resolution Path |
-|----------|------------|-----------------|
-| **Test Failure** | `FAIL`, `AssertionError`, test framework output | Phase 3A |
-| **Build Error** | `error:`, `Cannot find module`, compilation errors | Phase 3B |
-| **Lint/Format** | `eslint`, `prettier`, `black`, style violations | Phase 3C |
-| **Dependency** | `npm ERR!`, `pip install failed`, version conflicts | Phase 3D |
-| **Environment** | `command not found`, path issues, missing env vars | Phase 3E |
-| **Timeout** | `exceeded`, `timed out`, resource limits | Phase 3F |
+| カテゴリ | 指標 | 解決パス |
+|----------|------|----------|
+| **テスト失敗** | `FAIL`、`AssertionError`、テストフレームワークの出力 | フェーズ 3A |
+| **ビルドエラー** | `error:`、`Cannot find module`、コンパイルエラー | フェーズ 3B |
+| **リント/フォーマット** | `eslint`、`prettier`、`black`、スタイル違反 | フェーズ 3C |
+| **依存関係** | `npm ERR!`、`pip install failed`、バージョン競合 | フェーズ 3D |
+| **環境** | `command not found`、パス問題、環境変数の欠落 | フェーズ 3E |
+| **タイムアウト** | `exceeded`、`timed out`、リソース制限 | フェーズ 3F |
 
-**Delegate log analysis to code-explorer:**
+**code-explorer にログ分析を委任する:**
 
 ```
-Launch code-explorer agent:
-Task: Analyze CI log for failure patterns
-Inputs: CI log content (from WebFetch or user)
-Analyze:
-- Exit codes (non-zero indicates failure point)
-- Error messages with file:line references
-- Stack traces
-- "FAILED" or "ERROR" markers
-- Difference between local and CI environment
-Thoroughness: medium
-Output: Failure category, specific error location, suggested resolution path
+code-explorer エージェントを起動:
+タスク: CI ログの障害パターンを分析
+入力: CI ログの内容（WebFetch またはユーザーから取得）
+分析内容:
+- 終了コード（ゼロ以外は障害箇所を示す）
+- file:line 参照付きのエラーメッセージ
+- スタックトレース
+- "FAILED" または "ERROR" マーカー
+- ローカル環境と CI 環境の差異
+網羅度: medium
+出力: 障害カテゴリ、具体的なエラー箇所、推奨される解決パス
 ```
 
-Use the agent's output for classification. Do NOT analyze logs manually.
+エージェントの出力を分類に使用する。ログを手動で分析してはならない。
 
-**CRITICAL: Present classification result to user for confirmation:**
+**CRITICAL: 分類結果をユーザーに確認のため提示する:**
 
 ```markdown
-## Failure Analysis Result
+## 障害分析結果
 
-**Category:** [Failure category from agent]
-**Error Location:** [file:line from agent output]
-**Root Cause Hypothesis:** [agent's suggested cause]
+**カテゴリ:** [エージェントによる障害カテゴリ]
+**エラー箇所:** [エージェント出力の file:line]
+**根本原因の仮説:** [エージェントが提示した原因]
 
-**Suggested Resolution Path:** Phase 3[X] - [description]
+**推奨される解決パス:** フェーズ 3[X] - [説明]
 ```
 
-Use AskUserQuestion to confirm:
+AskUserQuestion で確認する:
 ```
-Question: "Does this diagnosis match what you're seeing?"
-Header: "Confirm Diagnosis"
+Question: "この診断はあなたの状況と合っていますか？"
+Header: "診断の確認"
 Options:
-- "Yes, proceed with this diagnosis"
-- "Partially correct - let me add context"
-- "No, the issue is different"
-- "I need more investigation first"
+- "はい、この診断で進めてください"
+- "部分的に正しいです - 補足情報を追加します"
+- "いいえ、問題は別のところにあります"
+- "まずもっと調査が必要です"
 ```
 
-If user chooses "Partially correct" or "No", gather additional context before proceeding.
-If user chooses "need more investigation", re-run code-explorer with broader scope.
+ユーザーが「部分的に正しい」または「いいえ」を選んだ場合は、追加のコンテキストを収集してから進める。
+ユーザーが「もっと調査が必要」を選んだ場合は、より広い範囲で code-explorer を再実行する。
 
-### Phase 3A: Test Failure Resolution
+### フェーズ 3A: テスト失敗の解決
 
-**Goal:** Identify and fix failing tests.
+**ゴール:** 失敗しているテストを特定して修正する。
 
-**CRITICAL: Delegate ALL test analysis and reproduction to qa-engineer agent:**
-
-```
-Launch qa-engineer agent:
-Task: Analyze and diagnose test failure from CI
-Inputs:
-  - CI log content (from Phase 2 analysis)
-  - Test framework type (jest, pytest, etc.)
-Do:
-  1. Extract failing test info (file, name, expected vs actual, stack trace)
-  2. Reproduce locally by running the specific failing test
-  3. Analyze the difference (flaky, environment, recent code change)
-  4. Check for flaky test indicators by running multiple times
-  5. Categorize the issue (test logic, code bug, flaky test, environment)
-Output:
-  - Root cause analysis
-  - Reproduction results
-  - Recommended fix approach
-  - If flaky: specific pattern detected and suggested fix
-```
-
-Do NOT extract test info or run tests directly in the parent context. Use the agent's output for next steps.
-
-**Based on qa-engineer analysis:**
-
-| Agent's Diagnosis | Next Step |
-|-------------------|-----------|
-| Test logic issue | Agent provides fix, review and apply |
-| Code bug | Delegate to appropriate specialist with qa-engineer's analysis |
-| Flaky test | Agent applies testing skill patterns (explicit waits, data isolation, mocking) |
-| Environment issue | Proceed to Phase 3E |
-
-**Flaky test reference:**
-qa-engineer has the `testing` skill which includes:
-- **Detection patterns**: Local and CI-based flaky test detection
-- **Common causes and solutions**: Timing dependencies, shared state, race conditions
-- **Fix strategies**: Explicit waits, test data isolation, time mocking, random seeding
-- **Quarantine protocol**: How to skip flaky tests safely with proper tracking
-- **CI retry strategies**: Framework-specific retry options
-
-### Phase 3B: Build Error Resolution
-
-**Goal:** Fix compilation or build errors.
-
-**CRITICAL: Delegate build error analysis and reproduction to appropriate specialist:**
+**CRITICAL: テスト分析と再現はすべて qa-engineer エージェントに委任する:**
 
 ```
-Launch backend-specialist agent (or frontend-specialist for UI build issues):
-Task: Analyze and fix CI build error
-Inputs:
-  - CI log content (from Phase 2 analysis)
-  - Build system type (TypeScript/webpack/vite/Docker/etc.)
-Do:
-  1. Identify build step that failed (compilation, bundling, Docker)
-  2. Reproduce build locally (npm ci && npm run build or equivalent)
-  3. Analyze the error:
-     - Type errors → Fix type definitions
-     - Module not found → Check imports, install deps
-     - Syntax error → Fix at indicated line
-     - Memory exceeded → Suggest optimization
-  4. Implement the fix
-Output:
-  - Root cause analysis
-  - Reproduction results
-  - Changes made to fix the issue
+qa-engineer エージェントを起動:
+タスク: CI からのテスト失敗を分析・診断
+入力:
+  - CI ログの内容（フェーズ 2 の分析から）
+  - テストフレームワークの種類（jest、pytest 等）
+実行内容:
+  1. 失敗テストの情報を抽出（ファイル、テスト名、期待値 vs 実際値、スタックトレース）
+  2. 特定の失敗テストを実行してローカルで再現
+  3. 差異を分析（フレイキー、環境、最近のコード変更）
+  4. 複数回実行してフレイキーテストの兆候を確認
+  5. 問題を分類（テストロジック、コードバグ、フレイキーテスト、環境）
+出力:
+  - 根本原因分析
+  - 再現結果
+  - 推奨される修正アプローチ
+  - フレイキーの場合: 検出された具体的なパターンと修正案
 ```
 
-Do NOT run build commands directly in the parent context. Use the agent's output for next steps.
+親コンテキストでテスト情報の抽出やテスト実行を直接行ってはならない。次のステップにはエージェントの出力を使用する。
 
-**Common patterns reference:**
+**qa-engineer の分析に基づく対応:**
 
-| Error Type | Typical Cause | Fix |
-|------------|---------------|-----|
-| Type errors | Missing types, wrong imports | Fix type definitions |
-| Module not found | Missing dependency, wrong path | Check imports, install deps |
-| Syntax error | Invalid code | Fix syntax at indicated line |
-| Memory exceeded | Large build, inefficient bundling | Optimize or increase limit |
+| エージェントの診断結果 | 次のステップ |
+|----------------------|-------------|
+| テストロジックの問題 | エージェントが修正を提供、レビューして適用 |
+| コードバグ | qa-engineer の分析を添えて適切なスペシャリストに委任 |
+| フレイキーテスト | エージェントが testing スキルのパターンを適用（明示的待機、データ分離、モック） |
+| 環境の問題 | フェーズ 3E に進む |
 
-### Phase 3C: Lint/Format Error Resolution
+**フレイキーテストのリファレンス:**
+qa-engineer は以下を含む `testing` スキルを持つ:
+- **検出パターン**: ローカルおよび CI ベースのフレイキーテスト検出
+- **よくある原因と解決策**: タイミング依存、共有状態、レースコンディション
+- **修正戦略**: 明示的待機、テストデータ分離、時間モック、ランダムシード
+- **隔離プロトコル**: 適切な追跡付きでフレイキーテストを安全にスキップする方法
+- **CI リトライ戦略**: フレームワーク別のリトライオプション
 
-**Goal:** Fix code style violations.
+### フェーズ 3B: ビルドエラーの解決
 
-**CRITICAL: Delegate lint/format analysis and auto-fix to qa-engineer agent:**
+**ゴール:** コンパイルまたはビルドエラーを修正する。
 
-```
-Launch qa-engineer agent:
-Task: Analyze and fix CI lint/format errors
-Inputs:
-  - CI log content (from Phase 2 analysis)
-  - Linter type (eslint/prettier/black/flake8/etc.)
-Do:
-  1. Run linter locally to reproduce (npm run lint / python -m black --check / etc.)
-  2. Apply auto-fix where possible (npm run lint -- --fix / python -m black . / etc.)
-  3. For remaining issues that cannot be auto-fixed:
-     - Review each violation
-     - Fix manually or add justified ignore comment
-  4. Verify all lint checks pass after fixes
-Output:
-  - List of violations found
-  - Auto-fixes applied
-  - Manual fixes applied
-  - Remaining issues (if any) with justification
-```
-
-Do NOT run lint commands directly in the parent context. Use the agent's output for next steps.
-
-### Phase 3D: Dependency Resolution
-
-**Goal:** Fix package/dependency issues.
-
-**CRITICAL: Delegate dependency analysis and resolution to backend-specialist agent:**
+**CRITICAL: ビルドエラーの分析と再現は適切なスペシャリストに委任する:**
 
 ```
-Launch backend-specialist agent:
-Task: Analyze and fix CI dependency issues
-Inputs:
-  - CI log content (from Phase 2 analysis)
-  - Package manager type (npm/yarn/pip/etc.)
-Do:
-  1. Diagnose the issue:
-     - Version conflict → Update or use resolutions
-     - Missing peer dep → Install explicitly
-     - Lock file mismatch → Regenerate lock file
-     - Private package → Flag auth issue for CI secrets
-  2. Apply fix:
-     - For lock file issues: regenerate (rm -rf node_modules && npm install)
-     - For version conflicts: update package.json or add resolutions
-     - For peer deps: add explicit dependency
-  3. Verify dependencies install cleanly
-Output:
-  - Root cause identified
-  - Fix applied
-  - If auth issue: instructions for CI secrets configuration
+backend-specialist エージェントを起動（UI ビルドの問題は frontend-specialist）:
+タスク: CI ビルドエラーを分析・修正
+入力:
+  - CI ログの内容（フェーズ 2 の分析から）
+  - ビルドシステムの種類（TypeScript/webpack/vite/Docker 等）
+実行内容:
+  1. 失敗したビルドステップを特定（コンパイル、バンドル、Docker）
+  2. ローカルでビルドを再現（npm ci && npm run build または同等コマンド）
+  3. エラーを分析:
+     - 型エラー → 型定義を修正
+     - モジュール未検出 → インポートを確認、依存関係をインストール
+     - 構文エラー → 指示された行で修正
+     - メモリ超過 → 最適化を提案
+  4. 修正を実施
+出力:
+  - 根本原因分析
+  - 再現結果
+  - 問題を修正するために行った変更
 ```
 
-Do NOT run dependency commands directly in the parent context. Use the agent's output for next steps.
+親コンテキストでビルドコマンドを直接実行してはならない。次のステップにはエージェントの出力を使用する。
 
-**Common issues reference:**
+**よくあるパターンのリファレンス:**
 
-| Issue | Diagnosis | Resolution |
-|-------|-----------|------------|
-| Version conflict | Multiple packages need different versions | Update or use resolutions |
-| Missing peer dep | Peer dependency not installed | Install explicitly |
-| Lock file mismatch | package-lock.json out of sync | Regenerate lock file |
-| Private package | Auth issue in CI | Check CI secrets |
+| エラータイプ | 一般的な原因 | 修正 |
+|-------------|-------------|------|
+| 型エラー | 型の欠落、誤ったインポート | 型定義を修正 |
+| モジュール未検出 | 依存関係の欠落、パスの誤り | インポートを確認、依存関係をインストール |
+| 構文エラー | 不正なコード | 指示された行で構文を修正 |
+| メモリ超過 | 大規模ビルド、非効率なバンドル | 最適化またはリミット引き上げ |
 
-### Phase 3E: Environment Issues
+### フェーズ 3C: リント/フォーマットエラーの解決
 
-**Goal:** Fix CI environment configuration.
+**ゴール:** コードスタイル違反を修正する。
 
-**Delegate environment comparison to code-explorer agent:**
+**CRITICAL: リント/フォーマットの分析と自動修正は qa-engineer エージェントに委任する:**
 
 ```
-Launch code-explorer agent:
-Task: Compare local environment with CI configuration
-Analyze:
-  - CI configuration files (.github/workflows/, .gitlab-ci.yml, etc.)
-  - Specified runtime versions (Node, Python, Go, etc.)
-  - Environment variable usage
-  - System dependency requirements
-Compare with local:
-  - Local runtime versions (node -v, python --version, etc.)
-  - Differences in environment setup
-Thoroughness: medium
-Output:
-  - Environment differences found
-  - Specific version mismatches
-  - Missing environment variables or dependencies
+qa-engineer エージェントを起動:
+タスク: CI リント/フォーマットエラーを分析・修正
+入力:
+  - CI ログの内容（フェーズ 2 の分析から）
+  - リンターの種類（eslint/prettier/black/flake8 等）
+実行内容:
+  1. ローカルでリンターを実行して再現（npm run lint / python -m black --check 等）
+  2. 可能な箇所に自動修正を適用（npm run lint -- --fix / python -m black . 等）
+  3. 自動修正できない残りの問題について:
+     - 各違反をレビュー
+     - 手動で修正するか、正当な理由付きの無視コメントを追加
+  4. 修正後にすべてのリントチェックが通ることを確認
+出力:
+  - 検出された違反のリスト
+  - 適用された自動修正
+  - 適用された手動修正
+  - 残存する問題（ある場合）と理由
 ```
 
-Do NOT read CI configuration files directly in the parent context. Use the agent's analysis for next steps.
+親コンテキストでリントコマンドを直接実行してはならない。次のステップにはエージェントの出力を使用する。
 
-**Common fixes (based on agent's analysis):**
-- Pin runtime version in CI config
-- Add missing environment variables to CI secrets
-- Install required system dependencies
+### フェーズ 3D: 依存関係の解決
 
-### Phase 3F: Timeout/Resource Issues
+**ゴール:** パッケージ/依存関係の問題を修正する。
 
-**Goal:** Optimize or increase resource limits.
+**CRITICAL: 依存関係の分析と解決は backend-specialist エージェントに委任する:**
 
-1. **Identify bottleneck:**
-   - Which step is slow?
-   - Memory or CPU bound?
+```
+backend-specialist エージェントを起動:
+タスク: CI 依存関係の問題を分析・修正
+入力:
+  - CI ログの内容（フェーズ 2 の分析から）
+  - パッケージマネージャーの種類（npm/yarn/pip 等）
+実行内容:
+  1. 問題を診断:
+     - バージョン競合 → 更新または resolutions を使用
+     - ピア依存関係の欠落 → 明示的にインストール
+     - ロックファイルの不一致 → ロックファイルを再生成
+     - プライベートパッケージ → CI シークレットの認証問題をフラグ
+  2. 修正を適用:
+     - ロックファイルの問題: 再生成（rm -rf node_modules && npm install）
+     - バージョン競合: package.json を更新または resolutions を追加
+     - ピア依存関係: 明示的な依存関係を追加
+  3. 依存関係が正常にインストールされることを確認
+出力:
+  - 特定された根本原因
+  - 適用された修正
+  - 認証問題の場合: CI シークレット設定の手順
+```
 
-2. **Options:**
-   - Parallelize tests
-   - Add caching
-   - Increase timeout/memory limit
-   - Split into multiple jobs
+親コンテキストで依存関係コマンドを直接実行してはならない。次のステップにはエージェントの出力を使用する。
+
+**よくある問題のリファレンス:**
+
+| 問題 | 診断 | 解決策 |
+|------|------|--------|
+| バージョン競合 | 複数パッケージが異なるバージョンを要求 | 更新または resolutions を使用 |
+| ピア依存関係の欠落 | ピア依存関係が未インストール | 明示的にインストール |
+| ロックファイルの不一致 | package-lock.json が同期していない | ロックファイルを再生成 |
+| プライベートパッケージ | CI での認証問題 | CI シークレットを確認 |
+
+### フェーズ 3E: 環境の問題
+
+**ゴール:** CI 環境設定を修正する。
+
+**code-explorer エージェントに環境比較を委任する:**
+
+```
+code-explorer エージェントを起動:
+タスク: ローカル環境と CI 設定を比較
+分析内容:
+  - CI 設定ファイル（.github/workflows/、.gitlab-ci.yml 等）
+  - 指定されたランタイムバージョン（Node、Python、Go 等）
+  - 環境変数の使用状況
+  - システム依存関係の要件
+ローカルとの比較:
+  - ローカルのランタイムバージョン（node -v、python --version 等）
+  - 環境設定の差異
+網羅度: medium
+出力:
+  - 検出された環境の差異
+  - 具体的なバージョンの不一致
+  - 欠落している環境変数や依存関係
+```
+
+親コンテキストで CI 設定ファイルを直接読んではならない。次のステップにはエージェントの分析を使用する。
+
+**よくある修正（エージェントの分析に基づく）:**
+- CI 設定でランタイムバージョンを固定する
+- CI シークレットに不足している環境変数を追加する
+- 必要なシステム依存関係をインストールする
+
+### フェーズ 3F: タイムアウト/リソースの問題
+
+**ゴール:** 最適化またはリソースリミットの引き上げを行う。
+
+1. **ボトルネックの特定:**
+   - どのステップが遅いか？
+   - メモリバウンドか CPU バウンドか？
+
+2. **対応策:**
+   - テストの並列化
+   - キャッシュの追加
+   - タイムアウト/メモリリミットの引き上げ
+   - 複数ジョブへの分割
 
 ---
 
-### Phase 4: Implement Fix
+### フェーズ 4: 修正の実施
 
-**Goal:** Apply the identified fix.
+**ゴール:** 特定された修正を適用する。
 
-**IMPORTANT:** ALWAYS delegate implementation to appropriate specialist agents.
-
-```
-Launch Task tool with appropriate specialist:
-
-For test fixes → qa-engineer
-For code changes → frontend-specialist or backend-specialist
-For CI config changes → backend-specialist (model: haiku for simple fixes)
-
-Prompt:
-CI fix required.
-File: [file path]
-Issue: [error from CI log]
-Fix needed: [specific change]
-
-Include relevant CI log context in the prompt.
-```
-
-**Direct modification allowed ONLY for:**
-- Single-line environment variable changes in CI config
-- Version number updates (e.g., Node version in workflow)
-
-**After implementing:**
-
-1. Run the same checks locally that CI runs
-2. Verify the fix addresses the root cause
-3. Check for any side effects
-
-### Phase 5: Local Verification
-
-**Goal:** Confirm fix works before pushing.
-
-**CRITICAL: Delegate local verification to qa-engineer agent:**
+**IMPORTANT:** 実装は常に適切なスペシャリストエージェントに委任する。
 
 ```
-Launch qa-engineer agent:
-Task: Run full CI verification locally
-Inputs:
-  - CI configuration (from Phase 1)
-  - Changes made (from Phase 4)
-Do:
-  1. Run the same checks that CI runs:
-     - Install dependencies (npm ci / pip install / etc.)
-     - Run linter (npm run lint / etc.)
-     - Run tests (npm test / pytest / etc.)
-     - Run build (npm run build / etc.)
-  2. Verify all checks pass
-  3. Check for any side effects from the fix
-Output:
-  - Verification status for each check (PASS/FAIL)
-  - If FAIL: specific error details
-  - Confirmation fix addresses root cause
+Task ツールで適切なスペシャリストを起動:
+
+テスト修正 → qa-engineer
+コード変更 → frontend-specialist または backend-specialist
+CI 設定変更 → backend-specialist（単純な修正は model: haiku）
+
+プロンプト:
+CI 修正が必要です。
+ファイル: [ファイルパス]
+問題: [CI ログからのエラー]
+必要な修正: [具体的な変更内容]
+
+関連する CI ログのコンテキストをプロンプトに含める。
 ```
 
-Do NOT run CI check commands directly in the parent context. Use the agent's output for summary.
+**直接変更が許可されるのは以下の場合のみ:**
+- CI 設定内の1行の環境変数変更
+- バージョン番号の更新（例: ワークフロー内の Node バージョン）
 
-**If verification passes:**
+**実施後:**
+
+1. CI が実行するのと同じチェックをローカルで実行する
+2. 修正が根本原因に対処していることを確認する
+3. 副作用がないか確認する
+
+### フェーズ 5: ローカル検証
+
+**ゴール:** プッシュ前に修正が機能することを確認する。
+
+**CRITICAL: ローカル検証は qa-engineer エージェントに委任する:**
+
+```
+qa-engineer エージェントを起動:
+タスク: ローカルで CI 検証をフル実行
+入力:
+  - CI 設定（フェーズ 1 から）
+  - 変更内容（フェーズ 4 から）
+実行内容:
+  1. CI が実行するのと同じチェックを実行:
+     - 依存関係のインストール（npm ci / pip install 等）
+     - リンターの実行（npm run lint 等）
+     - テストの実行（npm test / pytest 等）
+     - ビルドの実行（npm run build 等）
+  2. すべてのチェックが通ることを確認
+  3. 修正による副作用がないか確認
+出力:
+  - 各チェックの検証ステータス（PASS/FAIL）
+  - FAIL の場合: 具体的なエラー詳細
+  - 修正が根本原因に対処していることの確認
+```
+
+親コンテキストで CI チェックコマンドを直接実行してはならない。サマリーにはエージェントの出力を使用する。
+
+**検証が通った場合:**
 
 ```markdown
-## CI Fix Summary
+## CI 修正サマリー
 
-### Failure Type
-[Category from Phase 2]
+### 障害タイプ
+[フェーズ 2 のカテゴリ]
 
-### Root Cause
-[Brief explanation of why CI was failing]
+### 根本原因
+[CI が失敗していた理由の簡潔な説明]
 
-### Fix Applied
-| File | Change |
-|------|--------|
-| `path/to/file` | [Description] |
+### 適用された修正
+| ファイル | 変更内容 |
+|---------|---------|
+| `path/to/file` | [説明] |
 
-### Verification
-- [ ] Local tests pass
-- [ ] Local build succeeds
-- [ ] Local lint passes
+### 検証
+- [ ] ローカルテスト合格
+- [ ] ローカルビルド成功
+- [ ] ローカルリント合格
 
-### Ready to Push
-The fix has been verified locally. Push to trigger CI again.
+### プッシュ準備完了
+修正はローカルで検証済みです。プッシュして CI を再度トリガーしてください。
 ```
 
-### Phase 6: User Decision
+### フェーズ 6: ユーザーの判断
 
-Ask user:
+ユーザーに質問する:
 ```
-Question: "CI fix ready. What would you like to do?"
-Header: "Action"
+Question: "CI 修正の準備ができました。どうしますか？"
+Header: "アクション"
 Options:
-- "Commit and push" (Recommended)
-- "Show me the changes first"
-- "Run more local tests"
-- "I'll push manually"
+- "コミットしてプッシュする"（推奨）
+- "まず変更内容を確認したい"
+- "追加のローカルテストを実行する"
+- "手動でプッシュします"
 ```
 
 ---
 
-## CI Platform-Specific Tips
+## CI プラットフォーム別のヒント
 
 ### GitHub Actions
 
 ```bash
-# View workflow runs
+# ワークフロー実行一覧を表示
 gh run list
 
-# View specific run logs
+# 特定の実行ログを表示
 gh run view [run-id] --log
 
-# Re-run failed jobs
+# 失敗したジョブを再実行
 gh run rerun [run-id] --failed
 ```
 
 ### GitLab CI
 
 ```bash
-# Check pipeline status
+# パイプラインのステータスを確認
 glab ci status
 
-# View job logs
+# ジョブログを表示
 glab ci trace [job-id]
 ```
 
 ---
 
-## Common CI Failure Patterns
+## よくある CI 障害パターン
 
-| Pattern | Likely Cause | Quick Check |
-|---------|--------------|-------------|
-| Works locally, fails in CI | Environment diff | Compare versions, env vars |
-| Intermittent failures | Flaky test, race condition | Run test multiple times |
-| Fails on specific file | That file has issues | Focus on changed lines |
-| All tests fail | Setup issue, config problem | Check CI setup steps |
-| Timeout | Slow tests, resource limit | Profile test duration |
+| パターン | 考えられる原因 | 確認方法 |
+|---------|--------------|---------|
+| ローカルでは動くが CI で失敗 | 環境の差異 | バージョン、環境変数を比較 |
+| 断続的な障害 | フレイキーテスト、レースコンディション | テストを複数回実行 |
+| 特定のファイルで失敗 | そのファイルに問題あり | 変更された行に注目 |
+| 全テストが失敗 | セットアップの問題、設定の問題 | CI セットアップステップを確認 |
+| タイムアウト | 遅いテスト、リソース制限 | テスト実行時間をプロファイリング |
 
 ---
 
-## Integration with Other Commands
+## 他のコマンドとの連携
 
-| Scenario | Command |
-|----------|---------|
-| CI failure needs deeper debugging | Start with `/ci-fix`, escalate to `/debug` |
-| CI failure reveals code issue | `/ci-fix` diagnoses, then `/quick-impl` or `/spec-plan` to fix |
-| CI fix needs review | After `/ci-fix`, run `/code-review staged` |
+| シナリオ | コマンド |
+|---------|---------|
+| CI 障害をより深くデバッグする必要がある場合 | `/ci-fix` で開始し、`/debug` にエスカレーション |
+| CI 障害がコードの問題を示す場合 | `/ci-fix` で診断、その後 `/quick-impl` または `/spec-plan` で修正 |
+| CI 修正のレビューが必要な場合 | `/ci-fix` 後に `/code-review staged` を実行 |

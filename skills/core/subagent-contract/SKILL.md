@@ -1,422 +1,422 @@
 ---
 name: subagent-contract
 description: |
-  Standardized communication protocol for orchestrators AND subagents.
-  Defines rules, responsibilities, and result formats for the delegation system.
+  オーケストレーターとサブエージェントのための標準化された通信プロトコル。
+  委任システムのルール、責任、結果フォーマットを定義。
 
-  Use when:
-  - Writing or maintaining command files (orchestrator rules)
-  - Defining new subagent behaviors (subagent rules)
-  - Aggregating results from multiple agents
-  - Understanding delegation constraints
-  - Handling agent failures (error handling section)
+  使用場面:
+  - コマンドファイルの作成・メンテナンス（オーケストレータールール）
+  - 新しいサブエージェント動作の定義（サブエージェントルール）
+  - 複数エージェントからの結果の集約
+  - 委任の制約の理解
+  - エージェント障害の処理（エラーハンドリングセクション）
 
   Trigger phrases: subagent format, agent output, result format, orchestrator rules, delegation protocol
 
-  This skill defines the CONTRACT between orchestrator and subagents - both sides.
+  このスキルはオーケストレーターとサブエージェント間の契約を定義する - 双方のルール。
 allowed-tools: Read
 model: sonnet
 user-invocable: false
 ---
 
-# Subagent Communication Contract
+# サブエージェント通信契約
 
-A standardized protocol for subagent inputs, outputs, and error handling to ensure consistent orchestration.
+一貫したオーケストレーションを確保するための、サブエージェントの入出力とエラーハンドリングの標準化プロトコル。
 
-## Why Standardization Matters
+## 標準化が重要な理由
 
-From Claude Code Best Practices:
+Claude Code Best Practices より:
 
 > "Subagents use their own isolated context windows, and only send relevant information back to the orchestrator."
 
-Standardized formats enable:
-- Efficient aggregation of multiple agent outputs
-- Consistent error handling
-- Predictable parsing and processing
-- Clear expectations for both agents
+標準化されたフォーマットにより:
+- 複数エージェント出力の効率的な集約
+- 一貫したエラーハンドリング
+- 予測可能な解析と処理
+- 双方への明確な期待
 
-## Result Format Specification
+## 結果フォーマット仕様
 
-### Universal Result Structure
+### 汎用結果構造
 
-All subagent results MUST follow this structure:
+すべてのサブエージェント結果はこの構造に従う:
 
 ```markdown
-## [Agent Name] Result
+## [エージェント名] 結果
 
-### Status
+### ステータス
 [SUCCESS | PARTIAL | FAILED]
 
-### Summary
-[2-3 sentence summary of what was accomplished or found]
+### サマリー
+[達成したこと、または発見したことの 2-3 文の要約]
 
-### Findings
-[Structured content specific to agent type - see below]
+### 調査結果
+[エージェントタイプ固有の構造化コンテンツ - 下記参照]
 
-### Key References
-| Item | Location | Relevance |
-|------|----------|-----------|
-| [Name] | `file:line` | [Why important] |
+### 主要な参照
+| 項目 | 場所 | 関連性 |
+|------|------|--------|
+| [名前] | `file:line` | [重要な理由] |
 
-### Confidence
-[0-100] - [Brief justification]
+### 信頼度
+[0-100] - [簡潔な根拠]
 
-### Issues (if any)
-- [Issue 1]: [Description] | Severity: [critical/important/minor]
-- [Issue 2]: [Description] | Severity: [critical/important/minor]
+### 問題（ある場合）
+- [問題 1]: [説明] | 重大度: [critical/important/minor]
+- [問題 2]: [説明] | 重大度: [critical/important/minor]
 
-### Next Steps (if applicable)
-1. [Recommended action 1]
-2. [Recommended action 2]
+### 次のステップ（該当する場合）
+1. [推奨アクション 1]
+2. [推奨アクション 2]
 
-### Blockers (if any)
-- [Blocker description] | Resolution: [What's needed]
+### ブロッカー（ある場合）
+- [ブロッカーの説明] | 解決策: [必要なこと]
 ```
 
-## Agent-Specific Formats
+## エージェント固有のフォーマット
 
-See `reference.md` for detailed examples for each agent type:
-- Exploration Agents (code-explorer, Explore)
-- Design Agents (code-architect, system-architect)
-- Review Agents (qa-engineer, security-auditor)
-- Implementation Agents (frontend-specialist, backend-specialist)
-- Error Result Format
+各エージェントタイプの詳細な例は `reference.md` を参照:
+- 探索エージェント（code-explorer, Explore）
+- 設計エージェント（code-architect, system-architect）
+- レビューエージェント（qa-engineer, security-auditor）
+- 実装エージェント（frontend-specialist, backend-specialist）
+- エラー結果フォーマット
 
-## Confidence Score Guidelines
+## 信頼度スコアガイドライン
 
-| Score | Meaning | Evidence Required |
-|-------|---------|-------------------|
-| 95-100 | Certain | Direct code evidence, verified by execution |
-| 85-94 | High | Clear code evidence, consistent patterns |
-| 75-84 | Moderate | Some evidence, reasonable inference |
-| 60-74 | Low | Limited evidence, assumptions made |
-| <60 | Uncertain | Speculation, should request clarification |
+| スコア | 意味 | 必要な証拠 |
+|--------|------|-----------|
+| 95-100 | 確実 | 直接のコード証拠、実行で検証済み |
+| 85-94 | 高 | 明確なコード証拠、一貫したパターン |
+| 75-84 | 中程度 | ある程度の証拠、合理的な推論 |
+| 60-74 | 低 | 限られた証拠、仮定あり |
+| <60 | 不確実 | 推測、明確化を求めるべき |
 
-## Aggregation Protocol
+## 集約プロトコル
 
-When orchestrator receives multiple subagent results:
+オーケストレーターが複数のサブエージェント結果を受信した場合:
 
-### 1. Status Aggregation
-
-```
-All SUCCESS → Continue to next phase
-Any FAILED → Handle error, possibly retry
-Any PARTIAL → Review findings, decide path
-```
-
-### 2. Issue Deduplication
+### 1. ステータス集約
 
 ```
-Same file:line + same category → Keep highest confidence
-Multiple agents report same issue → Boost confidence +10 (max 100)
-Conflicting findings → Flag for human review
+すべて SUCCESS → 次のフェーズへ進行
+いずれか FAILED → エラー処理、リトライの可能性
+いずれか PARTIAL → 調査結果をレビューし、方針を決定
 ```
 
-### 3. Confidence Weighting
+### 2. 問題の重複排除
 
 ```
-Combined confidence = weighted average by agent expertise
-
-Example:
-- security-auditor says SEC-001 (conf: 95)
-- qa-engineer also flags (conf: 78)
-- Combined: (95 + 78) / 2 + 10 (agreement bonus) = 96.5
+同じ file:line + 同じカテゴリ → 最高信頼度を保持
+複数エージェントが同じ問題を報告 → 信頼度 +10（最大 100）
+矛盾する調査結果 → 人間のレビューにフラグ
 ```
 
-## Rules for Orchestrators
+### 3. 信頼度の重み付け
 
-The orchestrator (command executor) has specific responsibilities and constraints to maintain efficient context usage and delegation consistency.
+```
+統合信頼度 = エージェントの専門性による加重平均
 
-### Rules (L1 - Hard)
+例:
+- security-auditor が SEC-001 を報告（信頼度: 95）
+- qa-engineer も同様にフラグ（信頼度: 78）
+- 統合: (95 + 78) / 2 + 10（一致ボーナス）= 96.5
+```
 
-Critical for context protection and delegation consistency.
+## オーケストレーターのルール
 
-- **MUST delegate bulk Grep/Glob operations to `code-explorer`** - Use directly only for single targeted lookups (≤3 files)
-- **NEVER read more than 3 files directly** - Delegate bulk reading to subagents
-- **NEVER implement code yourself** - Delegate to specialist agents (frontend-specialist, backend-specialist, qa-engineer)
-- **NEVER write tests yourself** - Delegate to `qa-engineer`
-- **NEVER do security analysis yourself** - Delegate to `security-auditor`
-- **NEVER edit spec/design files directly** - Delegate to `product-manager` (exception: TRIVIAL edits, see below)
-- **ALWAYS wait for subagent completion** before synthesizing results
-- **ALWAYS use subagent output** for context - do not re-read files the subagent already analyzed
+オーケストレーター（コマンド実行者）には、効率的なコンテキスト使用と委任の一貫性を維持するための固有の責任と制約がある。
 
-### Quick Lookup Definition (L1 - Required)
+### ルール（L1 - ハード）
 
-**Quick lookup** is the ONLY direct file read allowed for orchestrators. ALL conditions must be met:
+コンテキスト保護と委任の一貫性にとって重要。
 
-| Criterion | Limit | Rationale |
-|-----------|-------|-----------|
-| **File count** | ≤3 files | Beyond 3 files = delegate to agent |
-| **Line count per file** | ≤200 lines | Beyond 200 lines = delegate to agent |
-| **Total lines read** | ≤300 lines | Aggregate limit for context protection |
-| **Purpose** | Single value/section confirmation | NOT analysis, NOT comprehension |
-| **Time** | <10 seconds | If longer, should have been delegated |
+- MUST: 大量の Grep/Glob 操作は `code-explorer` に委任 - 直接使用は単一の絞られた検索のみ（3 ファイル以下）
+- NEVER: 3 ファイル以上を直接読まない - 大量読み取りはサブエージェントに委任
+- NEVER: 自身でコードを実装しない - スペシャリストエージェントに委任（frontend-specialist, backend-specialist, qa-engineer）
+- NEVER: 自身でテストを書かない - `qa-engineer` に委任
+- NEVER: 自身でセキュリティ分析をしない - `security-auditor` に委任
+- NEVER: 仕様/設計ファイルを直接編集しない - `product-manager` に委任（例外: TRIVIAL 編集、下記参照）
+- ALWAYS: サブエージェント完了を待ってから結果を統合
+- ALWAYS: サブエージェント出力をコンテキストとして使用 - サブエージェントが既に分析したファイルを再読み込みしない
 
-**Examples of quick lookups (ALLOWED):**
-- Confirming a timeout value: "What's the CACHE_TTL setting?"
-- Checking a specific function exists: "Is `validateEmail` defined here?"
-- Verifying acceptance criteria for ONE feature
-- Reading a single config section
+### クイックルックアップの定義（L1 - 必須）
 
-**Examples that are NOT quick lookups (MUST DELEGATE):**
-- Understanding overall architecture
-- Analyzing trade-offs or design decisions
-- Identifying integration points across features
-- Reading multiple related files for context
-- Summarizing a document
+**クイックルックアップ**はオーケストレーターに許可される唯一の直接ファイル読み取り。すべての条件を満たす必要がある:
 
-**Unified line limits across commands:**
-| Context | Direct Read Limit |
-|---------|-------------------|
-| Fallback after agent failure | ≤200 lines per file, ≤3 files |
-| Quick reference during phase | ≤200 lines per file, ≤3 files |
-| Progress/metadata files | No limit (not project content) |
-| Presentation to user | ≤300 lines total (show, don't analyze) |
+| 基準 | 上限 | 理由 |
+|------|------|------|
+| **ファイル数** | 3 ファイル以下 | 3 ファイル超 = エージェントに委任 |
+| **ファイルあたりの行数** | 200 行以下 | 200 行超 = エージェントに委任 |
+| **合計読み取り行数** | 300 行以下 | コンテキスト保護の集約制限 |
+| **目的** | 単一の値/セクション確認 | 分析や理解ではない |
+| **時間** | 10 秒未満 | それ以上なら委任すべきだった |
 
-### TRIVIAL Edit Definition (L1 - Required)
+**クイックルックアップの例（許可）:**
+- タイムアウト値の確認: 「CACHE_TTL の設定は？」
+- 特定の関数の存在確認: 「ここに `validateEmail` は定義されている？」
+- 1 つの機能の受け入れ基準を確認
+- 単一の設定セクションを読む
 
-**TRIVIAL edit** is the ONLY direct spec/design edit allowed for orchestrators. ALL conditions must be met:
+**クイックルックアップでないもの（委任必須）:**
+- 全体的なアーキテクチャの理解
+- トレードオフや設計判断の分析
+- 機能間の統合ポイントの特定
+- コンテキストのために複数の関連ファイルを読む
+- ドキュメントの要約
 
-| Criterion | Requirement | Rationale |
-|-----------|-------------|-----------|
-| **Line count** | ≤2 lines | Beyond 2 lines = delegate to product-manager |
-| **Semantic impact** | None | Meaning must be identical before and after |
-| **Judgment required** | None | Change must be obvious correction |
+**コマンド間で統一された行数制限:**
+| コンテキスト | 直接読み取り制限 |
+|-------------|----------------|
+| エージェント失敗後のフォールバック | ファイルあたり 200 行以下、3 ファイル以下 |
+| フェーズ中のクイック参照 | ファイルあたり 200 行以下、3 ファイル以下 |
+| 進捗/メタデータファイル | 制限なし（プロジェクトコンテンツではない） |
+| ユーザーへの提示 | 合計 300 行以下（表示のみ、分析しない） |
 
-**Examples of TRIVIAL edits (ALLOWED with delegation-first):**
+### TRIVIAL 編集の定義（L1 - 必須）
 
-| Change Type | Example | Why TRIVIAL |
-|-------------|---------|-------------|
-| Typo fix | "recieve" → "receive" | Spelling error, meaning unchanged |
-| Version metadata | "1.0.0" → "1.0.1" | Metadata update, no behavior change |
-| Date metadata | "2025-01-01" → "2025-01-31" | Metadata update |
-| Formatting only | Fix markdown bullet indent | Visual only, no content change |
+**TRIVIAL 編集**はオーケストレーターに許可される唯一の直接的な仕様/設計編集。すべての条件を満たす必要がある:
 
-**Examples that are NOT TRIVIAL (MUST delegate to product-manager):**
+| 基準 | 要件 | 理由 |
+|------|------|------|
+| **行数** | 2 行以下 | 2 行超 = product-manager に委任 |
+| **意味的影響** | なし | 前後で意味が同一であること |
+| **判断の必要性** | なし | 明白な修正であること |
 
-| Change Type | Example | Why NOT TRIVIAL |
-|-------------|---------|-----------------|
-| Numeric values | `timeout: 30` → `timeout: 60` | May affect implementation behavior |
-| Wording strength | "should" → "must" | Changes requirement strength |
-| Content addition | Adding a new bullet point | New requirement |
-| Clarification | "Fast response" → "Response under 100ms" | Adds specificity |
+**TRIVIAL 編集の例（委任優先で許可）:**
 
-**Gray zone - ALWAYS delegate to product-manager:**
-- Any numeric value change (even small: `maxRetries: 3` → `maxRetries: 5`)
-- Removing "(optional)" from a field
-- Word changes that could shift meaning ("error message" → "error notification")
+| 変更タイプ | 例 | TRIVIAL の理由 |
+|-----------|-----|---------------|
+| タイポ修正 | "recieve" → "receive" | スペルミス、意味は不変 |
+| バージョンメタデータ | "1.0.0" → "1.0.1" | メタデータ更新、動作変更なし |
+| 日付メタデータ | "2025-01-01" → "2025-01-31" | メタデータ更新 |
+| フォーマットのみ | マークダウンの箇条書きインデント修正 | 視覚的のみ、コンテンツ変更なし |
 
-**Execution preference:**
-1. **Default**: Delegate to `product-manager` (delegation-first principle)
-2. **Fallback**: Direct edit ONLY if:
-   - User explicitly requests direct edit for speed
-   - Agent retry failed (after one retry attempt)
-   - Change is purely formatting (whitespace, markdown syntax only)
+**TRIVIAL でないもの（product-manager に委任必須）:**
 
-**Post-edit verification (required):**
-- Run `git diff` to confirm only intended lines changed
-- If more lines affected, warn user and offer to revert
+| 変更タイプ | 例 | TRIVIAL でない理由 |
+|-----------|-----|-------------------|
+| 数値の変更 | `timeout: 30` → `timeout: 60` | 実装動作に影響する可能性 |
+| 表現の強度 | "should" → "must" | 要件の強度が変わる |
+| コンテンツの追加 | 新しい箇条書きの追加 | 新しい要件 |
+| 明確化 | 「高速レスポンス」→「100ms 以内のレスポンス」 | 具体性が追加される |
 
-**Rule of thumb:** If the change affects any numeric value or could influence implementation behavior, delegate to product-manager. When in doubt, always delegate.
+**グレーゾーン - 常に product-manager に委任:**
+- 数値の変更（小さくても: `maxRetries: 3` → `maxRetries: 5`）
+- フィールドから「(optional)」を削除
+- 意味が変わる可能性のある言葉の変更（「エラーメッセージ」→「エラー通知」）
 
-See `spec-revise.md` for detailed examples and phase-specific handling.
+**実行の優先順位:**
+1. **デフォルト**: `product-manager` に委任（委任優先の原則）
+2. **フォールバック**: 直接編集は以下の場合のみ:
+   - ユーザーが速度のために直接編集を明示的に要求
+   - エージェントのリトライが失敗（1 回のリトライ後）
+   - 変更が純粋にフォーマット（空白、マークダウン構文のみ）
 
-### Defaults (L2 - Soft)
+**編集後の検証（必須）:**
+- `git diff` を実行して意図した行のみ変更されたことを確認
+- より多くの行が影響された場合、ユーザーに警告しリバートを提案
 
-Important for orchestration quality. Override with reasoning when appropriate.
+**判断基準:** 変更が数値に影響するか、実装動作に影響する可能性がある場合は、product-manager に委任。迷った場合は常に委任。
 
-- Launch parallel agents when tasks are independent
-- Use appropriate model for agent tasks (haiku for simple lookups, sonnet for analysis, opus for complex PRD)
-- Present subagent results to user before proceeding to next phase
-- Update progress files at each phase completion
+詳細な例とフェーズ固有の処理は `spec-revise.md` を参照。
 
-### Guidelines (L3)
+### デフォルト（L2 - ソフト）
 
-Recommendations for effective orchestration.
+オーケストレーション品質にとって重要。適切な理由がある場合はオーバーライド可能。
 
-- Consider splitting large tasks across multiple agents
-- Prefer asking user questions over guessing intent
-- Document agent failures in progress files for debugging
+- タスクが独立している場合はエージェントを並列起動
+- エージェントタスクに適切なモデルを使用（単純な検索には haiku、分析には sonnet、複雑な PRD には opus）
+- 次のフェーズに進む前にサブエージェント結果をユーザーに提示
+- 各フェーズ完了時に進捗ファイルを更新
 
-### Orchestrator Responsibilities
+### ガイドライン（L3）
 
-The orchestrator's ONLY responsibilities are:
+効果的なオーケストレーションのための推奨事項。
 
-1. **Orchestrate** - Launch and coordinate subagents
-2. **Synthesize** - Combine subagent outputs into coherent summaries
-3. **Communicate** - Present findings and ask user questions
-4. **Track Progress** - Update TodoWrite and progress files
-5. **Verify Minimally** - Read specific files identified by subagents (max 3 at a time) only when necessary
+- consider: 大きなタスクを複数のエージェントに分割することを検討
+- prefer: 意図を推測するよりユーザーに質問することを推奨
+- consider: デバッグ用に進捗ファイルにエージェントの失敗を記録
 
-### Error Handling for Orchestrators
+### オーケストレーターの責任
 
-When a subagent fails or times out:
+オーケストレーターの責任は以下のみ:
 
-1. **Check partial output** for usable findings
-2. **Retry once** with reduced scope if critical
-3. **Fallback to direct read** if context-loading agent fails (see below)
-4. **Proceed with available results** if non-critical, documenting the gap
-5. **Escalate to user** if critical agent fails after retry
+1. **オーケストレーション** - サブエージェントの起動と調整
+2. **統合** - サブエージェント出力を一貫した要約に統合
+3. **コミュニケーション** - 調査結果の提示とユーザーへの質問
+4. **進捗管理** - TodoWrite と進捗ファイルの更新
+5. **最小限の検証** - サブエージェントが特定したファイルを読む（一度に最大 3 ファイル）、必要な場合のみ
 
-Add to progress file when agents fail:
+### オーケストレーターのエラーハンドリング
+
+サブエージェントが失敗またはタイムアウトした場合:
+
+1. **部分出力を確認**して使用可能な調査結果がないか
+2. 重要な場合は**スコープを縮小して 1 回リトライ**
+3. コンテキストローディングエージェントが失敗した場合は**直接読み取りにフォールバック**（下記参照）
+4. 重要でない場合は**利用可能な結果で続行**し、ギャップを文書化
+5. 重要なエージェントがリトライ後も失敗した場合は**ユーザーにエスカレーション**
+
+エージェント失敗時に進捗ファイルに追加:
 ```json
 "warnings": ["Agent X failed, results may be incomplete"]
 ```
 
-### Fallback Mechanism (L1 - Required)
+### フォールバックメカニズム（L1 - 必須）
 
-**Why fallback is mandatory:**
-1. **Resilience**: Users should not be blocked by agent timeouts
-2. **Graceful degradation**: Partial progress is better than total failure
-3. **Consistency**: All commands use the same error recovery pattern
+**フォールバックが必須な理由:**
+1. **レジリエンス**: エージェントのタイムアウトでユーザーをブロックすべきではない
+2. **グレースフルデグラデーション**: 部分的な進捗は完全な失敗より良い
+3. **一貫性**: すべてのコマンドが同じエラー回復パターンを使用
 
-**Fallback rules:**
-- **Primary path**: Always delegate to agent first
-- **Fallback trigger**: Agent timeout OR failure after retry
-- **Fallback action**: Direct file read (≤3 files, ≤200 lines each)
-- **Documentation**: Warn user and log in progress file
+**フォールバックルール:**
+- **プライマリパス**: 常にまずエージェントに委任
+- **フォールバックトリガー**: エージェントのタイムアウトまたはリトライ後の失敗
+- **フォールバックアクション**: 直接ファイル読み取り（3 ファイル以下、各 200 行以下）
+- **文書化**: ユーザーに警告し進捗ファイルに記録
 
-**Anti-pattern (NEVER do this):**
+**アンチパターン（絶対にしない）:**
 ```markdown
-# BAD: Skip agent based on task clarity
-If task is clear → Read file directly, skip agent
+# 悪い例: タスクの明確さでエージェントをスキップ
+タスクが明確なら → ファイルを直接読む、エージェントをスキップ
 
-# GOOD: Agent first, fallback second
-Always → Delegate to agent
-If agent fails → Fallback to direct read + warn user
+# 良い例: エージェント優先、フォールバック次
+常に → エージェントに委任
+エージェントが失敗したら → 直接読み取りにフォールバック + ユーザーに警告
 ```
 
-**Why delegation-first, not direct-read-first:**
-1. **Context Protection**: Agent reads don't consume orchestrator context
-2. **Consistency**: Same pattern across all commands
-3. **Expertise**: Agents apply stack-detector and pattern recognition
-4. **Fallback Safety**: Direct read is safety net, not primary path
+**委任優先であり、直接読み取り優先でない理由:**
+1. **コンテキスト保護**: エージェントの読み取りはオーケストレーターのコンテキストを消費しない
+2. **一貫性**: すべてのコマンドで同じパターン
+3. **専門性**: エージェントは stack-detector とパターン認識を適用
+4. **フォールバックの安全性**: 直接読み取りはセーフティネットであり、プライマリパスではない
 
-### Orchestrator Exceptions Reference (L1)
+### オーケストレーター例外リファレンス（L1）
 
-All orchestrator exceptions to the delegation-first principle are defined here. Commands should reference this section instead of duplicating explanations.
+委任優先の原則に対するすべてのオーケストレーター例外はここに定義。コマンドは説明を重複させる代わりにこのセクションを参照すべき。
 
-| Exception | Conditions | Context Cost | Alternative Cost | Justification |
-|-----------|------------|--------------|------------------|---------------|
-| **Quick Lookup** | ≤3 files, ≤200 lines/file, ≤300 total | ~100 tokens | ~700 tokens (agent) | Single value confirmation doesn't warrant agent overhead |
-| **Fallback Read** | After agent timeout/failure + 1 retry | ~200 tokens | User blocked | Resilience: users must not be blocked by agent failures |
-| **TRIVIAL Edit** | ≤2 lines, no semantic impact, no judgment | ~50 tokens | ~1000 tokens (agent) | Obvious corrections don't warrant agent overhead |
-| **Progress/Metadata Read** | Orchestrator state files only | ~30 tokens | ~500 tokens (agent) | Not project content; orchestrator's own state |
+| 例外 | 条件 | コンテキストコスト | 代替コスト | 正当性 |
+|------|------|-------------------|-----------|--------|
+| **クイックルックアップ** | 3 ファイル以下、200 行/ファイル以下、合計 300 以下 | ~100 トークン | ~700 トークン（エージェント） | 単一値の確認にエージェントのオーバーヘッドは不要 |
+| **フォールバック読み取り** | エージェントタイムアウト/失敗 + 1 回リトライ後 | ~200 トークン | ユーザーがブロック | レジリエンス: エージェント失敗でユーザーをブロックすべきではない |
+| **TRIVIAL 編集** | 2 行以下、意味的影響なし、判断不要 | ~50 トークン | ~1000 トークン（エージェント） | 明白な修正にエージェントのオーバーヘッドは不要 |
+| **進捗/メタデータ読み取り** | オーケストレーター状態ファイルのみ | ~30 トークン | ~500 トークン（エージェント） | プロジェクトコンテンツではない。オーケストレーター自身の状態 |
 
-**Common principle:** All exceptions follow delegation-first. Direct action is fallback, not primary path.
+**共通原則:** すべての例外は委任優先に従う。直接アクションはフォールバックであり、プライマリパスではない。
 
-**When exceptions apply:**
-1. Exceptions are **allowed**, not **required** - delegation is always acceptable
-2. Exceptions require **all conditions met** - partial match = delegate
-3. Exceptions require **post-action verification** - confirm scope was as expected
+**例外の適用時:**
+1. 例外は**許可**であり**必須**ではない - 委任は常に受容可能
+2. 例外には**すべての条件を満たす**必要がある - 部分一致 = 委任
+3. 例外には**アクション後の検証**が必要 - スコープが期待通りだったことを確認
 
-**Anti-patterns to avoid:**
-- Using exceptions to skip agents for convenience
-- Applying exceptions without verifying all conditions
-- Not documenting when exceptions were used
+**避けるべきアンチパターン:**
+- 利便性のためにエージェントをスキップするために例外を使用
+- すべての条件を検証せずに例外を適用
+- 例外を使用した場合に文書化しない
 
 ---
 
-## Rules for Subagents
+## サブエージェントのルール
 
-### Rules (L1 - Hard)
+### ルール（L1 - ハード）
 
-Critical for orchestration consistency and context protection.
+オーケストレーションの一貫性とコンテキスト保護にとって重要。
 
-- ALWAYS use the standardized result format (enables aggregation)
-- NEVER exceed ~500 tokens for summaries (context protection critical)
-- ALWAYS report blockers that prevent completion (orchestrator needs to know)
-- ALWAYS complete Pre-Submission Verification checklist before returning results (see below)
-- ALWAYS verify file:line references exist before submitting (prevents hallucinations)
-- NEVER submit results with hallucinated file paths or line numbers
-- MUST include confidence breakdown (verified_confidence + inferred_confidence) when confidence >= 75
+- ALWAYS: 標準化された結果フォーマットを使用する（集約を可能にする）
+- NEVER: サマリーを約 500 トークン以上にしない（コンテキスト保護が重要）
+- ALWAYS: 完了を妨げるブロッカーを報告する（オーケストレーターが知る必要がある）
+- ALWAYS: 結果を返す前に提出前検証チェックリストを完了する（下記参照）
+- ALWAYS: 提出前に file:line 参照が存在することを確認する（ハルシネーション防止）
+- NEVER: ハルシネーションされたファイルパスや行番号で結果を提出しない
+- MUST: 信頼度 >= 75 の場合、信頼度の内訳を含める（verified_confidence + inferred_confidence）
 
-### Defaults (L2 - Soft)
+### デフォルト（L2 - ソフト）
 
-Important for quality and usability. Override with reasoning when appropriate.
+品質と使いやすさにとって重要。適切な理由がある場合はオーバーライド可能。
 
-- Include file:line references for all findings (aids navigation)
-- Provide confidence scores with justification (enables prioritization)
-- Summarize exploration results, don't return raw output
-- Categorize issues by severity (critical/important/minor)
+- すべての調査結果に file:line 参照を含める（ナビゲーションを支援）
+- 根拠付きの信頼度スコアを提供する（優先順位付けを可能にする）
+- 探索結果を要約し、生の出力を返さない
+- 問題を重大度でカテゴリ化する（critical/important/minor）
 
-### Guidelines (L3)
+### ガイドライン（L3）
 
-Recommendations for better results.
+より良い結果のための推奨事項。
 
-- Include next steps when applicable
-- Suggest recovery options for errors
-- Note trade-offs considered in design decisions
-- Reference patterns found for architectural consistency
+- 該当する場合は次のステップを含める
+- エラーの回復オプションを提案する
+- 設計判断で考慮したトレードオフを記載する
+- アーキテクチャの一貫性のために見つかったパターンを参照する
 
-## Self-Verification Checklist
-Before submitting results, subagents MUST verify their output quality to prevent hallucinations and ensure accuracy.
+## セルフ検証チェックリスト
+サブエージェントは結果を提出する前に、ハルシネーションを防止し精度を確保するために出力品質を検証する。
 
-### Pre-Submission Verification (L1 - Required)
+### 提出前検証（L1 - 必須）
 
-All subagents must complete this checklist before returning results:
+すべてのサブエージェントは結果を返す前にこのチェックリストを完了する:
 
 ```markdown
-### Verification Completed
-- [ ] **File References Valid**: All `file:line` references have been verified to exist
-- [ ] **Code Snippets Accurate**: Any quoted code matches the actual file content
-- [ ] **No Hallucinated Paths**: No file paths were assumed or invented
-- [ ] **Evidence Documented**: Each finding has supporting evidence cited
+### 検証完了
+- [ ] **ファイル参照が有効**: すべての `file:line` 参照が存在することを確認
+- [ ] **コードスニペットが正確**: 引用されたコードが実際のファイル内容と一致
+- [ ] **ハルシネーションされたパスなし**: 推測や捏造されたファイルパスがない
+- [ ] **証拠が文書化済み**: 各調査結果に裏付けとなる証拠が引用されている
 ```
 
-### Confidence Breakdown (L1 Required for confidence >= 75)
+### 信頼度の内訳（L1 - 信頼度 >= 75 で必須）
 
-Report confidence as two components:
-- **verified_confidence**: Based on direct code evidence (file read, test output)
-- **inferred_confidence**: Based on pattern analysis and reasonable assumptions
+信頼度を 2 つの要素で報告:
+- **verified_confidence**: 直接のコード証拠に基づく（ファイル読み取り、テスト出力）
+- **inferred_confidence**: パターン分析と合理的な仮定に基づく
 - **combined_confidence**: (verified + inferred) / 2
 
-Example:
-- verified_confidence: 90 (read the exact function, saw the bug)
-- inferred_confidence: 70 (similar pattern likely exists elsewhere)
+例:
+- verified_confidence: 90（正確な関数を読み、バグを確認）
+- inferred_confidence: 70（類似パターンが他にも存在する可能性）
 - combined_confidence: 80
 
-### Confidence Justification (L2 - Required for Confidence >= 85)
+### 信頼度の根拠（L2 - 信頼度 >= 85 で必須）
 
-When reporting high confidence (85+), provide explicit justification:
+高い信頼度（85+）を報告する場合、明示的な根拠を提供:
 
 ```markdown
-### Confidence Justification
-**Score**: [X]
-**Evidence Count**: [N findings with direct code evidence]
-**Verification Method**: [How findings were verified]
-**Potential Blind Spots**: [What might have been missed]
+### 信頼度の根拠
+**スコア**: [X]
+**証拠数**: [直接のコード証拠がある調査結果の数]
+**検証方法**: [調査結果をどのように検証したか]
+**潜在的な盲点**: [見逃している可能性があるもの]
 ```
 
-### Cross-Verification Triggers (L2)
+### クロス検証トリガー（L2）
 
-Request additional verification when:
+追加検証を要求する場合:
 
-| Condition | Action |
-|-----------|--------|
-| Single source of evidence | Flag as "needs corroboration" |
-| Conflicting findings | Escalate to orchestrator |
-| Confidence < 70 | Include "Uncertainty" section |
-| Security-related finding | Require code evidence |
+| 条件 | アクション |
+|------|----------|
+| 単一の証拠ソース | 「裏付けが必要」としてフラグ |
+| 矛盾する調査結果 | オーケストレーターにエスカレーション |
+| 信頼度 < 70 | 「不確実性」セクションを含める |
+| セキュリティ関連の発見 | コード証拠を要求 |
 
-### Anti-Hallucination Practices
+### ハルシネーション防止の実践
 
-1. **Never invent file paths** - If unsure, use Glob/Grep to verify
-2. **Never quote code without reading** - Always Read the file first
-3. **Never assume implementation details** - Verify with actual code
-4. **Flag uncertainty explicitly** - Use "uncertain" or "assumed" labels
+1. **ファイルパスを捏造しない** - 不確実な場合は Glob/Grep で確認
+2. **読まずにコードを引用しない** - 常にまず Read ツールでファイルを読む
+3. **実装詳細を推測しない** - 実際のコードで確認
+4. **不確実性を明示的にフラグ** - 「不確実」や「仮定」のラベルを使用
 
-### Example: Verified vs Unverified Output
+### 例: 検証済み vs 未検証の出力
 
-**Unverified (BAD)**:
+**未検証（悪い例）**:
 ```
-Found authentication in src/auth/login.ts:45
+src/auth/login.ts:45 で認証を発見
 ```
 
-**Verified (GOOD)**:
+**検証済み（良い例）**:
 ```
-Found authentication in src/auth/login.ts:45
-- Verified: Read tool confirmed file exists
-- Code match: `export async function authenticate()`
-- Confidence: 95 (direct code evidence)
+src/auth/login.ts:45 で認証を発見
+- 確認済み: Read ツールでファイルの存在を確認
+- コード一致: `export async function authenticate()`
+- 信頼度: 95（直接のコード証拠）
 ```

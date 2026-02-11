@@ -1,15 +1,15 @@
 ---
 name: tech-debt-management
 description: |
-  Technical debt identification, classification, and prioritization frameworks.
-  Integrates with legacy-modernizer agent for systematic debt paydown.
+  技術的負債の特定、分類、優先順位付けフレームワーク。
+  体系的な負債解消のための legacy-modernizer エージェントとの統合。
 
-  Use when:
-  - Identifying technical debt in a codebase
-  - Prioritizing which debt to address first
-  - Tracking debt over time
-  - Planning refactoring sprints
-  - Justifying debt paydown to stakeholders
+  以下の場合に使用:
+  - コードベースの技術的負債の特定
+  - どの負債を先に対処すべきかの優先順位付け
+  - 負債の経時的な追跡
+  - リファクタリングスプリントの計画
+  - ステークホルダーへの負債解消の正当化
 
   Trigger phrases: tech debt, technical debt, code smell, refactor priority, RICE score, debt tracking, legacy code
 allowed-tools: Read, Write, Glob, Grep, TodoWrite
@@ -17,104 +17,104 @@ model: sonnet
 user-invocable: true
 ---
 
-# Technical Debt Management
+# 技術的負債管理
 
-Frameworks for identifying, classifying, prioritizing, and tracking technical debt.
+技術的負債の特定、分類、優先順位付け、追跡のためのフレームワーク。
 
-## Core Principle
+## 基本原則
 
-From Anthropic's Building Effective Agents:
+Anthropic の Building Effective Agents より:
 
 > "Agents should gain ground truth from the environment at each step."
 
-**Applied to debt**: Identify debt from actual code patterns, not assumptions. Prioritize based on measurable impact.
+**負債への適用**: 仮定ではなく実際のコードパターンから負債を特定する。測定可能な影響に基づいて優先順位を付ける。
 
-## Debt Classification
+## 負債の分類
 
-### Types of Technical Debt
+### 技術的負債の種類
 
-| Type | Description | Detection Method |
-|------|-------------|------------------|
-| **Design Debt** | Poor abstractions, tight coupling | Dependency analysis, code-explorer |
-| **Code Debt** | Duplications, complexity, bad names | Linter warnings, complexity metrics |
-| **Test Debt** | Low coverage, flaky tests | Coverage reports, test history |
-| **Documentation Debt** | Missing/outdated docs | /doc-audit findings |
-| **Dependency Debt** | Outdated packages, vulnerabilities | npm audit, security-auditor |
-| **Infrastructure Debt** | Manual processes, missing automation | devops-sre analysis |
+| 種類 | 説明 | 検出方法 |
+|------|------|---------|
+| **設計負債** | 不適切な抽象化、密結合 | 依存関係分析、code-explorer |
+| **コード負債** | 重複、複雑さ、不適切な命名 | リンター警告、複雑度メトリクス |
+| **テスト負債** | 低カバレッジ、フレーキーテスト | カバレッジレポート、テスト履歴 |
+| **ドキュメント負債** | ドキュメントの欠如/陳腐化 | /doc-audit の発見 |
+| **依存関係負債** | 古いパッケージ、脆弱性 | npm audit、security-auditor |
+| **インフラ負債** | 手動プロセス、自動化の欠如 | devops-sre 分析 |
 
-### Debt Severity Levels
+### 負債の重大度レベル
 
-| Level | Impact | Examples |
-|-------|--------|----------|
-| **Critical** | Blocks development or causes outages | Circular dependencies, security vulnerabilities |
-| **High** | Significantly slows development | No tests for critical paths, major duplication |
-| **Medium** | Causes friction, increases bug risk | Inconsistent patterns, partial coverage |
-| **Low** | Cosmetic or minor inconvenience | Naming inconsistencies, missing docs |
+| レベル | 影響 | 例 |
+|--------|------|-----|
+| **Critical** | 開発をブロックまたは障害を引き起こす | 循環依存、セキュリティ脆弱性 |
+| **High** | 開発を大幅に遅延させる | 重要パスのテストなし、重大な重複 |
+| **Medium** | 摩擦を生み、バグリスクを増加 | 不整合なパターン、部分的なカバレッジ |
+| **Low** | 見た目上の問題や軽微な不便 | 命名の不整合、ドキュメント不足 |
 
-## Prioritization Frameworks
+## 優先順位付けフレームワーク
 
-### RICE Score
+### RICE スコア
 
-**R**each × **I**mpact × **C**onfidence / **E**ffort
+**R**each x **I**mpact x **C**onfidence / **E**ffort
 
-| Factor | Scale | Description |
-|--------|-------|-------------|
-| **Reach** | 1-10 | How many developers/features affected? |
-| **Impact** | 0.25, 0.5, 1, 2, 3 | How much improvement per case? |
-| **Confidence** | 0-100% | How sure are we of estimates? |
-| **Effort** | Person-weeks | How much work to fix? |
+| 要素 | スケール | 説明 |
+|------|---------|------|
+| **Reach** | 1-10 | 影響を受ける開発者/機能の数 |
+| **Impact** | 0.25, 0.5, 1, 2, 3 | ケースごとの改善度 |
+| **Confidence** | 0-100% | 見積もりの確信度 |
+| **Effort** | 人・週 | 修正にかかる作業量 |
 
-**Example:**
+**例:**
 ```
-Debt: Extract shared validation logic
-Reach: 8 (affects 8 modules)
-Impact: 2 (significant improvement)
+負債: 共有バリデーションロジックの抽出
+Reach: 8（8 モジュールに影響）
+Impact: 2（大幅な改善）
 Confidence: 80%
-Effort: 1 week
+Effort: 1 週
 
 RICE = (8 × 2 × 0.8) / 1 = 12.8
 ```
 
-### Cost of Delay
+### 遅延のコスト
 
-For time-sensitive debt:
+時間に敏感な負債の場合:
 
 ```
 CoD = (Weekly Impact × Weeks Until Critical) / Effort
 ```
 
-Use when:
-- Security vulnerabilities with disclosure deadlines
-- Dependencies reaching end-of-life
-- Performance issues affecting user growth
+以下の場合に使用:
+- 公開期限のあるセキュリティ脆弱性
+- サポート終了が近い依存関係
+- ユーザー成長に影響するパフォーマンスの問題
 
-### Quadrant Analysis
+### 象限分析
 
-Quick visual prioritization:
+迅速な視覚的優先順位付け:
 
 ```
-                HIGH IMPACT
+                高インパクト
                     │
     ┌───────────────┼───────────────┐
     │               │               │
-    │   QUICK WINS  │  MAJOR PROJECTS
-    │   (Do First)  │  (Plan Carefully)
+    │  クイックウィン │  大型プロジェクト
+    │  （最初にやる）│  （慎重に計画）
     │               │               │
-LOW ├───────────────┼───────────────┤ HIGH
-EFFORT              │               EFFORT
+低  ├───────────────┼───────────────┤ 高
+工数                │               工数
     │               │               │
-    │   FILL-INS    │  THANKLESS TASKS
-    │   (Do When    │  (Avoid or Delegate)
-    │    Time)      │               │
+    │  すき間作業    │  割に合わない作業
+    │  （時間がある  │  （回避または委任）
+    │   時にやる）   │               │
     │               │               │
     └───────────────┼───────────────┘
                     │
-                LOW IMPACT
+                低インパクト
 ```
 
-## Debt Tracking Format
+## 負債追跡フォーマット
 
-### Debt Registry (JSON)
+### 負債レジストリ（JSON）
 
 ```json
 {
@@ -152,164 +152,164 @@ EFFORT              │               EFFORT
 }
 ```
 
-### Status Values
+### ステータス値
 
-| Status | Description |
-|--------|-------------|
-| `identified` | Debt found, not yet prioritized |
-| `prioritized` | RICE scored, in backlog |
-| `scheduled` | Assigned to sprint/milestone |
-| `in_progress` | Currently being addressed |
-| `resolved` | Fixed and verified |
-| `accepted` | Intentionally deferred |
+| ステータス | 説明 |
+|-----------|------|
+| `identified` | 負債を発見、未優先順位付け |
+| `prioritized` | RICE スコア付き、バックログに追加 |
+| `scheduled` | スプリント/マイルストーンに割り当て |
+| `in_progress` | 現在対処中 |
+| `resolved` | 修正済みかつ検証済み |
+| `accepted` | 意図的に先送り |
 
-## Debt Identification Workflow
+## 負債特定ワークフロー
 
-### Step 1: Automated Detection
-
-```
-Launch code-explorer with analysis focus:
-
-Analyze codebase for technical debt indicators:
-
-1. **Complexity hotspots**: Files with high cyclomatic complexity
-2. **Duplication**: Similar code blocks across files
-3. **Dependency issues**: Circular imports, outdated packages
-4. **Test gaps**: Critical paths without tests
-5. **Code smells**: Long methods, large classes, deep nesting
-
-Return findings with file locations and severity assessment.
-```
-
-### Step 2: Manual Review
-
-For each automated finding:
-1. Verify it's actual debt (not intentional design)
-2. Assess real-world impact
-3. Estimate fix effort
-4. Calculate RICE score
-
-### Step 3: Registry Update
-
-Add confirmed debt items to tracking file:
-- `.claude/tech-debt.json` (project-level)
-- Or integrate with issue tracker
-
-## Integration with Agents
-
-### Using legacy-modernizer
-
-For addressing identified debt:
+### ステップ 1: 自動検出
 
 ```
-DELEGATE to legacy-modernizer:
+code-explorer を分析重視で起動:
 
-Address this technical debt:
+技術的負債の指標についてコードベースを分析:
+
+1. **複雑性ホットスポット**: 高い循環的複雑度のファイル
+2. **重複**: ファイル間で類似するコードブロック
+3. **依存関係の問題**: 循環インポート、古いパッケージ
+4. **テストギャップ**: テストのない重要パス
+5. **コードの悪臭**: 長いメソッド、大きなクラス、深いネスト
+
+ファイル場所と重大度評価付きで発見結果を返す。
+```
+
+### ステップ 2: 手動レビュー
+
+各自動検出結果について:
+1. 実際の負債であることを確認（意図的な設計ではない）
+2. 実世界での影響を評価
+3. 修正工数を見積もる
+4. RICE スコアを計算
+
+### ステップ 3: レジストリの更新
+
+確認された負債項目を追跡ファイルに追加:
+- `.claude/tech-debt.json`（プロジェクトレベル）
+- またはイシュートラッカーと統合
+
+## エージェントとの統合
+
+### legacy-modernizer の使用
+
+特定された負債の対処に:
+
+```
+legacy-modernizer に委任:
+
+この技術的負債に対処:
 
 Debt ID: TD-001
 Title: Extract validation utilities
 Location: src/services/*.ts
-Description: [from registry]
+Description: [レジストリより]
 
-Approach:
-1. Create shared validation module
-2. Migrate each service incrementally
-3. Verify no behavior changes (characterization tests)
-4. Update imports across codebase
+アプローチ:
+1. 共有バリデーションモジュールを作成
+2. 各サービスを段階的に移行
+3. 動作変更がないことを検証（特性化テスト）
+4. コードベース全体でインポートを更新
 
-Constraints:
-- Preserve existing test coverage
-- No breaking API changes
-- Commit after each service migration
+制約:
+- 既存のテストカバレッジを保持
+- 破壊的な API 変更なし
+- 各サービスの移行後にコミット
 ```
 
-### Using security-auditor
+### security-auditor の使用
 
-For dependency debt:
+依存関係の負債に:
 
 ```
-DELEGATE to security-auditor:
+security-auditor に委任:
 
-Audit dependencies for security debt:
+セキュリティ負債について依存関係を監査:
 
-Focus:
-- Known vulnerabilities (npm audit, etc.)
-- End-of-life packages
-- Packages with security advisories
+フォーカス:
+- 既知の脆弱性（npm audit 等）
+- サポート終了のパッケージ
+- セキュリティアドバイザリのあるパッケージ
 
-Return prioritized list with severity and upgrade paths.
+重大度とアップグレードパス付きの優先順位付きリストを返す。
 ```
 
-## Paydown Strategies
+## 返済戦略
 
-### 1. Boy Scout Rule
+### 1. ボーイスカウトルール
 
-"Leave the code better than you found it."
+「コードを見つけた時よりも良い状態にして去る。」
 
-- Fix small debts during related work
-- No dedicated debt sprints needed
-- Track cumulative improvements
+- 関連作業中に小さな負債を修正
+- 専用の負債スプリントは不要
+- 累積的な改善を追跡
 
-### 2. Dedicated Debt Sprints
+### 2. 専用の負債スプリント
 
-Allocate percentage of capacity:
-- 20% rule: 1 day per week for debt
-- Debt sprints: Quarterly focused cleanup
-- Milestone debt: Clear before major releases
+キャパシティの一定割合を割り当てる:
+- 20% ルール: 週に 1 日を負債に充てる
+- 負債スプリント: 四半期ごとの集中的なクリーンアップ
+- マイルストーン負債: メジャーリリース前に解消
 
-### 3. Strangler Fig Pattern
+### 3. ストラングラーフィグパターン
 
-For large legacy systems:
-1. Build new alongside old
-2. Incrementally route traffic
-3. Remove old when new is proven
+大規模なレガシーシステムの場合:
+1. 旧と並行して新を構築
+2. 段階的にトラフィックをルーティング
+3. 新が実証されたら旧を削除
 
-## Reporting Template
+## レポートテンプレート
 
-### For Stakeholders
+### ステークホルダー向け
 
 ```markdown
-## Technical Debt Report - [Date]
+## 技術的負債レポート - [日付]
 
-### Health Score: [X]/100
+### ヘルススコア: [X]/100
 
-### Summary
-- **Total Items**: [N]
-- **Critical**: [N] (requires immediate attention)
-- **Estimated Total Effort**: [X] person-weeks
+### サマリー
+- **合計項目**: [N]
+- **Critical**: [N]（即時対応が必要）
+- **推定合計工数**: [X] 人・週
 
-### Top 5 by RICE Score
+### RICE スコア上位 5 件
 
-| Rank | Title | Type | RICE | Effort |
-|------|-------|------|------|--------|
-| 1 | [title] | [type] | [score] | [effort] |
+| 順位 | タイトル | タイプ | RICE | 工数 |
+|------|---------|-------|------|------|
+| 1 | [タイトル] | [タイプ] | [スコア] | [工数] |
 
-### Recent Progress
-- Resolved: [N] items this [period]
-- New: [N] items identified
+### 最近の進捗
+- 解決済み: この[期間]で [N] 件
+- 新規: [N] 件特定
 
-### Recommendations
-1. [Top priority action]
-2. [Second priority action]
+### 推奨事項
+1. [最優先のアクション]
+2. [次の優先アクション]
 ```
 
 ## Rules (L1 - Hard)
 
-- ALWAYS verify debt against actual code, not assumptions
-- NEVER prioritize debt without impact assessment
-- ALWAYS track debt formally (registry or issues)
-- NEVER address critical security debt without urgency
+- ALWAYS: 仮定ではなく実際のコードに対して負債を検証する
+- NEVER: 影響評価なしに負債を優先順位付けしない
+- ALWAYS: 負債を正式に追跡する（レジストリまたはイシュー）
+- NEVER: 重大なセキュリティ負債を緊急性なしに対処しない
 
 ## Defaults (L2 - Soft)
 
-- Use RICE scoring for prioritization
-- Store debt registry in `.claude/tech-debt.json`
-- Review debt status monthly
-- Include debt in sprint planning
+- 優先順位付けに RICE スコアリングを使用
+- 負債レジストリを `.claude/tech-debt.json` に保存
+- 月次で負債ステータスをレビュー
+- スプリント計画に負債を含める
 
 ## Guidelines (L3)
 
-- Consider dedicating 20% capacity to debt paydown
-- Prefer paying down debt near code being modified
-- Consider debt visibility in team retrospectives
-- Track debt trends over time for health metrics
+- consider: キャパシティの 20% を負債返済に充てることを検討
+- prefer: 変更中のコード付近の負債を優先的に返済することを推奨
+- consider: チームのレトロスペクティブでの負債の可視化を検討
+- consider: 健全性メトリクスのための負債トレンドの経時追跡を検討

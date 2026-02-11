@@ -1,10 +1,10 @@
 #!/bin/bash
-# Insight Capture Hook: Extract and store insights from subagent output
-# Runs on SubagentStop to capture marked insights
+# インサイトキャプチャフック: サブエージェント出力からインサイトを抽出・保存
+# SubagentStop 時に実行され、マーク付きインサイトをキャプチャする
 #
-# Folder-based architecture (no file locking needed)
+# フォルダベースアーキテクチャ（ファイルロック不要）
 #
-# SubagentStop hook input format (from Claude Code):
+# SubagentStop フック入力形式（Claude Code から）:
 #   {
 #     "session_id": "...",
 #     "transcript_path": "~/.claude/projects/.../xxx.jsonl",
@@ -16,73 +16,73 @@
 #     "stop_hook_active": true/false
 #   }
 #
-# Note: agent_transcript_path is the subagent's own transcript (preferred for insight capture).
-#       transcript_path is the main session's transcript (fallback).
+# 注: agent_transcript_path はサブエージェント自身のトランスクリプト（インサイトキャプチャに推奨）。
+#     transcript_path はメインセッションのトランスクリプト（フォールバック）。
 #
-# Architecture:
-#   Each insight is stored as a separate file in pending/ directory.
-#   This eliminates the need for file locking and makes operations atomic.
+# アーキテクチャ:
+#   各インサイトは pending/ ディレクトリに個別ファイルとして保存される。
+#   これによりファイルロックが不要になり、操作がアトミックになる。
 #
 #   .claude/workspaces/{id}/insights/
-#   ├── pending/          # New insights awaiting review
+#   ├── pending/          # レビュー待ちの新規インサイト
 #   │   ├── INS-xxx.json
 #   │   └── INS-yyy.json
-#   ├── applied/          # Applied to CLAUDE.md or rules
-#   ├── rejected/         # Rejected by user
-#   └── archive/          # Old insights for reference
+#   ├── applied/          # CLAUDE.md またはルールに適用済み
+#   ├── rejected/         # ユーザーが却下
+#   └── archive/          # 参照用の古いインサイト
 #
-# Benefits:
-#   - No file locking required (each file is unique)
-#   - Atomic writes (single file creation)
-#   - Partial failure resilience (one corrupt file doesn't affect others)
-#   - Easy cleanup (just delete files)
-#   - Concurrent capture and review without conflicts
+# 利点:
+#   - ファイルロック不要（各ファイルがユニーク）
+#   - アトミックな書き込み（単一ファイル作成）
+#   - 部分障害に対する耐性（一つの破損ファイルが他に影響しない）
+#   - 簡単なクリーンアップ（ファイルを削除するだけ）
+#   - キャプチャとレビューの並行実行が競合なし
 #
-# Insight Markers (case-insensitive):
-#   INSIGHT: <text>      - General learning or discovery
-#   LEARNED: <text>      - Something learned from experience
-#   DECISION: <text>     - Important decision made
-#   PATTERN: <text>      - Reusable pattern discovered
-#   ANTIPATTERN: <text>  - Pattern to avoid
+# インサイトマーカー（大文字小文字不問）:
+#   INSIGHT: <テキスト>      - 一般的な学習や発見
+#   LEARNED: <テキスト>      - 経験から学んだこと
+#   DECISION: <テキスト>     - 行われた重要な決定
+#   PATTERN: <テキスト>      - 発見された再利用可能なパターン
+#   ANTIPATTERN: <テキスト>  - 避けるべきパターン
 
 set -euo pipefail
 
-# Configuration
+# 設定
 readonly MAX_INSIGHT_LENGTH=10000
 readonly MAX_TRANSCRIPT_SIZE=$((100 * 1024 * 1024))  # 100MB
-readonly MAX_INSIGHTS_PER_CAPTURE=100  # Rate limit: max insights per capture
+readonly MAX_INSIGHTS_PER_CAPTURE=100  # レート制限: キャプチャあたりの最大インサイト数
 
-# Source workspace utilities
+# ワークスペースユーティリティを読み込み
 SCRIPT_DIR="$(dirname "$0")"
 if [ -f "$SCRIPT_DIR/workspace_utils.sh" ]; then
     source "$SCRIPT_DIR/workspace_utils.sh"
 else
-    echo "insight_capture: workspace_utils.sh not found, skipping" >&2
+    echo "insight_capture: workspace_utils.sh が見つかりません、スキップします" >&2
     echo '{"continue": true}'
     exit 0
 fi
 
-# Read hook input (JSON metadata, NOT subagent output)
+# フック入力を読み取り（JSON メタデータ、サブエージェント出力ではない）
 INPUT=$(cat)
 
-# Early exit if no input
+# 入力が空の場合は早期終了
 if [ -z "$INPUT" ]; then
     echo '{"continue": true}'
     exit 0
 fi
 
-# Get workspace-specific paths
+# ワークスペース固有のパスを取得
 WORKSPACE_ID=$(get_workspace_id)
 INSIGHTS_BASE=".claude/workspaces/$WORKSPACE_ID/insights"
 PENDING_DIR="$INSIGHTS_BASE/pending"
 
-# Ensure directories exist
+# ディレクトリの存在を確認
 mkdir -p "$PENDING_DIR"
 mkdir -p "$INSIGHTS_BASE/applied"
 mkdir -p "$INSIGHTS_BASE/rejected"
 mkdir -p "$INSIGHTS_BASE/archive"
 
-# Main processing via Python
+# Python によるメイン処理
 WORKSPACE_ID_VAR="$WORKSPACE_ID" \
 PENDING_DIR_VAR="$PENDING_DIR" \
 AGENT_NAME_VAR="${CLAUDE_AGENT_NAME:-unknown}" \
@@ -92,13 +92,13 @@ MAX_TRANSCRIPT_SIZE_VAR="$MAX_TRANSCRIPT_SIZE" \
 MAX_INSIGHTS_PER_CAPTURE_VAR="$MAX_INSIGHTS_PER_CAPTURE" \
 python3 << 'PYEOF'
 """
-Insight Capture Engine - Folder-Based Architecture
+インサイトキャプチャエンジン - フォルダベースアーキテクチャ
 
-Key Design Principles:
-- Each insight is a separate file (no locking needed)
-- File creation is inherently atomic
-- Parallel capture and review without conflicts
-- Simpler, more robust implementation
+主要な設計原則:
+- 各インサイトは個別ファイル（ロック不要）
+- ファイル作成は本質的にアトミック
+- キャプチャとレビューの並行実行が競合なし
+- よりシンプルで堅牢な実装
 """
 
 import json
@@ -111,7 +111,7 @@ from datetime import datetime
 from typing import List, Dict, Optional, Tuple, Any
 
 # =============================================================================
-# CONFIGURATION
+# 設定
 # =============================================================================
 
 class Config:
@@ -127,69 +127,69 @@ class Config:
         self.min_content_length = 11
 
 # =============================================================================
-# PATH VALIDATION
+# パス検証
 # =============================================================================
 
 def validate_transcript_path(path: str) -> Tuple[bool, str, str]:
     """
-    Validate transcript_path for security.
+    transcript_path のセキュリティ検証。
 
-    Returns: (is_valid, error_message, resolved_path)
-    The resolved_path should be used for reading to prevent TOCTOU attacks.
+    戻り値: (is_valid, error_message, resolved_path)
+    resolved_path は TOCTOU 攻撃を防ぐために読み取り時に使用する。
     """
     if not path:
-        return False, "Empty path", ""
+        return False, "パスが空です", ""
 
     expanded = os.path.expanduser(path)
 
     try:
         resolved = os.path.realpath(expanded)
     except (OSError, ValueError) as e:
-        return False, f"Path resolution failed: {e}", ""
+        return False, f"パスの解決に失敗: {e}", ""
 
-    # Check for path traversal in original input
+    # 元の入力でパストラバーサルをチェック
     if '..' in path:
-        return False, "Path traversal detected", ""
+        return False, "パストラバーサルを検出", ""
 
-    # Check for expected Claude directory patterns
-    # SECURITY: Always reject paths not matching valid patterns, regardless of existence
+    # 期待される Claude ディレクトリパターンをチェック
+    # セキュリティ: 有効なパターンに一致しないパスは存在に関わらず常に拒否
     valid_patterns = ['/.claude/', '/claude-code/', '/tmp/claude']
     path_lower = resolved.lower()
 
     if not any(pattern in path_lower for pattern in valid_patterns):
-        return False, "Path not in expected Claude directory", ""
+        return False, "期待される Claude ディレクトリに含まれていないパス", ""
 
-    # Return the resolved path to prevent TOCTOU between validation and read
+    # TOCTOU を防ぐために解決済みパスを返す
     return True, "", resolved
 
 # =============================================================================
-# JSONL PARSING
+# JSONL パース
 # =============================================================================
 
 def extract_assistant_content(resolved_path: str, max_size: int) -> Tuple[str, bool]:
     """
-    Extract assistant message content from JSONL transcript.
+    JSONL トランスクリプトからアシスタントメッセージの内容を抽出。
 
-    Args:
-        resolved_path: The already-resolved absolute path (from validate_transcript_path)
-        max_size: Maximum file size to process
+    引数:
+        resolved_path: 検証済みの解決済み絶対パス（validate_transcript_path から）
+        max_size: 処理する最大ファイルサイズ
 
-    Returns:
-        Tuple of (content, was_skipped_due_to_size)
+    戻り値:
+        (content, was_skipped_due_to_size) のタプル
     """
     content_parts = []
 
     try:
-        # Check file size - use resolved path directly (already validated)
+        # ファイルサイズをチェック - 解決済みパスを直接使用（検証済み）
         try:
             file_size = os.path.getsize(resolved_path)
             if file_size > max_size:
                 size_mb = file_size / (1024 * 1024)
                 max_mb = max_size / (1024 * 1024)
                 sys.stderr.write(
-                    f"insight_capture: Transcript too large ({size_mb:.1f}MB > {max_mb:.1f}MB limit), skipping\n"
+                    f"insight_capture: トランスクリプトが大きすぎます ({size_mb:.1f}MB > {max_mb:.1f}MB 制限)、スキップします\n"
                 )
-                return '', True  # Return flag indicating size skip
+                return '', True  # サイズスキップを示すフラグを返す
         except OSError:
             pass
 
@@ -225,19 +225,19 @@ def extract_assistant_content(resolved_path: str, max_size: int) -> Tuple[str, b
     return '\n'.join(content_parts), False
 
 # =============================================================================
-# INSIGHT EXTRACTION (STATE MACHINE)
+# インサイト抽出（ステートマシン）
 # =============================================================================
 
 def extract_insights(text: str, agent_name: str, config: Config) -> List[Dict[str, Any]]:
-    """Extract insights using state machine approach with code block filtering."""
+    """ステートマシンアプローチとコードブロックフィルタリングでインサイトを抽出。"""
     if not text:
         return []
 
-    # Pre-process: Remove code blocks and inline code
+    # 前処理: コードブロックとインラインコードを除去
     text_filtered = re.sub(r'```[\s\S]*?```', '\n', text)
     text_filtered = re.sub(r'`[^`\n]+`', '', text_filtered)
 
-    # Build marker regex
+    # マーカー正規表現を構築
     marker_re = re.compile(
         r'^[ \t]*(' + '|'.join(config.markers) + r'):[ \t]*(.*)$',
         re.IGNORECASE
@@ -252,11 +252,11 @@ def extract_insights(text: str, agent_name: str, config: Config) -> List[Dict[st
     rate_limit_reached = False
 
     for line in text_filtered.split('\n'):
-        # Rate limit: stop processing if max insights reached
+        # レート制限: 最大インサイト数に達した場合は処理を停止
         if len(insights) >= config.max_insights_per_capture:
             if not rate_limit_reached:
                 sys.stderr.write(
-                    f"insight_capture: Rate limit reached ({config.max_insights_per_capture} insights)\n"
+                    f"insight_capture: レート制限に到達 ({config.max_insights_per_capture} インサイト)\n"
                 )
                 rate_limit_reached = True
             break
@@ -264,7 +264,7 @@ def extract_insights(text: str, agent_name: str, config: Config) -> List[Dict[st
         match = marker_re.match(line)
 
         if match:
-            # Save previous insight
+            # 前のインサイトを保存
             if current_marker and current_content_lines:
                 insight = create_insight(
                     current_marker, current_content_lines, timestamp,
@@ -273,7 +273,7 @@ def extract_insights(text: str, agent_name: str, config: Config) -> List[Dict[st
                 if insight:
                     insights.append(insight)
 
-            # Start new insight
+            # 新しいインサイトを開始
             current_marker = match.group(1).upper()
             initial = match.group(2).strip()
             current_content_lines = [initial] if initial else []
@@ -283,7 +283,7 @@ def extract_insights(text: str, agent_name: str, config: Config) -> List[Dict[st
             if stripped:
                 current_content_lines.append(stripped)
 
-    # Don't forget last insight (if within rate limit)
+    # 最後のインサイトを忘れずに（レート制限内であれば）
     if current_marker and current_content_lines and len(insights) < config.max_insights_per_capture:
         insight = create_insight(
             current_marker, current_content_lines, timestamp,
@@ -303,7 +303,7 @@ def create_insight(
     config: Config,
     seen_hashes: set
 ) -> Optional[Dict[str, Any]]:
-    """Create insight object with validation and deduplication."""
+    """検証と重複排除を行いインサイトオブジェクトを作成。"""
     content = ' '.join(content_lines)
     content = re.sub(r'\\\s*', ' ', content)
     content = re.sub(r'\s+', ' ', content).strip()
@@ -314,13 +314,13 @@ def create_insight(
     if len(content) > config.max_insight_length:
         content = content[:config.max_insight_length] + '... [truncated]'
 
-    # Deduplication
+    # 重複排除
     content_hash = hashlib.sha256(content.lower().encode()).hexdigest()[:16]
     if content_hash in seen_hashes:
         return None
     seen_hashes.add(content_hash)
 
-    # Generate unique ID
+    # ユニーク ID を生成
     insight_id = f"INS-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:8]}"
 
     return {
@@ -335,17 +335,17 @@ def create_insight(
     }
 
 # =============================================================================
-# FILE OPERATIONS (NO LOCKING NEEDED!)
+# ファイル操作（ロック不要！）
 # =============================================================================
 
 def save_insights_to_files(insights: List[Dict], pending_dir: str) -> int:
     """
-    Save each insight as a separate file.
+    各インサイトを個別ファイルとして保存。
 
-    No locking needed because:
-    1. Each file has a unique name (UUID-based)
-    2. File creation with O_EXCL is atomic
-    3. We write to temp file then rename (atomic on POSIX)
+    ロックが不要な理由:
+    1. 各ファイルがユニークな名前を持つ（UUID ベース）
+    2. O_EXCL によるファイル作成はアトミック
+    3. 一時ファイルに書き込んでからリネーム（POSIX ではアトミック）
     """
     saved_count = 0
 
@@ -354,7 +354,7 @@ def save_insights_to_files(insights: List[Dict], pending_dir: str) -> int:
         file_path = os.path.join(pending_dir, f"{insight_id}.json")
 
         try:
-            # Atomic write: temp file in same directory, then rename
+            # アトミック書き込み: 同じディレクトリ内の一時ファイル → リネーム
             temp_path = file_path + '.tmp'
 
             with open(temp_path, 'w', encoding='utf-8') as f:
@@ -366,8 +366,8 @@ def save_insights_to_files(insights: List[Dict], pending_dir: str) -> int:
             saved_count += 1
 
         except Exception as e:
-            sys.stderr.write(f"insight_capture: Failed to save {insight_id}: {e}\n")
-            # Clean up temp file if it exists
+            sys.stderr.write(f"insight_capture: {insight_id} の保存に失敗: {e}\n")
+            # 一時ファイルが存在する場合はクリーンアップ
             try:
                 if os.path.exists(temp_path):
                     os.unlink(temp_path)
@@ -377,7 +377,7 @@ def save_insights_to_files(insights: List[Dict], pending_dir: str) -> int:
     return saved_count
 
 # =============================================================================
-# MAIN
+# メイン
 # =============================================================================
 
 def main():
@@ -387,20 +387,20 @@ def main():
         print(json.dumps({"continue": True}))
         return
 
-    # Parse hook input
+    # フック入力をパース
     try:
         metadata = json.loads(config.hook_input)
     except json.JSONDecodeError:
         print(json.dumps({"continue": True}))
         return
 
-    # Infinite loop prevention
+    # 無限ループ防止
     if metadata.get('stop_hook_active', False):
         print(json.dumps({"continue": True}))
         return
 
-    # Get and validate transcript path
-    # Prefer agent_transcript_path (subagent's own transcript) over transcript_path (main session)
+    # トランスクリプトパスを取得・検証
+    # agent_transcript_path（サブエージェント自身のトランスクリプト）を transcript_path（メインセッション）より優先
     transcript_path = metadata.get('agent_transcript_path', '') or metadata.get('transcript_path', '')
     if not transcript_path:
         print(json.dumps({"continue": True}))
@@ -408,35 +408,35 @@ def main():
 
     is_valid, error_msg, resolved_path = validate_transcript_path(transcript_path)
     if not is_valid:
-        sys.stderr.write(f"insight_capture: Invalid path - {error_msg}\n")
+        sys.stderr.write(f"insight_capture: 無効なパス - {error_msg}\n")
         print(json.dumps({"continue": True}))
         return
 
-    # Extract content using the resolved path (prevents TOCTOU attacks)
+    # 解決済みパスを使用してコンテンツを抽出（TOCTOU 攻撃を防止）
     content, was_size_skipped = extract_assistant_content(resolved_path, config.max_transcript_size)
     if was_size_skipped:
-        # Notify user that transcript was too large
+        # トランスクリプトが大きすぎることをユーザーに通知
         max_mb = config.max_transcript_size / (1024 * 1024)
         print(json.dumps({
             "continue": True,
-            "systemMessage": f"Transcript too large (>{max_mb:.0f}MB) - insights not captured. Consider splitting into smaller sessions."
+            "systemMessage": f"トランスクリプトが大きすぎます (>{max_mb:.0f}MB) - インサイトはキャプチャされませんでした。より小さなセッションに分割することを検討してください。"
         }))
         return
     if not content:
         print(json.dumps({"continue": True}))
         return
 
-    # Extract insights
+    # インサイトを抽出
     insights = extract_insights(content, config.agent_name, config)
 
-    # Save each insight as separate file (NO LOCKING!)
+    # 各インサイトを個別ファイルとして保存（ロック不要！）
     count = save_insights_to_files(insights, config.pending_dir)
 
-    # Output result
+    # 結果を出力
     if count > 0:
         print(json.dumps({
             "continue": True,
-            "systemMessage": f"Captured {count} insight(s). Run /spec-workflow-toolkit:review-insights to evaluate."
+            "systemMessage": f"{count} 件のインサイトをキャプチャしました。評価するには /spec-workflow-toolkit:review-insights を実行してください。"
         }))
     else:
         print(json.dumps({"continue": True}))
@@ -446,7 +446,7 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        sys.stderr.write(f"insight_capture FATAL: {e}\n")
+        sys.stderr.write(f"insight_capture 致命的エラー: {e}\n")
         print(json.dumps({"continue": True}))
 PYEOF
 

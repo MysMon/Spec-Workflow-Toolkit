@@ -252,6 +252,6 @@ Agent Team 運用の安全性と一貫性のために必須。
 
 状況に応じて判断する推奨事項。
 
-- 長時間実行のチームメイトよりも短期タスク型を推奨（Context Rot 防止）
-- チームメイト間の議論が発生しない場合は Task tool フォールバックを検討
-- TeammateIdle hook が正常動作する場合は Layer 2 自動化として活用
+- prefer: 長時間実行のチームメイトよりも短期タスク型を推奨（Context Rot 防止）
+- consider: チームメイト間の議論が発生しない場合は Task tool フォールバックを検討
+- consider: TeammateIdle hook が正常動作する場合は Layer 2 自動化として活用

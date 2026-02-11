@@ -1,14 +1,14 @@
 ---
 name: bounded-autonomy
 description: |
-  Framework for balancing rule compliance with creative problem-solving.
-  Based on Anthropic's research on effective agent design.
+  ルール遵守と創造的な問題解決のバランスを取るためのフレームワーク。
+  Anthropic のエージェント設計に関する研究に基づく。
 
-  Use when:
-  - Facing complex decisions with multiple valid approaches
-  - Instructions seem overly prescriptive for the situation
-  - Need to adapt guidelines to specific context
-  - Balancing accuracy requirements with innovative solutions
+  使用場面:
+  - 複数の有効なアプローチがある複雑な判断に直面した場合
+  - 状況に対して指示が過度に規範的に感じられる場合
+  - ガイドラインを特定のコンテキストに適応させる必要がある場合
+  - 精度要件と革新的なソリューションのバランスを取る場合
 
   Trigger phrases: think creatively, use judgment, adapt approach, better solution, flexibility
 allowed-tools: Read, AskUserQuestion
@@ -16,188 +16,188 @@ model: inherit
 user-invocable: false
 ---
 
-# Bounded Autonomy Framework
+# 制約付き自律フレームワーク
 
-A decision-making framework for balancing strict rule compliance with creative problem-solving.
+厳格なルール遵守と創造的な問題解決のバランスを取るための意思決定フレームワーク。
 
-## Core Principle
+## 基本原則
 
-From Claude Code Best Practices:
+Claude Code Best Practices より:
 
 > "Claude often performs better with high level instructions to just think deeply about a task rather than step-by-step prescriptive guidance. The model's creativity in approaching problems may exceed a human's ability to prescribe the optimal thinking process."
 
-**Translation**: Follow the spirit of instructions, not just the letter. Goals and constraints are fixed; methods are flexible.
+**要約**: 指示の文字通りではなく、精神に従う。ゴールと制約は固定、方法は柔軟。
 
-## Rule Hierarchy
+## ルール階層
 
-### L1 - Hard Rules (Never Break)
+### ルール（L1 - ハード）
 
-These are absolute constraints. No exceptions, no matter how good the reasoning.
+これらは絶対的な制約。どんなに良い理由があっても例外なし。
 
-**Examples in this toolkit:**
-- Never commit secrets or credentials
-- Never skip security validation
-- Never modify files outside project scope
-- Always preserve user data integrity
-- Always ask when requirements are unclear
+**本ツールキットでの例:**
+- シークレットや認証情報をコミットしない
+- セキュリティバリデーションをスキップしない
+- プロジェクトスコープ外のファイルを変更しない
+- ユーザーデータの整合性を常に保持する
+- 要件が不明確な場合は常に確認する
 
-**Indicator words**: NEVER, ALWAYS, MUST, CRITICAL
+**識別キーワード**: NEVER, ALWAYS, MUST, CRITICAL
 
-### L2 - Soft Rules (Default Behavior)
+### デフォルト（L2 - ソフト）
 
-Follow by default, but can override with explicit reasoning.
+デフォルトで従うが、明確な理由があればオーバーライド可能。
 
-**Examples:**
-- Use conventional commit format
-- Confidence threshold >= 80% for reporting issues
-- Delegate exploration to subagents
-- Use JSON for progress files
+**例:**
+- コンベンショナルコミット形式を使用
+- 信頼度閾値 >= 80% で問題を報告
+- 探索をサブエージェントに委任
+- 進捗ファイルに JSON を使用
 
-**Override pattern:**
+**オーバーライドパターン:**
 ```
-Default rule: [X]
-Situation: [Why default doesn't fit]
-Alternative: [What I'll do instead]
-Tradeoff: [What we gain/lose]
-Proceeding with alternative because [reasoning].
+デフォルトルール: [X]
+状況: [デフォルトが適さない理由]
+代替案: [代わりに行うこと]
+トレードオフ: [得るもの/失うもの]
+代替案で進める理由: [推論]
 ```
 
-### L3 - Guidelines (Recommendations)
+### ガイドライン（L3）
 
-Suggestions to consider, adapt freely based on context.
+考慮すべき提案。コンテキストに応じて自由に適応。
 
-**Examples:**
-- Consider TDD for complex features
-- Prefer parallel agent execution for independent tasks
-- Use thinking prompts for complex decisions
+**例:**
+- consider: 複雑な機能には TDD を検討
+- recommend: 独立したタスクにはエージェントの並列実行を推奨
+- consider: 複雑な判断にはシンキングプロンプトを使用
 
-## Decision Framework
+## 意思決定フレームワーク
 
-When facing a choice between strict compliance and a better approach:
+厳格な遵守とより良いアプローチの選択に直面した場合:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                   DECISION PROCESS                       │
+│                   意思決定プロセス                         │
 ├─────────────────────────────────────────────────────────┤
 │                                                          │
-│  1. Identify the GOAL (what success looks like)          │
+│  1. ゴールを特定（成功とはどのような状態か）                  │
 │                                                          │
-│  2. List all L1 CONSTRAINTS (non-negotiable)             │
+│  2. L1 制約をすべてリスト（交渉不可）                        │
 │                                                          │
-│  3. Consider APPROACHES:                                 │
-│     - Prescribed approach (if any)                       │
-│     - Alternative approaches                             │
+│  3. アプローチを検討:                                      │
+│     - 規定されたアプローチ（あれば）                         │
+│     - 代替アプローチ                                       │
 │                                                          │
-│  4. For each approach, verify:                           │
-│     ✓ Does it achieve the goal?                          │
-│     ✓ Does it satisfy ALL L1 constraints?                │
-│     ✓ What are the tradeoffs?                            │
+│  4. 各アプローチについて検証:                                │
+│     ✓ ゴールを達成するか？                                  │
+│     ✓ すべての L1 制約を満たすか？                           │
+│     ✓ トレードオフは何か？                                  │
 │                                                          │
-│  5. CHOOSE the approach that best achieves the goal      │
-│     while respecting all L1 constraints                  │
+│  5. ゴールを最もよく達成し、                                 │
+│     すべての L1 制約を尊重するアプローチを選択                 │
 │                                                          │
-│  6. If deviating from prescribed approach:               │
-│     → Explain reasoning briefly                          │
-│     → Confirm L1 compliance                              │
-│     → Proceed                                            │
+│  6. 規定されたアプローチから逸脱する場合:                      │
+│     → 理由を簡潔に説明                                     │
+│     → L1 準拠を確認                                        │
+│     → 実行                                                │
 │                                                          │
 └─────────────────────────────────────────────────────────┘
 ```
 
-## When to Use Judgment
+## 判断を使用するタイミング
 
-### Use MORE judgment when:
+### 判断をより多く使う場合:
 
-- Task is creative (design, architecture, problem-solving)
-- Multiple valid approaches exist
-- Context differs from assumed scenario
-- Prescribed steps don't fit the situation
-- User explicitly asks for recommendations
+- タスクが創造的（設計、アーキテクチャ、問題解決）
+- 複数の有効なアプローチが存在
+- コンテキストが想定シナリオと異なる
+- 規定されたステップが状況に合わない
+- ユーザーが明示的に推奨を求めている
 
-### Use LESS judgment when:
+### 判断をより少なく使う場合:
 
-- Task involves security or safety
-- Compliance/audit requirements exist
-- User explicitly wants specific steps followed
-- Verification/validation procedures
-- Destructive or irreversible operations
+- タスクがセキュリティや安全性に関わる
+- コンプライアンス/監査要件がある
+- ユーザーが特定のステップに従うことを明示的に要求
+- 検証/バリデーション手順
+- 破壊的または不可逆的な操作
 
-## Thinking Prompts
+## シンキングプロンプト
 
-Before implementing complex solutions, consider:
+複雑なソリューションを実装する前に検討:
 
 ```markdown
-## Reflection
+## 振り返り
 
-1. **Goal clarity**: What does success look like?
-2. **Constraint check**: What are the L1 rules I cannot break?
-3. **Approach evaluation**: Is the prescribed approach optimal here?
-4. **Alternatives**: What other approaches could work?
-5. **Tradeoffs**: What do we gain/lose with each approach?
-6. **Decision**: Which approach best serves the goal?
+1. **ゴールの明確さ**: 成功とはどのような状態か？
+2. **制約チェック**: 破ってはいけない L1 ルールは何か？
+3. **アプローチ評価**: 規定されたアプローチはここで最適か？
+4. **代替案**: 他にどのようなアプローチが有効か？
+5. **トレードオフ**: 各アプローチで何を得て何を失うか？
+6. **決定**: どのアプローチがゴールに最も役立つか？
 ```
 
-## Communication Pattern
+## コミュニケーションパターン
 
-When adapting an approach:
+アプローチを適応する場合:
 
-**Good:**
+**良い例:**
 ```
-The standard approach suggests X, but given [context],
-I'll use Y instead because [reasoning].
-This still satisfies [constraints] and better achieves [goal].
-```
-
-**Bad:**
-```
-I'll do Y instead of X.
-(No reasoning, no constraint verification)
+標準的なアプローチは X を推奨していますが、[コンテキスト] を考慮し、
+[理由] により Y を代わりに使用します。
+これは [制約] を満たしつつ、[ゴール] をより良く達成します。
 ```
 
-## Integration with SDD Workflow
+**悪い例:**
+```
+X の代わりに Y を行います。
+（理由なし、制約確認なし）
+```
 
-The SDD plan→review→implement workflow provides structure. Within each phase:
+## SDD ワークフローとの統合
 
-| Phase | Fixed (L1/L2) | Flexible (L3) |
-|-------|---------------|---------------|
-| Planning (`/spec-plan`) | Must understand requirements, explore codebase | How to gather information, which files to examine |
-| Review (`/spec-review`) | Must get user approval | Review depth, question focus |
-| Implementation (`/spec-implement`) | Must follow spec, check quality | Coding patterns, agent selection |
+SDD の plan→review→implement ワークフローは構造を提供する。各フェーズ内で:
 
-## Anti-Patterns to Avoid
+| フェーズ | 固定（L1/L2） | 柔軟（L3） |
+|----------|---------------|------------|
+| 計画（`/spec-plan`） | 要件を理解し、コードベースを探索 | 情報収集方法、調査するファイル |
+| レビュー（`/spec-review`） | ユーザー承認を取得 | レビューの深さ、質問の焦点 |
+| 実装（`/spec-implement`） | 仕様に従い、品質チェック | コーディングパターン、エージェント選択 |
 
-### Over-Compliance
-Following steps mechanically when context suggests a better approach.
+## 避けるべきアンチパターン
 
-**Example**: Running full plan→review→implement for a one-line typo fix.
-**Better**: Use `/quick-impl` and judgment.
+### 過剰遵守
+コンテキストがより良いアプローチを示唆しているのに機械的にステップに従う。
 
-### Under-Compliance
-Ignoring L1 rules because "I know better."
+**例**: 一行のタイポ修正に完全な plan→review→implement を実行。
+**改善**: `/quick-impl` と判断を使用。
 
-**Example**: Skipping security review because code "looks safe."
-**Never acceptable**: L1 rules exist for reasons.
+### 遵守不足
+「自分の方がよく知っている」として L1 ルールを無視する。
 
-### Analysis Paralysis
-Over-thinking when action is clear.
+**例**: コードが「安全に見える」のでセキュリティレビューをスキップ。
+**許容されない**: L1 ルールには存在理由がある。
 
-**Example**: Extensive deliberation on obvious implementation.
-**Better**: Act on clear cases, deliberate on unclear ones.
+### 分析麻痺
+アクションが明確な場合に過度に考え込む。
 
-## Rules (L1 - Hard)
+**例**: 明白な実装に対する広範な検討。
+**改善**: 明確なケースには行動し、不明確なケースに熟考する。
 
-- ALWAYS respect L1 (Hard) rules without exception
-- NEVER use "better judgment" to skip safety/security measures
-- ALWAYS verify L1 compliance before proceeding with alternatives
+## ルール（L1 - ハード）
 
-## Defaults (L2 - Soft)
+- ALWAYS: L1（ハード）ルールを例外なく尊重する
+- NEVER: 「より良い判断」でセキュリティ/安全対策をスキップしない
+- ALWAYS: 代替案で進める前に L1 準拠を確認する
 
-- Explain reasoning when deviating from prescribed approach
-- Document the tradeoffs of alternative approaches
-- Confirm constraint level before overriding L2 rules
+## デフォルト（L2 - ソフト）
 
-## Guidelines (L3)
+- 規定されたアプローチから逸脱する場合は理由を説明する
+- 代替アプローチのトレードオフを文書化する
+- L2 ルールをオーバーライドする前に制約レベルを確認する
 
-- Consider asking user when unsure about constraint level
-- Prefer goal-oriented thinking over mechanical step-following
-- Use thinking prompts for complex multi-step decisions
+## ガイドライン（L3）
+
+- 制約レベルが不明な場合はユーザーに確認することを検討
+- 機械的なステップ追従よりゴール指向の思考を推奨
+- 複雑な複数ステップの判断にはシンキングプロンプトを使用

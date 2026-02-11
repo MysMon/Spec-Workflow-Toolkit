@@ -1,10 +1,10 @@
 ---
-description: "Interactively review and refine a spec and design with the user - feedback loop until approved"
-argument-hint: "[path to spec file or feature name]"
+description: "仕様書と設計書をユーザーとインタラクティブにレビュー・改善する - 承認されるまでフィードバックループを実施"
+argument-hint: "[仕様書ファイルパスまたは機能名]"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite, TeamCreate, TaskCreate, TaskUpdate, TaskList, TaskGet, SendMessage
 ---
 
-# /spec-review - Interactive Plan Review
+# /spec-review - インタラクティブなプランレビュー
 
 ## Language Mode
 
@@ -12,82 +12,82 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoW
 
 ---
 
-Review a specification and design document interactively with the user. This is a **user-driven feedback loop** — the user reads the plan, gives feedback, and the plan is revised until approved.
+仕様書と設計書をユーザーとインタラクティブにレビューする。これは**ユーザー主導のフィードバックループ**であり、ユーザーがプランを読み、フィードバックし、承認されるまでプランを修正する。
 
-For automated machine review, use `--auto` to run parallel review agents before the feedback loop.
+自動的な機械レビューを行うには、`--auto` を使用してフィードバックループの前に並列レビューエージェントを実行する。
 
-## Two Review Modes
+## 2つのレビューモード
 
-| Mode | Command | What Happens |
+| モード | コマンド | 動作内容 |
 |------|---------|--------------|
-| **Interactive** (default) | `/spec-review feature.md` | User reads plan, gives feedback, iterate |
-| **Auto + Interactive** | `/spec-review feature.md --auto` | 5 agents review first, then user feedback loop |
+| **インタラクティブ**（デフォルト） | `/spec-review feature.md` | ユーザーがプランを読み、フィードバック、反復 |
+| **自動 + インタラクティブ** | `/spec-review feature.md --auto` | 5エージェントが先にレビュー、その後ユーザーフィードバックループ |
 
-## Execution Instructions
+## 実行手順
 
-### Step 1: Locate Spec and Design
+### ステップ 1: 仕様書と設計書の特定
 
-**Reading vs Editing distinction:**
-- **Reading for reference**: Orchestrator MAY read spec/design files directly for quick lookups
-- **Editing/modifying**: ALWAYS delegate to product-manager agent
+**読み取りと編集の区別:**
+- **参照のための読み取り**: オーケストレーターはクイックルックアップのために仕様書/設計書を直接読み取り可
+- **編集・修正**: 常に product-manager エージェントに委任
 
-**CRITICAL: The orchestrator never EDITS spec/design files directly - delegate editing to product-manager.**
+**重要: オーケストレーターは仕様書/設計書を直接編集してはならない - 編集は product-manager に委任すること。**
 
-If `$ARGUMENTS` is provided:
-- If it's a file path, use Glob to verify the file exists
-- If it's a feature name, search in `docs/specs/` directory using Glob
+`$ARGUMENTS` が指定された場合:
+- ファイルパスの場合、Glob でファイルの存在を確認
+- 機能名の場合、Glob で `docs/specs/` ディレクトリを検索
 
-**Also locate the corresponding design document:**
-- If spec is `docs/specs/user-auth.md`, look for `docs/specs/user-auth-design.md` using Glob
+**対応する設計書も特定する:**
+- 仕様書が `docs/specs/user-auth.md` の場合、Glob で `docs/specs/user-auth-design.md` を探す
 
-If no arguments:
-- List available specs in `docs/specs/` using Glob
-- Ask user which one to review
+引数なしの場合:
+- Glob で `docs/specs/` の利用可能な仕様書を一覧表示
+- どれをレビューするかユーザーに確認
 
-**Content loading - choose based on file size:**
+**コンテンツ読み込み - ファイルサイズに応じて選択:**
 
-Refer to `subagent-contract` skill for unified quick lookup limits.
+統一クイックルックアップ制限は `subagent-contract` スキルを参照。
 
-**For small files (≤200 lines per file, ≤300 lines total):**
-- Orchestrator MAY read directly using Read tool for presentation purposes ONLY
-- Show content as-is (do NOT synthesize, summarize, or analyze)
-- If synthesis/analysis is needed (e.g., understanding trade-offs, identifying gaps), delegate to product-manager
+**小さいファイル（ファイルあたり200行以下、合計300行以下）の場合:**
+- オーケストレーターは Read ツールで直接読み取り可（提示目的のみ）
+- コンテンツをそのまま表示（統合、要約、分析をしない）
+- 統合/分析が必要な場合（例: トレードオフの理解、ギャップの特定）は product-manager に委任
 
-**For large files (>200 lines) or when summary is needed:**
-Delegate to `product-manager` agent:
+**大きいファイル（200行超）またはサマリーが必要な場合:**
+`product-manager` エージェントに委任:
 ```
-Launch product-manager agent:
-Task: Summarize spec and design for review presentation
-Inputs: Spec file path + Design file path (if exists)
-Output:
-- Key requirements list
-- Architecture summary
-- Build sequence
-- Trade-offs and decisions
+product-manager エージェントを起動:
+タスク: レビュー提示用に仕様書と設計書を要約
+入力: 仕様書ファイルパス + 設計書ファイルパス（存在する場合）
+出力:
+- 主要要件リスト
+- アーキテクチャサマリー
+- ビルド順序
+- トレードオフと決定事項
 ```
 
-**Error Handling for product-manager (content loading):**
-If product-manager fails or times out:
-1. Retry once with reduced scope (focus on key requirements list only)
-2. **Fallback: Read files directly** if retry fails (respecting unified limits from `subagent-contract`):
-   - Read spec file directly (≤200 lines)
-   - Read design file directly (≤200 lines)
-   - If file exceeds 200 lines, read first 200 lines with warning
-   - Present raw content with section headers
-   - Warn user: "Showing partial content (summarization failed, file exceeded 200 lines)"
-3. Add warning to review log: "Content loading via agent failed, using direct read fallback"
+**product-manager（コンテンツ読み込み）のエラーハンドリング:**
+product-manager が失敗またはタイムアウトした場合:
+1. スコープを縮小してリトライ（主要要件リストのみに集中）
+2. リトライも失敗した場合は**フォールバック: ファイルを直接読み取り**（`subagent-contract` の統一制限を遵守）:
+   - 仕様書ファイルを直接読み取り（200行以下）
+   - 設計書ファイルを直接読み取り（200行以下）
+   - ファイルが200行を超える場合、先頭200行を警告付きで読み取り
+   - セクションヘッダー付きで生コンテンツを提示
+   - ユーザーに警告: 「部分的なコンテンツを表示（要約処理に失敗、ファイルが200行超）」
+3. レビューログに警告を追加: "Content loading via agent failed, using direct read fallback"
 
-### Step 2: Auto Review (only if `--auto` flag is present)
+### ステップ 2: 自動レビュー（`--auto` フラグがある場合のみ）
 
-**If `--auto` is specified**, launch parallel review agents before the user feedback loop.
+**`--auto` が指定された場合**、ユーザーフィードバックループの前に並列レビューエージェントを起動する。
 
-Load the `team-orchestration` skill for Agent Team detection and spawn prompt templates.
+Agent Team の検出とスポーンプロンプトテンプレートのために `team-orchestration` スキルを読み込むこと。
 
-#### Agent Team Mode (team-orchestration skill による自動検出)
+#### Agent Team モード（team-orchestration スキルによる自動検出）
 
 Agent Team が利用可能な場合（TeamCreate tool が使用可能）:
 
-**Step 2a: チーム作成**
+**ステップ 2a: チーム作成**
 
 TeamCreate で `spec-review-{feature-name}` チームを作成する。
 
@@ -98,10 +98,10 @@ Agent Team モードは現在利用できません。
 サブエージェント（Task tool）モードでレビューを実行します。
 ```
 
-**Step 2b: チームメイトスポーン（3体）**
+**ステップ 2b: チームメイトスポーン（3体）**
 
 以下の 3 体を Task tool で team_name を指定してスポーンする。
-各チームメイトのスポーンプロンプトは team-orchestration skill の reference.md から取得:
+各チームメイトのスポーンプロンプトは team-orchestration スキルの reference.md から取得:
 
 ```
 1. security-auditor:
@@ -126,21 +126,21 @@ Agent Team モードは現在利用できません。
          + レビュー対象の spec/design パス
 ```
 
-**Step 2c: サブエージェント並列起動（2体、既存パターン）**
+**ステップ 2c: サブエージェント並列起動（2体、既存パターン）**
 
 以下の 2 体は従来通り Task tool（チームなし）で起動:
 - product-manager: 完全性レビュー
 - verification-specialist: 仕様と設計の整合性チェック
 
-Step 2b と 2c は並行して起動すること。
+ステップ 2b と 2c は並行して起動すること。
 
-**Step 2d: 相互レビュー促進**
+**ステップ 2d: 相互レビュー促進**
 
 チームメイトは SendMessage で相互に発見を共有する。リーダーは以下を監視:
 - security-auditor -> qa-engineer: セキュリティ発見のテスト可能性評価依頼
 - system-architect -> security-auditor: 技術的妥当性の検証結果
 
-**Step 2e: インサイト抽出（リーダー側処理）**
+**ステップ 2e: インサイト抽出（リーダー側処理）**
 
 全チームメイトの完了報告（SendMessage）を受信後:
 
@@ -151,13 +151,13 @@ Step 2b と 2c は並行して起動すること。
    ```
 3. Confidence >= 85 の発見については verification-specialist サブエージェントで参照検証
 
-**Step 2f: チームクリーンアップ**
+**ステップ 2f: チームクリーンアップ**
 
 全結果統合後:
 
 1. 各チームメイトに shutdown_request を送信
 2. チーム結果とサブエージェント結果を統合
-3. Step 3 に進む
+3. ステップ 3 に進む
 
 **Agent Team エラーリカバリ（サーキットブレイカー - 3段階判断）:**
 
@@ -178,216 +178,216 @@ Step 2b と 2c は並行して起動すること。
 
 #### 従来パターン（Task tool による 5 並列レビュー）
 
-**CRITICAL: Launch all agents in a single message.**
+**重要: すべてのエージェントを1つのメッセージで起動すること。**
 
 ```
-1. product-manager: Completeness review
-2. system-architect: Technical feasibility review (spec + design)
-3. security-auditor: Security review (spec + design)
-4. qa-engineer: Quality/testability review
-5. verification-specialist: Spec↔design consistency check (if design exists)
+1. product-manager: 完全性レビュー
+2. system-architect: 技術的実現可能性レビュー（仕様書 + 設計書）
+3. security-auditor: セキュリティレビュー（仕様書 + 設計書）
+4. qa-engineer: 品質/テスト可能性レビュー
+5. verification-specialist: 仕様書↔設計書の整合性チェック（設計書が存在する場合）
 ```
 
-**Error Handling for Auto-Review agents:**
+**自動レビューエージェントのエラーハンドリング:**
 
-For each review agent (product-manager, system-architect, security-auditor, qa-engineer):
-If agent fails or times out:
-1. Check partial output for usable findings
-2. Retry once with reduced scope
-3. If retry fails, proceed with available results and note gap
-4. Add warning to auto-review results: "[Agent] review incomplete"
+各レビューエージェント（product-manager、system-architect、security-auditor、qa-engineer）について:
+エージェントが失敗またはタイムアウトした場合:
+1. 部分出力で使用可能な発見事項を確認
+2. スコープを縮小してリトライ
+3. リトライも失敗した場合、利用可能な結果で続行しギャップを記録
+4. 自動レビュー結果に警告を追加: "[エージェント] のレビューが不完全"
 
-**CRITICAL: security-auditor failure handling:**
-If security-auditor fails after retry:
-1. Warn user prominently: "Security review failed. Proceeding without security validation."
-2. Add to findings: "MANUAL SECURITY REVIEW RECOMMENDED"
-3. Proceed with user acknowledgment
+**重要: security-auditor の障害対応:**
+security-auditor がリトライ後も失敗した場合:
+1. ユーザーに明示的に警告: 「セキュリティレビューが失敗しました。セキュリティバリデーションなしで続行します。」
+2. 発見事項に追加: 「手動セキュリティレビューを推奨」
+3. ユーザーの了承を得て続行
 
-If ALL 5 agents fail:
-1. Inform user: "Auto-review failed. Cannot provide automated findings."
-2. Offer options:
-   - "Retry auto-review"
-   - "Skip auto-review and proceed to manual feedback loop"
-   - "Cancel and investigate"
+全5エージェントが失敗した場合:
+1. ユーザーに通知: 「自動レビューが失敗しました。自動的な発見事項を提供できません。」
+2. オプションを提示:
+   - 「自動レビューをリトライ」
+   - 「自動レビューをスキップし、手動フィードバックループに進む」
+   - 「キャンセルして調査」
 
-**Delegate result consolidation to verification-specialist agent:**
+**結果の統合を verification-specialist エージェントに委任:**
 ```
-Launch verification-specialist agent:
-Task: Consolidate review results from 5 agents
-Rules:
-- Filter by confidence (>= 80)
-- De-duplicate across agents (boost confidence by 10 when multiple agents agree)
-- Categorize: spec-only / design-only / both
-- Sort by severity
-Output: Consolidated findings list with confidence scores
+verification-specialist エージェントを起動:
+タスク: 5エージェントのレビュー結果を統合
+ルール:
+- 信頼度でフィルタ（>= 80）
+- エージェント間の重複排除（複数エージェント一致で信頼度を 10 ブースト）
+- カテゴリ分類: 仕様書のみ / 設計書のみ / 両方
+- 重要度でソート
+出力: 信頼度スコア付きの統合発見事項リスト
 ```
 
-Use the agent's consolidated output for presentation. Do NOT consolidate results manually.
+提示にはエージェントの統合出力を使用する。手動で結果を統合しないこと。
 
-**Error Handling for verification-specialist:**
-If verification-specialist fails or times out:
-1. Retry once with reduced scope (focus on de-duplication and severity sorting only)
-2. If retry fails:
-   - Attempt basic de-duplication: group identical issues from multiple agents
-   - Issues reported by 2+ agents: treat as high-confidence (boost by 10)
-   - Issues reported by 1 agent: keep original confidence
-3. Warn user: "Auto-review consolidation incomplete. Basic de-duplication applied."
-4. Proceed with user feedback loop using partially consolidated findings
+**verification-specialist のエラーハンドリング:**
+verification-specialist が失敗またはタイムアウトした場合:
+1. スコープを縮小してリトライ（重複排除と重要度ソートのみに集中）
+2. リトライも失敗した場合:
+   - 基本的な重複排除を実行: 複数エージェントからの同一問題をグループ化
+   - 2エージェント以上が報告した問題: 高信頼度として扱う（10 ブースト）
+   - 1エージェントのみ報告した問題: 元の信頼度を維持
+3. ユーザーに警告: 「自動レビューの統合が不完全です。基本的な重複排除を適用しました。」
+4. 部分的に統合された発見事項でユーザーフィードバックループに進む
 
-**Present auto-review results to user:**
+**自動レビュー結果をユーザーに提示:**
 ```markdown
-## Auto-Review Results
+## 自動レビュー結果
 
-Found [N] issues ([X] critical, [Y] important).
+[N] 件の問題が見つかりました（[X] 件クリティカル、[Y] 件重要）。
 
-### Critical Issues (>= 90)
-1. **[Title]** ([Category], affects [Spec/Design/Both])
-   [Description]
-   Suggested fix: [fix]
+### クリティカルな問題（>= 90）
+1. **[タイトル]**（[カテゴリ]、影響範囲: [仕様書/設計書/両方]）
+   [説明]
+   修正案: [修正内容]
 
-### Important Issues (80-89)
+### 重要な問題（80-89）
 ...
 
-These will be incorporated into the feedback loop below.
+これらは以下のフィードバックループに組み込まれます。
 ```
 
-**Apply auto-fixes for issues where:**
-- Confidence >= 90
-- Fix is a simple addition (e.g., adding a missing "Out of Scope" section)
-- Fix does NOT change architecture decisions or user-approved requirements
-- Always inform the user what was auto-fixed
+**以下の条件で自動修正を適用:**
+- 信頼度 >= 90
+- 修正が単純な追加（例: 不足している「対象外」セクションの追加）
+- アーキテクチャの決定やユーザー承認済み要件を変更しない
+- 自動修正した内容をユーザーに必ず通知
 
-**Escalate to user** any issue that:
-- Changes architecture or core design decisions
-- Contradicts user-approved spec requirements
-- Has confidence 80-89 (ambiguous)
+**以下の問題はユーザーにエスカレーション:**
+- アーキテクチャやコア設計の決定を変更する問題
+- ユーザー承認済みの仕様要件に矛盾する問題
+- 信頼度 80-89（曖昧）の問題
 
-### Step 3: Present Plan for User Review
+### ステップ 3: ユーザーレビュー用にプランを提示
 
-Display both spec and design (or summaries for long documents), then provide **guided review questions** to help the user focus:
+仕様書と設計書の両方（または長い文書の場合はサマリー）を表示し、ユーザーが集中できるよう**ガイド付きレビュー質問**を提供:
 
 ```
-Here is your plan. I'll walk you through key areas to check.
+プランの準備ができました。主要なチェックポイントを順に確認します。
 
-## Guided Review
+## ガイド付きレビュー
 
-1. **Requirements**: Do these capture what you want to build?
-   [List key requirements from spec]
+1. **要件**: 構築したい内容を正しく捉えていますか？
+   [仕様書からの主要要件リスト]
 
-2. **Architecture**: Does this approach fit your codebase and team?
-   [Summary of approach from design]
+2. **アーキテクチャ**: このアプローチはコードベースとチームに合っていますか？
+   [設計書からのアプローチサマリー]
 
-3. **Build Sequence**: Is this order realistic?
-   [Build sequence from design]
+3. **ビルド順序**: この順序は現実的ですか？
+   [設計書からのビルド順序]
 
-4. **Security & Edge Cases**: Anything missing?
-   [Key security items and edge cases from spec]
+4. **セキュリティとエッジケース**: 不足はありませんか？
+   [仕様書からの主要セキュリティ項目とエッジケース]
 
-5. **Trade-offs**: Do you agree with these choices?
-   [Trade-offs from design]
+5. **トレードオフ**: これらの選択に同意しますか？
+   [設計書からのトレードオフ]
 
-What would you like to change? (Or "approve" if it looks good)
+何を変更しますか？（問題なければ「承認」と回答してください）
 ```
 
-### Step 4: User Feedback Loop
+### ステップ 4: ユーザーフィードバックループ
 
-**Loop until the user approves or exits.**
+**ユーザーが承認するか終了するまでループ。**
 
-#### Handling Ambiguous Feedback
+#### 曖昧なフィードバックへの対応
 
-**CRITICAL:** When user feedback is unclear or contains multiple possible interpretations:
+**重要:** ユーザーのフィードバックが不明確、または複数の解釈が可能な場合:
 
-1. **MUST use AskUserQuestion** to present structured options
-2. **Do NOT guess** the user's intent
-3. Frame questions with concrete trade-offs
+1. **AskUserQuestion を使用**して構造化されたオプションを提示
+2. ユーザーの意図を**推測しない**
+3. 具体的なトレードオフで質問をフレーミング
 
-Example scenarios requiring AskUserQuestion:
+AskUserQuestion が必要なシナリオ例:
 
-| User Says | Use AskUserQuestion To |
+| ユーザーの発言 | AskUserQuestion で確認 |
 |-----------|----------------------|
-| "Make it faster" | Ask: Faster load time? Faster response? Faster build? |
-| "Add better error handling" | Ask: Which errors? User-facing messages? Logging? Recovery? |
-| "This feels too complex" | Ask: Simplify API? Reduce features? Split into phases? |
-| "I'm not sure about this" | Ask: What concerns them? Present alternatives with trade-offs |
+| 「もっと速くして」 | 読み込み速度？レスポンス速度？ビルド速度？ |
+| 「エラーハンドリングを改善して」 | どのエラー？ユーザー向けメッセージ？ロギング？リカバリ？ |
+| 「複雑すぎる」 | API を簡素化？機能を削減？フェーズ分割？ |
+| 「これについて確信がない」 | 何が気になるか？トレードオフ付きの代替案を提示 |
 
-After each user message, determine the feedback type:
+各ユーザーメッセージ後にフィードバックタイプを判断:
 
-| User Says | Action |
+| ユーザーの発言 | アクション |
 |-----------|--------|
-| "approve" / "looks good" / "LGTM" | Exit loop → Step 5 |
-| Specific change request (e.g., "use sessions instead of JWT") | Apply change → re-present affected section |
-| Question (e.g., "why did you choose PostgreSQL?") | Answer from design rationale, ask if they want to change it |
-| "add X" (new requirement) | Add to spec, check if design needs updating |
-| "remove X" | Remove from spec, check if design needs updating |
-| "I'm not sure about X" | Discuss trade-offs, present alternatives if relevant |
-| "start over" / "re-plan" | Suggest re-running `/spec-plan` |
+| 「承認」/「問題ない」/「LGTM」 | ループ終了 → ステップ 5 |
+| 具体的な変更依頼（例: 「JWT ではなくセッションを使用」） | 変更を適用 → 影響セクションを再提示 |
+| 質問（例: 「なぜ PostgreSQL を選んだの？」） | 設計の根拠から回答、変更したいか確認 |
+| 「X を追加して」（新しい要件） | 仕様書に追加、設計書の更新が必要か確認 |
+| 「X を削除して」 | 仕様書から削除、設計書の更新が必要か確認 |
+| 「X について確信がない」 | トレードオフを議論、関連する代替案があれば提示 |
+| 「最初からやり直して」/「再計画して」 | `/spec-plan` の再実行を提案 |
 
-#### Handling Changes That Affect Architecture
+#### アーキテクチャに影響する変更への対応
 
-**CRITICAL: The orchestrator does NOT edit spec/design files directly. ALWAYS delegate.**
+**重要: オーケストレーターは仕様書/設計書を直接編集しない。常に委任すること。**
 
-**If a change is small** (wording, adding an edge case, clarifying a requirement):
+**変更が小さい場合**（文言、エッジケースの追加、要件の明確化）:
 
-Delegate to product-manager:
+product-manager に委任:
 ```
-Launch product-manager agent:
-Task: Apply small change to spec/design during review
-Change request: [user's feedback]
-Spec file: [spec file path]
-Design file: [design file path] (if applicable)
-Constraint: Wording/clarification only, no architecture changes
-Output: Summary of changes with before/after
-```
-
-Re-present the changed section using agent output.
-
-**If a change requires re-architecture** (e.g., "use a different database", "change the auth approach"):
-1. Inform the user: "This change affects the architecture design. I have two options:"
-   - **Option A**: I'll delegate to code-architect for design analysis, then product-manager for edits (best-effort, no re-exploration)
-   - **Option B**: Re-run `/spec-plan` with this new constraint for a thorough re-analysis
-2. If Option A:
-   - Delegate design revision analysis to code-architect agent
-   - Delegate actual edits to product-manager agent using code-architect's output
-   - Re-present the updated design, continue loop
-3. If Option B: update progress file, exit, suggest `/spec-plan` command
-
-#### After Each Change
-
-After applying a change:
-```
-Updated [spec/design/both]. Here's what changed:
-
-[Summary of change]
-
-Anything else to change? (Or "approve" to finalize)
+product-manager エージェントを起動:
+タスク: レビュー中に仕様書/設計書に小さな変更を適用
+変更依頼: [ユーザーのフィードバック]
+仕様書ファイル: [仕様書ファイルパス]
+設計書ファイル: [設計書ファイルパス]（該当する場合）
+制約: 文言/明確化のみ、アーキテクチャ変更なし
+出力: 変更前後のサマリー
 ```
 
-### Step 5: Approval and Handoff
+エージェント出力を使って変更セクションを再提示する。
 
-When the user approves:
+**変更がアーキテクチャの再設計を必要とする場合**（例: 「別のデータベースを使用」、「認証アプローチを変更」）:
+1. ユーザーに通知: 「この変更はアーキテクチャ設計に影響します。2つの選択肢があります:」
+   - **オプション A**: code-architect に設計分析を委任し、その後 product-manager に編集を委任（ベストエフォート、再探索なし）
+   - **オプション B**: 新しい制約で `/spec-plan` を再実行し、徹底的に再分析
+2. オプション A の場合:
+   - code-architect エージェントに設計修正分析を委任
+   - code-architect の出力を使って product-manager エージェントに実際の編集を委任
+   - 更新された設計を再提示、ループ継続
+3. オプション B の場合: 進捗ファイルを更新、終了、`/spec-plan` コマンドの実行を提案
 
-1. **Save final versions** of spec and design files
-2. **Save review log** to `docs/specs/[feature-name]-review.md`:
+#### 各変更後
+
+変更を適用した後:
+```
+[仕様書/設計書/両方] を更新しました。変更内容:
+
+[変更のサマリー]
+
+他に変更はありますか？（完了する場合は「承認」と回答してください）
+```
+
+### ステップ 5: 承認とハンドオフ
+
+ユーザーが承認した場合:
+
+1. **仕様書と設計書の最終版を保存**
+2. **レビューログを保存** `docs/specs/[feature-name]-review.md`:
    ```markdown
-   ## Review Log: [Feature Name]
+   ## レビューログ: [機能名]
 
-   ### Review Mode
-   [Interactive / Auto + Interactive]
+   ### レビューモード
+   [インタラクティブ / 自動 + インタラクティブ]
 
-   ### Changes Made
-   1. [Change description] (user requested)
-   2. [Change description] (auto-review fix)
+   ### 実施した変更
+   1. [変更内容]（ユーザーの依頼）
+   2. [変更内容]（自動レビューによる修正）
    ...
 
-   ### Auto-Review Issues (if --auto was used)
-   - Resolved: [N]
-   - Deferred: [N]
+   ### 自動レビューの問題（--auto を使用した場合）
+   - 解決済み: [N]
+   - 保留: [N]
 
-   ### Verdict
-   APPROVED by user
+   ### 判定
+   ユーザーにより承認
    ```
 
-3. **Update progress file**:
+3. **進捗ファイルを更新**:
    ```json
    {
      "currentPhase": "review-complete",
@@ -400,52 +400,52 @@ When the user approves:
    }
    ```
 
-4. **Present next step:**
+4. **次のステップを提示:**
    ```
-   Plan approved. Run `/spec-implement docs/specs/[feature-name].md` to start building.
+   プランが承認されました。`/spec-implement docs/specs/[feature-name].md` を実行して構築を開始してください。
    ```
 
-## Usage Examples
+## 使用例
 
 ```bash
-# Interactive review (user feedback only)
+# インタラクティブレビュー（ユーザーフィードバックのみ）
 /spec-review docs/specs/user-authentication.md
 
-# Auto review first, then user feedback
+# 自動レビュー後にユーザーフィードバック
 /spec-review docs/specs/user-authentication.md --auto
 
-# Review by feature name
+# 機能名でレビュー
 /spec-review user-authentication
 
-# Interactive - list and choose
+# インタラクティブ - 一覧から選択
 /spec-review
 ```
 
 ---
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-- ALWAYS present guided review questions (don't just say "any feedback?")
-- ALWAYS loop until user explicitly approves or exits
-- NEVER auto-fix changes that affect architecture or user-approved requirements
-- ALWAYS update progress file on completion
-- ALWAYS save review log
-- ALWAYS use AskUserQuestion when:
-  - User feedback contains multiple possible interpretations
-  - A decision requires choosing between trade-offs (e.g., "should we prioritize X or Y?")
-  - Clarification is needed before making changes to spec or design
-- NEVER guess user intent when feedback is ambiguous — ask first
-- MUST fall back to Task tool pattern when Agent Team is unavailable (TeamCreate tool not accessible)
-- NEVER allow team members to ask the user directly — all user interaction MUST go through the leader via AskUserQuestion
+- MUST: ガイド付きレビュー質問を提示する（単に「フィードバックはありますか？」と聞かない）
+- MUST: ユーザーが明示的に承認するか終了するまでループする
+- NEVER: アーキテクチャやユーザー承認済み要件に影響する変更を自動修正する
+- MUST: 完了時に進捗ファイルを更新する
+- MUST: レビューログを保存する
+- MUST: 以下の場合は AskUserQuestion を使用する:
+  - ユーザーのフィードバックに複数の解釈が可能
+  - トレードオフの選択が必要な決定（例: 「X と Y のどちらを優先すべきか？」）
+  - 仕様書や設計書の変更前に明確化が必要
+- NEVER: フィードバックが曖昧な場合、ユーザーの意図を推測する — まず確認
+- MUST: Agent Team が利用不可の場合（TeamCreate ツールにアクセスできない場合）は Task tool パターンにフォールバックする
+- NEVER: チームメンバーがユーザーに直接質問することを許可する — すべてのユーザーインタラクションはリーダーが AskUserQuestion を通じて行う
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-- Present full guided review on first pass; show only changed sections on subsequent passes
-- For `--auto` mode, apply fixes with confidence >= 90 that don't change architecture
-- Save review log to docs/specs/[feature-name]-review.md
-- Boost auto-review confidence by 10 when multiple agents agree
+- 初回パスではフルのガイド付きレビューを提示。以降のパスでは変更セクションのみ表示
+- `--auto` モードでは、アーキテクチャを変更しない信頼度 >= 90 の修正を適用
+- レビューログを docs/specs/[feature-name]-review.md に保存
+- 複数エージェントが一致した場合、自動レビューの信頼度を 10 ブースト
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-- Consider presenting alternatives when user is unsure
-- For large spec/design documents, summarize sections rather than displaying everything
+- consider: ユーザーが迷っている場合は代替案を提示する
+- consider: 大きな仕様書/設計書の場合、すべてを表示するのではなくセクションを要約する

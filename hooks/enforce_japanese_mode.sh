@@ -1,13 +1,13 @@
 #!/bin/bash
-# SessionStart Hook: Enforce Japanese language mode for all outputs
-# This hook runs once at session start to set language context
+# SessionStart フック: 全出力に対して日本語モードを適用
+# セッション開始時に一度実行され、言語コンテキストを設定する
 #
-# Based on research findings:
-# - Claude Opus 4.5 Japanese performance: 96.9% of English baseline
-# - No evidence that English thinking is more efficient for Japanese users
-# - Japanese documentation improves maintainability for Japanese teams
+# 調査結果に基づく:
+# - Claude Opus 4.5 の日本語性能: 英語ベースラインの 96.9%
+# - 日本語ユーザーにとって英語での思考が効率的であるという根拠はない
+# - 日本語ドキュメントは日本語チームの保守性を向上させる
 
-# Minimal banner - detailed rules are in language-enforcement skill
+# 最小限のバナー - 詳細ルールは language-enforcement スキルに記載
 echo "**言語モード**: 日本語 (Japanese). 詳細は \`language-enforcement\` スキル参照。"
 echo ""
 

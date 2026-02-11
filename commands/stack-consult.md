@@ -1,10 +1,10 @@
 ---
-description: "Interactive stack consultation: requirements interview, dynamic research, and project scaffolding"
-argument-hint: "[optional: project name or brief description]"
+description: "インタラクティブなスタックコンサルテーション: 要件ヒアリング、動的リサーチ、プロジェクトスキャフォールディング"
+argument-hint: "[任意: プロジェクト名または簡単な説明]"
 allowed-tools: AskUserQuestion, WebSearch, WebFetch, Read, Write, Bash, Glob, Grep, Task, TodoWrite, Edit
 ---
 
-# /stack-consult - Interactive Stack Consultation
+# /stack-consult - インタラクティブなスタックコンサルテーション
 
 ## Language Mode
 
@@ -12,201 +12,201 @@ allowed-tools: AskUserQuestion, WebSearch, WebFetch, Read, Write, Bash, Glob, Gr
 
 ---
 
-A domain-agnostic consultation system that guides users from "I have an idea" to "I have a working project structure" through requirements-based interviews and dynamic technology research.
+ドメインに依存しないコンサルテーションシステム。「アイデアがある」から「動くプロジェクト構造がある」まで、要件ベースのインタビューと動的な技術リサーチを通じてユーザーをガイドする。
 
-## Design Principles
+## 設計原則
 
-| Principle | Implementation |
+| 原則 | 実装 |
 |-----------|----------------|
-| **No hardcoded technologies** | All options discovered via WebSearch |
-| **Requirements-first** | Understand needs before researching solutions |
-| **Domain-agnostic** | Works for any project type |
-| **Dynamic discovery** | RAG (WebSearch + WebFetch) for current info |
-| **Transparent trade-offs** | Evidence-based comparisons |
+| **技術のハードコードなし** | すべてのオプションは WebSearch で発見 |
+| **要件ファースト** | ソリューションのリサーチ前にニーズを理解 |
+| **ドメイン非依存** | あらゆるプロジェクトタイプに対応 |
+| **動的発見** | 最新情報のための RAG（WebSearch + WebFetch） |
+| **透明なトレードオフ** | エビデンスに基づく比較 |
 
 ---
 
-## Workflow Overview
+## ワークフロー概要
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Phase 1: Requirements Discovery                            │
-│  "What does your system need to do?"                       │
+│  フェーズ 1: 要件発見                                         │
+│  「システムに何をさせたいですか？」                               │
 ├─────────────────────────────────────────────────────────────┤
-│  Phase 2: Constraint Mapping                                │
-│  "What are your limitations and preferences?"              │
+│  フェーズ 2: 制約マッピング                                     │
+│  「制限事項や希望は何ですか？」                                   │
 ├─────────────────────────────────────────────────────────────┤
-│  Phase 3: Dynamic Research (RAG)                            │
-│  WebSearch + WebFetch to discover current options          │
+│  フェーズ 3: 動的リサーチ（RAG）                                │
+│  WebSearch + WebFetch で最新オプションを発見                      │
 ├─────────────────────────────────────────────────────────────┤
-│  Phase 4: Analysis & Comparison                             │
-│  Evaluate options against requirements                     │
+│  フェーズ 4: 分析と比較                                        │
+│  要件に対してオプションを評価                                     │
 ├─────────────────────────────────────────────────────────────┤
-│  Phase 5: Collaborative Decision                            │
-│  Present findings, decide together                         │
+│  フェーズ 5: 協調的意思決定                                     │
+│  調査結果を提示し、一緒に決定                                     │
 ├─────────────────────────────────────────────────────────────┤
-│  Phase 6: Scaffolding                                       │
-│  Set up project with decided stack                         │
+│  フェーズ 6: スキャフォールディング                                │
+│  決定したスタックでプロジェクトをセットアップ                         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Execution Instructions
+## 実行手順
 
-### Phase 1: Requirements Discovery
+### フェーズ 1: 要件発見
 
-**Goal**: Understand what the user needs in terms of system capabilities, not technology categories.
+**目標**: 技術カテゴリではなく、システムの能力の観点でユーザーのニーズを理解する。
 
-#### 1.1 Core Purpose
+#### 1.1 コアパーパス
 
-Start with an open question to understand the project vision:
-
-```
-"What is the primary purpose of what you're building? Who will use it and what problem does it solve?"
-```
-
-Allow free-form response. If vague, ask follow-up:
-- "What does success look like for this project?"
-- "Can you describe a typical use case?"
-
-#### 1.2 Interaction Model
+プロジェクトのビジョンを理解するためにオープンな質問から始める:
 
 ```
-Question: "How will users or other systems interact with this?"
-Header: "Interaction"
+「何を構築しようとしていますか？誰が使い、どんな問題を解決しますか？」
+```
+
+自由回答を許容する。曖昧な場合はフォローアップ:
+- 「このプロジェクトの成功とはどんな状態ですか？」
+- 「典型的なユースケースを説明してもらえますか？」
+
+#### 1.2 インタラクションモデル
+
+```
+Question: "ユーザーや他のシステムはどのようにこれとやり取りしますか？"
+Header: "インタラクション"
 Options:
-- "Humans via visual interface (screens, graphics)"
-- "Humans via text/voice commands (CLI, chatbot)"
-- "Other software via API/messages"
-- "Physical world (sensors, actuators, hardware)"
-- "No direct interaction (background/batch processing)"
+- "ビジュアルインターフェースを通じて（画面、グラフィックス）"
+- "テキスト/音声コマンドを通じて（CLI、チャットボット）"
+- "API/メッセージ経由で他のソフトウェアから"
+- "物理世界との接続（センサー、アクチュエーター、ハードウェア）"
+- "直接的なインタラクションなし（バックグラウンド/バッチ処理）"
 ```
 
-#### 1.3 Data Characteristics
+#### 1.3 データ特性
 
 ```
-Question: "What kind of data will this system handle?"
-Header: "Data"
+Question: "このシステムはどのようなデータを扱いますか？"
+Header: "データ"
 MultiSelect: true
 Options:
-- "Structured records (users, orders, inventory)"
-- "Unstructured content (text, documents, media)"
-- "Real-time streams (events, sensors, logs)"
-- "Large datasets requiring batch processing"
+- "構造化レコード（ユーザー、注文、在庫）"
+- "非構造化コンテンツ（テキスト、ドキュメント、メディア）"
+- "リアルタイムストリーム（イベント、センサー、ログ）"
+- "バッチ処理を要する大規模データセット"
 ```
 
-#### 1.4 Communication Patterns
+#### 1.4 通信パターン
 
 ```
-Question: "What communication patterns are needed?"
-Header: "Comms"
+Question: "どのような通信パターンが必要ですか？"
+Header: "通信"
 MultiSelect: true
 Options:
-- "Request-response (user asks, system answers)"
-- "Real-time bidirectional (chat, collaboration)"
-- "Push notifications (alerts, updates)"
-- "Offline-capable (works without network)"
+- "リクエスト-レスポンス（ユーザーが問い合わせ、システムが応答）"
+- "リアルタイム双方向（チャット、コラボレーション）"
+- "プッシュ通知（アラート、更新）"
+- "オフライン対応（ネットワークなしで動作）"
 ```
 
-#### 1.5 Deployment Environment
+#### 1.5 デプロイメント環境
 
 ```
-Question: "Where will this system run?"
-Header: "Deploy"
+Question: "このシステムはどこで実行しますか？"
+Header: "デプロイ"
 Options:
-- "User's device (phone, desktop, browser)"
-- "Cloud servers"
-- "Edge/embedded devices"
-- "Hybrid (multiple environments)"
-- "Not sure yet"
+- "ユーザーのデバイス（スマートフォン、デスクトップ、ブラウザ）"
+- "クラウドサーバー"
+- "エッジ/組み込みデバイス"
+- "ハイブリッド（複数の環境）"
+- "まだ決まっていない"
 ```
 
-### Phase 2: Constraint Mapping
+### フェーズ 2: 制約マッピング
 
-**Goal**: Identify practical limitations that affect technology choices.
+**目標**: 技術選択に影響する実践的な制限を特定する。
 
-#### 2.1 Team Skills
-
-```
-Question: "What programming languages or tools does your team know well? (if any specific)"
-Header: "Skills"
-```
-
-Accept free-form response. Don't constrain with predefined language options.
-
-#### 2.2 Existing Systems
+#### 2.1 チームスキル
 
 ```
-Question: "Are there existing systems this must work with?"
-Header: "Integration"
+Question: "チームが得意なプログラミング言語やツールはありますか？（あれば具体的に）"
+Header: "スキル"
+```
+
+自由回答を受け付ける。定義済みの言語オプションで制限しない。
+
+#### 2.2 既存システム
+
+```
+Question: "連携が必要な既存システムはありますか？"
+Header: "統合"
 Options:
-- "Yes, I'll describe the systems/APIs"
-- "Must follow organizational/company standards"
-- "No constraints, completely new project"
+- "はい、システム/API を説明します"
+- "組織/会社の標準に従う必要あり"
+- "制約なし、完全に新規プロジェクト"
 ```
 
-If "Yes", ask follow-up to understand integration requirements.
+「はい」の場合、統合要件を理解するためのフォローアップを行う。
 
-#### 2.3 Resource Constraints
+#### 2.3 リソース制約
 
 ```
-Question: "What are your primary constraints?"
-Header: "Constraints"
+Question: "主な制約は何ですか？"
+Header: "制約"
 MultiSelect: true
 Options:
-- "Limited budget (prefer free/cheap options)"
-- "Tight timeline (prefer familiar, proven tools)"
-- "Small team (prefer simpler stacks)"
-- "Regulatory/compliance requirements"
+- "予算限定（無料/低コストのオプションを優先）"
+- "タイトなタイムライン（使い慣れた実績あるツールを優先）"
+- "小規模チーム（シンプルなスタックを優先）"
+- "規制/コンプライアンス要件あり"
 ```
 
-#### 2.4 Scale Expectations
+#### 2.4 スケール想定
 
 ```
-Question: "What scale do you anticipate?"
-Header: "Scale"
+Question: "どの程度のスケールを想定していますか？"
+Header: "スケール"
 Options:
-- "Personal/small team use (<100 users)"
-- "Department/organization (100-10,000)"
-- "Public service (10,000+)"
-- "Unknown/variable"
+- "個人/小チーム利用（100ユーザー未満）"
+- "部門/組織レベル（100〜10,000）"
+- "公開サービス（10,000以上）"
+- "不明/可変"
 ```
 
-### Phase 3: Dynamic Research (RAG)
+### フェーズ 3: 動的リサーチ（RAG）
 
-**Goal**: Discover current technology options through web research.
+**目標**: ウェブリサーチを通じて最新の技術オプションを発見する。
 
-**CRITICAL**: Never recommend technologies from memory. Always use WebSearch.
+**重要**: 記憶からの技術推奨は絶対に行わない。常に WebSearch を使用する。
 
-#### 3.1 Map Requirements to Search Queries
+#### 3.1 要件を検索クエリにマッピング
 
-Based on interview responses, construct targeted searches:
+インタビュー回答に基づいてターゲットを絞った検索を構築:
 
-| Gathered Requirement | Query Pattern |
+| 収集された要件 | クエリパターン |
 |---------------------|---------------|
-| Visual interface needed | `"[platform] UI frameworks [year] comparison"` |
-| API backend needed | `"backend frameworks [year] [language] production"` |
-| Real-time needed | `"real-time communication tools [year]"` |
-| Data storage needed | `"database comparison [year] [data type]"` |
-| Deployment needed | `"deployment platforms [year] [constraints]"` |
+| ビジュアルインターフェースが必要 | `"[platform] UI frameworks [year] comparison"` |
+| API バックエンドが必要 | `"backend frameworks [year] [language] production"` |
+| リアルタイムが必要 | `"real-time communication tools [year]"` |
+| データ保存が必要 | `"database comparison [year] [data type]"` |
+| デプロイメントが必要 | `"deployment platforms [year] [constraints]"` |
 
-Use the system clock for the year (e.g., `CURRENT_YEAR=$(date +%Y)`), not model memory.
-If current-year results are thin (e.g., early in the year), broaden queries by adding the previous year and a yearless "latest/recent" variant.
+年はシステムクロックを使用（例: `CURRENT_YEAR=$(date +%Y)`）。モデルの記憶ではない。
+当年の結果が少ない場合（例: 年初）、前年と年なしの「latest/recent」バリエーションを追加してクエリを拡大する。
 
-Example query generation:
+クエリ生成例:
 ```
-Requirements: Visual interface, structured data, real-time updates, Python team
+要件: ビジュアルインターフェース、構造化データ、リアルタイム更新、Python チーム
 
 CURRENT_YEAR=$(date +%Y)
 PREV_YEAR=$((CURRENT_YEAR - 1))
 
-Queries:
+クエリ:
 1. "web UI frameworks ${CURRENT_YEAR} comparison"
 2. "Python backend frameworks ${CURRENT_YEAR} real-time"
 3. "database real-time applications ${CURRENT_YEAR}"
 
-Fallbacks (if results are sparse):
+フォールバック（結果が少ない場合）:
 - "web UI frameworks ${PREV_YEAR} comparison"
 - "Python backend frameworks ${PREV_YEAR} real-time"
 - "database real-time applications ${PREV_YEAR}"
@@ -215,236 +215,236 @@ Fallbacks (if results are sparse):
 - "database real-time applications recent comparison"
 ```
 
-#### 3.2 Execute Research
+#### 3.2 リサーチの実行
 
-For each technology category:
+各技術カテゴリについて:
 
-1. **WebSearch** with constructed query
-2. **Identify top 3-5 candidates** from results
-3. **WebFetch** authoritative sources:
-   - Official documentation (version, features)
-   - Recent comparison articles (< 1 year)
-   - Production experience reports
+1. **WebSearch** で構築したクエリを実行
+2. 結果から**上位 3-5 の候補**を特定
+3. 権威あるソースを **WebFetch**:
+   - 公式ドキュメント（バージョン、機能）
+   - 最近の比較記事（1年以内）
+   - 本番環境での使用レポート
 
-**Error Handling for WebSearch/WebFetch:**
+**WebSearch/WebFetch のエラーハンドリング:**
 
-If WebSearch returns no results or fails:
-1. Retry with broader query (remove year, add "latest" or "recent")
-2. Try alternative search terms (synonyms, related concepts)
-3. If still no results, inform user:
+WebSearch が結果を返さない、または失敗した場合:
+1. より広いクエリでリトライ（年を除く、「latest」や「recent」を追加）
+2. 代替の検索用語で試行（同義語、関連概念）
+3. それでも結果がない場合、ユーザーに通知:
    ```
-   Research for [category] returned limited results.
+   [カテゴリ] のリサーチで限定的な結果しか得られませんでした。
 
-   Options:
-   1. Try different search terms (I'll suggest alternatives)
-   2. Skip this category and proceed with available information
-   3. You provide candidate technologies to research
+   オプション:
+   1. 別の検索用語を試す（代替案を提案します）
+   2. このカテゴリをスキップして利用可能な情報で進行
+   3. リサーチする候補技術をあなたが提供
    ```
 
-If WebFetch fails (timeout, blocked, or unavailable):
-1. Try alternative sources from search results
-2. Fall back to search snippets for basic information
-3. Document limitations: `"Note: Could not verify from official source"`
+WebFetch が失敗した場合（タイムアウト、ブロック、利用不可）:
+1. 検索結果の別のソースを試行
+2. 基本情報として検索スニペットにフォールバック
+3. 制限を記録: `"注: 公式ソースから検証できませんでした"`
 
-#### 3.3 Extract Key Information
+#### 3.3 主要情報の抽出
 
-For each candidate:
-- Current version
-- Primary strengths and weaknesses
-- Use cases it's designed for
-- Community health indicators
-- License and cost model
+各候補について:
+- 現在のバージョン
+- 主な強みと弱み
+- 設計されたユースケース
+- コミュニティの健全性指標
+- ライセンスとコストモデル
 
-#### 3.4 Compile Research Summary
+#### 3.4 リサーチサマリーの作成
 
 ```markdown
-## Research Results: [Category]
+## リサーチ結果: [カテゴリ]
 
-### Candidates Discovered
-| Name | Version | Best For | Source |
+### 発見された候補
+| 名前 | バージョン | 最適な用途 | ソース |
 |------|---------|----------|--------|
-| [A]  | [ver]   | [use]    | [url]  |
-| [B]  | [ver]   | [use]    | [url]  |
+| [A]  | [ver]   | [用途]    | [url]  |
+| [B]  | [ver]   | [用途]    | [url]  |
 
-### Analysis
-[Findings for each candidate with strengths/weaknesses]
+### 分析
+[各候補の強み/弱みを含む分析結果]
 ```
 
-### Phase 4: Analysis & Comparison
+### フェーズ 4: 分析と比較
 
-**Goal**: Evaluate discovered options against user's requirements.
+**目標**: 発見されたオプションをユーザーの要件に対して評価する。
 
-#### 4.1 Apply Evaluation Framework
+#### 4.1 評価フレームワークの適用
 
-For each candidate, assess:
+各候補について評価:
 
-| Axis | Question |
+| 軸 | 質問 |
 |------|----------|
-| **Requirement Fit** | Does it solve the stated problem? |
-| **Constraint Match** | Compatible with skills, budget, timeline? |
-| **Maturity** | Production-ready? Maintained? |
-| **Ecosystem** | Documentation? Libraries? Tools? |
-| **Integration** | Works with other chosen components? |
+| **要件適合** | 提示された問題を解決するか？ |
+| **制約一致** | スキル、予算、タイムラインと互換か？ |
+| **成熟度** | 本番対応可？メンテナンスされている？ |
+| **エコシステム** | ドキュメント？ライブラリ？ツール？ |
+| **統合性** | 選択した他のコンポーネントと連携するか？ |
 
-#### 4.2 Create Trade-off Matrix
+#### 4.2 トレードオフマトリクスの作成
 
 ```markdown
-| Aspect | [Option A] | [Option B] | [Option C] |
+| 観点 | [オプション A] | [オプション B] | [オプション C] |
 |--------|------------|------------|------------|
-| Requirement 1 | Strong | Partial | Weak |
-| Requirement 2 | Partial | Strong | Strong |
-| Team skill match | Strong | Weak | Partial |
-| Learning curve | Low | High | Medium |
+| 要件 1 | 強い | 部分的 | 弱い |
+| 要件 2 | 部分的 | 強い | 強い |
+| チームスキル一致 | 強い | 弱い | 部分的 |
+| 学習コスト | 低 | 高 | 中 |
 ```
 
-#### 4.3 Formulate Recommendation
+#### 4.3 推奨の策定
 
 ```markdown
-## Recommendation
+## 推奨
 
-### Primary: [Technology]
-**Why**: [Reasons tied to their specific requirements]
+### 第一推奨: [技術]
+**理由**: [ユーザー固有の要件に紐づけた理由]
 
-### Alternative: [Technology]
-**Consider if**: [Conditions where this would be better]
+### 代替案: [技術]
+**こちらを検討する条件**: [こちらが良い場合の条件]
 ```
 
-### Phase 5: Collaborative Decision
+### フェーズ 5: 協調的意思決定
 
-**Goal**: Present findings and make decisions together.
+**目標**: 調査結果を提示し、一緒に意思決定する。
 
-#### 5.1 Present to User
+#### 5.1 ユーザーへの提示
 
-Show:
-1. Summary of their requirements
-2. What was searched for
-3. Candidates discovered
-4. Trade-off analysis
-5. Recommendation with reasoning
+以下を表示:
+1. 要件のサマリー
+2. 検索した内容
+3. 発見された候補
+4. トレードオフ分析
+5. 根拠付きの推奨
 
-#### 5.2 Get User Decision
+#### 5.2 ユーザーの決定を取得
 
 ```
-Question: "Based on this research, how would you like to proceed?"
-Header: "Decision"
+Question: "このリサーチ結果を踏まえて、どう進めますか？"
+Header: "決定"
 Options:
-- "Your recommendation looks good, let's set up the project"
-- "I'd like to explore [specific option] more"
-- "Can you research alternative approaches?"
-- "Let me reconsider my requirements"
+- "推奨案で良いので、プロジェクトをセットアップしましょう"
+- "[特定のオプション] をもっと詳しく調べたい"
+- "別のアプローチをリサーチしてほしい"
+- "要件を見直したい"
 ```
 
-#### 5.3 Iterate if Needed
+#### 5.3 必要に応じて反復
 
-- Additional research on specific technologies
-- Deeper comparison between specific options
-- Revisit requirements if changed
+- 特定技術についての追加リサーチ
+- 特定オプション間のより深い比較
+- 要件が変わった場合の再検討
 
-#### 5.4 Final Confirmation
+#### 5.4 最終確認
 
 ```markdown
-## Final Stack Decision
+## 最終スタック決定
 
-| Component | Choice | Rationale |
+| コンポーネント | 選択 | 根拠 |
 |-----------|--------|-----------|
-| [Layer 1] | [Tech] | [Why]     |
-| [Layer 2] | [Tech] | [Why]     |
+| [レイヤー 1] | [技術] | [理由]     |
+| [レイヤー 2] | [技術] | [理由]     |
 
-Proceed with setup?
+セットアップを進めますか？
 ```
 
-### Phase 6: Scaffolding
+### フェーズ 6: スキャフォールディング
 
-**Goal**: Set up the project with decided technologies.
+**目標**: 決定した技術でプロジェクトをセットアップする。
 
-#### 6.1 Research Setup Commands
+#### 6.1 セットアップコマンドのリサーチ
 
-**Do not assume setup commands.** Search for current official instructions:
+**セットアップコマンドを想定しないこと。** 最新の公式手順を検索:
 
-Use the system clock for the year (e.g., `CURRENT_YEAR=$(date +%Y)`), not model memory.
-If current-year results are thin, also try the previous year or a yearless "latest/recent" query.
+年はシステムクロックを使用（例: `CURRENT_YEAR=$(date +%Y)`）。モデルの記憶ではない。
+当年の結果が少ない場合、前年や年なしの「latest/recent」クエリも試す。
 
 ```
 WebSearch: "[technology] getting started official documentation ${CURRENT_YEAR}"
-WebFetch: [official docs] → "Extract installation and setup commands"
+WebFetch: [公式ドキュメント] → "インストールとセットアップコマンドを抽出"
 ```
 
-#### 6.2 Execute Setup
+#### 6.2 セットアップの実行
 
-Run officially documented commands.
+公式ドキュメントのコマンドを実行する。
 
-#### 6.3 Post-Setup Tasks
+#### 6.3 セットアップ後のタスク
 
-1. **Initialize git** with appropriate .gitignore
-2. **Create CLAUDE.md** documenting:
-   - Decided stack with rationale
-   - Commands used for setup
-   - Key decisions made
-3. **Verify setup** works (build, run)
+1. 適切な .gitignore で **git を初期化**
+2. 以下を記録した **CLAUDE.md を作成**:
+   - 根拠付きの決定スタック
+   - セットアップに使用したコマンド
+   - 主要な決定事項
+3. セットアップの**動作を確認**（ビルド、実行）
 
-#### 6.4 Handoff
+#### 6.4 ハンドオフ
 
 ```markdown
-## Project Setup Complete
+## プロジェクトセットアップ完了
 
-### Stack
-[Technologies with versions]
+### スタック
+[バージョン付きの技術]
 
-### Commands Used
-[Exact setup commands]
+### 使用したコマンド
+[正確なセットアップコマンド]
 
-### Next Steps
-- [First recommended action]
-- [Second recommended action]
+### 次のステップ
+- [最初の推奨アクション]
+- [2番目の推奨アクション]
 
-### Documentation Created
-- CLAUDE.md - Context for Claude
-- README.md - Human documentation
+### 作成されたドキュメント
+- CLAUDE.md - Claude 向けコンテキスト
+- README.md - 人間向けドキュメント
 ```
 
 ---
 
-## Usage Examples
+## 使用例
 
 ```bash
-# Full consultation from scratch
+# ゼロからのフルコンサルテーション
 /stack-consult
 
-# With project context
-/stack-consult inventory management system
+# プロジェクトコンテキスト付き
+/stack-consult 在庫管理システム
 
-# Restart consultation with different requirements
+# 別の要件でコンサルテーションを再開
 /stack-consult
 ```
 
 ---
 
-## Rules (L1 - Hard)
+## ルール（L1 - ハード）
 
-Critical for providing accurate, current recommendations.
+正確で最新の推奨を提供するために不可欠。
 
-- NEVER recommend technologies without first researching via WebSearch
-- NEVER assume features or setup commands from training data
-- NEVER use technology-specific options in Phase 1 questions (requirements first)
-- ALWAYS confirm decisions before scaffolding (user must approve)
-- MUST use system clock to generate current year for all searches (`CURRENT_YEAR=$(date +%Y)`)
-- NEVER use training data for years, versions, or command syntax — always verify via WebSearch
-- MUST use year-aware search queries and add previous-year fallbacks if results are sparse
-- MUST use AskUserQuestion for all Phase 1-2 requirement gathering
-- NEVER guess user requirements — always ask explicitly
+- NEVER: WebSearch でリサーチせずに技術を推奨する
+- NEVER: トレーニングデータから機能やセットアップコマンドを想定する
+- NEVER: フェーズ 1 の質問で技術固有のオプションを使用する（要件ファースト）
+- MUST: スキャフォールディング前に決定を確認する（ユーザーの承認が必要）
+- MUST: すべての検索でシステムクロックから当年を使用する（`CURRENT_YEAR=$(date +%Y)`）
+- NEVER: 年、バージョン、コマンド構文にトレーニングデータを使用する — 常に WebSearch で検証
+- MUST: 年を考慮した検索クエリを使用し、結果が少ない場合は前年のフォールバックを追加する
+- MUST: フェーズ 1-2 のすべての要件収集に AskUserQuestion を使用する
+- NEVER: ユーザーの要件を推測する — 常に明示的に確認
 
-## Defaults (L2 - Soft)
+## デフォルト（L2 - ソフト）
 
-Important for quality consultation. Override with reasoning when appropriate.
+品質の高いコンサルテーションに重要。適切な理由がある場合はオーバーライド可。
 
-- Use WebSearch to discover current options
-- Present trade-offs based on research evidence
-- Verify setup commands from official documentation
-- Create CLAUDE.md after project setup
+- 最新オプションの発見に WebSearch を使用
+- リサーチエビデンスに基づくトレードオフを提示
+- 公式ドキュメントからセットアップコマンドを検証
+- プロジェクトセットアップ後に CLAUDE.md を作成
 
-## Guidelines (L3)
+## ガイドライン（L3）
 
-Recommendations for effective consultation.
+効果的なコンサルテーションのための推奨事項。
 
-- Consider presenting 3-5 candidates per technology category
-- Prefer creating trade-off matrices for complex decisions
+- consider: 技術カテゴリごとに 3-5 の候補を提示する
+- recommend: 複雑な意思決定にはトレードオフマトリクスを作成する

@@ -1,18 +1,18 @@
 #!/bin/bash
-# Session Summary Hook - Stop event
-# Outputs a summary of changes made during the session via systemMessage
-# Stack-agnostic
+# セッションサマリフック - Stop イベント
+# セッション中に行われた変更のサマリを systemMessage 経由で出力
+# スタック非依存
 #
-# Note: Stop hooks use JSON output with systemMessage for user visibility.
-# Plain stdout is only shown in verbose mode.
+# 注: Stop フックはユーザー表示のために systemMessage 付き JSON 出力を使用する。
+# プレーン stdout は verbose モードでのみ表示される。
 
-# Source workspace utilities
+# ワークスペースユーティリティを読み込み
 SCRIPT_DIR="$(dirname "$0")"
 if [ -f "$SCRIPT_DIR/workspace_utils.sh" ]; then
     source "$SCRIPT_DIR/workspace_utils.sh"
 fi
 
-# Build summary into a variable
+# サマリを変数に構築
 SUMMARY=""
 
 add_line() {
@@ -22,96 +22,96 @@ add_line() {
 
 add_line ""
 add_line "═══════════════════════════════════════════════════"
-add_line "                  SESSION SUMMARY                   "
+add_line "                  セッションサマリ                    "
 add_line "═══════════════════════════════════════════════════"
 add_line ""
 
-# Display workspace info
+# ワークスペース情報を表示
 if command -v get_workspace_id &> /dev/null; then
     WORKSPACE_ID=$(get_workspace_id)
-    add_line "[WORKSPACE] $WORKSPACE_ID"
+    add_line "[ワークスペース] $WORKSPACE_ID"
 
-    # Check for progress file
+    # 進捗ファイルを確認
     PROGRESS_FILE=$(get_progress_file "$WORKSPACE_ID")
     if [ -f "$PROGRESS_FILE" ]; then
-        add_line "  [PROGRESS] Progress file: exists"
+        add_line "  [進捗] 進捗ファイル: 存在します"
     fi
     add_line ""
 fi
 
-# Check if we're in a git repository
+# Git リポジトリかどうかを確認
 if git rev-parse --git-dir > /dev/null 2>&1; then
-    # Git status summary
-    add_line "[GIT STATUS]"
+    # Git ステータスサマリ
+    add_line "[GIT ステータス]"
     add_line "──────────────"
 
-    # Staged changes
+    # ステージ済みの変更
     STAGED=$(git diff --cached --name-only 2>/dev/null | wc -l | tr -d ' ')
     if [ "$STAGED" -gt 0 ]; then
-        add_line "  [STAGED] Staged files: $STAGED"
+        add_line "  [ステージ済み] ステージ済みファイル: $STAGED"
         while IFS= read -r file; do
             add_line "     $file"
         done < <(git diff --cached --name-only 2>/dev/null | head -5)
-        [ "$STAGED" -gt 5 ] && add_line "     ... and $((STAGED - 5)) more"
+        [ "$STAGED" -gt 5 ] && add_line "     ... 他 $((STAGED - 5)) ファイル"
     fi
 
-    # Unstaged changes
+    # 未ステージの変更
     UNSTAGED=$(git diff --name-only 2>/dev/null | wc -l | tr -d ' ')
     if [ "$UNSTAGED" -gt 0 ]; then
-        add_line "  [MODIFIED] Modified files: $UNSTAGED"
+        add_line "  [変更済み] 変更済みファイル: $UNSTAGED"
         while IFS= read -r file; do
             add_line "     $file"
         done < <(git diff --name-only 2>/dev/null | head -5)
-        [ "$UNSTAGED" -gt 5 ] && add_line "     ... and $((UNSTAGED - 5)) more"
+        [ "$UNSTAGED" -gt 5 ] && add_line "     ... 他 $((UNSTAGED - 5)) ファイル"
     fi
 
-    # Untracked files
+    # 未追跡ファイル
     UNTRACKED=$(git ls-files --others --exclude-standard 2>/dev/null | wc -l | tr -d ' ')
     if [ "$UNTRACKED" -gt 0 ]; then
-        add_line "  [NEW] Untracked files: $UNTRACKED"
+        add_line "  [新規] 未追跡ファイル: $UNTRACKED"
         while IFS= read -r file; do
             add_line "     $file"
         done < <(git ls-files --others --exclude-standard 2>/dev/null | head -5)
-        [ "$UNTRACKED" -gt 5 ] && add_line "     ... and $((UNTRACKED - 5)) more"
+        [ "$UNTRACKED" -gt 5 ] && add_line "     ... 他 $((UNTRACKED - 5)) ファイル"
     fi
 
-    # Branch info
+    # ブランチ情報
     BRANCH=$(git branch --show-current 2>/dev/null)
     if [ -n "$BRANCH" ]; then
         add_line ""
-        add_line "  [BRANCH] Current branch: $BRANCH"
+        add_line "  [ブランチ] 現在のブランチ: $BRANCH"
 
-        # Check if ahead/behind remote
+        # リモートに対する先行/遅延を確認
         AHEAD=$(git rev-list --count @{u}..HEAD 2>/dev/null || echo "0")
         BEHIND=$(git rev-list --count HEAD..@{u} 2>/dev/null || echo "0")
-        [ "$AHEAD" -gt 0 ] && add_line "     ^ $AHEAD commit(s) ahead of remote"
-        [ "$BEHIND" -gt 0 ] && add_line "     v $BEHIND commit(s) behind remote"
+        [ "$AHEAD" -gt 0 ] && add_line "     ^ リモートより $AHEAD コミット先行"
+        [ "$BEHIND" -gt 0 ] && add_line "     v リモートより $BEHIND コミット遅延"
     fi
 
-    # Recent commits in this session (last hour)
+    # このセッションでの最近のコミット（直近1時間）
     RECENT=$(git log --oneline --since="1 hour ago" 2>/dev/null | wc -l | tr -d ' ')
     if [ "$RECENT" -gt 0 ]; then
         add_line ""
-        add_line "  [COMMITS] Recent commits:"
+        add_line "  [コミット] 最近のコミット:"
         while IFS= read -r commit; do
             add_line "     $commit"
         done < <(git log --oneline --since="1 hour ago" 2>/dev/null | head -5)
     fi
 else
-    add_line "[INFO] Not a git repository"
+    add_line "[情報] Git リポジトリではありません"
 fi
 
 add_line ""
 add_line "═══════════════════════════════════════════════════"
 add_line ""
 
-# Output as JSON with systemMessage (will be shown to user)
-# Use Python for proper JSON escaping of the summary
+# JSON の systemMessage として出力（ユーザーに表示される）
+# Python を使用してサマリの適切な JSON エスケープを行う
 python3 -c "
 import json
 import sys
 summary = '''$SUMMARY'''
 print(json.dumps({'systemMessage': summary}))
-" 2>/dev/null || echo '{"systemMessage": "Session ended"}'
+" 2>/dev/null || echo '{"systemMessage": "セッションが終了しました"}'
 
 exit 0
