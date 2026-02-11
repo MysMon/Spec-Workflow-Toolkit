@@ -1696,6 +1696,36 @@ Agent Team が利用不可の場合、既存の Task tool パターンに自動�
 | product-manager | サブエージェント（Task） | 完全性チェックは独立作業で十分 |
 | verification-specialist | サブエージェント（Task） | SubagentStop hooks が確実に発火する利点を維持 |
 
+### Phase 2: /discuss コマンド（構造化ディスカッション）
+
+`commands/discuss.md` + `skills/workflows/discussion-protocol/` で定義。
+設計判断・技術選定・方針決定について、複数エージェントが弁証法的に議論する。
+
+**チーム構成（3+1+1 モデル）:**
+
+| 役割 | モード | 理由 |
+|------|--------|------|
+| 議論参加者 x3 | チームメイト | トピックに応じて動的にロール選出。対立軸を含む構成を推奨 |
+| devils-advocate | チームメイト（固定ロール） | 全ラウンドで批判的立場を維持。暗黙の前提を明示する義務 |
+| モデレーター | リーダー | プロセス介入専任（L1: 内容判断を表明しない） |
+
+**3ラウンド弁証法構造:**
+
+| ラウンド | 目的 | 制約 |
+|---------|------|------|
+| Position（必須） | 探索空間の初期サンプリング | L1: 独立実行（他者の意見を参照しない） |
+| Challenge（必須） | 探索空間の境界テスト | L1: 同意・賛同の表明を禁止 |
+| Synthesis（条件付き） | 構造化された折衷 | モデレーター判定で実施/スキップ |
+
+**同意バイアス対策（5層防御）:**
+1. devils-advocate 固定ロール
+2. Challenge Round の同意禁止 L1 ルール
+3. 構造化ヘッダーによる立場変更の追跡
+4. Position Round での独立実行（アンカリング防止）
+5. CONSENSUS 時の偽合意検出 + ユーザー警告
+
+詳細は `skills/workflows/discussion-protocol/SKILL.md` を参照。
+
 ---
 
 ## Operational Rules

@@ -72,6 +72,12 @@ claude --plugin-dir ./spec-workflow-toolkit
 | `/spec-workflow-toolkit:hotfix` | 本番環境の障害を迅速に修正 |
 | `/spec-workflow-toolkit:merge-conflict` | マージ時の競合を解決 |
 
+### 議論・合意形成
+
+| コマンド | 説明 |
+|----------|------|
+| `/spec-workflow-toolkit:discuss` | 複数エージェントによる構造化ディスカッション |
+
 ### セットアップ・管理
 
 | コマンド | 説明 |
@@ -150,11 +156,9 @@ flowchart LR
 
 ## Agent Team サポート（実験的）
 
-Agent Team 対応環境では、`/spec-workflow-toolkit:spec-review --auto` がチームモードでレビューを実行します。
-レビュアー間で発見を相互検証し、より具体的な指摘が得られます。
-Agent Team が利用できない環境では、従来のサブエージェント並列実行に自動フォールバックします。
+Agent Team 対応環境では、`spec-review --auto`（相互検証レビュー）と `discuss`（弁証法的ディスカッション）がチームモードで実行されます。非対応環境では従来のサブエージェント並列実行に自動フォールバックします。
 
-> **Note**: この機能は実験的（experimental）であり、opt-in です。Agent Team 非対応環境では動作に影響しません。
+> **Note**: 実験的（experimental）・opt-in 機能です。非対応環境では動作に影響しません。
 
 ---
 

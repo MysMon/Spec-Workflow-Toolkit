@@ -12,12 +12,12 @@ Plan→Review→Implement→Revise workflow (4 commands with iterative refinemen
 
 ```
 .claude-plugin/plugin.json   # Plugin metadata
-commands/                    # 16 slash commands
+commands/                    # 17 slash commands
 agents/                      # 13 subagent definitions
-skills/                      # 24 skill definitions
+skills/                      # 25 skill definitions
   core/                      #   6 core skills (subagent-contract, spec-philosophy, security-fundamentals, interview, bounded-autonomy, language-enforcement)
   detection/                 #   1 detection skill (stack-detector)
-  workflows/                 #   17 workflow skills (including team-orchestration)
+  workflows/                 #   18 workflow skills (including team-orchestration, discussion-protocol)
 hooks/                       # Event handlers (9 event types, 14 handlers) + Python validators
 docs/                        # DEVELOPMENT.md (detailed specs), specs/
 ```
@@ -35,6 +35,7 @@ docs/                        # DEVELOPMENT.md (detailed specs), specs/
 | Check hook implementation | `hooks/hooks.json`, `hooks/spec_context.sh` |
 | Understand insight tracking | `commands/review-insights.md`, `hooks/insight_capture.sh` |
 | Understand Agent Team integration | `skills/workflows/team-orchestration/SKILL.md` |
+| Understand multi-agent discussion | `commands/discuss.md`, `skills/workflows/discussion-protocol/SKILL.md` |
 
 ## Development Rules
 
@@ -49,9 +50,8 @@ YAML frontmatter fields:
 
 ### Editing Skills (`skills/**/SKILL.md`)
 
-- Keep SKILL.md ≤ 500 lines, ≤ 5,000 tokens
-- Use `reference.md`, `examples.md` for detailed content (loaded on demand)
-- Use `scripts/` for executable helpers (run, don't read into context)
+- `reference.md`, `examples.md` で詳細内容を分離（オンデマンド読み込み）
+- `scripts/` に実行可能ヘルパーを配置（read ではなく run）
 
 ### Editing Commands (`commands/*.md`)
 
@@ -59,14 +59,12 @@ YAML frontmatter fields:
 - `argument-hint`: Placeholder for arguments
 - `allowed-tools`: Tools available during execution
 
-**Validation Rule:** Ensure `allowed-tools` includes all tools referenced in instructions. If the command says "Use AskUserQuestion to confirm", then `AskUserQuestion` must be in `allowed-tools`.
-
 ### Editing Hooks (`hooks/hooks.json`)
 
-**CRITICAL for PreToolUse hooks:**
-- Use JSON decision control (`permissionDecision: "deny"`) with exit 0 (recommended)
-- Exit 2 = blocking error
-- Exit 1, 3, etc. = non-blocking error (tool may still execute!)
+PreToolUse hooks の exit code:
+- exit 0 + `permissionDecision: "deny"` = 安全なブロック（推奨）
+- exit 2 = blocking error
+- exit 1, 3, etc. = non-blocking error（ツールが実行される可能性あり）
 
 **Global hooks (9 event types, 14 handlers in hooks.json):**
 
@@ -95,60 +93,43 @@ See `docs/DEVELOPMENT.md` for full hook specification with code examples.
 
 **Skills and agents are fully injected into context. Keep content lean.**
 
-### URL Rule
+### URL と参照
+
+skills/agents/commands では URL を使わず、プレーンテキストで出典を示す。
+URL は `README.md` と `docs/DEVELOPMENT.md` にのみ記載する。
 
 | Do | Don't |
 |----|-------|
 | `From Claude Code Best Practices:` | `From [Claude Code Best Practices](https://...):` |
 | Plain text source attribution | `## Sources` or `## References` sections |
 
-**Rationale**: URLs consume tokens without adding actionable value. Keep URLs in README.md and DEVELOPMENT.md only.
+外部リソースを採用する場合は `docs/DEVELOPMENT.md` "Official References" に URL を追加する。
 
-### Reference Management Rule
+### README
 
-When referencing external resources (Anthropic blog posts, official docs, etc.) and adopting their patterns into this plugin:
+README.md is **user-facing documentation**（200-250 lines）。
 
-1. Add the reference to `docs/DEVELOPMENT.md` "Official References" section
-2. Use plain text attribution in skills/agents/commands (no URLs)
-3. Keep README.md references to essential items only (3-5 max)
+**Include:** plugin summary, quick start, command list, one diagram, best practices, link to DEVELOPMENT.md
 
-### README Guidelines
-
-README.md is **user-facing documentation**. Keep it focused on what users need to know.
-
-**Target**: 200-250 lines maximum
-
-**Include:**
-- What the plugin does (in one sentence)
-- Quick start (install + first command)
-- Command list with brief descriptions
-- One diagram maximum (plan→review→implement workflow)
-- Best practices (do/don't)
-- Link to DEVELOPMENT.md for details
-
-**Exclude (move to DEVELOPMENT.md if needed):**
-- Internal implementation details (file structures, why JSON, etc.)
-- Multiple Mermaid diagrams
-- Exhaustive reference lists
-- Rule hierarchy details (L1/L2/L3)
-- Marker types and agent coverage tables
+**Exclude (move to DEVELOPMENT.md):** implementation details, multiple diagrams, exhaustive references, L1/L2/L3 details
 
 **Test**: Can a new user understand what this does and start using it in 30 seconds?
 
-### Documentation Sync Rule
+### Post-Change Checklist
 
-When adding, removing, or renaming components:
-1. Update component counts in this file if they change
-2. Update `README.md` tables and directory tree (keep README under 250 lines)
-3. Update `docs/DEVELOPMENT.md` if templates/specs change
+コマンド・スキル・エージェント・フックの追加・削除・リネーム時のチェックリスト:
 
-### Version Rule
+1. `CLAUDE.md`: Project Structure のカウントを更新
+2. `README.md`: コマンド一覧テーブルに追加/削除（250行以内を維持）
+3. `docs/DEVELOPMENT.md`: 関連セクションがあれば更新（テンプレート・スペック変更時）
 
-Version is managed in `plugin.json` only (Single Source of Truth). Do not add version numbers to document titles or content.
+### Version
+
+Version は `plugin.json` のみで管理する（Single Source of Truth）。
 
 ### Obsolescence Prevention
 
-Avoid content that becomes outdated when external tools/APIs change.
+外部ツール・API の変更で陳腐化するコンテンツを避ける。
 
 | Avoid | Instead |
 |-------|---------|
@@ -156,11 +137,7 @@ Avoid content that becomes outdated when external tools/APIs change.
 | Version numbers ("v2.1.0") | "When available" or omit |
 | Prescriptive tool requirements | Examples with alternatives |
 
-**Skills**: Define processes, not static knowledge. Use WebSearch for current options.
-
-**Commands/Agents**: Concrete examples OK if framed as examples, not requirements.
-
-**Time-sensitive queries**: When a year is needed, derive it from the system clock (e.g., `date +%Y`). If results are thin (early in the year), add the previous year and a yearless "latest/recent" query.
+Skills ではプロセスを定義し、静的知識は避ける。年が必要な場合はシステム時刻から導出（`date +%Y`）。
 
 See `docs/DEVELOPMENT.md` "Command and Agent Content Guidelines" for details.
 
@@ -187,11 +164,33 @@ This plugin uses a 3-level rule hierarchy for balancing accuracy with creative p
 
 See `docs/DEVELOPMENT.md` "Instruction Design Guidelines" for full specification.
 
-## Coding Standards
+## Rules (L1 - Hard)
 
-- Semantic commits: `feat:`, `fix:`, `docs:`, `refactor:`
-- Test hook scripts on both bash and zsh
-- Keep documentation in sync with code changes
+- MUST: SKILL.md を 500 行・5,000 トークン以内に収める
+- MUST: コマンドの `allowed-tools` にコマンド内で参照する全ツールを含める
+- MUST: コマンド・スキル・エージェント・フックの追加・削除・リネーム時は Post-Change Checklist を実行し、3ファイル全ての更新が完了するまで作業完了としない
+- MUST: PreToolUse hooks では JSON decision control (`permissionDecision: "deny"`) with exit 0 を使用
+- MUST: Version は `plugin.json` のみで管理する（Single Source of Truth）
+- NEVER: skills/agents/commands に URL を記載しない
+- NEVER: ドキュメントタイトルや本文にバージョン番号を記載しない
+- NEVER: PreToolUse hooks で exit 1, 3 等を安全なブロックとして使用しない
+
+## Defaults (L2 - Soft)
+
+- Semantic commits を使用: `feat:`, `fix:`, `docs:`, `refactor:`
+- Hook スクリプトは bash と zsh の両方でテスト
+- 外部リソース採用時は `docs/DEVELOPMENT.md` "Official References" に URL を追加
+- skills/agents/commands ではプレーンテキスト帰属のみ使用
+- README.md の参照は必要最小限（3-5件以内）
+- README.md は 200-250 行以内に収める
+- スキルの詳細内容は `reference.md`, `examples.md` に分離
+
+## Guidelines (L3)
+
+- consider: 実行可能ヘルパーは `scripts/` に配置（read ではなく run）
+- consider: Skills ではプロセスを定義し、静的知識は避ける
+- prefer: 年が必要な場合はシステム時刻から導出（`date +%Y`）
+- consider: 外部ツール・API のバージョン固有情報を避け、陳腐化を防止
 
 ## More Info
 
