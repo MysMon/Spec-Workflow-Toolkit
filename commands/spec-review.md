@@ -1,7 +1,7 @@
 ---
 description: "Interactively review and refine a spec and design with the user - feedback loop until approved"
 argument-hint: "[path to spec file or feature name]"
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion, TodoWrite, TeamCreate, TaskCreate, TaskUpdate, TaskList, TaskGet, SendMessage
 ---
 
 # /spec-review - Interactive Plan Review
@@ -79,7 +79,104 @@ If product-manager fails or times out:
 
 ### Step 2: Auto Review (only if `--auto` flag is present)
 
-**If `--auto` is specified**, launch 5 parallel review agents before the user feedback loop:
+**If `--auto` is specified**, launch parallel review agents before the user feedback loop.
+
+Load the `team-orchestration` skill for Agent Team detection and spawn prompt templates.
+
+#### Agent Team Mode (team-orchestration skill による自動検出)
+
+Agent Team が利用可能な場合（TeamCreate tool が使用可能）:
+
+**Step 2a: チーム作成**
+
+TeamCreate で `spec-review-{feature-name}` チームを作成する。
+
+TeamCreate が失敗またはツールが利用不可の場合、以下の従来パターンにフォールバックし、ユーザーに通知:
+
+```
+Agent Team モードは現在利用できません。
+サブエージェント（Task tool）モードでレビューを実行します。
+```
+
+**Step 2b: チームメイトスポーン（3体）**
+
+以下の 3 体を Task tool で team_name を指定してスポーンする。
+各チームメイトのスポーンプロンプトは team-orchestration skill の reference.md から取得:
+
+```
+1. security-auditor:
+   subagent_type: general-purpose
+   team_name: spec-review-{feature-name}
+   mode: plan
+   prompt: reference.md の security-auditor テンプレート
+         + レビュー対象の spec/design パス
+
+2. qa-engineer:
+   subagent_type: general-purpose
+   team_name: spec-review-{feature-name}
+   mode: default
+   prompt: reference.md の qa-engineer テンプレート
+         + レビュー対象の spec/design パス
+
+3. system-architect:
+   subagent_type: general-purpose
+   team_name: spec-review-{feature-name}
+   mode: plan
+   prompt: reference.md の system-architect テンプレート
+         + レビュー対象の spec/design パス
+```
+
+**Step 2c: サブエージェント並列起動（2体、既存パターン）**
+
+以下の 2 体は従来通り Task tool（チームなし）で起動:
+- product-manager: 完全性レビュー
+- verification-specialist: 仕様と設計の整合性チェック
+
+Step 2b と 2c は並行して起動すること。
+
+**Step 2d: 相互レビュー促進**
+
+チームメイトは SendMessage で相互に発見を共有する。リーダーは以下を監視:
+- security-auditor -> qa-engineer: セキュリティ発見のテスト可能性評価依頼
+- system-architect -> security-auditor: 技術的妥当性の検証結果
+
+**Step 2e: インサイト抽出（リーダー側処理）**
+
+全チームメイトの完了報告（SendMessage）を受信後:
+
+1. 各メッセージから `PATTERN` / `LEARNED` / `INSIGHT` / `DECISION` / `ANTIPATTERN` マーカーを検索
+2. 発見されたマーカーごとに `insights/pending/` に JSON ファイルを Write:
+   ```json
+   {"id": "INS-{timestamp}", "category": "[marker-type]", "content": "[content]", "source": "team-member-[role]", "status": "pending"}
+   ```
+3. Confidence >= 85 の発見については verification-specialist サブエージェントで参照検証
+
+**Step 2f: チームクリーンアップ**
+
+全結果統合後:
+
+1. 各チームメイトに shutdown_request を送信
+2. チーム結果とサブエージェント結果を統合
+3. Step 3 に進む
+
+**Agent Team エラーリカバリ（サーキットブレイカー - 3段階判断）:**
+
+1. **個別障害（1体無応答）- 3段階判断:**
+   - **一次判断: TeammateIdle イベント受信時** → 当該チームメイトから中間報告（SendMessage）を受信済みか確認
+     - 中間報告あり → 正常完了の可能性あり、結果待機を継続
+     - 中間報告なし → ハングと判断、同ロールのサブエージェント（Task tool）を代替スポーン
+   - **二次判断: フォールバックタイムアウト** → TeammateIdle 未受信でも以下の時間で強制タイムアウト
+     - security-auditor: 7分（OWASP全項目横断+相互検証、実作業中央値6分+バッファ）
+     - qa-engineer: 5分、system-architect: 5分
+     - 上限キャップ: 全ロール共通10分（活動ベース延長含む）
+   - → 元チームメイトに shutdown_request → 残チームはそのまま継続
+   - → ユーザーに「[role] をサブエージェントに切り替えました」と通知
+2. **チーム障害（2体以上無応答）**: チームモード全体をブレイク → 全チームメイトに shutdown_request → 下記の従来パターンにフォールバック（5体サブエージェント）。ログに `team-fallback-full` を記録
+3. **API エラー（TeamCreate/SendMessage 失敗）**: 即時ブレイク → フォールバック通知をユーザーに表示 → 従来パターンで実行。同一セッション内でチームモードを再試行しない
+
+**Agent Team が利用不可の場合**: 以下の従来パターンを使用（フォールバック）。
+
+#### 従来パターン（Task tool による 5 並列レビュー）
 
 **CRITICAL: Launch all agents in a single message.**
 
@@ -338,6 +435,8 @@ When the user approves:
   - A decision requires choosing between trade-offs (e.g., "should we prioritize X or Y?")
   - Clarification is needed before making changes to spec or design
 - NEVER guess user intent when feedback is ambiguous — ask first
+- MUST fall back to Task tool pattern when Agent Team is unavailable (TeamCreate tool not accessible)
+- NEVER allow team members to ask the user directly — all user interaction MUST go through the leader via AskUserQuestion
 
 ## Defaults (L2 - Soft)
 

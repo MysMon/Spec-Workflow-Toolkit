@@ -14,11 +14,11 @@ Plan→Review→Implement→Revise workflow (4 commands with iterative refinemen
 .claude-plugin/plugin.json   # Plugin metadata
 commands/                    # 16 slash commands
 agents/                      # 13 subagent definitions
-skills/                      # 23 skill definitions
+skills/                      # 24 skill definitions
   core/                      #   6 core skills (subagent-contract, spec-philosophy, security-fundamentals, interview, bounded-autonomy, language-enforcement)
   detection/                 #   1 detection skill (stack-detector)
-  workflows/                 #   16 workflow skills
-hooks/                       # Event handlers (8 event types, 13 handlers) + Python validators
+  workflows/                 #   17 workflow skills (including team-orchestration)
+hooks/                       # Event handlers (9 event types, 14 handlers) + Python validators
 docs/                        # DEVELOPMENT.md (detailed specs), specs/
 ```
 
@@ -34,6 +34,7 @@ docs/                        # DEVELOPMENT.md (detailed specs), specs/
 | Understand skill pattern | `skills/core/subagent-contract/SKILL.md` |
 | Check hook implementation | `hooks/hooks.json`, `hooks/spec_context.sh` |
 | Understand insight tracking | `commands/review-insights.md`, `hooks/insight_capture.sh` |
+| Understand Agent Team integration | `skills/workflows/team-orchestration/SKILL.md` |
 
 ## Development Rules
 
@@ -67,7 +68,7 @@ YAML frontmatter fields:
 - Exit 2 = blocking error
 - Exit 1, 3, etc. = non-blocking error (tool may still execute!)
 
-**Global hooks (8 event types, 13 handlers in hooks.json):**
+**Global hooks (9 event types, 14 handlers in hooks.json):**
 
 | Hook | Script | Purpose |
 |------|--------|---------|
@@ -83,6 +84,7 @@ YAML frontmatter fields:
 | SubagentStop | `insight_capture.sh` | Capture marked insights from subagent output |
 | SubagentStop | `verify_references.py` | Validate file:line references in subagent output |
 | Stop | `session_summary.sh` | Record session summary on exit |
+| TeammateIdle | `teammate_quality_gate.sh` | Quality gate for team members |
 | SessionEnd | `session_cleanup.sh` | Clean up resources on session termination |
 
 **Agent-specific hooks:** Agents can define their own hooks in YAML frontmatter (e.g., `security-auditor.md` defines a stricter Bash validator). These run only when that agent is active. See `docs/DEVELOPMENT.md` "Component-Scoped Hooks" for details.

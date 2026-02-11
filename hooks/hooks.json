@@ -131,6 +131,18 @@
           }
         ]
       }
+    ],
+    "TeammateIdle": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/teammate_quality_gate.sh",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }

@@ -85,13 +85,7 @@ claude --plugin-dir ./spec-workflow-toolkit
 
 ## 計画 → レビュー → 実装 → 改訂
 
-複雑な機能開発を4つのフェーズに分けて進めます。
-
-**フェーズを分離する理由**
-- 各フェーズで AI のコンテキストを最大限活用できる
-- 計画後にレビューを挟むことで手戻りを減らせる
-- 各フェーズでユーザーと対話しながら改善できる
-- 長時間の作業でも途中で中断・再開できる
+複雑な機能開発を4つのフェーズに分けて進めます。各フェーズでコンテキストを最大限活用し、対話しながら改善できます。
 
 ```mermaid
 flowchart LR
@@ -137,19 +131,10 @@ flowchart LR
 
 ## セッション再開
 
-Claude Code では 2 つの再開方法があります。
-
 | 方法 | コマンド | 用途 |
 |------|----------|------|
-| **Claude Code 標準** | `claude --continue` | 直前のセッションをそのまま継続 |
-| **Spec-Workflow Toolkit** | `/spec-workflow-toolkit:resume` | 進捗ファイルから状態を復元 |
-
-| シナリオ | 推奨 |
-|----------|------|
-| ネットワーク切断後すぐに再接続 | `--continue` |
-| 翌日に作業を再開 | `/spec-workflow-toolkit:resume` |
-| 別のターミナルで作業継続 | `/spec-workflow-toolkit:resume` |
-| コンテキスト肥大化時 | `/spec-workflow-toolkit:resume` |
+| **Claude Code 標準** | `claude --continue` | 直前のセッションをそのまま継続（切断直後の再接続向き） |
+| **Spec-Workflow Toolkit** | `/spec-workflow-toolkit:resume` | 進捗ファイルから状態を復元（翌日再開、別ターミナル向き） |
 
 ---
 
@@ -160,6 +145,16 @@ Claude Code では 2 つの再開方法があります。
 - サブエージェントが発見した内容を自動キャプチャ
 - `/spec-workflow-toolkit:review-insights` で一つずつ評価し、CLAUDE.md や `.claude/rules/` に反映
 - セッション開始時に未評価のインサイトがあれば通知
+
+---
+
+## Agent Team サポート（実験的）
+
+Agent Team 対応環境では、`/spec-workflow-toolkit:spec-review --auto` がチームモードでレビューを実行します。
+レビュアー間で発見を相互検証し、より具体的な指摘が得られます。
+Agent Team が利用できない環境では、従来のサブエージェント並列実行に自動フォールバックします。
+
+> **Note**: この機能は実験的（experimental）であり、opt-in です。Agent Team 非対応環境では動作に影響しません。
 
 ---
 
@@ -183,51 +178,28 @@ Claude Code では 2 つの再開方法があります。
 
 ## プロジェクト固有ルール
 
-Spec-Workflow Toolkit は汎用ワークフローを提供します。プロジェクト固有のルールは `.claude/rules/` で管理できます。
-
-```bash
-# プロジェクト固有ルールを自動生成
-/spec-workflow-toolkit:project-setup
-```
-
+プロジェクト固有のルールは `/spec-workflow-toolkit:project-setup` で自動生成し、`.claude/rules/` で管理できます。
 詳細: [Manage Claude's memory](https://code.claude.com/docs/en/memory)
 
 ---
 
-## エージェント一覧
+## エージェント一覧（13体）
 
-### 分析・計画
-
-| エージェント | 説明 |
-|--------------|------|
-| `code-explorer` | コードベースを調査（読み取り専用） |
-| `code-architect` | 機能の設計書を作成 |
-| `system-architect` | システム全体の設計、設計決定の記録 |
-| `product-manager` | 要件を収集し、仕様書（PRD）を作成 |
-
-### 実装
-
-| エージェント | 説明 |
-|--------------|------|
-| `frontend-specialist` | UI・フロントエンドを実装 |
-| `backend-specialist` | API・バックエンドを実装 |
-| `ui-ux-designer` | デザインシステム、UI設計を担当 |
-
-### レビュー・検証
-
-| エージェント | 説明 |
-|--------------|------|
-| `qa-engineer` | テスト戦略を立案し、カバレッジを分析 |
-| `security-auditor` | セキュリティ脆弱性をレビュー |
-| `verification-specialist` | 事実確認、参照の検証を実施 |
-
-### 運用・保守
-
-| エージェント | 説明 |
-|--------------|------|
-| `devops-sre` | インフラ構築、CI/CD パイプラインを管理 |
-| `technical-writer` | ドキュメントを作成・更新 |
-| `legacy-modernizer` | レガシーコードを安全にリファクタリング |
+| カテゴリ | エージェント | 説明 |
+|----------|--------------|------|
+| 分析・計画 | `code-explorer` | コードベースを調査（読み取り専用） |
+| | `code-architect` | 機能の設計書を作成 |
+| | `system-architect` | システム全体の設計、設計決定の記録 |
+| | `product-manager` | 要件を収集し、仕様書（PRD）を作成 |
+| 実装 | `frontend-specialist` | UI・フロントエンドを実装 |
+| | `backend-specialist` | API・バックエンドを実装 |
+| | `ui-ux-designer` | デザインシステム、UI設計を担当 |
+| レビュー・検証 | `qa-engineer` | テスト戦略を立案し、カバレッジを分析 |
+| | `security-auditor` | セキュリティ脆弱性をレビュー |
+| | `verification-specialist` | 事実確認、参照の検証を実施 |
+| 運用・保守 | `devops-sre` | インフラ構築、CI/CD パイプラインを管理 |
+| | `technical-writer` | ドキュメントを作成・更新 |
+| | `legacy-modernizer` | レガシーコードを安全にリファクタリング |
 
 ---
 

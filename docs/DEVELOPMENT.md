@@ -895,6 +895,7 @@ This breaks if eslint is replaced by biome or another tool.
 | `PreCompact` | Save state before compaction | `pre_compact_save.sh` |
 | `SubagentStop` | Log completion, capture insights, validate references | `subagent_summary.sh`, `insight_capture.sh`, `verify_references.py` |
 | `Stop` | Session summary | `session_summary.sh` |
+| `TeammateIdle` | Quality gate for team members | `teammate_quality_gate.sh` |
 | `SessionEnd` | Cleanup resources | `session_cleanup.sh` |
 | `PermissionRequest` | Custom permission handling | - |
 | `Notification` | External notifications | - |
@@ -1628,6 +1629,75 @@ When modifying hooks or scripts:
 
 ---
 
+## Agent Team Integration（実験的）
+
+Agent Team は Claude Code の experimental API であり、サブエージェント（Task tool）とは異なり、チームメイト間で双方向通信が可能な並列エージェント実行基盤。
+
+### team-orchestration スキル
+
+`skills/workflows/team-orchestration/SKILL.md` で定義。Agent Team の検出、作成、フォールバックを管理する。
+
+**主な責務:**
+- Agent Team 利用可能性の検出（TeamCreate tool の有無）
+- チームメイトのスポーンとロール割り当て
+- スポーンプロンプトテンプレートの提供
+- インサイトキャプチャ（リーダー側処理）
+- チームクリーンアップ
+
+**フォールバック設計:**
+Agent Team が利用不可の場合、既存の Task tool パターンに自動フォールバックする（L1 ルール）。既存コマンドの動作に影響を与えない。
+
+### TeammateIdle Hook
+
+`hooks/teammate_quality_gate.sh` で実装。Agent Team メンバーがアイドル状態になる際に発火する。
+
+| 項目 | 値 |
+|------|------|
+| イベント | `TeammateIdle` |
+| タイムアウト | 5s |
+| 終了コード | exit 0（非ブロッキング）。exit 2 はフィードバック送信とメンバー再起動を引き起こすため使用しない |
+| 目的 | 品質ゲート専用（Layer 2）。インサイトキャプチャは Layer 1（プロンプト + リーダー後処理）で実施 |
+
+**2層アプローチ:**
+
+| 層 | 機構 | 保証 |
+|----|------|------|
+| Layer 1（主） | スポーンプロンプトの L1 ルールでチームメイトに PATTERN/LEARNED/INSIGHT マーカーと file:line 検証を義務付け。リーダーが SendMessage 出力を解析して insights/pending/ に書き込む | 確実に動作 |
+| Layer 2（副） | TeammateIdle hook で品質ゲート（成果物存在確認等）を実行。インサイトキャプチャには使用しない | 実験的（stdin 形式が未検証） |
+
+### スポーンプロンプトテンプレート
+
+チームメイトは agents/*.md の YAML frontmatter が適用されないため、スポーンプロンプトで制約を再現する。
+
+**テンプレートに含める要素:**
+- 役割名と責務説明
+- ツール制約（L1: 使用禁止ツールの明示）
+- 出力形式（subagent-contract フォーマット）
+- チームメイト間連携ルール（誰と通信すべきか）
+- 完了プロトコル（PATTERN/LEARNED/INSIGHT マーカー、file:line 検証）
+- 言語モード（日本語）
+
+**安全ネット:**
+- スポーンプロンプトの L1 ルール（ツール制約）
+- グローバル PreToolUse hooks（safety_check.py, prevent_secret_leak.py）がチームメイトにも発火
+- リーダーが出力をモニタリング
+
+詳細なテンプレート例は `skills/workflows/team-orchestration/reference.md` を参照。
+
+### Phase 1 スコープ: spec-review --auto
+
+初期スコープは `spec-review --auto` のみ。3 チームメイト + 2 サブエージェントのハイブリッド構成:
+
+| 役割 | モード | 理由 |
+|------|--------|------|
+| security-auditor | チームメイト | qa-engineer と相互検証が品質向上に直結 |
+| qa-engineer | チームメイト | セキュリティ指摘のテスト可能性を即座に評価 |
+| system-architect | チームメイト | 技術的実現可能性の観点から他の指摘を補強・反論 |
+| product-manager | サブエージェント（Task） | 完全性チェックは独立作業で十分 |
+| verification-specialist | サブエージェント（Task） | SubagentStop hooks が確実に発火する利点を維持 |
+
+---
+
 ## Operational Rules
 
 ### Before Committing
@@ -1672,6 +1742,7 @@ All URLs are centralized here. Skill and agent files should use plain text attri
 | [Hooks](https://code.claude.com/docs/en/hooks) | Event handlers |
 | [Plugins](https://code.claude.com/docs/en/plugins-reference) | plugin.json schema |
 | [Memory](https://code.claude.com/docs/en/memory) | .claude/rules/ |
+| [Agent Teams](https://code.claude.com/docs/en/agent-teams) | Agent Team API, TeammateIdle/TaskCompleted hooks |
 
 ### Official Examples
 
