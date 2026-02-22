@@ -101,28 +101,28 @@ Agent Team モードは現在利用できません。
 **ステップ 2b: チームメイトスポーン（3体）**
 
 以下の 3 体を Task tool で team_name を指定してスポーンする。
-各チームメイトのスポーンプロンプトは team-orchestration スキルの reference.md から取得:
+各チームメイトのスポーンプロンプトは team-orchestration スキルの REFERENCE.md から取得:
 
 ```
 1. security-auditor:
    subagent_type: general-purpose
    team_name: spec-review-{feature-name}
    mode: plan
-   prompt: reference.md の security-auditor テンプレート
+   prompt: REFERENCE.md の security-auditor テンプレート
          + レビュー対象の spec/design パス
 
 2. qa-engineer:
    subagent_type: general-purpose
    team_name: spec-review-{feature-name}
    mode: default
-   prompt: reference.md の qa-engineer テンプレート
+   prompt: REFERENCE.md の qa-engineer テンプレート
          + レビュー対象の spec/design パス
 
 3. system-architect:
    subagent_type: general-purpose
    team_name: spec-review-{feature-name}
    mode: plan
-   prompt: reference.md の system-architect テンプレート
+   prompt: REFERENCE.md の system-architect テンプレート
          + レビュー対象の spec/design パス
 ```
 

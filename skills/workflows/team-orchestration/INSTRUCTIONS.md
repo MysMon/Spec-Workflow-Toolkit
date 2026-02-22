@@ -69,21 +69,21 @@ Phase 1 対象: spec-review --auto の3ロール。
 - ツール制限 (L1): Write/Edit 禁止、Bash は読み取り専用監査コマンドのみ
 - 分析対象: OWASP Top 10、認証/認可、入力バリデーション、データ露出
 - チーム連携: qa-engineer とテスト可能性を相互確認、重大脆弱性はリーダーに即報告
-- 完全なスポーンプロンプトは reference.md を参照
+- 完全なスポーンプロンプトは REFERENCE.md を参照
 
 ### qa-engineer（概要）
 
 - ツール制限 (L1): 全標準ツール利用可能（Write/Edit/Bash 含む）
 - 分析対象: テストカバレッジギャップ、エッジケース、受入基準の検証可能性
 - チーム連携: security-auditor の指摘のテスト可能性評価、品質ゲートをリーダーに報告
-- 完全なスポーンプロンプトは reference.md を参照
+- 完全なスポーンプロンプトは REFERENCE.md を参照
 
 ### system-architect（概要）
 
 - ツール制限 (L1): Write/Edit/Bash 全て禁止、Read/Glob/Grep のみ
 - 分析対象: アーキテクチャ整合性、スケーラビリティ、技術的負債の影響
 - チーム連携: security-auditor の提案の技術的妥当性検証、実現可能性の懸念をリーダーに報告
-- 完全なスポーンプロンプトは reference.md を参照
+- 完全なスポーンプロンプトは REFERENCE.md を参照
 
 ## 3. インサイトキャプチャプロトコル（リーダー側）
 

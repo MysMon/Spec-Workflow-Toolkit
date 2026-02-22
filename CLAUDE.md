@@ -64,7 +64,7 @@ YAML フロントマターフィールド:
 
 コンテンツ分離（二段階ロード）:
 - `INSTRUCTIONS.md`: 詳細手順（オンデマンド読み込み。SKILL.md 本文からポインターで参照）
-- `reference.md`, `examples.md`: 補足資料（オンデマンド読み込み）
+- `REFERENCE.md`, `EXAMPLES.md`: 補足資料（オンデマンド読み込み）
 - `scripts/`: 実行可能ヘルパー（read ではなく run）
 
 ### コマンドの編集 (`commands/*.md`)
@@ -214,7 +214,7 @@ L1/L2/L3 マーカーとセクション見出しの詳細な書式は `docs/spec
 - skills/agents/commands ではプレーンテキスト帰属のみ使用
 - README.md の参照は必要最小限（3-5件以内）
 - README.md は 200-250 行以内に収める
-- スキルの詳細手順は `INSTRUCTIONS.md` に、補足資料は `reference.md`, `examples.md` に分離
+- スキルの詳細手順は `INSTRUCTIONS.md` に、補足資料は `REFERENCE.md`, `EXAMPLES.md` に分離
 - 日本語ファイルの括弧は全角 `（）`、英語ファイルは半角 `()` を使い分ける
 - リストマーカーはハイフン `-` に統一（`*` は使用しない）
 - 表記の詳細基準は `docs/specs/notation-standard.md` を参照
