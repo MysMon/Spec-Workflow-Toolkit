@@ -54,7 +54,7 @@ Claude Code Best Practices より:
 
 ## エージェント固有のフォーマット
 
-各エージェントタイプの詳細な例は `reference.md` を参照:
+各エージェントタイプの詳細な例は `REFERENCE.md` を参照:
 - 探索エージェント（code-explorer, Explore）
 - 設計エージェント（code-architect, system-architect）
 - レビューエージェント（qa-engineer, security-auditor）

@@ -22,7 +22,7 @@
         - devils-advocate（固定）
 
 [T+15s] リーダー: 4体のチームメイトをスポーン
-        全員に reference.md のテンプレート + トピック + コンテキストを付与
+        全員に REFERENCE.md のテンプレート + トピック + コンテキストを付与
 
 --- Round 1: Position（並列実行）---
 

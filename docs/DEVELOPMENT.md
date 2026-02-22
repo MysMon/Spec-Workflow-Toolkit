@@ -593,9 +593,9 @@ SKILL.md はコンテキストに常時注入されるため、**フロントマ
 my-skill/
 ├── SKILL.md           # Stage 1: 常時注入（フロントマター + ポインター、500B以内）
 ├── INSTRUCTIONS.md    # Stage 2: 詳細手順（オンデマンド読み込み）
-├── reference.md       # 補足資料（オンデマンド読み込み）
+├── REFERENCE.md       # 補足資料（オンデマンド読み込み）
 │   └── [特定シナリオのステップバイステップ手順]
-└── examples.md        # 具体例（オンデマンド読み込み）
+└── EXAMPLES.md        # 具体例（オンデマンド読み込み）
     └── [説明ではなく例示]
 ```
 
@@ -781,7 +781,7 @@ SKILL.md はコンテキストに常時注入される。フロントマター +
 | SKILL.md サイズ | 500バイト以内（フロントマター + ポインター行のみ） |
 | description | 概要1行 + Use when: 1行 + Trigger phrases: 1行（3-4行に圧縮） |
 | INSTRUCTIONS.md | 詳細手順（サイズ制限なし、オンデマンド読み込み） |
-| サポートファイル | `reference.md`、`examples.md` を使用 |
+| サポートファイル | `REFERENCE.md`、`EXAMPLES.md` を使用 |
 
 **200-500バイト以下のスキルは未分割でも可。**
 
@@ -789,8 +789,8 @@ SKILL.md はコンテキストに常時注入される。フロントマター +
 my-skill/
 ├── SKILL.md           # Stage 1: 常時注入（フロントマター + ポインター、500B以内）
 ├── INSTRUCTIONS.md    # Stage 2: 詳細手順（オンデマンド読み込み）
-├── reference.md       # 補足ドキュメント（オンデマンド読み込み）
-├── examples.md        # 使用例（オンデマンド読み込み）
+├── REFERENCE.md       # 補足ドキュメント（オンデマンド読み込み）
+├── EXAMPLES.md        # 使用例（オンデマンド読み込み）
 └── scripts/
     └── helper.py      # 実行されるもの、コンテキストには読み込まれない
 ```
@@ -1719,7 +1719,7 @@ Agent Team が利用不可の場合、既存の Task tool パターンに自動�
 - グローバル PreToolUse hooks（safety_check.py, prevent_secret_leak.py）がチームメイトにも発火
 - リーダーが出力をモニタリング
 
-詳細なテンプレート例は `skills/workflows/team-orchestration/reference.md` を参照。
+詳細なテンプレート例は `skills/workflows/team-orchestration/REFERENCE.md` を参照。
 
 ### Phase 1 スコープ: spec-review --auto
 

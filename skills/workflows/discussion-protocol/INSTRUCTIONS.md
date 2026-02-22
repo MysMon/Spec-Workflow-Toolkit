@@ -147,7 +147,7 @@ CONSENSUS 到達時:
 
 ## 7. 結果統合フォーマット
 
-完全なフォーマットは reference.md を参照。概要:
+完全なフォーマットは REFERENCE.md を参照。概要:
 
 ```
 ## Discussion Result: [トピック]

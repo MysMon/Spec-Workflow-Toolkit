@@ -19,9 +19,9 @@ Agent Team が利用可能な環境で spec-review --auto を実行する標準�
          3名のレビュアーがチームとして相互検証を行います。"
 
 [T+10s] リーダー: チームメイト3体をスポーン
-        - security-auditor (reference.md のテンプレート使用)
-        - qa-engineer (reference.md のテンプレート使用)
-        - system-architect (reference.md のテンプレート使用)
+        - security-auditor (REFERENCE.md のテンプレート使用)
+        - qa-engineer (REFERENCE.md のテンプレート使用)
+        - system-architect (REFERENCE.md のテンプレート使用)
 
 [T+15s] リーダー: サブエージェント2体を並列起動 (Task tool)
         - product-manager

@@ -71,14 +71,14 @@ TeamCreate が失敗またはツールが利用不可の場合、ステップ 2 
 **ステップ 2b: チームメイトスポーン（4体）**
 
 以下の 4 体を Task tool で team_name を指定してスポーン。
-各チームメイトのスポーンプロンプトは discussion-protocol skill の reference.md から取得:
+各チームメイトのスポーンプロンプトは discussion-protocol skill の REFERENCE.md から取得:
 
 ```
 1-3. 議論参加者 x3:
    subagent_type: general-purpose
    team_name: discuss-{topic-slug}
    mode: plan
-   prompt: reference.md の汎用テンプレート
+   prompt: REFERENCE.md の汎用テンプレート
          + ロール名・専門領域の差し替え
          + トピック + コンテキスト
 
@@ -86,7 +86,7 @@ TeamCreate が失敗またはツールが利用不可の場合、ステップ 2 
    subagent_type: general-purpose
    team_name: discuss-{topic-slug}
    mode: plan
-   prompt: reference.md の devils-advocate テンプレート
+   prompt: REFERENCE.md の devils-advocate テンプレート
          + トピック + コンテキスト
 ```
 
@@ -166,7 +166,7 @@ DIVERGENT が続く場合、論点を絞って追加ラウンドを実施。
 
 #### 統合レポート作成
 
-discussion-protocol skill の reference.md「結果統合フォーマット」に従い統合レポートを作成:
+discussion-protocol skill の REFERENCE.md「結果統合フォーマット」に従い統合レポートを作成:
 - 合意マトリクス（論点別合意状態）
 - モデレーター裁定（分裂論点への判断材料整理）
 - 立場変遷（各メンバーの立場変化）
