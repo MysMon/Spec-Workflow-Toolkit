@@ -585,17 +585,17 @@ Claude 4.x は指示を正確に遵守する。創造的な問題解決を促進
 ステップを機械的に辿るのではなく、自分の判断を活用する。
 ```
 
-### 指示の段階的開示
+### 指示の段階的開示（二段階ロード構造）
 
-メインの指示を簡潔に保ち、詳細はリファレンスファイルに:
+SKILL.md はコンテキストに常時注入されるため、**フロントマター + ポインター行のみ**（500バイト以内目標）に留め、詳細手順は `INSTRUCTIONS.md` に分離してオンデマンド読み込みにする:
 
 ```
 my-skill/
-├── SKILL.md           # コア指示（300行未満）
-│   └── [ゴール + 制約 + 高レベルのアプローチ]
-├── reference.md       # 詳細パターン（オンデマンド読み込み）
+├── SKILL.md           # Stage 1: 常時注入（フロントマター + ポインター、500B以内）
+├── INSTRUCTIONS.md    # Stage 2: 詳細手順（オンデマンド読み込み）
+├── reference.md       # 補足資料（オンデマンド読み込み）
 │   └── [特定シナリオのステップバイステップ手順]
-└── examples.md        # 具体例
+└── examples.md        # 具体例（オンデマンド読み込み）
     └── [説明ではなく例示]
 ```
 
@@ -674,7 +674,7 @@ skills:
 
 #### スキル割り当てガイドライン
 
-スキルはエージェントのコンテキストに完全注入される。各スキルは約2,500-3,000トークンを消費。
+スキルの SKILL.md はエージェントのコンテキストに常時注入される（二段階ロード構造により各スキル約150-200トークン）。詳細手順は INSTRUCTIONS.md に分離されオンデマンド読み込みとなるが、スキル数が増えるとベースコストも増加するため、必要最小限に留める。
 
 **エージェントが実際に使用するスキルのみを含める:**
 
@@ -726,27 +726,37 @@ grep -n "skill-name" agents/agent-name.md
 
 ### スキルテンプレート
 
-`skills/[category]/[name]/SKILL.md` を作成:
+**二段階ロード構造**: SKILL.md はコンテキストに常時注入されるため、フロントマター + ポインター行のみとする。詳細手順は `INSTRUCTIONS.md` に分離し、スキル起動時に Read ツールでオンデマンド読み込みする。
+
+**Stage 1: `skills/[category]/[name]/SKILL.md`**（常時注入、500バイト以内目標）:
 
 ```yaml
 ---
 name: skill-name
 description: |
-  何をするか。
-
-  Use when:
-  - 条件 1
-  - 条件 2
-
-  Trigger phrases: keyword1, keyword2
+  概要（1行）。
+  Use when: 条件1、条件2、条件3。
+  Trigger phrases: keyword1, keyword2, keyword3
 allowed-tools: Read, Glob, Grep
 model: sonnet
 user-invocable: false
 ---
 
+詳細手順は同ディレクトリの `INSTRUCTIONS.md` を参照。
+```
+
+**Stage 2: `skills/[category]/[name]/INSTRUCTIONS.md`**（オンデマンド読み込み）:
+
+```markdown
 # スキル名
 
-[指示...]
+[詳細手順、ルール、パターン、ワークフロー...]
+
+## ルール（L1 - ハード）
+[...]
+
+## デフォルト（L2 - ソフト）
+[...]
 ```
 
 #### スキルフィールドリファレンス
@@ -754,7 +764,7 @@ user-invocable: false
 | フィールド | 必須 | 説明 |
 |-------|----------|-------------|
 | `name` | はい | kebab-case 識別子 |
-| `description` | はい | サマリ + "Use when:" + "Trigger phrases:" |
+| `description` | はい | 概要1行 + "Use when:" 1行 + "Trigger phrases:" 1行（3-4行に圧縮） |
 | `allowed-tools` | いいえ | スキルがアクティブ時に利用可能なツール |
 | `model` | いいえ | 使用するモデル |
 | `user-invocable` | いいえ | `true` = ユーザーが `/skill-name` で実行可能 |
@@ -762,23 +772,27 @@ user-invocable: false
 | `agent` | いいえ | `context: fork` 時のエージェントタイプ（例: `Explore`、`Plan`、`general-purpose`） |
 | `hooks` | いいえ | スキルスコープのライフサイクルフック（PreToolUse、PostToolUse、Stop） |
 
-#### 段階的開示ガイドライン
+#### 段階的開示ガイドライン（二段階ロード構造）
 
-スキルはコンテキストに完全注入される。簡潔に保つ:
+SKILL.md はコンテキストに常時注入される。フロントマター + ポインターのみに留める:
 
 | 制限 | 推奨 |
 |-------|----------------|
-| SKILL.md 行数 | 500行以下 |
-| SKILL.md トークン | 5,000以下 |
+| SKILL.md サイズ | 500バイト以内（フロントマター + ポインター行のみ） |
+| description | 概要1行 + Use when: 1行 + Trigger phrases: 1行（3-4行に圧縮） |
+| INSTRUCTIONS.md | 詳細手順（サイズ制限なし、オンデマンド読み込み） |
 | サポートファイル | `reference.md`、`examples.md` を使用 |
+
+**200-500バイト以下のスキルは未分割でも可。**
 
 ```
 my-skill/
-├── SKILL.md        # メイン指示（500行以下）
-├── reference.md    # 詳細ドキュメント（オンデマンド読み込み）
-├── examples.md     # 使用例（オンデマンド読み込み）
+├── SKILL.md           # Stage 1: 常時注入（フロントマター + ポインター、500B以内）
+├── INSTRUCTIONS.md    # Stage 2: 詳細手順（オンデマンド読み込み）
+├── reference.md       # 補足ドキュメント（オンデマンド読み込み）
+├── examples.md        # 使用例（オンデマンド読み込み）
 └── scripts/
-    └── helper.py   # 実行されるもの、コンテキストには読み込まれない
+    └── helper.py      # 実行されるもの、コンテキストには読み込まれない
 ```
 
 #### スキルコンテンツガイドライン

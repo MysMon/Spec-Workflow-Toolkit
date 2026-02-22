@@ -53,16 +53,19 @@ YAML フロントマターフィールド:
 
 ### スキルの編集 (`skills/**/SKILL.md`)
 
+**二段階ロード構造:** SKILL.md はコンテキストに常時注入されるため、フロントマター + ポインターのみに留める。詳細手順は `INSTRUCTIONS.md` に分離し、必要時のみ Read ツールで読み込む。
+
 YAML フロントマターフィールド:
 - `name`: スキル名（必須）
-- `description`: 説明（必須、`Use when:` / `Trigger phrases:` を含む）
+- `description`: 説明（必須、`Use when:` / `Trigger phrases:` を含む。3-4行に圧縮）
 - `allowed-tools`: 実行中に利用可能なツール
 - `model`: sonnet（デフォルト）
 - `user-invocable`: ユーザーから直接呼び出し可能か（デフォルト: false）
 
-コンテンツ分離:
-- `reference.md`, `examples.md` で詳細内容を分離（オンデマンド読み込み）
-- `scripts/` に実行可能ヘルパーを配置（read ではなく run）
+コンテンツ分離（二段階ロード）:
+- `INSTRUCTIONS.md`: 詳細手順（オンデマンド読み込み。SKILL.md 本文からポインターで参照）
+- `reference.md`, `examples.md`: 補足資料（オンデマンド読み込み）
+- `scripts/`: 実行可能ヘルパー（read ではなく run）
 
 ### コマンドの編集 (`commands/*.md`)
 
@@ -102,7 +105,7 @@ PreToolUse hooks の exit code:
 
 ## コンテンツガイドライン
 
-**スキルとエージェントはコンテキストに完全注入される。コンテンツを簡潔に保つ。**
+**スキルの SKILL.md はコンテキストに常時注入される。SKILL.md はフロントマター + ポインターのみ（500バイト以内目標）とし、詳細手順は `INSTRUCTIONS.md` に分離する（二段階ロード構造）。エージェントも同様にコンテキストに注入されるため簡潔に保つ。**
 
 ### URL と参照
 
@@ -190,7 +193,7 @@ L1/L2/L3 マーカーとセクション見出しの詳細な書式は `docs/spec
 
 ## ルール（L1 - ハード）
 
-- MUST: SKILL.md を 500 行・5,000 トークン以内に収める
+- MUST: SKILL.md はフロントマター + ポインター行のみ（500 バイト以内目標）。詳細手順は `INSTRUCTIONS.md` に分離（二段階ロード構造）
 - MUST: コマンドの `allowed-tools` にコマンド内で参照する全ツールを含める
 - MUST: コマンド・スキル・エージェント・フックの追加・削除・リネーム時は変更後チェックリストを実行し、3ファイル全ての更新が完了するまで作業完了としない
 - MUST: PreToolUse hooks では JSON decision control (`permissionDecision: "deny"`) with exit 0 を使用
@@ -211,7 +214,7 @@ L1/L2/L3 マーカーとセクション見出しの詳細な書式は `docs/spec
 - skills/agents/commands ではプレーンテキスト帰属のみ使用
 - README.md の参照は必要最小限（3-5件以内）
 - README.md は 200-250 行以内に収める
-- スキルの詳細内容は `reference.md`, `examples.md` に分離
+- スキルの詳細手順は `INSTRUCTIONS.md` に、補足資料は `reference.md`, `examples.md` に分離
 - 日本語ファイルの括弧は全角 `（）`、英語ファイルは半角 `()` を使い分ける
 - リストマーカーはハイフン `-` に統一（`*` は使用しない）
 - 表記の詳細基準は `docs/specs/notation-standard.md` を参照
