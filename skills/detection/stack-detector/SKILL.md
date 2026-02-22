@@ -12,3 +12,4 @@ agent: Explore
 ---
 
 詳細手順は同ディレクトリの `INSTRUCTIONS.md` を参照。
+検出テーブル一覧は `REFERENCE.md` を参照。

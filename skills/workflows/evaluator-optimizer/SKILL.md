@@ -10,3 +10,4 @@ user-invocable: true
 ---
 
 詳細手順は同ディレクトリの `INSTRUCTIONS.md` を参照。
+実践例は `EXAMPLES.md` を参照。
