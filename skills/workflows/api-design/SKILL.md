@@ -10,3 +10,4 @@ user-invocable: true
 ---
 
 詳細手順は同ディレクトリの `INSTRUCTIONS.md` を参照。
+参照テーブルは `REFERENCE.md`、スキーマ例は `EXAMPLES.md` を参照。
