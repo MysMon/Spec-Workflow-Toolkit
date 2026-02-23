@@ -69,7 +69,7 @@ Anthropic の「Effective Harnesses for Long-Running Agents」では、エージ
 | エージェント | モデル | 用途 |
 |-------|-------|---------|
 | `code-explorer` | Sonnet | 深いコードベース分析（4フェーズ探索） |
-| ビルトイン `Explore` | Haiku | クイックルックアップと簡単な検索 |
+| ビルトイン `Explore` | Sonnet | クイックルックアップと簡単な検索 |
 | `code-architect` | Sonnet | 機能レベルの実装ブループリント |
 | `product-manager` | Opus | 仕様書作成（高品質 PRD） |
 | `verification-specialist` | Sonnet | 参照の検証 |

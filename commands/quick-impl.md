@@ -138,7 +138,7 @@ Options:
 **重要:** 常に適切なスペシャリストエージェントに実装を委任すること。
 
 ```
-Task ツールで適切なスペシャリストを起動（単純なタスクには model: haiku）:
+Task ツールで適切なスペシャリストを起動:
 
 - フロントエンドコード → frontend-specialist
 - バックエンドコード → backend-specialist
