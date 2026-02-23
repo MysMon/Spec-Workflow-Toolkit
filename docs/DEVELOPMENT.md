@@ -669,7 +669,7 @@ skills:
 |-------|----------|----------------|
 | **Opus** | 複雑な推論、高影響 | system-architect、product-manager |
 | **Sonnet** | コスト/能力のバランス | code-explorer、qa-engineer、security-auditor、verification-specialist |
-| **Haiku** | 高速、低コスト処理 | /code-review でのスコアリング |
+| **Haiku** | 高速、低コスト処理 | stack-detector、git-mastery、code-quality |
 | **inherit** | ユーザーがトレードオフを制御 | frontend-specialist、backend-specialist |
 
 #### スキル割り当てガイドライン

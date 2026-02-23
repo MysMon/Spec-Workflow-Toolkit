@@ -381,7 +381,7 @@ Task ツールで適切なスペシャリストを起動:
 
 テスト修正 → qa-engineer
 コード変更 → frontend-specialist または backend-specialist
-CI 設定変更 → backend-specialist（単純な修正は model: haiku）
+CI 設定変更 → backend-specialist
 
 プロンプト:
 CI 修正が必要です。

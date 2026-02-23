@@ -147,7 +147,7 @@ Thoroughness: quick
 **常に適切なスペシャリストに実装を委任すること:**
 
 ```
-Task ツールで適切なスペシャリストを起動（単純な変更には model: haiku）:
+Task ツールで適切なスペシャリストを起動:
 
 - コードロジック → backend-specialist または frontend-specialist
 - テスト → qa-engineer
